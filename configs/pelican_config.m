@@ -25,6 +25,7 @@ c.sensors.gpsreceiver.dt = 0.2;
 c.sensors.gpsreceiver.seed = 123456; %set to zero to have random seed
 c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
 c.sensors.gpsreceiver.R_SIGMA = 0.02;             % receiver noise standard deviation 
+c.sensors.gpsreceiver.tnsv  = length(params.environment.gpsspacesegment.svs);
 c.sensors.gpsreceiver.originutmcoords = params.environment.area.originutmcoords;
 c.sensors.gpsreceiver.DT = params.DT;
 

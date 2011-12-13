@@ -1,5 +1,5 @@
-classdef GPS<Sensor
-    % Abstract class for a generic GPS sensor.
+classdef GPSReceiver<Sensor
+    % Abstract class for a generic GPS receiver.
     % This is a simple wrapper, it does not include any code, its only purpouse is to 
     % allow for runtime type checking.
     %
@@ -7,7 +7,7 @@ classdef GPS<Sensor
     %    GPS(objparams) - constructs the object, to be called only from derived subclasses.
     %
     methods
-        function obj = GPS(objparams)       
+        function obj = GPSReceiver(objparams)       
             % constructs the object
             % Calls the Sensor constructor
             % 
