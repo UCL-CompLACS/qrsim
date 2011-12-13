@@ -34,13 +34,12 @@ classdef Steppable<handle
             % this is an abstract class so this contructor is meant to be called by any 
             % subclass.
             %
-            global params;
-            
-            r = rem(objparams.dt,params.dt);
+           
+            r = rem(objparams.dt,objparams.DT);
             if(((r<obj.TOL)||((objparams.dt-r)<obj.TOL)) && (objparams.dt~=0))
                 obj.dt = objparams.dt;
             else
-                error('dt must be a multiple of the simulation timestep %fs',params.dt);
+                error('dt must be a multiple of the simulation timestep %fs',objparams.DT);
             end
             
             obj.active = objparams.on;
