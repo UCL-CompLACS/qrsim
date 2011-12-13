@@ -9,14 +9,14 @@ close all;
 %clear classes;
 clc;
 
-% shared global parameters and variables
-global params state;
+
+%global state;
 
 % load parameters and do housekeeping
 % always to be executed before anything else!!
 % check default_config for the set of config parameters
 % including dt
-init('default_config');
+state = init('default_config');
 
 % as controller one could use a joystick
 % (note: needs matlab vr toolbox)
@@ -33,7 +33,7 @@ state.platforms(1).plotTrajectory(1);
 
 % number of steps we run the simulation for
 N = 30000;
-fprintf('simulating %d minutes of real time\n',(N*params.dt)/60);
+fprintf('simulating %d minutes of real time\n',(N*state.DT)/60);
 
 
 % add a simple 2D plot of the helicopter altitude
@@ -74,7 +74,7 @@ for i=1:N,
     end    
     % update the altitude plot
     t = 1:i;
-    %set(hanxy1,'Xdata',XX1(1,1:i));%t.*params.dt);
+    %set(hanxy1,'Xdata',XX1(1,1:i));%t.*state.DT);
     %set(hanxy1,'Ydata',XX1(2,1:i));
 
     % update graphical output
@@ -82,11 +82,11 @@ for i=1:N,
     state.platforms(1).updateGraphics();
     
     if (params.display3d.on ==1)
-        wait = max(0,params.dt-toc(tloop));   
+        wait = max(0,state.DT-toc(tloop));   
         pause(wait);
     end
     
-    state.t=state.t+params.dt;
+    state.t=state.t+state.DT;
 end
 a=toc(tbegin);
 
