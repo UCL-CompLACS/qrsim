@@ -14,11 +14,6 @@ classdef GPSSpaceSegmentGM < SteppablePRNG
     % [2] Carlson, Justin, "Mapping Large, Urban Environments with GPS-Aided SLAM" (2010).
     %     Dissertations. Paper 44.
     %
-    % GPSSpaceSegmentGM Properties:
-    %    PR_BETA                    - process time constant (from [2])
-    %    PR_SIGMA                   - process standard deviation (from [2])
-    %    tStart                     - simulation start GPS time
-    %
     % GPSSpaceSegmentGM Methods:
     %    GPSSpaceSegmentGM(objparams)- constructor
     %    update([])                 - propagates the noise state forward in time
@@ -42,7 +37,13 @@ classdef GPSSpaceSegmentGM < SteppablePRNG
             % Example:
             %
             %   obj=GPSSpaceSegmentGM(objparams);
-            %       objparams - gps parameters defined in general config file
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active 
+            %                objparams.seed - prng seed, random if 0 
+            %                objparams.PR_BETA - process time constant
+            %                objparams.PR_SIGMA - process standard deviation 
+            %                objparams.tStart - simulation start in GPS time
             %
             global state;
             
@@ -54,7 +55,7 @@ classdef GPSSpaceSegmentGM < SteppablePRNG
             
             
             % read in the precise satellite orbits
-            state.environment.gpsspacesegment.stdPe = readSP3(Orbits, objparams.preciseorbitfile);
+            state.environment.gpsspacesegment.stdPe = readSP3(Orbits(), objparams.preciseorbitfile);
             state.environment.gpsspacesegment.stdPe.compute();
             
             state.environment.gpsspacesegment.svs = objparams.svs;

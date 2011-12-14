@@ -25,10 +25,12 @@ classdef AltimeterGM<Altimeter
             % Example:
             %
             %   obj=AltimeterGM(objparams)
-            %       objparams - configuration parameters 
-            %                   objparams.on - 1 if active
-            %                   objparams.dt - object's timestep
-            %                   objparams.seed - prng seed
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active
+            %                objparams.seed - prng seed, random if 0
+            %                objparams.BETA - noise time constant
+            %                objparams.SIGMA - noise standard deviation
             %
             obj = obj@Altimeter(objparams);
             obj.BETA = objparams.BETA;

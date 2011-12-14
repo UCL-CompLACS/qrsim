@@ -16,6 +16,14 @@ classdef SteppablePRNG<Steppable
             % The methods uses objparams.seed to seed random stream or to initialise it
             % randomly if objparams.seed = 0.
             % 
+            % Example:
+            % 
+            %   obj=SteppablePRNG(objparams)
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active 
+            %                objparams.seed - prng seed, random if 0 
+            %
             % Note:
             % this is an abstract class so this contructor is meant to be called by any 
             % subclass.

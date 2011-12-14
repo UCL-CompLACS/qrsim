@@ -16,12 +16,12 @@ classdef Steppable<handle
     %                        *hyperlink broken because the method is abstract
     %
     properties (Constant)
-        TOL=1e-10;    % tolerance used when comparing float times
+        TOL=1e-10;    % tolerance used when comparing float times (Constant)
     end
     
     properties (Access=protected)
         dt            % timestep of this object
-        active = 0;   % one if the object is in use
+        active = 0;   % 1 if the object is in active use
     end
     
     methods (Sealed)
@@ -30,6 +30,14 @@ classdef Steppable<handle
             % The methods uses objparams.dt to set the object timestep (must be a multiple
             % of the simulation timestep) and objparams.on to set if the object is active.
             % 
+            % Example:
+            % 
+            %   obj=Steppable(objparams)
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active
+            % 
+            %
             % Note:
             % this is an abstract class so this contructor is meant to be called by any 
             % subclass.

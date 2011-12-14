@@ -15,8 +15,16 @@ classdef AerodynamicTurbulence<SteppablePRNG
         function obj = AerodynamicTurbulence(objparams)
             % constructs the object and calls the SteppablePRNG constructor
             %
+            % Example:
+            % 
+            %   obj=AerodynamicTurbulence(objparams)
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active 
+            %                objparams.seed - prng seed, random if 0 
+            %
             % Note:
-            % this is an abstract class so this contructor is meant to be called by the
+            % this is an abstract class so this contructor is meant to be called by any 
             % subclass.
             %
             obj = obj@SteppablePRNG(objparams);

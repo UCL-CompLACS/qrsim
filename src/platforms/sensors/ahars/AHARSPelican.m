@@ -22,13 +22,14 @@ classdef AHARSPelican<AHARS
             % Example:
             %
             %   obj = AHARS(objparams)
-            %       objparams - configuration parameters 
-            %                   objparams.on - 1 if active
-            %                   objparams.dt - object's timestep
-            %                   objparams.ahars - ahars parameters
+            %                   objparams.dt - timestep of this object
+            %                   objparams.DT - global simulation timestep
+            %                   objparams.on - 1 if the object is active 
+            %                   objparams.seed - prng seed, not used
             %                   objparams.gyroscope - gyroscope parameters
             %                   objparams.accelerometer - accelerometer parameters
             %                   objparams.altimeter - altimeter parameters
+            %                   objparams.orientationEstimator - orientationEstimator parameters
             %
             objparams.dt = min([objparams.accelerometer.dt,objparams.gyroscope.dt,...
                            objparams.altimeter.dt, objparams.orientationEstimator.dt]);

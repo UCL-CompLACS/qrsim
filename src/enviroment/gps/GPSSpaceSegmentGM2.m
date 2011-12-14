@@ -16,55 +16,39 @@ classdef GPSPseudorangeGM2 < GPS
     %
     % [1] J. Rankin, "An error model for sensor simulation GPS and differential GPS," IEEE 
     %     Position Location and Navigation Symposium, 1994, pp.260-266.
-    % 
-    % GPSPseudorangeGM2 Properties:
-    %    v_light                      - speed of light (Constant)
-    %    PR_BETA1                     - process time constant    
-    %    PR_BETA2                     - process time constant      
-    %    PR_SIGMA                     - process standard deviation
-    %    R_SIGMA                      - receiver noise standard deviation (from [1])   
     %
     % GPSPseudorangeGM2 Methods:
-    %    GPSPseudorangeGM2(objparams) - constructor
-    %    init(objparams)              - initialises the state of the noise process       
-    %    compute(truePosNED)          - computes and returns a GPS estimate given the input 
-    %                                   noise free NED position
-    %    update([])                   - propagates the noise state forward in time
+    %    GPSSpaceSegmentGM2(objparams)- constructor
+    %    update([])                 - propagates the noise state forward in time
     %
-    properties (Constant)
-        v_light = 299792458;          % speed of light (Constant) 
-    end
     
     properties (Access=private)
-        svidx                         % array with the ids of the visible satellite vehicles
-        nsv                           % number of satellite visible by this receiver
-        estimatedPosNED = zeros(3,1); % North East Down coordinate returned by the receiver
-        originUTMcoords               % coordinates of the local reference frame
         tStart                        % simulation start GPS time  
         PR_BETA2                      % process time constant
         PR_BETA1                      % process time constant   
-        PR_SIGMA                      % process standard deviation (from [1])
-        R_SIGMA                       % receiver noise standard deviation   
+        PR_SIGMA                      % process standard deviation (from [1])  
     end
     
     methods
         
         function obj=GPSPseudorangeGM2(objparams)
             % constructs the object.
-            % Selects the satellite vehicles visible to this receiver among the ones in 
-            % objparams.svs the total number of visible satellites is generate 
-            % randomly (uniform number between objparams.minmaxnumsv(1) and 
-            % objparams.minmaxnumsv(2)). The selection of satellites is kept FIX during 
-            % all the simulation. 
-            %
-            % Note:
-            %   This methods calls init(objparams) if this is the first object/receiver being
-            %   instantiated.
+            % Loads and interpoates the satellites orbits and creates and initialises a
+            % Gauss-Markov process for each of the GPS satellite vehicles.
+            % These processes represent additive noise to the pseudorange measurement
+            % of each satellite.
             %
             % Example:
             %
             %   obj=GPSPseudorangeGM2(objparams);
-            %       objparams - gps parameters defined in general config file
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active 
+            %                objparams.seed - prng seed, random if 0 
+            %                objparams.PR_BETA2 - process time constant
+            %                objparams.PR_BETA1 - process time constant
+            %                objparams.PR_SIGMA - process standard deviation 
+            %                objparams.tStart - simulation start in GPS time
             %
             global state;
                         

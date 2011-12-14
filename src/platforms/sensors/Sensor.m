@@ -1,10 +1,10 @@
 classdef Sensor<SteppablePRNG
     % Abstract class for a generic sensor.
-    % This is a simple wrapper, it does not include any code, its only purpouse is to 
+    % This is a simple wrapper, it does not include any code, its only purpouse is to
     % allow for runtime type checking.
     %
     % Sensor Methods:
-    %    Sensor(objparams)      - constructs the object, to be called only from derived 
+    %    Sensor(objparams)      - constructs the object, to be called only from derived
     %                             subclasses.
     %    getMeasurement(state)* - given a current state of the system returns a measurement
     %                             or an estimate
@@ -13,16 +13,24 @@ classdef Sensor<SteppablePRNG
     methods
         function obj = Sensor(objparams)
             % constructs the object
-            % Calls the SteppablePRNG constructor
-            % 
-            % Note: this class is abstract so this constructor is meant to be called only 
-            % by derived subclasses.
+            %
+            % Example:
+            %
+            %   obj=Sensor(objparams)
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active
+            %                objparams.seed - prng seed, random if 0
+            %
+            % Note:
+            % this is an abstract class so this contructor is meant to be called by any
+            % subclass.
             %
             obj=obj@SteppablePRNG(objparams);
         end
     end
     
-    methods (Abstract)        
+    methods (Abstract)
         meas=getMeasurement(obj,state);
         % given a current state of the system returns a measurement or an estimate
     end

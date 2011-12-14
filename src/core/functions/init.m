@@ -9,7 +9,6 @@ addpath(genpath('configs'));
 % load the required configuration
 eval(configFile);
 
-
 % simulation time
 state.t = 0;
 

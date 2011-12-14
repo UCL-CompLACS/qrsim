@@ -4,9 +4,7 @@ classdef WindConstMean<AerodynamicTurbulence
     % the magnitude and direction of the linear component of a constant wind field.
     %
     % WindConstMean Properties:
-    %    Z0                         - reference height (constant)
-    %    w6                         - velocity at 6m from ground in m/s
-    %    meandirection              - mean wind direction   
+    %    Z0                         - reference height (constant)  
     %
     % WindConstMean Methods:
     %    WindConstMean(objparams)   - constructs the object an sets its main fields
@@ -27,10 +25,16 @@ classdef WindConstMean<AerodynamicTurbulence
     methods (Sealed)
         function obj = WindConstMean(objparams)
             % constructs the object and sets its main fields
-            % Example:
             %
-            %   obj=WindConstMean(objparams);
-            %       objparams - wind parameters defined in general config file
+            % Example:
+            % 
+            %   obj=WindConstMean(objparams)
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active 
+            %                objparams.seed - prng seed, random if 0 
+            %                objparams.W6 - velocity at 6m from ground in m/s
+            %                objparams.direction - mean wind direction 3 by 1 vector
             %
             obj=obj@AerodynamicTurbulence(objparams);
             obj.w6=objparams.W6;

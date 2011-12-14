@@ -50,6 +50,9 @@ for i=1:N,
     
     tloop=tic;  
     
+    state.environment.gpsspacesegment.step([]);
+    state.environment.wind.step([]);
+    
     % read input from joystick
     %U = joy2input(read(joy));
     

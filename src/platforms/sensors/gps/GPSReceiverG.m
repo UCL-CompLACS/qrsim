@@ -6,11 +6,10 @@ classdef GPSReceiverG < GPSReceiver
     % 
     % GPSReceiverG Properties:
     %    v_light                    - speed of light (Constant)
-    %    R_SIGMA                    - receiver noise standard deviation (from [1])   
     %
     % GPSReceiverG Methods:
     %    GPSReceiverG(objparams)    - constructor   
-    %    compute(truePosNED)        - computes and returns a GPS estimate given the input 
+    %    getMeasurement(truePosNED) - computes and returns a GPS estimate given the input 
     %                                 noise free NED position
     %    update([])                 - generates a new noise sample
     %
@@ -24,6 +23,7 @@ classdef GPSReceiverG < GPSReceiver
         estimatedPosNED = zeros(3,1); % North East Down coordinate returned by the receiver
         originUTMcoords             % coordinates of the local reference frame
         R_SIGMA                     % receiver noise standard deviation 
+        receivernoise               % current receiver noise sample
     end
     
     methods
@@ -36,10 +36,16 @@ classdef GPSReceiverG < GPSReceiver
             % objparams.minmaxnumsv(2)). The selection of satellites is kept FIX during 
             % all the simulation. 
             %
+            % 
             % Example:
-            %
-            %   obj=GPSReceiverG(objparams);
-            %       objparams - gps receiver parameters defined in general config file
+            % 
+            %   obj=GPSReceiverG(objparams)
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active 
+            %                objparams.seed - prng seed, random if 0 
+            %                objparams.originutmcoords - coordinates of the local reference frame
+            %                objparams.R_SIGMA - receiver noise standard deviation 
             %
                         
             obj=obj@GPSReceiver(objparams);

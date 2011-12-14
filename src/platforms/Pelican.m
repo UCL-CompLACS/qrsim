@@ -167,7 +167,7 @@ classdef Pelican<Steppable
             % GPS noise
             obj.gpsreceiver.step([]);
             
-            estimatedPosNED = obj.gps.getMeasurement(obj.X(1:3));
+            estimatedPosNED = obj.gpsreceiver.getMeasurement(obj.X(1:3));
             
             obj.pseudoX = [estimatedPosNED;estimatedAHA(1:3);zeros(3,1);estimatedAHA(4:end)];
             
