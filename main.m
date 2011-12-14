@@ -1,4 +1,4 @@
-
+global state;
 % speed note:
 % to have the simulation running considerably faster, 
 % you might want to compile the various mex files that are in the project

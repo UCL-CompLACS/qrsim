@@ -35,36 +35,39 @@ classdef Pelican<Steppable
     end
     
     properties (Access = private)
-        gps
-        wind
+        gpsreceiver
+        turbulence
         ahars
         meanWind
         turbWind
         graphics
     end
     
-    properties 
+    properties
         X
-        pseudoX 
+        pseudoX
         a
     end
     
     methods (Sealed)
         function obj = Pelican(objparams)
-                
-            obj=obj@Steppable(objparams);                
-
+            % constructs the platform object and initialises its subcomponent
+            % The configuration of the type and parameters of the subcomponents are read
+            % from the platform config file e.g. pelican_config.m
+            %
+            obj=obj@Steppable(objparams);
+            
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
             
             %instantiation of sensor and wind objects, with some "manual"
             %type checking
             
             % WIND
-            tmp = feval(objparams.wind.type, objparams.wind);
-            if(isa(tmp,'Wind'))
-                obj.wind = tmp;
+            tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
+            if(isa(tmp,'AerodynamicTurbulence'))
+                obj.turbulence = tmp;
             else
-                error('params.environment.wind.type has to extend the class Wind');
+                error('c.aerodynamicturbulence.type has to extend the class AerodynamicTurbulence');
             end
             
             % AHARS
@@ -72,40 +75,42 @@ classdef Pelican<Steppable
             if(isa(tmp,'AHARS'))
                 obj.ahars = tmp;
             else
-                error('params.platform.sensors.ahars.type has to extend the class AHRS');
+                error('c.sensors.ahars.type has to extend the class AHRS');
             end
             
             % GPS
-            tmp = feval(objparams.sensors.gps.type,objparams.sensors.gps);
-            if(isa(tmp,'GPS'))
-                obj.gps = tmp;
+            tmp = feval(objparams.sensors.gpsreceiver.type,objparams.sensors.gpsreceiver);
+            if(isa(tmp,'GPSReceiver'))
+                obj.gpsreceiver = tmp;
             else
-                error('params.platform.sensors.gps.type has to extend the class GPS');
+                error('c.sensors.gpsreceiver.type has to extend the class GPSReceiver');
             end
             
-            obj.graphics=feval(objparams.quadrotorgraphics.type,objparams.quadrotorgraphics,obj.X);
-            
+            obj.graphics=feval(objparams.quadrotorgraphics.type,objparams.quadrotorgraphics,obj.X);            
         end
-                
-            function obj = plotTrajectory(obj,flag)
-                
-                
-                obj.graphics.plotTrajectory(flag);
-            end
+        
+        function obj = plotTrajectory(obj,flag)
+            % enables plotting of the uav trajectory
+            %
+            % Example:
+            %   obj.plotTrajectory(flag)
+            %       flag - 1 enables 0 disables
+            %
+            obj.graphics.plotTrajectory(flag);
+        end
     end
     
-    methods (Sealed,Access=private)      
+    methods (Sealed,Access=private)
         
         function US = scaleControls(obj,U)
-            
-            % the dynamic equations (and the real model) require the
-            % following input ranges
+            % scales the controls from SI units to what required by the ODE model
+            % The dynamic equations (and the real model) require the following input ranges
             % pt  [-2048..2048] 1=4.36332313e-4 rad = 0.25 deg commanded pitch
             % rl  [-2048..2048] 1=4.36332313e-4 rad = 0.25 deg commanded roll
             % th  [0..4096] 1=4.36332313e-4 rad = 0.25 deg commanded throttle
             % ya  [-2048..2048] 1=2.17109414e-3 rad/s = 0.124394531 deg/s commanded yaw velocity
             % bat [9..12] Volts battery voltage
-            
+            %
             if (size(U(:),1)~=5 || sum(U(:)>obj.CONTROL_LIMITS(:,1))~=5) || (sum(U(:)<obj.CONTROL_LIMITS(:,2))~=5),
                 error('Pelican:input',['wrong size of control inputs or values not within limits \n'...
                     '\tU = [pt;rl;th;ya;bat] \n\n'...
@@ -119,26 +124,35 @@ classdef Pelican<Steppable
             end
         end
     end
-        
-    methods (Sealed,Access=protected)             
+    
+    methods (Sealed,Access=protected)
         function obj = update(obj,U)
-            % note that this is only called through step(obj, X)
-            % when the time is a multiple of the timestep
+            % updates the state of the platform and of its components
+            % In turns this 
+            % updates turbulence model
+            % updates the state of the platform
+            % updates local part of gps model
+            % updates ahars noise model
+            %
+            % Note:
+            %  this method is called automatically by the step() of the Steppable parent
+            %  class and should not be called directly.
+            
+            global state;
             
             % do scaling of inputs
             US = obj.scaleControls(U);
-            
-            % update turbulence model
-            % update local part of gps model
-            % update ahars noise model
             
             if (size(U,1)~=5)
                 error('a 5 element column vector [-2048..2048;-2048..2048;0..4096;-2048..2048;9..12] is expected as input ');
             end
             
             %turbulence
-            obj.wind.step(obj.X);                
-            [obj.meanWind obj.turbWind] = obj.wind.getLinear(obj.X);
+            obj.turbulence.step(obj.X);
+            
+            obj.turbWind = obj.turbulence.getLinear(obj.X);
+            obj.meanWind = state.environment.wind.getLinear(obj.X);
+            
             obj.X(7:9)=obj.X(7:9)+obj.meanWind + obj.turbWind;
             
             % dynamics
@@ -147,22 +161,19 @@ classdef Pelican<Steppable
             % AHARS
             obj.ahars.step([]);
             
-            %aharsn = obj.ahars.getNoise(obj.X);
-            %obj.estimatedOri = getNoisyOrientationimun(1:3)+obj.X(4:6);
-            %obj.estimatedAlt = aharsn(4)-obj.X(3);
-        
+            %aharsn = obj.ahars.getNoise(obj.X);          
             estimatedAHA = obj.ahars.getMeasurement([obj.X;obj.a]);
             
             % GPS noise
-            obj.gps.step([]);
+            obj.gpsreceiver.step([]);
             
             estimatedPosNED = obj.gps.getMeasurement(obj.X(1:3));
-           
+            
             obj.pseudoX = [estimatedPosNED;estimatedAHA(1:3);zeros(3,1);estimatedAHA(4:end)];
             
             obj.graphics.update(obj.X);
         end
-
+        
     end
 end
 

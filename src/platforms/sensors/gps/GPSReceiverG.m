@@ -47,8 +47,6 @@ classdef GPSReceiverG < GPSReceiver
             obj.originUTMcoords = objparams.originutmcoords;
             obj.R_SIGMA = objparams.R_SIGMA;            
             
-            obj.init(objparams);
-            
             % pick randomly the satellites visible for this receiver
             obj.nsv = objparams.minmaxnumsv(1)...
                      +randi(obj.rStream,objparams.minmaxnumsv(2) ...

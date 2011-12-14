@@ -49,7 +49,9 @@ params.environment.wind.on = 1;
 params.environment.wind.type = 'WindConstMean';
 params.environment.wind.direction = [1;0;0]; %mean wind direction
 params.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
-
+params.environment.wind.dt = 1;    %not actually used since the model is constant
+params.environment.wind.seed = 0;%not actually used since the model is constant
+params.environment.wind.DT = params.DT;
 
 %%%%% platforms %%%%% 
 % Configuration and initial state for each of the platforms

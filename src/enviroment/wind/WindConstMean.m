@@ -1,4 +1,4 @@
-classdef WindConstMean<Wind
+classdef WindConstMean<AerodynamicTurbulence
     % Class that simulates a constant wind field.
     % Given the current altitude of the platform the wind share effect is uded to compute
     % the magnitude and direction of the linear component of a constant wind field.
@@ -21,7 +21,7 @@ classdef WindConstMean<Wind
     
     properties (Access=private)
         w6                %velocity at 6m from ground in m/s
-        meandirection     %mean wind direction
+        direction         %mean wind direction
     end
     
     methods (Sealed)
@@ -32,9 +32,9 @@ classdef WindConstMean<Wind
             %   obj=WindConstMean(objparams);
             %       objparams - wind parameters defined in general config file
             %
-            obj=obj@Wind(objparams);
+            obj=obj@AerodynamicTurbulence(objparams);
             obj.w6=objparams.W6;
-            obj.meandirection=objparams.meandirection;
+            obj.direction=objparams.direction;
         end
         
         function v = getLinear(obj,X)
@@ -56,7 +56,7 @@ classdef WindConstMean<Wind
                 w20 = ms2knots(obj.w6);
                 
                 % wind shear
-                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.meandirection;
+                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.direction;
                 
                 vmeanbody = angle2dcm(X(6),X(5),X(4))*vmean;
                 v = knots2ms(vmeanbody);

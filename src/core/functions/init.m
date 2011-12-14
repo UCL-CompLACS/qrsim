@@ -39,7 +39,7 @@ end
 for i=1:length(params.platforms)
     p = loadPlatformConfig(params.platforms(i).configfile, params);
     p.X = params.platforms(i).X;
-    state.platforms(i)=feval(params.platforms(i).type,params.platforms(i));
+    state.platforms(i)=feval(p.type,p);
 end
 
 

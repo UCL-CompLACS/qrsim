@@ -66,8 +66,8 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 c.sensors.ahars.altimeter.DT = params.DT;
 
 % Aerodynamic Turbulence
-
-c.aerodynamicturbulence.type = 'TurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
+c.aerodynamicturbulence.on = 1;
+c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
 c.aerodynamicturbulence.dt = 0.02;
 c.aerodynamicturbulence.seed = 0;% 123456; %set to zero to have random seed
 c.aerodynamicturbulence.DT = params.DT;
