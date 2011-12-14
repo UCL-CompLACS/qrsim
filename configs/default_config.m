@@ -33,7 +33,7 @@ params.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0);
 % a typical day (ro31082010.10o) at RVC had the following svs visible:
 %03G 05G 06G 07G 13G 16G 18G 19G 20G 22G 24G 29G 31G
 params.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
-params.environment.gpsspacesegment.type = 'GPSStaceSegmentGM';
+params.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
 params.environment.gpsspacesegment.PR_BETA = 2000;             % process time constant (from [2])           
 params.environment.gpsspacesegment.PR_SIGMA = 0.1746;          % process standard deviation (from [2])
 %params.environment.gpsspacesegment.type = 'GPSPseudorangeGM2';
