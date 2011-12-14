@@ -11,6 +11,20 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     % The turbulence axes orientation in this region is defined as being aligned with 
     % the body coordinates.
     %
+    %
+    % AerodynamicTurbulenceMILF8785 Properties:       
+    %    Z0                         - reference height (constant)
+    %    w6                         - velocity at 6m from ground in m/s 
+    %
+    % AerodynamicTurbulenceMILF8785 Methods:
+    %    AerodynamicTurbulenceMILF8785(objparams)   - constructs the object an sets its 
+    %                                                 main fields
+    %    getLinear(state)           - returns the linear component of the turbulence
+    %    getRotational(state)       - always returns zero since this model does not have 
+    %                                 a rotational wind component
+    %    update([])                 - updates the GM turbulence model  
+    %
+    %
     % [1] "Military Specification, “Flying Qualities of Piloted Airplanes" Tech. Rep. 
     %      U.S. Military Specification MIL-F-8785C.
     % [2] "Creating a Unified Graphical Wind Turbulence Model from Multiple Specifications" 
@@ -23,29 +37,69 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     end
     
     properties (Access=private)   
-        w6
-        meandirection
+        w6  %velocity at 6m from ground in m/s
     end
     
     properties
-       vgust = zeros(3,1);
-       vmean = zeros(3,1); 
+       vgust = zeros(3,1); % aerodynamic turbulence
+    end
+    
+    methods (Sealed)
+        function obj = AerodynamicTurbulenceMILF8785(objparams)
+            % constructs the object and sets its main fields
+            %
+            % Example:
+            %
+            %   obj=AerodynamicTurbulenceMILF8785(objparams);
+            %       objparams - AerodynamicTurbulence parameters defined in platform config file
+            %
+            obj=obj@AerodynamicTurbulence(objparams);
+            obj.w6=objparams.W6;
+        end
+        
+        function v = getLinear(obj,~)
+            % returns the linear component of the aerodynamic turbulence.
+            %
+            % Example:
+            %
+            %   v = obj.getLinear(state)  
+            %           state - 13 by 1 vector platform state
+            %           v - linear component of the component gust 3 by 1 vector
+            %    
+            if(obj.active==1)
+                v = knots2ms(obj.vgust);
+            else
+                v = zeros(3,1);
+            end    
+        end
+        
+        function v = getRotational(~,~)
+            % returns the rotational component of the wind field.
+            % In this model the rotational component is always zero.
+            %
+            % Example:
+            %
+            %   v = obj.getRotational(state)  
+            %           state - 13 by 1 vector platform state
+            %           v - zeros 3 by 1 vector
+            %
+            %
+            v=zeros(3,1); 
+        end    
     end
     
     methods  (Sealed, Access=protected)      
         function obj = update(obj, X)
-            % note that this is only called through step(obj, X)
-            % when the time is a multiple of the timestep
-                       
-            % instantaneous Airspeed along the flight path
-            % this governs the lengthscale
-            V=norm(X(7:9));%m/s
+            % updates the GM turbulence model  
+            %
+            % Note:
+            %  this method is called automatically by the step() of the Steppable parent
+            %  class and should not be called directly.
+            %
+            V=norm(X(7:9));%m/s airspeed along the flight path, governs the lengthscale
                      
             z = m2ft(-X(3)); %height of the platform from ground
             w20 = ms2knots(obj.w6);                       
-            
-            % wind shear
-            obj.vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.meandirection;
 
             sigma_v = 0.1*w20;
             Lv = abs(z);
@@ -56,35 +110,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             sigma = [sigma_u;sigma_v;sigma_v];
             au=V/Lu;            
            
-            obj.vgust = (1-au*obj.dt)*obj.vgust+sqrt(2*au*obj.dt)*sigma.*randn(3,1);
-             
+            obj.vgust = (1-au*obj.dt)*obj.vgust+sqrt(2*au*obj.dt)*sigma.*randn(3,1);             
         end
     end
-    
-    methods (Sealed)
-        function obj = AerodynamicTurbulenceMILF8785(objparams)
-            obj=obj@AerodynamicTurbulence(objparams);
-            obj.w6=objparams.W6;
-            obj.meandirection=objparams.meandirection;
-        end
-        
-        function [v t] = getLinear(obj,X)
-            % returns rotational disturbance, none in this model.         
-            if(obj.active==1)
-                vmeanb = angle2dcm(X(6),X(5),X(4))*obj.vmean;            
-                v = knots2ms(vmeanb);
-                t = knots2ms(obj.vgust);
-            else
-                v = zeros(3,1);
-                t = zeros(3,1);
-            end    
-        end
-        
-        function v = getRotational(~,~)
-            % returns rotational disturbance, none in this model.
-            v=zeros(3,1); 
-        end    
-    end
-    
 end
 

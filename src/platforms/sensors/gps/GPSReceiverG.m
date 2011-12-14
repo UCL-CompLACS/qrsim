@@ -70,7 +70,7 @@ classdef GPSReceiverG < GPSReceiver
             %
             % Example:
             %
-            %   estimatedPosNED = obj.compute(truePosNED)   
+            %   estimatedPosNED = obj.getMeasurement(truePosNED)   
             %                     truePosNED - 3 by 1 vector [m] noiseless position
             %                     estimatedPosNED - 3 by 1 vector [m] estimated position
             %

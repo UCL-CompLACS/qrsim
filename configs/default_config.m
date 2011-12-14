@@ -47,8 +47,8 @@ params.environment.gpsspacesegment.DT = params.DT;
 % this is common to all helicopters
 params.environment.wind.on = 1;
 params.environment.wind.type = 'WindConstMean';
-params.environment.wind.direction = [1;0;0];
-params.environment.wind.magnitude = 1;
+params.environment.wind.direction = [1;0;0]; %mean wind direction
+params.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
 
 
 %%%%% platforms %%%%% 
