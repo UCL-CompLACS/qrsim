@@ -122,3 +122,4 @@ plot(hp);
 %figure();
 %plot(xcorr(XX1(2,:)-mN))
 %plot(xcorr(XX1(1,:)-mE))
+
