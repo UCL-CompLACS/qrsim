@@ -1,27 +1,22 @@
-classdef TurbulenceMILF8785<Wind
-    %TURBULENCEMILF8785
-    % turbulence model according to U.S. military specification MIL-F-8785C
-    
-    % most of the following is taken from
+classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
+    % Turbulence model according to U.S. military specification MIL-F-8785C
+    %
+    % According to references[1, 2], turbulence can be modelled as a stochastic process 
+    % defined by velocity spectra. The turbulence field is assumed to be visualized as 
+    % frozen in time and space (i.e.: time variations are statistically equivalent to 
+    % distance variations in traversing the turbulence field). This assumption implies 
+    % that the turbulence-induced responses of the aircraft is result only of the motion
+    % of the aircraft relative to the turbulent field
+    % i.e. w = Omega * V
+    % The turbulence axes orientation in this region is defined as being aligned with 
+    % the body coordinates.
+    %
     % [1] "Military Specification, “Flying Qualities of Piloted Airplanes" Tech. Rep. 
     %      U.S. Military Specification MIL-F-8785C.
     % [2] "Creating a Unified Graphical Wind Turbulence Model from Multiple Specifications" 
     %      Stacey Gage
     % [3] "Wind Disturbance Estimation and Rejection for Quadrotor Position Control" 
     %     Steven L. Waslander, Carlos Wang
-    %
-    % According to the military references[1, 2], turbulence is a
-    % stochastic process defined by velocity spectra. The turbulence
-    % field is assumed to be visualized as frozen in time and space
-    % (i.e.: time variations are statistically equivalent to distance
-    % variations in traversing the turbulence field). This assumption
-    % implies the turbulence-induced responses of the aircraft result
-    % only from the motion of the aircraft relative to the turbulent
-    % field
-    % i.e. w = Omega * V
-    % The turbulence axes orientation in this region is defined as being
-    % aligned with the body coordinates.
-    
     
     properties (Constant)
         Z0 = 0.15; % feet
@@ -67,13 +62,14 @@ classdef TurbulenceMILF8785<Wind
     end
     
     methods (Sealed)
-        function obj = TurbulenceMILF8785(objparams)
-            obj=obj@Wind(objparams);
+        function obj = AerodynamicTurbulenceMILF8785(objparams)
+            obj=obj@AerodynamicTurbulence(objparams);
             obj.w6=objparams.W6;
             obj.meandirection=objparams.meandirection;
         end
         
-        function [v t] = getLinear(obj,X)            
+        function [v t] = getLinear(obj,X)
+            % returns rotational disturbance, none in this model.         
             if(obj.active==1)
                 vmeanb = angle2dcm(X(6),X(5),X(4))*obj.vmean;            
                 v = knots2ms(vmeanb);
@@ -85,6 +81,7 @@ classdef TurbulenceMILF8785<Wind
         end
         
         function v = getRotational(~,~)
+            % returns rotational disturbance, none in this model.
             v=zeros(3,1); 
         end    
     end

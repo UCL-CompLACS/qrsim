@@ -1,15 +1,18 @@
-classdef Wind<SteppablePRNG
-    % Abstract base class for wind disturbances.
+classdef AerodynamicTurbulence<SteppablePRNG
+    % Abstract base class for aerodynamic disturbances.
     %
-    % Wind Methods:
-    %   Wind(objparams)       - constructs the object and calls the SteppablePRNG constructor
-    %   getLinear(state)*     - returns the linear component of the disturbance (Abstract)
-    %   getRotational(state)* - returns the rotational component of the disturbance (Abstract)
+    % AerodynamicTurbulence Methods:
+    %   AerodynamicTurbulence(objparams) - constructs the object and calls the SteppablePRNG 
+    %                                      constructor
+    %   getLinear(state)*                - returns the linear component of the disturbance 
+    %                                      (Abstract)
+    %   getRotational(state)*            - returns the rotational component of the 
+    %                                      disturbance (Abstract)
     %
-    %                         *hyperlink broken because the method is abstract
+    %                                    *hyperlink broken because the method is abstract
     %    
     methods
-        function obj = Wind(objparams)
+        function obj = AerodynamicTurbulence(objparams)
             % constructs the object and calls the SteppablePRNG constructor
             %
             % Note:
