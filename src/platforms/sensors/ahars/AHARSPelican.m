@@ -8,7 +8,7 @@ classdef AHARSPelican<AHARS
     % AHARSPelican Methods:
     %   obj=AHARSPelican(objparams) - constructs the object 
     %
-    properties (Access=private)
+    properties (Access=public)
         accelerometer              % accelerometer sensor
         orientationEstimator       % orientation estimator
         gyroscope                  % gyroscope sensor
@@ -91,6 +91,7 @@ classdef AHARSPelican<AHARS
             %        a   - 3 by 1 vector of noise free acceleration in body frame [ax,ay,az] m/s^2
             %        eAHA- [\~phi,\~theta,\~psi,\~p,\~q,\~r,\~ax,\~ay,\~az,\~h];
             %
+            fprintf('get measurement AHARSPelican active=%d\n',obj.active);
             measurementAcceleration = obj.accelerometer.getMeasurement(stateAndAccelerations(end-2:end));
         
             measurementAngularVelocity = obj.gyroscope.getMeasurement(stateAndAccelerations(1:13));
@@ -105,15 +106,15 @@ classdef AHARSPelican<AHARS
     end    
         
     methods (Sealed,Access=protected)
-        function obj = update(obj, ~)    
+        function obj = update(obj, stateAndAccelerations)    
             % updates the ahars state
             % Calls an update on accelerometer,gyroscope,altimeter and orientationEstimator
             % Note: this method is called by step() if the time is a multiple of this object dt,
             % therefore it should not be called directly. 
-            obj.accelerometer.step([]);
-            obj.gyroscope.step([]);
-            obj.altimeter.step([]);
-            obj.orientationEstimator.step([]);                        
+            obj.accelerometer.step(stateAndAccelerations(end-2:end));
+            obj.gyroscope.step(stateAndAccelerations(1:13));
+            obj.altimeter.step(stateAndAccelerations(1:13));
+            obj.orientationEstimator.step(stateAndAccelerations(1:13));                        
         end
     end    
 end

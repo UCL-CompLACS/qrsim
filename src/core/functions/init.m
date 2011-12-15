@@ -17,6 +17,12 @@ state.t = 0;
 % simulation timestep
 state.DT = params.DT;
 
+% random number generator stream
+if(params.seed~=0)
+    state.rStream = RandStream('mt19937ar','Seed',params.seed);
+else
+    state.rStream = RandStream('mt19937ar','Seed',sum(100*clock));
+end    
 
 %%% instantiates the objects that are part of the environment
 

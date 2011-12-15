@@ -1,4 +1,4 @@
-classdef GPSSpaceSegmentGM < SteppablePRNG
+classdef GPSSpaceSegmentGM < Steppable
     % Class that simulates the correlate noise affecting the GPS pseudorange.
     % The running assumption is that all the receivers are (approximately) geographically
     % co-located so that pseudorange measurements to the same satellite vehicle obtained
@@ -40,14 +40,13 @@ classdef GPSSpaceSegmentGM < SteppablePRNG
             %                objparams.dt - timestep of this object
             %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active 
-            %                objparams.seed - prng seed, random if 0 
             %                objparams.PR_BETA - process time constant
             %                objparams.PR_SIGMA - process standard deviation 
             %                objparams.tStart - simulation start in GPS time
             %
             global state;
             
-            obj=obj@SteppablePRNG(objparams);
+            obj=obj@Steppable(objparams);
             
             obj.PR_BETA = objparams.PR_BETA;
             obj.PR_SIGMA = objparams.PR_SIGMA;
@@ -80,11 +79,11 @@ classdef GPSSpaceSegmentGM < SteppablePRNG
             %  class and should not be called directly.
             %
             global state;
-            
+            disp('stepping GPSSpaceSegmentGM');
             % update noise states
             state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
                 exp(-state.environment.gpsspacesegment_.betas*obj.dt)...
-                +state.environment.gpsspacesegment_.w.*randn(obj.rStream,...
+                +state.environment.gpsspacesegment_.w.*randn(state.rStream,...
                 state.environment.gpsspacesegment_.nsv,1);
             
             state.environment.gpsspacesegment_.svspos=zeros(3,state.environment.gpsspacesegment_.nsv);

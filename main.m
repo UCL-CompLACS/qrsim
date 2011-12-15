@@ -48,6 +48,8 @@ idx=1;
 tbegin = tic;
 for i=1:N,
     
+    fprintf('time t = %f\n',state.t);
+    
     tloop=tic;  
     
     state.environment.gpsspacesegment.step([]);
@@ -59,7 +61,7 @@ for i=1:N,
     % alterantively define a constant input
     % note that the one below is a trim state and will 
     % not produce any motion of the platform
-    U=[0;0;0.59;0;10];
+    U=[00.2;0.01;0.59;0.2;10];
     
     % alternatively one could compute the helicopter
     % input given the current state and a target 
@@ -79,15 +81,11 @@ for i=1:N,
     t = 1:i;
     %set(hanxy1,'Xdata',XX1(1,1:i));%t.*state.DT);
     %set(hanxy1,'Ydata',XX1(2,1:i));
-
-    % update graphical output
-    % this runs only if the graphics is turned on
-    state.platforms(1).updateGraphics();
     
-    if (params.display3d.on ==1)
+    %if (params.display3d.on ==1)
         wait = max(0,state.DT-toc(tloop));   
         pause(wait);
-    end
+    %end
     
     state.t=state.t+state.DT;
 end

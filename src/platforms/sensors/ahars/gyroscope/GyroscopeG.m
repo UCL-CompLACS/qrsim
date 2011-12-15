@@ -8,10 +8,11 @@ classdef GyroscopeG<Gyroscope
     % GyroscopeG Methods:
     %   GyroscopeG(objparams)            - constructs the object
     %   getMeasurement(X)                - returns a noisy angular velocity measurement
-    %   update([])                       - updates the gyroscope sensor noise state
+    %   update(X)                       - updates the gyroscope sensor noisy measurement
     %
     properties (Access = private)
         SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
+        measurementAngularVelocity = zeros(3,1); % measurement at last valid timestep
         n = zeros(3,1);                 % noise sample at current timestep
     end
     
@@ -26,7 +27,6 @@ classdef GyroscopeG<Gyroscope
             %                objparams.dt - timestep of this object
             %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
-            %                objparams.seed - prng seed, random if 0
             %                objparams.SIGMA - noise standard deviation
             %
             obj=obj@Gyroscope(objparams);
@@ -41,9 +41,12 @@ classdef GyroscopeG<Gyroscope
             %        X - platform noise free state vector [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
             %        ma - 3 by 1 "noisy" angular velocity in body frame [\~p;\~q;\~r] rad/s
             %
-            
+            % Note: if active == 0, no noise is added, in other words:
+            % ma = X(10:12)
+            % 
+            fprintf('get measurement GyroscopeG active=%d\n',obj.active);
             if(obj.active==1)  %noisy
-                measurementAngularVelocity = obj.n + X(10:12);
+                measurementAngularVelocity = obj.measurementAngularVelocity;
             else               %noiseless
                 measurementAngularVelocity = X(10:12);
             end
@@ -51,11 +54,13 @@ classdef GyroscopeG<Gyroscope
     end
     
     methods (Sealed,Access=protected)
-        function obj=update(obj,~)
+        function obj=update(obj,X)
             % updates the gyroscope noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            obj.n = obj.SIGMA.*randn(obj.rStream,3,1);
+	        global state;
+            obj.n = obj.SIGMA.*randn(state.rStream,3,1);
+            obj.measurementAngularVelocity = obj.n + X(10:12);
         end
     end
     

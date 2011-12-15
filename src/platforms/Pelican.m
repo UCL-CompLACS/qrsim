@@ -1,5 +1,4 @@
 classdef Pelican<Steppable
-    %PELICAN
     % implementation of the dynamics of a AscTec Pelican quadrotor
     % the parameters are derived from the system identification of one of
     % the UCL quadrotors
@@ -47,6 +46,7 @@ classdef Pelican<Steppable
         X
         pseudoX
         a
+        valid = 1;
     end
     
     methods (Sealed)
@@ -86,7 +86,7 @@ classdef Pelican<Steppable
                 error('c.sensors.gpsreceiver.type has to extend the class GPSReceiver');
             end
             
-            obj.graphics=feval(objparams.quadrotorgraphics.type,objparams.quadrotorgraphics,obj.X);            
+            obj.graphics=feval(objparams.quadrotorgraphics.type,objparams.quadrotorgraphics,obj.X);
         end
         
         function obj = plotTrajectory(obj,flag)
@@ -123,16 +123,21 @@ classdef Pelican<Steppable
                 US = U.*obj.SI_2_UAVCTRL;
             end
         end
+        
+        function valid = stateIsWithinLimits(obj)
+            
+        end
     end
     
     methods (Sealed,Access=protected)
         function obj = update(obj,U)
             % updates the state of the platform and of its components
-            % In turns this 
+            % In turns this
             % updates turbulence model
-            % updates the state of the platform
+            % updates the state of the platform applying controls
             % updates local part of gps model
             % updates ahars noise model
+            % updates the graphics
             %
             % Note:
             %  this method is called automatically by the step() of the Steppable parent
@@ -140,38 +145,52 @@ classdef Pelican<Steppable
             
             global state;
             
-            % do scaling of inputs
-            US = obj.scaleControls(U);
-            
-            if (size(U,1)~=5)
-                error('a 5 element column vector [-2048..2048;-2048..2048;0..4096;-2048..2048;9..12] is expected as input ');
+            if(obj.valid)
+                
+                % do scaling of inputs
+                US = obj.scaleControls(U);
+                
+                if (size(U,1)~=5)
+                    error('a 5 element column vector [-2048..2048;-2048..2048;0..4096;-2048..2048;9..12] is expected as input ');
+                end
+                
+                %turbulence
+                obj.turbulence.step(obj.X);
+                
+                obj.turbWind = obj.turbulence.getLinear(obj.X);
+                obj.meanWind = state.environment.wind.getLinear(obj.X);
+                
+                obj.X(7:9)=obj.X(7:9)+obj.meanWind + obj.turbWind;
+                
+                % dynamics
+                [obj.X obj.a] = ruku2('pelicanODE', obj.X, US, obj.dt);
+                               
+                
+                if(obj.stateIsWithinLimits())
+                    
+                    % AHARS
+                    obj.ahars.step([obj.X;obj.a]);
+                    
+                    estimatedAHA = obj.ahars.getMeasurement([obj.X;obj.a]);
+                    
+                    % GPS
+                    obj.gpsreceiver.step(obj.X);
+                    
+                    estimatedPosNED = obj.gpsreceiver.getMeasurement(obj.X);
+                    
+                    %return values
+                    obj.pseudoX = [estimatedPosNED;estimatedAHA(1:3);zeros(3,1);estimatedAHA(4:end)];
+                    
+                    % graphics
+                    obj.graphics.update(obj.X);
+                    
+                    obj.valid = 1;
+                else
+                    obj.pseudoX = nan(19,1);
+                    obj.valid=0;
+                end
+                
             end
-            
-            %turbulence
-            obj.turbulence.step(obj.X);
-            
-            obj.turbWind = obj.turbulence.getLinear(obj.X);
-            obj.meanWind = state.environment.wind.getLinear(obj.X);
-            
-            obj.X(7:9)=obj.X(7:9)+obj.meanWind + obj.turbWind;
-            
-            % dynamics
-            [obj.X obj.a] = ruku2('pelicanODE', obj.X, US, obj.dt);
-            
-            % AHARS
-            obj.ahars.step([]);
-            
-            %aharsn = obj.ahars.getNoise(obj.X);          
-            estimatedAHA = obj.ahars.getMeasurement([obj.X;obj.a]);
-            
-            % GPS noise
-            obj.gpsreceiver.step([]);
-            
-            estimatedPosNED = obj.gpsreceiver.getMeasurement(obj.X(1:3));
-            
-            obj.pseudoX = [estimatedPosNED;estimatedAHA(1:3);zeros(3,1);estimatedAHA(4:end)];
-            
-            obj.graphics.update(obj.X);
         end
         
     end

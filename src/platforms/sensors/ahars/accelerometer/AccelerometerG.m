@@ -8,11 +8,12 @@ classdef AccelerometerG<Accelerometer
     % AccelerometerG Methods:
     %   AccelerometerG(objparams)        - constructs the object
     %   getMeasurement(a)                - returns a noisy acceleration measurement
-    %   update([])                       - updates the accelerometer sensor noise state
+    %   update(a)                        - updates the accelerometer sensor noise state
     %
     properties (Access = private)
         SIGMA                            % noise standard deviation
         n = zeros(3,1);                  % noise sample at current timestep
+        measurementAcceleration = zeros(3,1);% measurement at last valid timestep
     end
     
     methods (Sealed)
@@ -25,7 +26,6 @@ classdef AccelerometerG<Accelerometer
             %                objparams.dt - timestep of this object
             %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
-            %                objparams.seed - prng seed, random if 0
             %                objparams.SIGMA - noise standard deviation
             %
             obj = obj@Accelerometer(objparams);
@@ -40,8 +40,12 @@ classdef AccelerometerG<Accelerometer
             %       ma - 3 by 1 vector of noise free acceleration in body frame [ax;ay;az] m/s^2
             %       a  - 3 by 1 vector of "noisy" acceleration in body frame [\~ax;\~ay;\~az] m/s^2
             %
+            % Note: if active == 0, no noise is added, in other words:
+            % ma = a
+            % 
+            fprintf('get measurement AccelerometerG active=%d\n',obj.active);
             if(obj.active==1)    %noisy
-                measurementAcceleration = obj.n + a(1:3);
+                measurementAcceleration = obj.measurementAcceleration;
             else                 %noiseless
                 measurementAcceleration = a(1:3);
             end
@@ -49,11 +53,13 @@ classdef AccelerometerG<Accelerometer
     end
     
     methods (Sealed,Access=protected)
-        function obj=update(obj,~)
+        function obj=update(obj,a)
             % updates the accelerometer noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            obj.n = obj.SIGMA.*randn(obj.rStream,3,1);
+            global state;
+            obj.n = obj.SIGMA.*randn(state.rStream,3,1);
+            obj.measurementAcceleration = obj.n + a(1:3);
         end
         
     end

@@ -99,6 +99,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
+            global state;
+            
             V=norm(X(7:9));%m/s airspeed along the flight path, governs the lengthscale
             
             z = m2ft(-X(3)); %height of the platform from ground
@@ -111,9 +113,13 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             sigma_u = sigma_v/((0.177 + 0.000823*z)^1.2);
             
             sigma = [sigma_u;sigma_v;sigma_v];
-            au=V/Lu;
             
-            obj.vgust = (1-au*obj.dt)*obj.vgust+sqrt(2*au*obj.dt)*sigma.*randn(3,1);
+            if(V>0)
+                au=V/Lu;
+            else
+                au=0;
+            end
+            obj.vgust = (1-au*obj.dt)*obj.vgust+sqrt(2*au*obj.dt)*sigma.*randn(state.rStream,3,1);
         end
     end
 end

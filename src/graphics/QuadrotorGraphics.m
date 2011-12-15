@@ -3,36 +3,25 @@ classdef QuadrotorGraphics<handle
     % This implementation is very basic but has the advantage of not
     % depending on any additional toolbox
     %
-    % QuadrotorGraphics Properties:
-    %    AL              - arm length m
-    %    AT              - arm width m
-    %    AW              - arm thickness m
-    %    BW              - body width m
-    %    BT              - body thickness m
-    %    R               - rotor radius m
-    %    DFT             - distance from truss m
-    %    X               - state [px;py;pz;phi;theta;psi] three position (NED coordinates m)
-    %                      and 3 Euler angles right hand ZYX convention rad
-    %
     % QuadrotorGraphics Methods:
     %   QuadrotorGraphics(initX,params)  - constructs the object
-    %   updateGraphics()                 - updates the visualization according to the current state
+    %   update()                         - updates the visualization according to the current state
     %   plotTrajectory(flag)             - enables/disables the plotting of the hecopter trajectory
     %
     
     properties (Access = private)
         % arms
-        AL = 0.4;  % arm length m
-        AT = 0.01; % arm width m
-        AW = 0.02; % arm thickness m
+        AL % arm length m
+        AT % arm width m
+        AW % arm thickness m
         
         % body
-        BW = 0.12; % body width m
-        BT = 0.08; % body thickness m
+        BW % body width m
+        BT % body thickness m
         
         % rotors
-        R = 0.08; % rotor radius m
-        DFT = 0.02; % distance from truss m
+        R % rotor radius m
+        DFT % distance from truss m
         
         gHandle         % graphic handle
         plotTrj = 0;    % 1 to enable trajectory plotting
@@ -47,7 +36,16 @@ classdef QuadrotorGraphics<handle
             % Example:
             %   obj =  QuadrotorGraphics(initX,params);
             %          initX - initial state [px;py;pz;phi;theta;psi]
-            %          objparams - objparams.display3don enable/disaple graphics
+            %                  px,py,pz      [m]   position (NED coordinates)
+            %                  phi,theta,psi [rad] attitude in Euler angles ZYX convention
+            %          objparams.AL - arm length m
+            %          objparams.AT - arm width m
+            %          objparams.AW - arm thickness m
+            %          objparams.BW - body width m
+            %          objparams.BT - body thickness m
+            %          objparams.R - rotor radius m
+            %          objparams.DFT - distance from truss m
+            %          objparams.on - 1 if graphics is active
             %
             
             % arms
@@ -150,11 +148,11 @@ classdef QuadrotorGraphics<handle
     
     methods (Sealed,Access=private)
         
-        function createGraphicsHandlers(obj)
+        function obj=createGraphicsHandlers(obj)
             % creates the necessary graphics handlers and stores them
             %
             % Example:
-            %    createGraphicsHandlers()
+            %    obj.createGraphicsHandlers()
             %
             global state;
             
@@ -189,19 +187,16 @@ classdef QuadrotorGraphics<handle
             obj.gHandle.trjData.y = obj.X(2);
             obj.gHandle.trjData.z = obj.X(3);
         end
-    end
-    
-    methods (Sealed, Static,Access=private)
         
-        function initGlobalGraphics()
+        function obj = initGlobalGraphics(obj)
             % creates the necessary graphics primitives only once for all helicopters
             % Dimension according to the constants AL,AT,AW,BW,BT,R,DFT
             %
             % Example:
-            %    initGlobalGraphics()
+            %    obj.initGlobalGraphics()
             %
             global state;
-            
+
             if(~exist('state.display3d.heliGexists','var'))
                 %%% body
                 al = obj.AL/2;  % half arm length

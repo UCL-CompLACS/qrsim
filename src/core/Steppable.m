@@ -66,12 +66,17 @@ classdef Steppable<handle
             %       args - passed directly to update, see the update method 
             %
             global state;
-            
+            fprintf('%s ',class(obj))
             if(obj.active==1)
                 r = rem(state.t,obj.dt);
                 if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)) && (obj.dt~=0))
+                    fprintf(' stepping\n')
                     obj=obj.update(args);
+                else
+                    fprintf(' not a timestep\n') 
                 end
+            else
+               fprintf(' not active\n') 
             end
         end
     end

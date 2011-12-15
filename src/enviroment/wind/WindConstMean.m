@@ -60,7 +60,11 @@ classdef WindConstMean<AerodynamicTurbulence
                 w20 = ms2knots(obj.w6);
                 
                 % wind shear
-                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.direction;
+                if(z>0.05)
+                    vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.direction;
+                else
+                    vmean = zeros(3,1); 
+                end
                 
                 vmeanbody = angle2dcm(X(6),X(5),X(4))*vmean;
                 v = knots2ms(vmeanbody);

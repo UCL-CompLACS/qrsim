@@ -1,12 +1,18 @@
 classdef AreaGraphics<handle
-    %INIT3DGRAPHICS
-    % initialize the common part of the 3D visualization
-    % i.e. the figure with correct axis and size and the ground patch
+    % Class that handles the 3D visualization of the working area of the simulator
+    % This implementation is very basic but has the advantage of not depending on any
+    % additional toolbox
+    %
     
     methods (Sealed)
         
         function obj = AreaGraphics(objparams)
-            
+            % constructs the object
+            %
+            % Example:
+            %   obj = AreaGraphics(objparams)
+            %        objparams.limits = [minx maxx miny maxy minz maxz]  meters
+            %
             global state;
             
             set(0,'CurrentFigure',state.display3d.figure)
@@ -36,7 +42,7 @@ classdef AreaGraphics<handle
             set(gca,'CameraViewAngleMode','Manual');
             
             % set up a correct size for the plot
-            axis(objparamslimits);
+            axis(objparams.limits);
             arx = objparams.limits(2)-objparams.limits(1);
             ary = objparams.limits(4)-objparams.limits(3);
             arz = objparams.limits(6)-objparams.limits(5);

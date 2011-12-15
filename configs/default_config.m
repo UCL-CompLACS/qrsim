@@ -4,9 +4,11 @@
 % this should not be changed...
 params.DT = 0.01;
 
+params.seed = 0; %set to zero to have a seed that depends on the system time
+
 %%%%% visualization %%%%%
 % 3D display parameters
-params.display3d.on = 0;
+params.display3d.on = 1;
 params.display3d.width = 1000;
 params.display3d.height = 600;
 
@@ -24,9 +26,8 @@ params.environment.area.originutmcoords.zone =  zone;
 
 % GPS
 % The 
-params.environment.gpsspacesegment.on = 1; % if off the gps returns the noiseless position
+params.environment.gpsspacesegment.on = 0; % if off the gps returns the noiseless position
 params.environment.gpsspacesegment.dt = 0.2;
-params.environment.gpsspacesegment.seed = 123456; %set to zero to have random seed
 % specific setting due to the use of the ngs15992_16to17.sp3 file
 params.environment.gpsspacesegment.preciseorbitfile = 'ngs15992_16to17.sp3';
 params.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0);
@@ -45,18 +46,17 @@ params.environment.gpsspacesegment.DT = params.DT;
 % Wind 
 % i.e. a steady omogeneous wind with a direction and magnitude
 % this is common to all helicopters
-params.environment.wind.on = 1;
+params.environment.wind.on = 0;
 params.environment.wind.type = 'WindConstMean';
 params.environment.wind.direction = [1;0;0]; %mean wind direction
 params.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
 params.environment.wind.dt = 1;    %not actually used since the model is constant
-params.environment.wind.seed = 0;%not actually used since the model is constant
 params.environment.wind.DT = params.DT;
 
 %%%%% platforms %%%%% 
 % Configuration and initial state for each of the platforms
 params.platforms(1).configfile = 'pelican_config';
-params.platforms(1).X = [0;0;0;0;0;0];
+params.platforms(1).X = [0;0;-20;0;0;0];
 
 % state.platforms(2).configfile = 'pelican_config';
 % state.platforms(2).initX = [0;0;0;0;0;0];
