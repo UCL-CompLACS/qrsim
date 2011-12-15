@@ -37,7 +37,7 @@ state.environment.wind = feval(params.environment.wind.type, params.environment.
 if params.display3d.on == 1
     state.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
         [20,20,params.display3d.width,params.display3d.height]);
-    state.display3d.area = feval(params.environment.area.type, params.environment.area);
+    state.environment.area = feval(params.environment.area.type, params.environment.area);
 end
 
 

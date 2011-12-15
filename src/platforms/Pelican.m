@@ -125,8 +125,29 @@ classdef Pelican<Steppable
         end
         
         function valid = stateIsWithinLimits(obj)
-            
+            global state;
+            valid =1;
+%             valid = (obj.X(1)<state.environment.area.limits(1)) ||...
+%                     (obj.X(1)>state.environment.area.limits(2)) ||...
+%                     (obj.X(2)<state.environment.area.limits(3)) ||...
+%                     (obj.X(2)>state.environment.area.limits(4)) ||...
+%                     (obj.X(3)<state.environment.area.limits(5)) ||...
+%                     (obj.X(3)>state.environment.area.limits(6));         
         end
+        
+        
+        function coll = inCollision(obj)
+            global state;
+            coll = 0;
+            for i=1:length(state.platforms),
+                if(state.platforms(i) ~= obj)
+                    if(norm(state.platforms(i).X(1:3)-obj.X(1:3))< THR)
+                        coll = 1;
+                    end
+                end
+            end
+        end
+        
     end
     
     methods (Sealed,Access=protected)
@@ -164,9 +185,9 @@ classdef Pelican<Steppable
                 
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, US, obj.dt);
-                               
                 
-                if(obj.stateIsWithinLimits())
+                
+                if(obj.stateIsWithinLimits() && ~obj.inCollision())
                     
                     % AHARS
                     obj.ahars.step([obj.X;obj.a]);
