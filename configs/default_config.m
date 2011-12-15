@@ -2,7 +2,7 @@
 
 % Simulator step time in second
 % this should not be changed...
-params.DT = 0.02;
+params.DT = 0.01;
 
 %%%%% visualization %%%%%
 % 3D display parameters

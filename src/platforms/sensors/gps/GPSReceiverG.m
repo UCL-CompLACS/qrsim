@@ -17,13 +17,13 @@ classdef GPSReceiverG < GPSReceiver
         v_light = 299792458;        % speed of light (Constant)
     end
     
-    properties (Access=private)
+    properties (Access=public)
         svidx                       % array with the ids of the visible satellite vehicles
         nsv                         % number of satellite visible by this receiver
         estimatedPosNED = zeros(3,1); % North East Down coordinate returned by the receiver
         originUTMcoords             % coordinates of the local reference frame
         R_SIGMA                     % receiver noise standard deviation 
-        receivernoise               % current receiver noise sample
+        receivernoise = zeros(3,1); % current receiver noise sample
     end
     
     methods
@@ -94,8 +94,8 @@ classdef GPSReceiverG < GPSReceiver
                     obs = zeros(obj.nsv,1);
                     for i = 1:obj.nsv,
                         % compute pseudorange
-                        obs(i,1) = norm(truePosECEF-state.environment.gpsspacesegment.svspos(:,obj.svidx(i)))...
-                                  +state.environment.gpsspacesegment.prns(obj.svidx(i))...
+                        obs(i,1) = norm(truePosECEF-state.environment.gpsspacesegment_.svspos(:,obj.svidx(i)))...
+                                  +state.environment.gpsspacesegment_.prns(obj.svidx(i))...
                                   +obj.receivernoise(i);
                     end
 
@@ -105,7 +105,7 @@ classdef GPSReceiverG < GPSReceiver
                         A = zeros(obj.nsv,4);
                         omc = zeros(obj.nsv,1); % observed minus computed observation
                         for i = 1:obj.nsv,
-                            X = state.environment.gpsspacesegment.svspos(:,obj.svidx(i));
+                            X = state.environment.gpsspacesegment_.svspos(:,obj.svidx(i));
                             omc(i,:) = obs(i)-norm(X-p(1:3),'fro')-p(4);
                             A(i,:) = [(-(X(1)-p(1)))/obs(i),(-(X(2)-p(2)))/obs(i),(-(X(3)-p(3)))/obs(i),1];
                         end % i

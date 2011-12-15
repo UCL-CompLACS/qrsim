@@ -51,22 +51,21 @@ classdef GPSSpaceSegmentGM < SteppablePRNG
             
             obj.PR_BETA = objparams.PR_BETA;
             obj.PR_SIGMA = objparams.PR_SIGMA;
-            obj.tStart = objparams.tStart;
-            
+            obj.tStart = objparams.tStart;            
             
             % read in the precise satellite orbits
-            state.environment.gpsspacesegment.stdPe = readSP3(Orbits(), objparams.preciseorbitfile);
-            state.environment.gpsspacesegment.stdPe.compute();
+            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.preciseorbitfile);
+            state.environment.gpsspacesegment_.stdPe.compute();
             
-            state.environment.gpsspacesegment.svs = objparams.svs;
+            state.environment.gpsspacesegment_.svs = objparams.svs;
             
             % for each of the possible svs we initialize the
             % common part of the pseudorange noise models
-            state.environment.gpsspacesegment.nsv = length(objparams.svs);
-            state.environment.gpsspacesegment.prns=zeros(state.environment.gpsspacesegment.nsv,1);
+            state.environment.gpsspacesegment_.nsv = length(objparams.svs);
+            state.environment.gpsspacesegment_.prns=zeros(state.environment.gpsspacesegment_.nsv,1);
             
-            state.environment.gpsspacesegment.betas = (1/obj.PR_BETA)*ones(state.environment.gpsspacesegment.nsv,1);
-            state.environment.gpsspacesegment.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment.nsv,1);
+            state.environment.gpsspacesegment_.betas = (1/obj.PR_BETA)*ones(state.environment.gpsspacesegment_.nsv,1);
+            state.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment_.nsv,1);
             
         end
     end
@@ -83,16 +82,16 @@ classdef GPSSpaceSegmentGM < SteppablePRNG
             global state;
             
             % update noise states
-            state.environment.gpsspacesegment.prns = state.environment.gpsspacesegment.prns.*...
-                exp(-state.environment.gpsspacesegment.betas*obj.dt)...
-                +state.environment.gpsspacesegment.w.*randn(obj.rStream,...
-                state.environment.gpsspacesegment.nsv,1);
+            state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
+                exp(-state.environment.gpsspacesegment_.betas*obj.dt)...
+                +state.environment.gpsspacesegment_.w.*randn(obj.rStream,...
+                state.environment.gpsspacesegment_.nsv,1);
             
-            state.environment.gpsspacesegment.svspos=zeros(3,state.environment.gpsspacesegment.nsv);
-            for j = 1:state.environment.gpsspacesegment.nsv,
+            state.environment.gpsspacesegment_.svspos=zeros(3,state.environment.gpsspacesegment_.nsv);
+            for j = 1:state.environment.gpsspacesegment_.nsv,
                 %compute sv positions
-                state.environment.gpsspacesegment.svspos(:,j) = getSatCoord(state.environment.gpsspacesegment.stdPe,...
-                    state.environment.gpsspacesegment.svs(j),(obj.tStart+state.t));
+                state.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(state.environment.gpsspacesegment_.stdPe,...
+                    state.environment.gpsspacesegment_.svs(j),(obj.tStart+state.t));
             end
         end
     end

@@ -1,6 +1,8 @@
-function state = init(configFile)
+function init(configFile)
 % INIT
 % Initializes the simulator state given a configuration file.
+
+global state;
 
 % add the configuration files
 addpath(genpath('configs'));

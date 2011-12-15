@@ -34,7 +34,7 @@ classdef Pelican<Steppable
         MASS = 1.68; %this is only for the initial state
     end
     
-    properties (Access = private)
+    properties (Access = public)
         gpsreceiver
         turbulence
         ahars

@@ -16,7 +16,7 @@ clc;
 % always to be executed before anything else!!
 % check default_config for the set of config parameters
 % including dt
-state = init('default_config');
+init('default_config');
 
 % as controller one could use a joystick
 % (note: needs matlab vr toolbox)
