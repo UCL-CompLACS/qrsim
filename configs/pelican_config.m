@@ -10,6 +10,10 @@
 %  n = Pelican(platform);
 %
 
+if(~exist('params','var'))
+    error('The platform parameters must be loaded after the global parameters');
+end
+
 % simulator %
 c.DT = params.DT;
 
@@ -17,6 +21,17 @@ c.DT = params.DT;
 c.dt = 0.02;
 c.on = 1;
 c.type = 'Pelican';
+
+% max and min limits for each of the state variables, exceeding this limits
+% makes the state invalid (i.e. 19x1 nan)
+c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limits(3:4);...
+    params.environment.area.limits(5:6);... % position limits defined by the area
+    -pi,pi;-pi,pi;-pi,pi;... % attitude limits
+    -15,15;-15,15;-15,15;... % linear velocity limits
+    -2,2;-2,2;-2,2]; %rotational velocity limits
+    
+c.collisionDistance = 2; % two platforms colser than this distance are deemed in collision 
+c.dynNoise = [0.1;0.1;0.1;0.1;0.1;0.1];
 
 % GPS Receiver
 c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
@@ -27,6 +42,7 @@ c.sensors.gpsreceiver.R_SIGMA = 0.02;             % receiver noise standard devi
 c.sensors.gpsreceiver.tnsv  = length(params.environment.gpsspacesegment.svs);
 c.sensors.gpsreceiver.originutmcoords = params.environment.area.originutmcoords;
 c.sensors.gpsreceiver.DT = params.DT;
+c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 
 % AHARS attitude-heading-altitude reference system (a.k.a. imu + altimeter)
 % dt defined by the minimum dt of the sensors
@@ -63,7 +79,7 @@ c.sensors.ahars.altimeter.DT = params.DT;
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 1;
 c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
-c.aerodynamicturbulence.dt = 0.02;
+c.aerodynamicturbulence.dt = c.dt;
 c.aerodynamicturbulence.DT = params.DT;
 c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from ground in m/s
 

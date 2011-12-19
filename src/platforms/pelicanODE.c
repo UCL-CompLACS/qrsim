@@ -1,11 +1,9 @@
 #include <math.h>
 #include "mex.h"
 
-
 #define LOW_THROTTLE_LIMIT 300
 #define MAX_ANGVEL  2.617993877991494
 #define G     9.81
-#define mass  1.68
 
 /* rotational params */
 #define pq0  -3.25060e-04
@@ -33,16 +31,16 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /* Check for proper number and size of arguments */
     if (nrhs != 3) {
         mexErrMsgTxt("Three input arguments required.");
-    } else if (nlhs > 1) {
-        mexErrMsgTxt("Too many output arguments.");
+    } else if (nlhs != 2) {
+        mexErrMsgTxt("Two output arguments required.");
     }
     
     if (mxGetM(prhs[0]) != 13 || mxGetN(prhs[0]) != 1) {
         mexErrMsgTxt("State X has wrong dimensions.");
     }
     
-    if (mxGetM(prhs[1]) != 5 || mxGetN(prhs[1]) != 1) {
-        mexErrMsgTxt("Control U has wrong dimensions.");
+    if (mxGetM(prhs[1]) != 16 || mxGetN(prhs[1]) != 1) {
+        mexErrMsgTxt("Augmented Control U has wrong dimensions.");
     }
     
     if (mxGetM(prhs[2]) != 1 || mxGetN(prhs[2]) != 1) {
@@ -54,15 +52,22 @@ void mexFunction( int nlhs, mxArray *plhs[],
     double* U = mxGetPr(prhs[1]);
     double dt = *mxGetPr(prhs[2]);
     
-    /* Create a matrix for the return argument */
+    /* Create a matrix for the return arguments */
     plhs[0] = mxCreateDoubleMatrix(13, 1, mxREAL);
-    double* Xdot = mxGetPr(plhs[0]);    
+    double* Xdot = mxGetPr(plhs[0]);  
+    plhs[1] = mxCreateDoubleMatrix(3, 1, mxREAL);  
+    double* a = mxGetPr(plhs[1]); 
     
     const double pt = U[0];
     const double rl = U[1];
     const double th = U[2];
     const double ya = U[3];
     const double vb = U[4];
+    
+    const double windx = U[5];
+    const double windy = U[6];    
+    const double windz = U[7];
+    const double mass = U[9];
     
     const double phi = X[3];
     const double theta = X[4];
@@ -148,10 +153,18 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /*resultant acceleration in body frame */
     /*note: thrust force always orthogonal to the rotor */
     /*plane i.e. in the  -Z body direction */
-    const double a[3] = {gb[0], gb[1], gb[2]-((Fth+Xdot[12]*dt)/mass)};
+    const double ra[3] = {gb[0], gb[1], gb[2]-((Fth+Xdot[12]*dt)/mass)};
     
-    Xdot[6] = -q*w + r*v + a[0] + kuv*u;
-    Xdot[7] = -r*u + p*w + a[1] + kuv*v;
-    Xdot[8] = -p*v + q*u + a[2] + kw*w;
+    Xdot[6] = -q*w + r*v + a[0] + kuv*(u-windx);
+    Xdot[7] = -r*u + p*w + a[1] + kuv*(v-windy);
+    Xdot[8] = -p*v + q*u + a[2] + kw*(w-windz);
+    
+    a[0]=Xdot[6]-gb[0];
+    a[1]=Xdot[7]-gb[1];   
+    a[2]=Xdot[8]-gb[2];    
+    
+    for(int i=0; i<6; i++){
+        Xdot[6+i]+=U[10+i];
+    }
 }
 

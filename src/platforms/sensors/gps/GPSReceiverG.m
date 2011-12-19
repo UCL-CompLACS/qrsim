@@ -2,6 +2,9 @@ classdef GPSReceiverG < GPSReceiver
     % Class that simulates a noisy GPS receivers.
     % Given the current position of the satellite vehicles and pseudorange noise
     % (from GPSStaceSegmentGM) the receiver position is computed using ordinary LS.
+    % Given the small size of the platform the location of the receiver's
+    % antenna phase center is assumed to coincide with the vehicle center
+    % of mass.
     % Global variables are used to maintain the noise states shared between receivers.
     %
     % GPSReceiverG Properties:
@@ -24,10 +27,11 @@ classdef GPSReceiverG < GPSReceiver
         originUTMcoords             % coordinates of the local reference frame
         R_SIGMA                     % receiver noise standard deviation
         receivernoise = zeros(3,1); % current receiver noise sample
+        pastPositions =0;           % array of past positions needed to simulate delay
+        delay;                      % time delay
     end
     
-    methods
-        
+    methods        
         function obj=GPSReceiverG(objparams)
             % constructs the object.
             % Selects the satellite vehicles visible to this receiver among the ones in
@@ -45,12 +49,14 @@ classdef GPSReceiverG < GPSReceiver
             %                objparams.on - 1 if the object is active
             %                objparams.originutmcoords - coordinates of the local reference frame
             %                objparams.R_SIGMA - receiver noise standard deviation
+            %                objparams.delay - time delay in multiples of receiver's dt
             %
             global state;
             obj=obj@GPSReceiver(objparams);
             
             obj.originUTMcoords = objparams.originutmcoords;
             obj.R_SIGMA = objparams.R_SIGMA;
+            obj.delay = objparams.delay;
             
             % pick randomly the satellites visible for this receiver
             obj.nsv = objparams.minmaxnumsv(1)...
@@ -106,9 +112,17 @@ classdef GPSReceiverG < GPSReceiver
             
             if(~exist('state.environment.gpsspacesegment_.svspos','var'))
                 error('In order to run a GPSReceiver needs the corresponding space segment!');
-            end
-                        
-            truePosECEF = ned2ecef(X(1:3), obj.originUTMcoords);
+            end            
+                      
+            if(obj.pastPositions == 0)
+               obj.pastPositions = repmat(X(1:3),1,obj.delay); 
+            end    
+            
+            obj.pastPositions = [obj.pastPositions;X(1:3)];
+            pastPos = obj.pastPositions(:,1); 
+            obj.pastPositions = obj.pastPositions(:,2:end);
+            
+            truePosECEF = ned2ecef(pastPos, obj.originUTMcoords);
             
             obs = zeros(obj.nsv,1);
             for i = 1:obj.nsv,

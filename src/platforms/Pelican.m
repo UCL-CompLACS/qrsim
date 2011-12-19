@@ -1,52 +1,65 @@
 classdef Pelican<Steppable
-    % implementation of the dynamics of a AscTec Pelican quadrotor
-    % the parameters are derived from the system identification of one of
+    % Class that implementatios dynamic and sensors of an AscTec Pelican quadrotor
+    % The parameters are derived from the system identification of one of
     % the UCL quadrotors
     %
+    % Pelican Properties:
+    % X   - state = [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
+    %       px,py,pz           [m]     position (NED coordinates)
+    %       phi,theta,psi      [rad]   attitude in Euler angles right-hand ZYX convention
+    %       u,v,w              [m/s]   velocity in body coordinates
+    %       p,q,r              [rad/s] rotational velocity  in body coordinates
+    %       thrust             [N]     rotors thrust
     %
-    % state X = [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
-    % px,py,pz      [m]     position (NED coordinates)
-    % phi,theta,psi [rad]   attitude in Euler angles right-hand ZYX convention
-    % u,v,w         [m/s]   velocity in body coordinates
-    % p,q,r         [rad/s] rotational velocity  in body coordinates
-    % thrust        [N]     rotors thrust
+    % eX  - estimated state = [\~px;\~py;\~pz;\~phi;\~theta;\~psi;0;0;0;\~p;\~q;\~r;0;\~ax;\~ay;\~az;\~alt]
+    %       \~px,\~py,\~pz     [m]     position estimated by GPS (NED coordinates)
+    %       \~phi,\~theta,\~psi[rad]   estimated attitude in Euler angles right-hand ZYX convention
+    %       0,0,0                      placeholder (the uav does not provide velocity estimation)
+    %       \~p,\~q,\~r        [rad/s] measured rotational velocity in body coordinates
+    %       0                          placeholder (the uav does not provide thrust estimation)
+    %       \~ax,\~ay,\~az     [m/s^2] measured acceleration in body coordinates
+    %       alt                [m]     estimated altitude from altimeter NED, POSITIVE UP! 
+    % 
+    % U   - controls  = [pt,rl,th,ya,bat]
+    %       pt  [-0.89..0.89]  [rad]   commanded pitch
+    %       rl  [-0.89..0.89]  [rad]   commanded roll
+    %       th  [0..1]         unitless commanded throttle
+    %       ya  [-4.4,4.4]     [rad/s] commanded yaw velocity
+    %       bat [9..12]        [Volts] battery voltage
     %
-    % controls U = [pt,rl,th,ya,bat]
-    % pt  [-0.89..0.89] rad commanded pitch
-    % rl  [-0.89..0.89] rad commanded roll
-    % th  [0..1] unitless commanded throttle
-    % ya  [-4.4,4.4] rad/s commanded yaw velocity
-    % bat [9..12] Volts battery voltage
+    % Pelican Methods:
+    % obj = Pelican(objparams) - constructs object
+    % plotTrajectory(flag)     - enables/disables plotting of the uav trajectory
+    %        
     
     properties (Constant)
-        CONTROL_LIMITS = [-0.89,0.89; -0.89,0.89; 0,1; -4.4,4.4; 9,12];
-        %UAV_CTRL_2_RAD = deg2rad(0.025);
-        %UAV_CTRL_2_RADS = deg2rad(254.760/2047);
-        %UAV_THROTTLE_MAX = 4097;
-        
-        SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1];
-        BATTERY_RANGE = [9,12];
+        CONTROL_LIMITS = [-0.89,0.89; -0.89,0.89; 0,1; -4.4,4.4; 9,12]; %limits of the control inputs       
+        SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversuion factors 
+        BATTERY_RANGE = [9,12]; % range of valid battery values volts
         
         % The parameters of the system dynamics are defined in the
         % pelicanODE function
-        G = 9.81;
-        MASS = 1.68; %this is only for the initial state
+        G = 9.81;    %  gravity m/s^2
+        MASS = 1.68; %  mass of the platform Kg
     end
     
     properties (Access = public)
-        gpsreceiver
-        turbulence
-        ahars
-        meanWind
-        turbWind
-        graphics
+        gpsreceiver % handle to the gps receiver
+        turbulence  % handle to the aerodynamic turbulence
+        ahars       % handle to the attitude heading altitude reference system
+        graphics    % handle to the quadrotor graphics
+        meanWind    % mean wind vector
+        turbWind    % turbulence vector 
+        a           % linear accelerations in body coordinates [ax;ay;az]
+        valid       % the state of the platform is invalid
+        stateLimits % 13 by 2 vector of allowed values of the state
+        collisionD  % distance from any other object that defines a collision
+        dynNoise    % standard deviation of the noise dynamics
     end
     
     properties
-        X
-        pseudoX
-        a
-        valid = 1;
+        X       % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
+        eX      % estimated state  [\~px;\~py;\~pz;\~phi;\~theta;\~psi;0;0;0;\~p;\~q;\~r;0;\~ax;\~ay;\~az;\~alt]
     end
     
     methods (Sealed)
@@ -55,12 +68,30 @@ classdef Pelican<Steppable
             % The configuration of the type and parameters of the subcomponents are read
             % from the platform config file e.g. pelican_config.m
             %
+            % Example:
+            %
+            %   obj=Pelican(objparams);
+            %                objparams.dt - timestep of this object
+            %                objparams.DT - global simulation timestep
+            %                objparams.on - 1 if the object is active
+            %                objparams.aerodynamicturbulence - aerodynamicturbulence parameters
+            %                objparams.sensors.ahars - ahrs parameters
+            %                objparams.sensors.gpsreceiver - gps receiver parameters
+            %                objparams.quadrotorgraphics - graphics parameters
+            %                objparams.stateLimits - 13 by 2 vector of allowed values of the state
+            %                objparams.collisionDistance - distance from any other object that defines a collision
+            %                objparams.dynNoise -  standard deviation of the noise dynamics
+            %
             obj=obj@Steppable(objparams);
             
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
+            obj.valid = 1;
             
-            %instantiation of sensor and wind objects, with some "manual"
-            %type checking
+            obj.stateLimits = objparams.stateLimits;
+            obj.collisionD = objparams.collisionDistance;
+            obj.dynNoise = objparams.dynNoise;
+            
+            %instantiation of sensor and wind objects, with some "manual" type checking
             
             % WIND
             tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
@@ -125,23 +156,20 @@ classdef Pelican<Steppable
         end
         
         function valid = stateIsWithinLimits(obj)
-            global state;
+            % returns 0 if the state is out of bounds
             valid =1;
-%             valid = (obj.X(1)<state.environment.area.limits(1)) ||...
-%                     (obj.X(1)>state.environment.area.limits(2)) ||...
-%                     (obj.X(2)<state.environment.area.limits(3)) ||...
-%                     (obj.X(2)>state.environment.area.limits(4)) ||...
-%                     (obj.X(3)<state.environment.area.limits(5)) ||...
-%                     (obj.X(3)>state.environment.area.limits(6));         
+            for i=1:length(obj.X),
+                valid = valid || (obj.X(i)<obj.stateLimits(i,1)) ||(obj.X(i)>obj.stateLimits(i,2));
+            end    
         end
         
-        
         function coll = inCollision(obj)
+            % returns 1 if a collision is occourring
             global state;
             coll = 0;
             for i=1:length(state.platforms),
                 if(state.platforms(i) ~= obj)
-                    if(norm(state.platforms(i).X(1:3)-obj.X(1:3))< THR)
+                    if(norm(state.platforms(i).X(1:3)-obj.X(1:3))< obj.collisionD)
                         coll = 1;
                     end
                 end
@@ -163,7 +191,7 @@ classdef Pelican<Steppable
             % Note:
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
-            
+            %
             global state;
             
             if(obj.valid)
@@ -176,15 +204,15 @@ classdef Pelican<Steppable
                 end
                 
                 %turbulence
-                obj.turbulence.step(obj.X);
-                
-                obj.turbWind = obj.turbulence.getLinear(obj.X);
                 obj.meanWind = state.environment.wind.getLinear(obj.X);
                 
-                obj.X(7:9)=obj.X(7:9)+obj.meanWind + obj.turbWind;
+                obj.turbulence.step([obj.X;obj.meanWind]);                
+                obj.turbWind = obj.turbulence.getLinear(obj.X);
+                                
+                accNoise = obj.dynNoise.*randn(state.rStream,6,1);
                 
                 % dynamics
-                [obj.X obj.a] = ruku2('pelicanODE', obj.X, US, obj.dt);
+                [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;obj.meanWind + obj.turbWind; obj.MASS; accNoise], obj.dt);
                 
                 
                 if(obj.stateIsWithinLimits() && ~obj.inCollision())
@@ -200,14 +228,15 @@ classdef Pelican<Steppable
                     estimatedPosNED = obj.gpsreceiver.getMeasurement(obj.X);
                     
                     %return values
-                    obj.pseudoX = [estimatedPosNED;estimatedAHA(1:3);zeros(3,1);estimatedAHA(4:end)];
+                    obj.eX = [estimatedPosNED;estimatedAHA(1:3);zeros(3,1);...
+                        estimatedAHA(4:6);0;estimatedAHA(7:end)];
                     
                     % graphics
                     obj.graphics.update(obj.X);
                     
                     obj.valid = 1;
                 else
-                    obj.pseudoX = nan(19,1);
+                    obj.eX = nan(17,1);
                     obj.valid=0;
                 end
                 

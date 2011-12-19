@@ -1,6 +1,9 @@
 classdef AltimeterGM<Altimeter
     % Simple accelerometer noise model.
-    % The noise is modelled as an additive Gauss-Markov process.
+    % The following assumptions are made:
+    % - the noise is modelled as an additive Gauss-Markov process. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
     %
     % AltimeterGM Properties:
     %   BETA                       - noise time constant

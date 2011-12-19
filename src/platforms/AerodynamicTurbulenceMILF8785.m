@@ -1,15 +1,17 @@
 classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
-    % Turbulence model according to U.S. military specification MIL-F-8785C
+    % Linear Turbulence model according to U.S. military specification MIL-F-8785C
     %
     % According to references[1, 2], turbulence can be modelled as a stochastic process
-    % defined by velocity spectra. The turbulence field is assumed to be visualized as
-    % frozen in time and space (i.e.: time variations are statistically equivalent to
-    % distance variations in traversing the turbulence field). This assumption implies
-    % that the turbulence-induced responses of the aircraft is result only of the motion
-    % of the aircraft relative to the turbulent field
-    % i.e. w = Omega * V
+    % defined by velocity spectra. The turbulence field is assumed to be "frozen" in time
+    % and space (i.e.: time variations are statistically equivalent to distance variations
+    % in traversing the turbulence field). This assumption implies that the turbulence-induced 
+    % responses of the aircraft is result only of the motion of the aircraft relative to 
+    % the turbulent field (i.e. w = Omega * V).
+    % 
+    % MILF8785-C specifies both linear and rotational components of the
+    % turbulence however this class currently implements only the linear disturbences.
     % The turbulence axes orientation in this region is defined as being aligned with
-    % the body coordinates.
+    % the reletive wind direction.
     %
     %
     % AerodynamicTurbulenceMILF8785 Properties:
@@ -21,7 +23,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     %    getLinear(state)           - returns the linear component of the turbulence
     %    getRotational(state)       - always returns zero since this model does not have
     %                                 a rotational wind component
-    %    update([])                 - updates the GM turbulence model
+    %    update(XandWind)           - updates the GM turbulence model
     %
     %
     % [1] "Military Specification, “Flying Qualities of Piloted Airplanes" Tech. Rep.
@@ -37,10 +39,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     
     properties (Access=private)
         w6  %velocity at 6m from ground in m/s
-    end
-    
-    properties
-        vgust = zeros(3,1); % aerodynamic turbulence
+        vgust_relwk = zeros(3,1); % aerodynamic turbulence in relative wind coords Knots
+        vgust = zeros(3,1); % aerodynamic turbulence in body coords m/s
     end
     
     methods (Sealed)
@@ -67,10 +67,11 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %
             %   v = obj.getLinear(state)
             %           state - 13 by 1 vector platform state
-            %           v - linear component of the component gust 3 by 1 vector
+            %           v - linear component of the component gust in body coordinates
+            %           3 by 1 vector 
             %
             if(obj.active==1)
-                v = knots2ms(obj.vgust);
+                v = obj.vgust;
             else
                 v = zeros(3,1);
             end
@@ -92,7 +93,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     end
     
     methods  (Sealed, Access=protected)
-        function obj = update(obj, X)
+        function obj = update(obj, XandWind)
             % updates the GM turbulence model
             %
             % Note:
@@ -101,8 +102,25 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %
             global state;
             
-            V=norm(X(7:9));%m/s airspeed along the flight path, governs the lengthscale
+            X = XandWind(1:13);
+            meanWind = XandWind(14:end); % in body coords
             
+            % airspeed along the flight path, governs the lengthscale,
+            % we can simply subtract velocity and mean wind since both are
+            % in body coordinates      
+            relativeWind = X(7:9)-meanWind;
+            
+            V = norm(relativeWind);%m/s 
+            
+            alpha = atan2(relativeWind(3),relativeWind(1)); % angle of attac           
+            beta = asin(relativeWind(2)/V); % sideslip angle         
+            
+            cb = cos(beta);  sb = sin(beta);
+            ca = cos(alpha); sa = sin(alpha);
+            Cwb = [ ca*cb   -ca*sb -sa;
+                    sb       cb     0 ;
+                    sa*cb   -sa*sb  ca ];
+                
             z = m2ft(-X(3)); %height of the platform from ground
             w20 = ms2knots(obj.w6);
             
@@ -119,7 +137,11 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             else
                 au=0;
             end
-            obj.vgust = (1-au*obj.dt)*obj.vgust+sqrt(2*au*obj.dt)*sigma.*randn(state.rStream,3,1);
+            % turbulence in relative wind coordinates
+            obj.vgust_relwk = (1-au*obj.dt)*obj.vgust_relwk+sqrt(2*au*obj.dt)*sigma.*randn(state.rStream,3,1);
+            
+            %turbulence in body coordinates
+            obj.vgust = knots2ms(Cwb*obj.vgust_relwk);
         end
     end
 end

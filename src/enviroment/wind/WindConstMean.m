@@ -36,9 +36,16 @@ classdef WindConstMean<AerodynamicTurbulence
             %                objparams.W6 - velocity at 6m from ground in m/s
             %                objparams.direction - mean wind direction 3 by 1 vector
             %
+            global state;
+            
             obj=obj@AerodynamicTurbulence(objparams);
             obj.w6=objparams.W6;
-            obj.direction=objparams.direction;
+            if(objparams.direction==0)
+                alpha = 2*pi*rand(state.rSteam,1,1);
+                obj.direction=[sin(alpha),cos(alpha),0];
+            else
+                obj.direction=objparams.direction;
+            end    
         end
         
         function v = getLinear(obj,X)

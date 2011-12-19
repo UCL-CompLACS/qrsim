@@ -1,6 +1,9 @@
 classdef AccelerometerG<Accelerometer
     % Simple accelerometer noise model.
-    % The noise is modelled as additive white Gaussian.
+    % The following assumptions are made:
+    % - the noise is modelled as additive white Gaussian 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays 
     %
     % AccelerometerG Properties:
     %   SIGMA                            - noise standard deviation

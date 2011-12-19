@@ -1,6 +1,9 @@
 classdef OrientationEstimatorGM<OrientationEstimator
     % Simple orientation noise model.
-    % The noise is modelled as an additive Gauss-Markov process.
+    % The following assumptions are made:
+    % - the noise is modelled as an additive Gauss-Markov process. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
     %
     % OrientationEstimatorGM Properties:
     %   BETA                              - noise time constant

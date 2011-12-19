@@ -5,7 +5,6 @@ function [xdot,a] = pelicanODE(X,U,dt)
 LOW_THROTTLE_LIMIT = 300;
 MAX_ANGVEL=deg2rad(150);
 G = 9.81;
-mass = 1.68;
 
 % rotational params
 pq0 = -3.25060e-04;
@@ -36,6 +35,12 @@ rl = U(2);
 th = U(3);
 ya = U(4);
 vb = U(5);
+
+wind = U(6:8);
+
+mass = U(9);
+
+noise = U(10:15);
 
 phi = X(4);
 theta = X(5);
@@ -117,11 +122,17 @@ gb = dcm*[0;0;G];
 %resultant acceleration in body frame
 %note: thrust force always orthogonal to the rotor
 %plane i.e. in the  -Z body direction
-a = [0;0;-(Fth+xdot(13)*dt)]/mass + gb;
+ra = [0;0;-(Fth+xdot(13)*dt)]/mass + gb;
 
-xdot(7) = -q*w + r*v + a(1) + kuv*u;
-xdot(8) = -r*u + p*w + a(2) + kuv*v;
-xdot(9) = -p*v + q*u + a(3) + kw*w;
+xdot(7) = -q*w + r*v + ra(1) + kuv*(u-wind(1));
+xdot(8) = -r*u + p*w + ra(2) + kuv*(v-wind(2));
+xdot(9) = -p*v + q*u + ra(3) + kw*(w-wind(3));
+
+% an accelerometer can not measure the 
+a = xdot(7:9)-gb;
+
+% finally we add the noise
+xdot(7:12) = xdot(7:12)+noise;
 
 end
 

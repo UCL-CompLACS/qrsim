@@ -74,7 +74,7 @@ for i=1:N,
     % helicopter states, namely altitude
     % note: this needs the imu noise to be on
     if(mod(i,20)==0)
-    XX1(:,idx)=state.platforms(1).pseudoX(1:3);
+    XX1(:,idx)=state.platforms(1).eX(1:3);
     idx=idx+1;
     end    
     % update the altitude plot
