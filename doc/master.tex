@@ -1,0 +1,130 @@
+\documentclass[a4paper,10pt]{report}
+\usepackage[utf8x]{inputenc}
+\usepackage{fullpage}
+\usepackage[hyphens]{url}
+%\usepackage{hyperref} this messes up the line breaks of url
+\usepackage{xspace}
+
+% Title Page
+\title{{CompLACS} Quadrotors Simulator}
+\author{Renzo De Nardi,\\University College London\\\texttt{rdenardi@cs.ucl.ac.uk}}
+
+\newcommand{\sname}{QRsim\xspace}
+\newcommand{\web}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-0.1.zip}\xspace}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This document describes the multi-vehicle quadrotor simulator (\sname) developed at UCL to devise and test algorithms for the UCL autonomous helicopters, one of the three application platforms of the {CompLACS} project.
+This report is divided into two parts, the first describes the logic and the structure of the simulator while the second presents a specific example of use. 
+Technical details about the dynamic models used in the simulator and their implementation are reported in the appendix. 
+
+A companion to this report is the documentation that Matlab can automatically generate from the source code, the reader is referred to it for all the more specific API details.
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Design and Concepts}
+
+\section{Rationale}
+UAVs provide a rich source of control problems some of which (namely the one connected with individual flight attitude control) have been successfully addressed in previous research. {CompLACS} focusses instead on the higher level problems of enabling multiple UAVs to achieve a common goal by communicating and cooperating as an autonomous flock. 
+
+A simulator that allows to devise and test algorithms aiming at such problems must reliably model the effects that are (at least to a certain extent) common to all platforms (e.g. wind or GPS errors) as well as the interaction between them (e.g. radio communication or collisions). 
+At the same time, since the real platform used in this work are already provided with off the shelf stabilisation and attitude controllers, the requirement on accurately simulating the very low level dynamic behaviour of the platform can be relaxed.
+Both these sets of requirements make \sname substantially different from existing quadrotor simulator available in the literature. 
+
+
+One of the objectives of {CompLACS} is to provide a generic interface to specifying learning and control problems, it is therefore important for the tools used in the initial investigation (i.e. the platforms simulators) to not be constrained to a rigid interface. 
+For this reason in \sname more than providing a unique and rigid interface to the application platform, we decided to build a modular and extensible API so to make it possible to redefine the platform interface with relative ease. 
+
+Defining concrete application scenarios based on the available platforms and simulators is one of the forthcoming deliverable of {CompLACS} (milestones 6.2, 7.2), in the following section we aim at aiding this process by giving a clear conceptual view of \sname. 
+
+\section{Concepts}
+
+
+
+\subsection{Platforms vs Environment}\label{sec:platandenv}
+Within \sname it is useful to make a logical distinction between two types of objects:
+\begin{itemize}
+\item platforms,
+\item environment.
+\end{itemize}
+To the first type belongs the description of the quadrotor dynamics but also the models of sensors and other phenomena that are platform specific (e.g. aerodynamic turbulence). The second class comprehends al the phenomena that are not platform specific and have direct or indirect impact on several platforms (e.g. the flight area or the satellite vehicles of the GPS system).
+In many ways this distinction is rather natural and in \sname we are simply exploiting it in order to provide a sensible structure to the simulator.
+
+In general the platforms are the only objects that can be controlled by means of actions, of course those might eventually have an indirect effect on the environment. We must underline that this does not impose for any of the two classes to be time invariant, in fact both class of object might change during the course of a simulation as result of actions or simply as result of the time passing.
+
+To the extent allowed by Matlab we used object-oriented programming in order to map physical objects directly into a corresponding class structure and the distinction between environment and platform object is made evident in the subdirectories \texttt{/src/platforms} and \texttt{/src/environment}.
+
+\subsection{State}
+
+At any point in time the state of 
+state.t
+
+state.rStream
+
+
+
+
+For reason of efficiency in Matlab we use a global structure to store the simulation state rather obviously this is called \texttt{state} and is accessible from any function or object method in the simulator.
+Consistently with the definition in section \ref{sec:platandenv} we use the fields \texttt{state.environment} and the array \texttt{state.platforms} to store the handles to the corresponding environment and platforms objects. For instance accessing the state of one of the quadrotors boils down to retrieving \texttt{state.platforms(i).X} while the current mean wind direction is stored in \texttt{state.environment.wind.direction}.
+  
+The reader is referred to the API documentation available through Matlab for more details on the properties of each object.
+
+The global state structure stores also other two very important variables, the simulator time (\texttt{state.t}) and the pseudorandom number generator stream (\texttt{state.rStream}). \texttt{state.t} is used to ensure synchronization between all the environment and platforms objects, and the \texttt{state.rStream} is used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples). 
+
+\subsection{Steppable}
+
+
+
+\subsection{Other interfaces}
+
+
+\section{The \sname object}
+
+After introducing 
+
+
+
+\chapter{Installation and Use}
+
+\section{Installation}
+The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result the only real dependency is on a recent version\footnote{The development and testing was carried out on R2010b for UNIX.} of Matlab.
+No installation as such is required, the user simply needs to download the simulator source code form \web and unpack it in the directory of choice.
+
+The function \texttt{initPath.m} present in the root directory of the simulator can be used to add the directories of the simulator to the Matlab path so that all the necessary function are reachable at run time.
+At the aim of improving performance, some of the most used functions in the simulator have been written also as MEX function, this can be easily compiled using the function \texttt{mexify.m}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}.}.
+ 
+In the root directory of \sname there are two directories \texttt{/src} and \texttt{/config}, the first hosts the classes end functions that constitute the simulator while the second contains the configuration files that specify the details of a simulation run.
+
+\section{Running the \sname object}
+
+
+\section{Configuration scripts}  
+
+
+\section{Defining a Task}
+
+
+\appendix
+\chapter{Implementation Details}
+
+This appendix describes in detail and provide reference to the models implemented on the simulator.
+While reading this material is not a prerequisite to use the simulator, reading it will provide in depth details about the parameters present on the simulator's configuration files.
+
+\section{Quadrotor dynamic model}
+
+
+\section{GPS model}
+
+
+\section{Wind model}
+
+
+\section{Inertial sensors models}
+
+
+
+
+\end{document}          
