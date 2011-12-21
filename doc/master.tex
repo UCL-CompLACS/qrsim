@@ -1,16 +1,17 @@
-\documentclass[a4paper,10pt]{report}
+\documentclass[a4paper,11pt]{report}
 \usepackage[utf8x]{inputenc}
 \usepackage{fullpage}
 \usepackage[hyphens]{url}
 %\usepackage{hyperref} this messes up the line breaks of url
 \usepackage{xspace}
+\usepackage{listings}
 
 % Title Page
 \title{{CompLACS} Quadrotors Simulator}
 \author{Renzo De Nardi,\\University College London\\\texttt{rdenardi@cs.ucl.ac.uk}}
 
 \newcommand{\sname}{QRsim\xspace}
-\newcommand{\web}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-0.1.zip}\xspace}
+\newcommand{\web}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/}\xspace}
 
 \begin{document}
 \maketitle
@@ -44,7 +45,7 @@ Defining concrete application scenarios based on the available platforms and sim
 
 
 
-\subsection{Platforms vs Environment}\label{sec:platandenv}
+\subsection{Platforms and Environment}\label{sec:platandenv}
 Within \sname it is useful to make a logical distinction between two types of objects:
 \begin{itemize}
 \item platforms,
@@ -55,36 +56,71 @@ In many ways this distinction is rather natural and in \sname we are simply expl
 
 In general the platforms are the only objects that can be controlled by means of actions, of course those might eventually have an indirect effect on the environment. We must underline that this does not impose for any of the two classes to be time invariant, in fact both class of object might change during the course of a simulation as result of actions or simply as result of the time passing.
 
-To the extent allowed by Matlab we used object-oriented programming in order to map physical objects directly into a corresponding class structure and the distinction between environment and platform object is made evident in the subdirectories \texttt{/src/platforms} and \texttt{/src/environment}.
+To the extent allowed by Matlab we used object-oriented programming in order to map physical objects directly into a corresponding class; platforms subclass the abstract class \texttt{Platform} (defined in \texttt{/src/platforms/Platform.m}) and environment objects subclass \texttt{EnvironmentObject} (defined in \texttt{/src/environment}).
 
-\subsection{State}
+\subsection{State}\label{sec:state}
 
-At any point in time the state of 
-state.t
+At any point in time the state of the objects present in the simulator must be maintained; for reason of computational efficiency in Matlab we use a global structure to store such state. Rather obviously this data structure is called \texttt{state} and is accessible from any function or object method in the simulator.
 
-state.rStream
+Consistently with the definition in section \ref{sec:platandenv} we use the fields \texttt{state.environment} and the array \texttt{state.platforms} to store the handles to all the environment and platforms objects respectively. 
+Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms(1).X} gives access to the state variables of the first platform, while \texttt{state.environment.wind.direction} returns the current mean wind direction. 
+The direct access to the state variables should not be used to set the state, when such an operation is meaningful (e.g. for the platforms) a specific methods (\texttt{setState(X)}) is provided by the corresponding class\footnote{In addition to overwriting the object's state these calls also make sure that 
+any other internal variable (e.g. noise model states) is appropriately set.}.
+The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose that derived classes must define methods to reset the state to its initial value defined in the configuration scripts (see section \ref{sec:config}).
+The reader is referred to the API documentation available through Matlab for more details on the properties of each single object.
 
-
-
-
-For reason of efficiency in Matlab we use a global structure to store the simulation state rather obviously this is called \texttt{state} and is accessible from any function or object method in the simulator.
-Consistently with the definition in section \ref{sec:platandenv} we use the fields \texttt{state.environment} and the array \texttt{state.platforms} to store the handles to the corresponding environment and platforms objects. For instance accessing the state of one of the quadrotors boils down to retrieving \texttt{state.platforms(i).X} while the current mean wind direction is stored in \texttt{state.environment.wind.direction}.
-  
-The reader is referred to the API documentation available through Matlab for more details on the properties of each object.
-
-The global state structure stores also other two very important variables, the simulator time (\texttt{state.t}) and the pseudorandom number generator stream (\texttt{state.rStream}). \texttt{state.t} is used to ensure synchronization between all the environment and platforms objects, and the \texttt{state.rStream} is used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples). 
+The global state structure stores also other important variables:
+\begin{itemize}
+ \item the simulator time \texttt{state.t}, used to ensure synchronization between all the environment and platforms objects;
+ \item the pseudorandom number generator stream \texttt{state.rStream}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
+ \item the simulator time step \texttt{state.DT}, the time granularity with wich the simulator time is incremented;
+ \item the handle to the 3D graphics visualization \texttt{state.display3d}.
+\end{itemize}
 
 \subsection{Steppable}
 
+Since the platforms and environment that we are simulating are representation of physical objects, one natural way to think about their evolution in time is to consider time discretized into steps and to ``step forward'' the object's state at each time step. In the case of a quadrotor for instance, stepping forward is nothing more than integrating the ODE that describe its dynamics, for other object stepping forward might mean instead triggering an event associated with a specific time.
+In our implementation every object that evolves with time is derived from a common class (i.e. \texttt{Steppable}) which defines an abstract \texttt{update()} method and a time step property \texttt{dt}. \texttt{update()} propagates the object's state forward to the current time \texttt{state.t}, \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. As we will see in section \ref{sec:qrobj}, the method update is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns calls \texttt{update()} if a time equal to \texttt{dt} has passed since the object's state was updated\footnote{To simplify the updates the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{state.DT}); in practice this is not a very restrictive assumption.}.
+
+\subsection{Other Abstract Classes}
+
+At the aim of making the code easy to extend, the software API defines also several other classes to abstract the Sensors in general but more specifically the GPSreceiver, the various inertia sensors and the aerodynamic effects. This allows to configure specific type of sensor through the platform configuration scripts (see section \ref{sec:config}) instead of having to modify the platform code.
+
+\section{The \sname Object}\label{sec:qrobj}
+
+After a brief introduction of the foundamental building blocks of \sname we can look at they are used within the main class of the simulator. The \texttt{\sname} object allows to initialize setup and control the simulator as a whole. 
+
+The object exposes three main methods:
+\begin{itemize}
+ \item \texttt{init(config\_file)}, initializes the platforms the enviroment objects and the task according to what specified in \texttt{config\_file} (see section \ref{sec:config}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \texttt{\sname} object and is called only once.
+ \item \texttt{reset()}, resets the simulator to the state specified in the configuration files\footnote{The parameters defined as random in the configuration file are initialized to a new random state.}. This is generally called after a learning episode in order to restore the state of the simulator. 
+ \item \texttt{step(U)}, steps in sequence all the enviroment object and all the platforms forward in time. This is the main command that accepts a matrix of control inputs \texttt{U} (e.g. one column array for each platform) and propagates the state of all the simulator's object. Listing \ref{lst:step} shows the implementation of the method; where it can be seen that first \texttt{state.t} is updated\footnote{This is the only statements that updates the simulation time.}, then all the enviroment object are propagated and only later each of the platform is stepped forward.
+ After a call to step the new state can be accessed as described in section \ref{sec:state}.
+ \item \texttt{reward()}, returns the instantatneous reward defined by the task
+\end{itemize}
 
 
-\subsection{Other interfaces}
-
-
-\section{The \sname object}
-
-After introducing 
-
+\begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,firstnumber=100]
+function obj=step(obj,U)
+  global state;
+           
+  %% update time
+  state.t=state.t+state.DT;
+                        
+  %% step all the common objects
+            
+  % the space segment of the GPS
+  state.environment.gpsspacesegment.step([]);
+            
+  % the wind
+  state.environment.wind.step([]);
+            
+  %% step all the platforms            
+  for i=1:length(state.platforms)
+    state.platforms(i).step(U(:,i));
+  end
+end
+\end{lstlisting}
 
 
 \chapter{Installation and Use}
@@ -98,10 +134,13 @@ At the aim of improving performance, some of the most used functions in the simu
  
 In the root directory of \sname there are two directories \texttt{/src} and \texttt{/config}, the first hosts the classes end functions that constitute the simulator while the second contains the configuration files that specify the details of a simulation run.
 
-\section{Running the \sname object}
+\section{Configuration scripts}  \label{sec:config}
 
 
-\section{Configuration scripts}  
+
+\section{Example main}
+
+
 
 
 \section{Defining a Task}
@@ -117,14 +156,86 @@ While reading this material is not a prerequisite to use the simulator, reading 
 
 
 \section{GPS model}
-
+            % constructs the object.
+            % Selects the satellite vehicles visible to this receiver among the ones in
+            % objparams.svs the total number of visible satellites is generate
+            % randomly (uniform number between objparams.minmaxnumsv(1) and
+            % objparams.minmaxnumsv(2)). The selection of satellites is kept FIX during
+            % all the simulation.
+    % Class that simulates the correlate noise affecting the GPS pseudorange.
+    % The running assumption is that all the receivers are (approximately) geographically
+    % co-located so that pseudorange measurements to the same satellite vehicle obtained
+    % by different receivers are strongly correlated.
+    %
+    % At each epoch the position of each satellite vehicles is determined interpolating
+    % the precise orbits file (SP3) defined in params.environment.gpsspacesegment.preciseorbitfile,
+    % pseudorange errors are considered additive and modelled by a Gauss-Markov process [1][2].
+    % Global variables are used to maintain the noise states shared between receivers.
+    %
+    % [1] J. Rankin, "An error model for sensor simulation GPS and differential GPS," IEEE
+    %     Position Location and Navigation Symposium, 1994, pp.260-266.
+    % [2] Carlson, Justin, "Mapping Large, Urban Environments with GPS-Aided SLAM" (2010).
+    %     Dissertations. Paper 44.
 
 \section{Wind model}
-
+    % Linear Turbulence model according to U.S. military specification MIL-F-8785C
+    %
+    % According to references[1, 2], turbulence can be modelled as a stochastic process
+    % defined by velocity spectra. The turbulence field is assumed to be "frozen" in time
+    % and space (i.e.: time variations are statistically equivalent to distance variations
+    % in traversing the turbulence field). This assumption implies that the turbulence-induced 
+    % responses of the aircraft is result only of the motion of the aircraft relative to 
+    % the turbulent field (i.e. w = Omega * V).
+    % 
+    % MILF8785-C specifies both linear and rotational components of the
+    % turbulence however this class currently implements only the linear disturbences.
+    % The turbulence axes orientation in this region is defined as being aligned with
+    % the reletive wind direction.
+    %
+    %
+    % AerodynamicTurbulenceMILF8785 Properties:
+    %    Z0                         - reference height (Constant)
+    %
+    % AerodynamicTurbulenceMILF8785 Methods:
+    %    AerodynamicTurbulenceMILF8785(objparams)   - constructs the object an sets its
+    %                                                 main fields
+    %    getLinear(state)           - returns the linear component of the turbulence
+    %    getRotational(state)       - always returns zero since this model does not have
+    %                                 a rotational wind component
+    %    update(XandWind)           - updates the GM turbulence model
+    %
+    %
+    % [1] "Military Specification, “Flying Qualities of Piloted Airplanes" Tech. Rep.
+    %      U.S. Military Specification MIL-F-8785C.
+    % [2] "Creating a Unified Graphical Wind Turbulence Model from Multiple Specifications"
+    %      Stacey Gage
+    % [3] "Wind Disturbance Estimation and Rejection for Quadrotor Position Control"
+    %     Steven L. Waslander, Carlos Wang
 
 \section{Inertial sensors models}
 
+    % Simple accelerometer noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as additive white Gaussian 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays 
 
+    % Simple accelerometer noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as an additive Gauss-Markov process. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
 
+    % Simple gyroscope noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as additive white Gaussian. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
+
+    % Simple orientation noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as an additive Gauss-Markov process. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
 
 \end{document}          
