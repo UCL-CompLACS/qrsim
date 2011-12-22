@@ -82,6 +82,10 @@ The global state structure stores also other important variables:
 Since the platforms and environment that we are simulating are representation of physical objects, one natural way to think about their evolution in time is to consider time discretized into steps and to ``step forward'' the object's state at each time step. In the case of a quadrotor for instance, stepping forward is nothing more than integrating the ODE that describe its dynamics, for other object stepping forward might mean instead triggering an event associated with a specific time.
 In our implementation every object that evolves with time is derived from a common class (i.e. \texttt{Steppable}) which defines an abstract \texttt{update()} method and a time step property \texttt{dt}. \texttt{update()} propagates the object's state forward to the current time \texttt{state.t}, \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. As we will see in section \ref{sec:qrobj}, the method update is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns calls \texttt{update()} if a time equal to \texttt{dt} has passed since the object's state was updated\footnote{To simplify the updates the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{state.DT}); in practice this is not a very restrictive assumption.}.
 
+\subsection{Task}
+
+
+
 \subsection{Other Abstract Classes}
 
 At the aim of making the code easy to extend, the software API defines also several other classes to abstract the Sensors in general but more specifically the GPSreceiver, the various inertia sensors and the aerodynamic effects. This allows to configure specific type of sensor through the platform configuration scripts (see section \ref{sec:config}) instead of having to modify the platform code.
@@ -96,7 +100,7 @@ The object exposes three main methods:
  \item \texttt{reset()}, resets the simulator to the state specified in the configuration files\footnote{The parameters defined as random in the configuration file are initialized to a new random state.}. This is generally called after a learning episode in order to restore the state of the simulator. 
  \item \texttt{step(U)}, steps in sequence all the enviroment object and all the platforms forward in time. This is the main command that accepts a matrix of control inputs \texttt{U} (e.g. one column array for each platform) and propagates the state of all the simulator's object. Listing \ref{lst:step} shows the implementation of the method; where it can be seen that first \texttt{state.t} is updated\footnote{This is the only statements that updates the simulation time.}, then all the enviroment object are propagated and only later each of the platform is stepped forward.
  After a call to step the new state can be accessed as described in section \ref{sec:state}.
- \item \texttt{reward()}, returns the instantatneous reward defined by the task
+ \item \texttt{reward()}, returns the instantatneous reward defined by the current task. This is meant to be called after stepping the simulator.
 \end{itemize}
 
 
@@ -134,8 +138,68 @@ At the aim of improving performance, some of the most used functions in the simu
  
 In the root directory of \sname there are two directories \texttt{/src} and \texttt{/config}, the first hosts the classes end functions that constitute the simulator while the second contains the configuration files that specify the details of a simulation run.
 
+
 \section{Configuration scripts}  \label{sec:config}
 
+
+
+% Simulator step time in second
+% this should not be changed...
+params.DT = 0.01;
+
+params.seed = 0; %set to zero to have a seed that depends on the system time
+
+%%%%% visualization %%%%%
+% 3D display parameters
+params.display3d.on = 1;
+params.display3d.width = 1000;
+params.display3d.height = 600;
+
+
+%%%%% environment %%%%%
+% these need to follow the conventions of axis(), they are in m, Z down
+params.environment.area.limits = [-10 20 -7 7 -20 0];
+params.environment.area.type = 'AreaGraphics';
+[E N zone h] = lla2utm([51.71190;-0.21052;0]);
+params.environment.area.originutmcoords.E = E;
+params.environment.area.originutmcoords.N = N;
+params.environment.area.originutmcoords.h = h;  
+params.environment.area.originutmcoords.zone =  zone;
+
+
+% GPS
+% The 
+params.environment.gpsspacesegment.on = 0; % if off the gps returns the noiseless position
+params.environment.gpsspacesegment.dt = 0.2;
+% specific setting due to the use of the ngs15992_16to17.sp3 file
+params.environment.gpsspacesegment.preciseorbitfile = 'ngs15992_16to17.sp3';
+params.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0);
+% a typical day (ro31082010.10o) at RVC had the following svs visible:
+%03G 05G 06G 07G 13G 16G 18G 19G 20G 22G 24G 29G 31G
+params.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
+params.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
+params.environment.gpsspacesegment.PR_BETA = 2000;             % process time constant (from [2])           
+params.environment.gpsspacesegment.PR_SIGMA = 0.1746;          % process standard deviation (from [2])
+%params.environment.gpsspacesegment.type = 'GPSPseudorangeGM2';
+%params.environment.gpsspacesegment.PR_BETA2 = 600;               % process time constant
+%params.environment.gpsspacesegment.PR_BETA1 =  1.075;            % process time constant   
+%params.environment.gpsspacesegment.PR_SIGMA = 0.001;             % process standard deviation (from [2])
+params.environment.gpsspacesegment.DT = params.DT;
+
+% Wind 
+% i.e. a steady omogeneous wind with a direction and magnitude
+% this is common to all helicopters
+params.environment.wind.on = 0;
+params.environment.wind.type = 'WindConstMean';
+params.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise it randomly 
+params.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
+params.environment.wind.dt = 1;    %not actually used since the model is constant
+params.environment.wind.DT = params.DT;
+
+%%%%% platforms %%%%% 
+% Configuration and initial state for each of the platforms
+params.platforms(1).configfile = 'pelican_config';
+params.platforms(1).X = [0;0;-20;0;0;0];
 
 
 \section{Example main}
@@ -143,7 +207,7 @@ In the root directory of \sname there are two directories \texttt{/src} and \tex
 
 
 
-\section{Defining a Task}
+\section{Defining a new Task}
 
 
 \appendix
