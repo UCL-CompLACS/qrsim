@@ -1,4 +1,7 @@
+import qrsim.*;
+
 global state;
+
 % speed note:
 % to have the simulation running considerably faster, 
 % you might want to compile the various mex files that are in the project
@@ -9,6 +12,7 @@ close all;
 %clear classes;
 clc;
 
+qrsim = qrsim.core.QRSim();
 
 %global state;
 
@@ -16,7 +20,7 @@ clc;
 % always to be executed before anything else!!
 % check default_config for the set of config parameters
 % including dt
-init('default_config');
+qrsim.init('KeepSpot');
 
 % as controller one could use a joystick
 % (note: needs matlab vr toolbox)
@@ -52,8 +56,8 @@ for i=1:N,
     
     tloop=tic;  
     
-    state.environment.gpsspacesegment.step([]);
-    state.environment.wind.step([]);
+    %state.environment.gpsspacesegment.step([]);
+    %state.environment.wind.step([]);
     
     % read input from joystick
     %U = joy2input(read(joy));
@@ -61,14 +65,16 @@ for i=1:N,
     % alterantively define a constant input
     % note that the one below is a trim state and will 
     % not produce any motion of the platform
-    U=[00.2;0.01;0.59;0.2;10];
+    U=[0.2;0.01;0.59;0.2;10];
     
     % alternatively one could compute the helicopter
     % input given the current state and a target 
     
     
     % thep the dynamics foward
-    state.platforms(1).step(U);
+    %state.platforms(1).step(U);
+    
+    qrsim.step(U);
     
     % let's add to the plot one of the
     % helicopter states, namely altitude
@@ -87,14 +93,14 @@ for i=1:N,
         pause(wait);
     %end
     
-    state.t=state.t+state.DT;
+    % state.t=state.t+state.DT;
 end
 a=toc(tbegin);
 
-if (params.display3d.on ==0)
-    nrt = params.dt/(a/N);
-    fprintf('running %d times realtime \n',nrt);
-end
+%if (params.display3d.on ==0)
+%    nrt = params.dt/(a/N);
+%    fprintf('running %d times realtime \n',nrt);
+%end
 
 
 mE = mean(XX1(1,:));

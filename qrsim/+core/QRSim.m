@@ -12,6 +12,7 @@ classdef QRSim<handle
         end
         
         function obj = init(obj,configFile)
+                import qrsim.*;
             % INIT
             % Initializes the simulator state given a configuration file.
             

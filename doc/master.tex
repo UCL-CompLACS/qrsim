@@ -66,14 +66,14 @@ Consistently with the definition in section \ref{sec:platandenv} we use the fiel
 Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms(1).X} gives access to the state variables of the first platform, while \texttt{state.environment.wind.direction} returns the current mean wind direction. 
 The direct access to the state variables should not be used to set the state, when such an operation is meaningful (e.g. for the platforms) a specific methods (\texttt{setState(X)}) is provided by the corresponding class\footnote{In addition to overwriting the object's state these calls also make sure that 
 any other internal variable (e.g. noise model states) is appropriately set.}.
-The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose that derived classes must define methods to reset the state to its initial value defined in the configuration scripts (see section \ref{sec:config}).
+The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose that derived classes must define methods to reset the state to its initial value defined in the configuration scripts (see section \ref{sec:createtask}).
 The reader is referred to the API documentation available through Matlab for more details on the properties of each single object.
 
 The global state structure stores also other important variables:
 \begin{itemize}
  \item the simulator time \texttt{state.t}, used to ensure synchronization between all the environment and platforms objects;
  \item the pseudorandom number generator stream \texttt{state.rStream}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
- \item the simulator time step \texttt{state.DT}, the time granularity with wich the simulator time is incremented;
+ \item the simulator time step \texttt{state.DT}, the time granularity with which the simulator time is incremented;
  \item the handle to the 3D graphics visualization \texttt{state.display3d}.
 \end{itemize}
 
@@ -84,23 +84,30 @@ In our implementation every object that evolves with time is derived from a comm
 
 \subsection{Task}
 
+By combining different types of environment objects and platforms \sname allows to define a variety of single and multiple helicopter scenarios as well as many different objectives that the platforms can try to achieve. 
+The abstract class \texttt{Task} provides a mean to completely specify a scenario and an activity to be learned through the two methods \texttt{init()} and \texttt{reward()}.
+
+\texttt{init()} allows the user to define the specific class that needs to be instantiated for each of the environment objects and for each of the platforms and its sensors. 
+Similarly all the class specific parameters can also be defined.
+
+\texttt{reward()} allows for defining an instantaneous reward for the task at hand for the purpose of learning. Most often the user will rely on the global \texttt{state} structure in order to compute such a reward.
 
 
 \subsection{Other Abstract Classes}
 
-At the aim of making the code easy to extend, the software API defines also several other classes to abstract the Sensors in general but more specifically the GPSreceiver, the various inertia sensors and the aerodynamic effects. This allows to configure specific type of sensor through the platform configuration scripts (see section \ref{sec:config}) instead of having to modify the platform code.
+At the aim of making the code easy to extend, the software API defines also several other classes to abstract the Sensors in general but more specifically the GPSreceiver, the various inertia sensors and the aerodynamic effects. This allows to configure specific type of sensor through the platform configuration scripts (see section \ref{sec:createtask}) instead of having to modify the platform code.
 
 \section{The \sname Object}\label{sec:qrobj}
 
-After a brief introduction of the foundamental building blocks of \sname we can look at they are used within the main class of the simulator. The \texttt{\sname} object allows to initialize setup and control the simulator as a whole. 
+After a brief introduction of the fundamental building blocks of \sname we can look at they are used within the main class of the simulator. The \texttt{\sname} object allows to initialize setup and control the simulator as a whole. 
 
 The object exposes three main methods:
 \begin{itemize}
- \item \texttt{init(config\_file)}, initializes the platforms the enviroment objects and the task according to what specified in \texttt{config\_file} (see section \ref{sec:config}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \texttt{\sname} object and is called only once.
+ \item \texttt{init('task\_name')}, initializes the platforms the environment objects and the task according to what specified by the task \texttt{'task\_name'} (see section \ref{sec:createtask}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \texttt{\sname} object and is called only once.
  \item \texttt{reset()}, resets the simulator to the state specified in the configuration files\footnote{The parameters defined as random in the configuration file are initialized to a new random state.}. This is generally called after a learning episode in order to restore the state of the simulator. 
- \item \texttt{step(U)}, steps in sequence all the enviroment object and all the platforms forward in time. This is the main command that accepts a matrix of control inputs \texttt{U} (e.g. one column array for each platform) and propagates the state of all the simulator's object. Listing \ref{lst:step} shows the implementation of the method; where it can be seen that first \texttt{state.t} is updated\footnote{This is the only statements that updates the simulation time.}, then all the enviroment object are propagated and only later each of the platform is stepped forward.
+ \item \texttt{step(U)}, steps in sequence all the environment object and all the platforms forward in time. This is the main command that accepts a matrix of control inputs \texttt{U} (e.g. one column array for each platform) and propagates the state of all the simulator's object. Listing \ref{lst:step} shows the implementation of the method; where it can be seen that first \texttt{state.t} is updated\footnote{This is the only statements that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward.
  After a call to step the new state can be accessed as described in section \ref{sec:state}.
- \item \texttt{reward()}, returns the instantatneous reward defined by the current task. This is meant to be called after stepping the simulator.
+ \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is meant to be called after stepping the simulator.
 \end{itemize}
 
 
@@ -130,16 +137,16 @@ end
 \chapter{Installation and Use}
 
 \section{Installation}
-The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result the only real dependency is on a recent version\footnote{The development and testing was carried out on R2010b for UNIX.} of Matlab.
-No installation as such is required, the user simply needs to download the simulator source code form \web and unpack it in the directory of choice.
+The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6)\footnote{The development and testing was carried out on R2010b for UNIX.}.
+No installation as such is required, the user simply needs to download the simulator source code form \web and unpack into a directory of choice.
 
-The function \texttt{initPath.m} present in the root directory of the simulator can be used to add the directories of the simulator to the Matlab path so that all the necessary function are reachable at run time.
+The function \texttt{initPath.m} present in the root directory of the simulator may be used to add the directories of the simulator to the Matlab path so that all the necessary function are reachable at run time.
 At the aim of improving performance, some of the most used functions in the simulator have been written also as MEX function, this can be easily compiled using the function \texttt{mexify.m}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}.}.
  
 In the root directory of \sname there are two directories \texttt{/src} and \texttt{/config}, the first hosts the classes end functions that constitute the simulator while the second contains the configuration files that specify the details of a simulation run.
 
 
-\section{Configuration scripts}  \label{sec:config}
+\section{Creating a Task}  \label{sec:createtask}
 
 
 
@@ -204,10 +211,6 @@ params.platforms(1).X = [0;0;-20;0;0;0];
 
 \section{Example main}
 
-
-
-
-\section{Defining a new Task}
 
 
 \appendix
