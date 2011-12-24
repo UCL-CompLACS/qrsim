@@ -1,4 +1,4 @@
-import qrsim.*;
+
 
 global state;
 
@@ -12,7 +12,7 @@ close all;
 %clear classes;
 clc;
 
-qrsim = qrsim.core.QRSim();
+qrsim = QRSim();
 
 %global state;
 

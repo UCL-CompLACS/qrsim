@@ -5,6 +5,24 @@ classdef QRSim<handle
     properties (Access=public)
         par %config lfile
         paths =[];  %path
+        task   % task
+    end
+    
+    methods (Static,Access=private)
+        function paths = toPathArray(p)
+            ps = genpath(p);
+            
+            cps = textscan(ps,'%s','Delimiter',':');
+            cps = cps{1};
+            paths = [];
+            
+            for i=1:length(cps)
+                cp = cps{i};
+                if(isempty(strfind(cp,'.svn'))&&isempty(strfind(cp,'.git')))
+                   paths = [paths,cp,':']; %#ok<AGROW>
+                end
+            end  
+        end
     end
     
     methods (Access=public)
@@ -13,19 +31,7 @@ classdef QRSim<handle
             
             idx = strfind(p,'/');
             
-            p=p(1:idx(end));
-            
-            ps = genpath(p);
-            
-            cps = textscan(ps,'%s','Delimiter',':');
-            cps = cps{1};
-            
-            for i=1:length(cps)
-                cp = cps{i};
-                if(isempty(strfind(cp,'.svn'))&&isempty(strfind(cp,'.git')))
-                   obj.paths = [obj.paths,cp,':'];
-                end
-            end    
+            obj.paths = toPathArray(p(1:idx(end)));
             
             addpath(obj.paths);
         end
@@ -34,22 +40,16 @@ classdef QRSim<handle
             rmpath(obj.paths);
         end
         
-        function obj = init(obj,configFile)
+        function obj = init(obj,taskName)
             % INIT
-            % Initializes the simulator state given a configuration file.
+            % Initializes the simulator state given a task.
             
-            global state;
-            
-            % add the configuration files
-            addpath(genpath('configs'));
-            
+            global state;           
             
             % load the required configuration
-            eval(configFile);
+            obj.task = feval(taskName);
            
-            obj.par = params;
-            
-            clear params;    
+            obj.par = obj.task.init();
             
             % simulation time
             state.t = 0;
