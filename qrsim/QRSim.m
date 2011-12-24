@@ -31,7 +31,7 @@ classdef QRSim<handle
             
             idx = strfind(p,'/');
             
-            obj.paths = toPathArray(p(1:idx(end)));
+            obj.paths = obj.toPathArray(p(1:idx(end)));
             
             addpath(obj.paths);
         end
@@ -101,16 +101,7 @@ classdef QRSim<handle
             % step the wind
             state.environment.wind.step([]);
             
-            
-            % alterantively define a constant input
-            % note that the one below is a trim state and will
-            % not produce any motion of the platform
-            %U=[00.2;0.01;0.59;0.2;10];
-            
-            % alternatively one could compute the helicopter
-            % input given the current state and a target
-            
-            %%% step all the platforms
+            %%% step all the platforms given U
             
             for i=1:length(state.platforms)
                 state.platforms(i).step(U(:,i));
