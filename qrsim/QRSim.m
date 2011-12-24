@@ -4,11 +4,34 @@ classdef QRSim<handle
     
     properties (Access=public)
         par %config lfile
+        paths =[];  %path
     end
     
-    methods (Sealed,Access=public)
+    methods (Access=public)
         function obj = QRSim()
+            p = which('QRSim.m');
+            
+            idx = strfind(p,'/');
+            
+            p=p(1:idx(end));
+            
+            ps = genpath(p);
+            
+            cps = textscan(ps,'%s','Delimiter',':');
+            cps = cps{1};
+            
+            for i=1:length(cps)
+                cp = cps{i};
+                if(isempty(strfind(cp,'.svn'))&&isempty(strfind(cp,'.git')))
+                   obj.paths = [obj.paths,cp,':'];
+                end
+            end    
+            
+            addpath(obj.paths);
+        end
         
+        function delete(obj)
+            rmpath(obj.paths);
         end
         
         function obj = init(obj,configFile)
