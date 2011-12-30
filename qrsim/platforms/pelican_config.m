@@ -84,15 +84,15 @@ c.aerodynamicturbulence.DT = params.DT;
 c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from ground in m/s
 
 % Graphics
-c.quadrotorgraphics.on = params.display3d.on;
-c.quadrotorgraphics.type = 'QuadrotorGraphics';
-c.quadrotorgraphics.trajectory = 1; % plot trajectory
-c.quadrotorgraphics.AL = 0.4;       % arm length m
-c.quadrotorgraphics.AT = 0.01;      % arm width m
-c.quadrotorgraphics.AW = 0.02;      % arm thickness m
-c.quadrotorgraphics.BW = 0.12;      % body width m
-c.quadrotorgraphics.BT = 0.08;      % body thickness m
-c.quadrotorgraphics.R = 0.08;       % rotor radius m 
-c.quadrotorgraphics.DFT = 0.02;     % distance from truss m
+c.graphics.on = params.display3d.on;
+c.graphics.type = 'QuadrotorGraphics';
+c.graphics.trajectory = 1; % plot trajectory
+c.graphics.AL = 0.4;       % arm length m
+c.graphics.AT = 0.01;      % arm width m
+c.graphics.AW = 0.02;      % arm thickness m
+c.graphics.BW = 0.12;      % body width m
+c.graphics.BT = 0.08;      % body thickness m
+c.graphics.R = 0.08;       % rotor radius m 
+c.graphics.DFT = 0.02;     % distance from truss m
 
 

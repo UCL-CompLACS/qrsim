@@ -109,7 +109,7 @@ The object exposes three main methods:
 \end{itemize}
 
 
-\begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,firstnumber=100]
+\begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,numbers=left]
 function obj=step(obj,U)
   global state;
            
@@ -149,7 +149,7 @@ As a first example we look at a single platform task which requires to maintain 
  
 To implement such a task, we start by creating a new class that extends the abstract class \texttt{Task} and implements the \texttt{init()} and \texttt{reward()} methods.
 The \texttt{init()} method (see listing \ref{lst:init}) 
-\begin{lstlisting}[float=ht!bp,caption=KeepSpot init() method,language=Matlab,frame=lines,label=lst:init,firstnumber=100]
+\begin{lstlisting}[float=ht!bp,caption=KeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left]
 function taskparams=init(obj)
  
  % Simulator step time in seconds
@@ -202,14 +202,14 @@ returns a data structure that contains general fields like the simulator time st
 \item \texttt{type} the class nme of the object,
 \item \texttt{DT} the timestep of the simulator.
 \end{itemize}
-The number of sensors and parameters present in a platform would make quite cumbersome defining several identical platforms; for this reason we also allow to specify as a parameter a configuration file (see \texttt{'pelican\_config'}) so that the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform (see \texttt{taskparams.platforms(1).X = [0;0;-20;0;0;0];}).
+The number of sensors and parameters present in a platform would make quite cumbersome defining several identical platforms; for this reason we also allow to specify as a parameter a configuration file (see \texttt{'pelican\_config'}) so that the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform (see line 38).
 
 Lastly we see the \texttt{taskparams.display3d} parameters which allow to specify if the 3D visualization is active and the size of the window used for its rendering. 
 
 As already mentioned, a task must also define a reward function. For the task of mainitaining a fixed position in space a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
 Such a function gives higher rewards ta policy that maintain the quadrotor close to the starting point but also keeps it level (i.e. \texttt{X(4:6)=0}) and minimizes linear and rotational velocities (i.e. \texttt{X(7:12)=0});
 
-\begin{lstlisting}[float=ht!bp,caption=KeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,firstnumber=100]
+\begin{lstlisting}[float=ht!bp,caption=KeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left]
 function r=reward(obj)
   global state;
 
@@ -224,7 +224,7 @@ The complete listing for this task can be found in the file \texttt{KeepSpot.m}.
 \section{Example main}
 To clarify the use of the simulator through the \texttt{\sname} object, we shall present a simple example of use; namely we will use a manually designed PID controller to achieve the behaviour required by the \texttt{KeepSpot} task.
 Listing \ref{lst:main} shows the code of this bare bone example. 
-\begin{lstlisting}[float=ht!bp,caption=main script,language=Matlab,frame=lines,label=lst:main,firstnumber=100]
+\begin{lstlisting}[float=ht!bp,caption=main script,language=Matlab,frame=lines,label=lst:main,numbers=left]
 global state;
 
 % create simulator object
@@ -254,12 +254,21 @@ for i=1:N,
 end
 \end{lstlisting}
 Before anything else we are rquired to initialize the global structure that will hold the simulator state and give access to the quadrotor state. Next, instantiating the \texttt{\sname} object will make sure that all the functions and classes of the simulator are reacheable, is then possible to load all the task parameters by calling \texttt{qrsim.init()}. 
-The main for loop drives the simulation forward by calling in sequence the PID controller defines the time duration of the task, in this case we have 
-  \footnote{Using the platform state before a step is perfectly fine since the state was initialized to the values specifies in the task.}  
-
+The main for loop drives the simulation forward by calling in sequence the PID controller and the \texttt{qrsim.step(U)} method; given the current state of the platform, the PID computes the new control action  \texttt{U} which is then used to step the dynamics forward in time.
 Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing we show the call commented out since this is where normally it would be computed.
 
-Finally we want to clarify that the PID controller was chosen excl
+Since the task defines to run the simulation with the 3D visualization, it makes sense to run in real time, line 25 introduces the necessary pause.  
+
+Finally we want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very consrvative controller and its performance are very much suboptimal. This said it might still be useful as a baseline for comparisons. 
+
+\begin{center}\label{fig:3d}
+ \caption{3D visualisation}
+ \includegraphics{./}
+ % .: 0x0 pixel, 0dpi, 0.00x0.00 cm, bb=
+\end{center}
+
+Figure \ref{fig:3d} shows a snapshot from the 3D visualisation of the simulator where both the platform and its past trajectory are visible.
+
 
 \appendix
 \chapter{Implementation Details}

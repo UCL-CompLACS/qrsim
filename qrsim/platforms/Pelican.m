@@ -55,7 +55,6 @@ classdef Pelican<Steppable & Platform
         stateLimits % 13 by 2 vector of allowed values of the state
         collisionD  % distance from any other object that defines a collision
         dynNoise    % standard deviation of the noise dynamics
-        params      % object init parameters
     end
     
     properties

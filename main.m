@@ -13,7 +13,7 @@ for i=1:N,
     tloop=tic;    
 
     % compute controls
-    U=quadrotorPID(state.platform(1).eX);
+    U=quadrotorPID(state.platforms(1).eX);
     
     % step simulator 
     qrsim.step(U);
