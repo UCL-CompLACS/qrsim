@@ -1,4 +1,4 @@
-classdef Pelican<Steppable
+classdef Pelican<Steppable & Platform
     % Class that implementatios dynamic and sensors of an AscTec Pelican quadrotor
     % The parameters are derived from the system identification of one of
     % the UCL quadrotors
@@ -55,6 +55,7 @@ classdef Pelican<Steppable
         stateLimits % 13 by 2 vector of allowed values of the state
         collisionD  % distance from any other object that defines a collision
         dynNoise    % standard deviation of the noise dynamics
+        params      % object init parameters
     end
     
     properties
@@ -77,11 +78,12 @@ classdef Pelican<Steppable
             %                objparams.aerodynamicturbulence - aerodynamicturbulence parameters
             %                objparams.sensors.ahars - ahrs parameters
             %                objparams.sensors.gpsreceiver - gps receiver parameters
-            %                objparams.quadrotorgraphics - graphics parameters
+            %                objparams.graphics - graphics parameters
             %                objparams.stateLimits - 13 by 2 vector of allowed values of the state
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
             %
+            obj=obj@Platform(objparams);
             obj=obj@Steppable(objparams);
             
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
@@ -117,17 +119,7 @@ classdef Pelican<Steppable
                 error('c.sensors.gpsreceiver.type has to extend the class GPSReceiver');
             end
             
-            obj.graphics=feval(objparams.quadrotorgraphics.type,objparams.quadrotorgraphics,obj.X);
-        end
-        
-        function obj = plotTrajectory(obj,flag)
-            % enables plotting of the uav trajectory
-            %
-            % Example:
-            %   obj.plotTrajectory(flag)
-            %       flag - 1 enables 0 disables
-            %
-            obj.graphics.plotTrajectory(flag);
+            obj.graphics=feval(objparams.graphics.type,objparams.graphics,obj.X);
         end
     end
     

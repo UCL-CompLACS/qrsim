@@ -24,7 +24,7 @@ classdef QuadrotorGraphics<handle
         DFT % distance from truss m
         
         gHandle         % graphic handle
-        plotTrj = 0;    % 1 to enable trajectory plotting
+        plotTrj         % 1 to enable trajectory plotting
         on              % 1 if 3d dispaly is enabled
         X               % state
     end
@@ -46,7 +46,7 @@ classdef QuadrotorGraphics<handle
             %          objparams.R - rotor radius m
             %          objparams.DFT - distance from truss m
             %          objparams.on - 1 if graphics is active
-            %
+            %          objparams.trajectory - 1 if plotting of trajectory is active
             
             % arms
             obj.AL = objparams.AL;  % arm length m
@@ -61,6 +61,9 @@ classdef QuadrotorGraphics<handle
             obj.R = objparams.R; % rotor radius m
             obj.DFT = objparams.DFT; % distance from truss m
             
+	    % trajectory
+            obj.plotTrj = objparams.trajectory;	
+
             obj.X=initX(1:6);
 
             obj.on  = objparams.on;
@@ -69,16 +72,6 @@ classdef QuadrotorGraphics<handle
                 obj.initGlobalGraphics();
                 obj.createGraphicsHandlers();
             end
-        end
-        
-        function obj = plotTrajectory(obj,flag)
-            % enables/disables the plotting of the hecopter trajectory
-            %
-            % Example:
-            %   plotTrajectory(flag)
-            %          flag - 1 to enable
-            %
-            obj.plotTrj = flag;
         end
         
         function update(obj,X)

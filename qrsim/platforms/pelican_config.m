@@ -86,6 +86,7 @@ c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from g
 % Graphics
 c.quadrotorgraphics.on = params.display3d.on;
 c.quadrotorgraphics.type = 'QuadrotorGraphics';
+c.quadrotorgraphics.trajectory = 1; % plot trajectory
 c.quadrotorgraphics.AL = 0.4;       % arm length m
 c.quadrotorgraphics.AT = 0.01;      % arm width m
 c.quadrotorgraphics.AW = 0.02;      % arm thickness m

@@ -1,11 +1,11 @@
-classdef GPSSpaceSegmentGM2 < Steppable
+classdef GPSSpaceSegmentGM2 < Steppable & EnvironmentObject
     % Class that simulates one of a set of noisy GPS receivers.
     % The running assumption is that all the receivers are (approximately) geographically
     % co-located so that pseudorange measurements to the same satellite vehicle obtained
     % by different receivers are strongly correlated.
     %
     % At each epoch the position of each satellite vehicles is determined interpolating
-    % the precise orbits file (SP3) defined in params.environment.gpsspacesegment.preciseorbitfile,
+    % the precise orbits file (SP3) defined in params.environment.gpsspacesegment.orbitfile,
     % pseudorange errors are considered additive and modelled by a second order Gauss-Markov
     % process, the receiver position is computed using ordinary LS.
     % Global variables are used to maintain the noise states shared between receivers.
@@ -52,14 +52,15 @@ classdef GPSSpaceSegmentGM2 < Steppable
             global state;
             
             obj=obj@Steppable(objparams);
-            
+            obj=obj@EnvironmentObject(objparams);
+                        
             obj.tStart = objparams.tStart;
             obj.PR_BETA2 = objparams.PR_BETA2;
             obj.PR_BETA1 = objparams.PR_BETA1;
             obj.PR_SIGMA = objparams.PR_SIGMA;
             
             % read in the precise satellite orbits
-            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.preciseorbitfile);
+            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);
             state.environment.gpsspacesegment_.stdPe.compute();
             
             state.environment.gpsspacesegment_.svs = objparams.svs;

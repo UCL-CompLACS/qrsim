@@ -44,12 +44,11 @@ Defining concrete application scenarios based on the available platforms and sim
 \section{Concepts}
 
 
-
 \subsection{Platforms and Environment}\label{sec:platandenv}
 Within \sname it is useful to make a logical distinction between two types of objects:
 \begin{itemize}
 \item platforms,
-\item environment.
+\item environment objects.
 \end{itemize}
 To the first type belongs the description of the quadrotor dynamics but also the models of sensors and other phenomena that are platform specific (e.g. aerodynamic turbulence). The second class comprehends al the phenomena that are not platform specific and have direct or indirect impact on several platforms (e.g. the flight area or the satellite vehicles of the GPS system).
 In many ways this distinction is rather natural and in \sname we are simply exploiting it in order to provide a sensible structure to the simulator.
@@ -66,7 +65,7 @@ Consistently with the definition in section \ref{sec:platandenv} we use the fiel
 Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms(1).X} gives access to the state variables of the first platform, while \texttt{state.environment.wind.direction} returns the current mean wind direction. 
 The direct access to the state variables should not be used to set the state, when such an operation is meaningful (e.g. for the platforms) a specific methods (\texttt{setState(X)}) is provided by the corresponding class\footnote{In addition to overwriting the object's state these calls also make sure that 
 any other internal variable (e.g. noise model states) is appropriately set.}.
-The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose that derived classes must define methods to reset the state to its initial value defined in the configuration scripts (see section \ref{sec:createtask}).
+The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose that derived classes must define methods to reset the state to its initial value defined by the task (see section \ref{sec:createtask}).
 The reader is referred to the API documentation available through Matlab for more details on the properties of each single object.
 
 The global state structure stores also other important variables:
@@ -84,18 +83,17 @@ In our implementation every object that evolves with time is derived from a comm
 
 \subsection{Task}
 
-By combining different types of environment objects and platforms \sname allows to define a variety of single and multiple helicopter scenarios as well as many different objectives that the platforms can try to achieve. 
-The abstract class \texttt{Task} provides a mean to completely specify a scenario and an activity to be learned through the two methods \texttt{init()} and \texttt{reward()}.
+By combining different types of environment objects and platforms \sname allows to define a variety of single and multiple helicopter scenarios as well as many different objectives for the platforms to try to achieve. 
+The abstract class \texttt{Task} provides a way to derive task objects specifying both a scenario and an activity to be learned; the class defines two main methods \texttt{init()} and \texttt{reward()}.
 
-\texttt{init()} allows the user to define the specific class that needs to be instantiated for each of the environment objects and for each of the platforms and its sensors. 
-Similarly all the class specific parameters can also be defined.
+\texttt{init()} allows the user to define the type (i.e. the class name) of each of the environment objects as well as of each platform and sensor. 
+Along with the object type, a pecification of all the class specific parameters is also needed.
 
-\texttt{reward()} allows for defining an instantaneous reward for the task at hand for the purpose of learning. Most often the user will rely on the global \texttt{state} structure in order to compute such a reward.
-
+The \texttt{reward()} method allows for defining an instantaneous reward for the task, this can be used for the purpose of learning. The design of a reward function is very task specific but most often the user will rely on the global \texttt{state} structure in order to compute such a reward.
 
 \subsection{Other Abstract Classes}
 
-At the aim of making the code easy to extend, the software API defines also several other classes to abstract the Sensors in general but more specifically the GPSreceiver, the various inertia sensors and the aerodynamic effects. This allows to configure specific type of sensor through the platform configuration scripts (see section \ref{sec:createtask}) instead of having to modify the platform code.
+At the aim of making the code easy to extend, the software API defines also several other classes to abstract the Sensors in general but more specifically the GPSreceiver, the various inertia sensors and the aerodynamic effects. This allows to configure specific type of sensor through the task object (see section \ref{sec:createtask}) instead of having to modify the platform code.
 
 \section{The \sname Object}\label{sec:qrobj}
 
@@ -104,7 +102,7 @@ After a brief introduction of the fundamental building blocks of \sname we can l
 The object exposes three main methods:
 \begin{itemize}
  \item \texttt{init('task\_name')}, initializes the platforms the environment objects and the task according to what specified by the task \texttt{'task\_name'} (see section \ref{sec:createtask}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \texttt{\sname} object and is called only once.
- \item \texttt{reset()}, resets the simulator to the state specified in the configuration files\footnote{The parameters defined as random in the configuration file are initialized to a new random state.}. This is generally called after a learning episode in order to restore the state of the simulator. 
+ \item \texttt{reset()}, resets the simulator to the state specified in the configuration files\footnote{The parameters defined as random in the task are initialized to a new random state.}. This is generally called after a learning episode in order to restore the state of the simulator. 
  \item \texttt{step(U)}, steps in sequence all the environment object and all the platforms forward in time. This is the main command that accepts a matrix of control inputs \texttt{U} (e.g. one column array for each platform) and propagates the state of all the simulator's object. Listing \ref{lst:step} shows the implementation of the method; where it can be seen that first \texttt{state.t} is updated\footnote{This is the only statements that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward.
  After a call to step the new state can be accessed as described in section \ref{sec:state}.
  \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is meant to be called after stepping the simulator.
@@ -140,84 +138,134 @@ end
 The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6)\footnote{The development and testing was carried out on R2010b for UNIX.}.
 No installation as such is required, the user simply needs to download the simulator source code form \web and unpack into a directory of choice.
 
-The function \texttt{initPath.m} present in the root directory of the simulator may be used to add the directories of the simulator to the Matlab path so that all the necessary function are reachable at run time.
-At the aim of improving performance, some of the most used functions in the simulator have been written also as MEX function, this can be easily compiled using the function \texttt{mexify.m}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}.}.
- 
-In the root directory of \sname there are two directories \texttt{/src} and \texttt{/config}, the first hosts the classes end functions that constitute the simulator while the second contains the configuration files that specify the details of a simulation run.
+To use the simulator is sufficient to add its root directory (i.e. \texttt{qrsim}) to the current Matlab path; each time a \texttt{qrsim} is instantiaed any other directory needed will also be added to the curremt path.
+
+At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify.m}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}.}.
 
 
 \section{Creating a Task}  \label{sec:createtask}
 
+As a first example we look at a single platform task which requires to maintain the quadrotor hovering at the position it has when the task starts; the solution requires continuous control since the helicopter is affected by time varying wind disturbances. 
+ 
+To implement such a task, we start by creating a new class that extends the abstract class \texttt{Task} and implements the \texttt{init()} and \texttt{reward()} methods.
+The \texttt{init()} method (see listing \ref{lst:init}) 
+\begin{lstlisting}[float=ht!bp,caption=KeepSpot init() method,language=Matlab,frame=lines,label=lst:init,firstnumber=100]
+function taskparams=init(obj)
+ 
+ % Simulator step time in seconds
+  taskparams.DT = 0.02;
+            
+  % random nmber generator seed
+  taskparams.seed = 0; %if zero the seed depends on the system time         
+            
+  %%%%% environment %%%%%
+  taskparams.environment.area.limits = [-10 20 -7 7 -20 0]; % m, Z down
+  taskparams.environment.area.type = 'AreaGraphics';
+  [E N zone h] = lla2utm([51.71190;-0.21052;0]);
+  taskparams.environment.area.originutmcoords.E = E;
+  taskparams.environment.area.originutmcoords.N = N;
+  taskparams.environment.area.originutmcoords.h = h;
+  taskparams.environment.area.originutmcoords.zone =  zone;
+            
+  % GPS
+  taskparams.environment.gpsspacesegment.on = 0; 
+  taskparams.environment.gpsspacesegment.dt = 0.2;
+  taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
+  taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
+  taskparams.environment.gpsspacesegment.PR_BETA = 2000; % process tau
+  taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746; % process std
+  taskparams.environment.gpsspacesegment.DT = taskparams.DT;
+            
+  % Wind
+  taskparams.environment.wind.on = 0;
+  taskparams.environment.wind.type = 'WindConstMean';
+  taskparams.environment.wind.direction = 0; %0 to initilise it randomly
+  taskparams.environment.wind.W6 = 0.1;  %speed 6m from ground in m/s
+  taskparams.environment.wind.dt = 1;    %not in use
+  taskparams.environment.wind.DT = taskparams.DT;
+            
+  %%%%% platforms %%%%%
+  % Configuration and initial state for each of the platforms
+  taskparams.platforms(1).configfile = 'pelican_config';
+  taskparams.platforms(1).X = [0;0;-20;0;0;0]; 
 
+  %%%%% visualization %%%%%
+  taskparams.display3d.on = 1;
+  taskparams.display3d.width = 1000;
+  taskparams.display3d.height = 600;            
+end
+\end{lstlisting}
+returns a data structure that contains general fields like the simulator time step \texttt{taskparams.DT} and the seed of the pseudorandom number generator (\texttt{taskparams.seed}), fields for each of the environment objects (\texttt{taskparams.environment}), and for each of the platforms (\texttt{taskparams.platforms}). Although the fields depend on the type of object, by convention we name:
+\begin{itemize}
+\item \texttt{on} the flag that allows to enable and disable the object in question,
+\item \texttt{dt} the timestep of the object,
+\item \texttt{type} the class nme of the object,
+\item \texttt{DT} the timestep of the simulator.
+\end{itemize}
+The number of sensors and parameters present in a platform would make quite cumbersome defining several identical platforms; for this reason we also allow to specify as a parameter a configuration file (see \texttt{'pelican\_config'}) so that the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform (see \texttt{taskparams.platforms(1).X = [0;0;-20;0;0;0];}).
 
-% Simulator step time in second
-% this should not be changed...
-params.DT = 0.01;
+Lastly we see the \texttt{taskparams.display3d} parameters which allow to specify if the 3D visualization is active and the size of the window used for its rendering. 
 
-params.seed = 0; %set to zero to have a seed that depends on the system time
+As already mentioned, a task must also define a reward function. For the task of mainitaining a fixed position in space a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
+Such a function gives higher rewards ta policy that maintain the quadrotor close to the starting point but also keeps it level (i.e. \texttt{X(4:6)=0}) and minimizes linear and rotational velocities (i.e. \texttt{X(7:12)=0});
 
-%%%%% visualization %%%%%
-% 3D display parameters
-params.display3d.on = 1;
-params.display3d.width = 1000;
-params.display3d.height = 600;
+\begin{lstlisting}[float=ht!bp,caption=KeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,firstnumber=100]
+function r=reward(obj)
+  global state;
 
+  e = state.platforms(1).X(1:12);
+  e = e(1:3)-state.platforms(1).params.X(1:3);
+  r = - e' * e; 
+end
+\end{lstlisting}
 
-%%%%% environment %%%%%
-% these need to follow the conventions of axis(), they are in m, Z down
-params.environment.area.limits = [-10 20 -7 7 -20 0];
-params.environment.area.type = 'AreaGraphics';
-[E N zone h] = lla2utm([51.71190;-0.21052;0]);
-params.environment.area.originutmcoords.E = E;
-params.environment.area.originutmcoords.N = N;
-params.environment.area.originutmcoords.h = h;  
-params.environment.area.originutmcoords.zone =  zone;
-
-
-% GPS
-% The 
-params.environment.gpsspacesegment.on = 0; % if off the gps returns the noiseless position
-params.environment.gpsspacesegment.dt = 0.2;
-% specific setting due to the use of the ngs15992_16to17.sp3 file
-params.environment.gpsspacesegment.preciseorbitfile = 'ngs15992_16to17.sp3';
-params.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0);
-% a typical day (ro31082010.10o) at RVC had the following svs visible:
-%03G 05G 06G 07G 13G 16G 18G 19G 20G 22G 24G 29G 31G
-params.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
-params.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
-params.environment.gpsspacesegment.PR_BETA = 2000;             % process time constant (from [2])           
-params.environment.gpsspacesegment.PR_SIGMA = 0.1746;          % process standard deviation (from [2])
-%params.environment.gpsspacesegment.type = 'GPSPseudorangeGM2';
-%params.environment.gpsspacesegment.PR_BETA2 = 600;               % process time constant
-%params.environment.gpsspacesegment.PR_BETA1 =  1.075;            % process time constant   
-%params.environment.gpsspacesegment.PR_SIGMA = 0.001;             % process standard deviation (from [2])
-params.environment.gpsspacesegment.DT = params.DT;
-
-% Wind 
-% i.e. a steady omogeneous wind with a direction and magnitude
-% this is common to all helicopters
-params.environment.wind.on = 0;
-params.environment.wind.type = 'WindConstMean';
-params.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise it randomly 
-params.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
-params.environment.wind.dt = 1;    %not actually used since the model is constant
-params.environment.wind.DT = params.DT;
-
-%%%%% platforms %%%%% 
-% Configuration and initial state for each of the platforms
-params.platforms(1).configfile = 'pelican_config';
-params.platforms(1).X = [0;0;-20;0;0;0];
-
+The complete listing for this task can be found in the file \texttt{KeepSpot.m}.  
 
 \section{Example main}
+To clarify the use of the simulator through the \texttt{\sname} object, we shall present a simple example of use; namely we will use a manually designed PID controller to achieve the behaviour required by the \texttt{KeepSpot} task.
+Listing \ref{lst:main} shows the code of this bare bone example. 
+\begin{lstlisting}[float=ht!bp,caption=main script,language=Matlab,frame=lines,label=lst:main,firstnumber=100]
+global state;
 
+% create simulator object
+qrsim = QRSim();
 
+% load task parameters and do housekeeping
+qrsim.init('KeepSpot');
+
+% number of steps we run the simulation for
+N = 3000;
+
+for i=1:N,
+    tloop=tic;    
+
+    % compute controls
+    U=quadrotorPID(state.platform(1).eX);
+    
+    % step simulator 
+    qrsim.step(U);
+
+    % get reward
+    % qrsim.reward();
+
+    % wait so to run in real time
+    wait = max(0,state.DT-toc(tloop));   
+    pause(wait);    
+end
+\end{lstlisting}
+Before anything else we are rquired to initialize the global structure that will hold the simulator state and give access to the quadrotor state. Next, instantiating the \texttt{\sname} object will make sure that all the functions and classes of the simulator are reacheable, is then possible to load all the task parameters by calling \texttt{qrsim.init()}. 
+The main for loop drives the simulation forward by calling in sequence the PID controller defines the time duration of the task, in this case we have 
+  \footnote{Using the platform state before a step is perfectly fine since the state was initialized to the values specifies in the task.}  
+
+Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing we show the call commented out since this is where normally it would be computed.
+
+Finally we want to clarify that the PID controller was chosen excl
 
 \appendix
 \chapter{Implementation Details}
 
 This appendix describes in detail and provide reference to the models implemented on the simulator.
-While reading this material is not a prerequisite to use the simulator, reading it will provide in depth details about the parameters present on the simulator's configuration files.
+While reading this material is not a prerequisite to use the simulator, reading it will provide in depth details about the parameters used in the various task files.
 
 \section{Quadrotor dynamic model}
 

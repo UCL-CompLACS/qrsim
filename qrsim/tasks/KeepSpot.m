@@ -1,12 +1,13 @@
-classdef KeepSpot<handle
-    
+classdef KeepSpot<Task
+    % Simple task in which a qudrotor has to keep its starting position despite the wind.
+    % Single platform task which requires to maintain the quadrotor hovering at the 
+    % position it has when the task starts; the solution requires continuous control 
+    % since the helicopter is affected by time varying wind disturbances.
+    %
     methods (Sealed,Access=public)
         
-        function obj = KeepSpot()
-            
-        end
-        
         function taskparams=init(obj)
+
             % Simulator step time in second this should not be changed...
             taskparams.DT = 0.01;
             
@@ -34,7 +35,7 @@ classdef KeepSpot<handle
             taskparams.environment.gpsspacesegment.on = 0; % if off the gps returns the noiseless position
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % specific setting due to the use of the ngs15992_16to17.sp3 file
-            taskparams.environment.gpsspacesegment.preciseorbitfile = 'ngs15992_16to17.sp3';
+            taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
             taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0);
             % a typical day (ro31082010.10o) at RVC had the following svs visible:
             %03G 05G 06G 07G 13G 16G 18G 19G 20G 22G 24G 29G 31G
