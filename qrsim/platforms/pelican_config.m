@@ -4,7 +4,7 @@
 % passed to the platform constructor, which will take care of propagating the correct 
 % parameters to each of the objects part of a platform.  
 %
-% Example:
+% Example of use:
 %
 %  platform  = loadConfig('pelican_config');
 %  n = Pelican(platform);

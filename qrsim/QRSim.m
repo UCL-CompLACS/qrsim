@@ -1,32 +1,34 @@
 classdef QRSim<handle
-    %QRSIM Summary of this class goes here
-    %   Detailed explanation goes here
-    
+    % main simulator class
+    % This class gives access to all aspects of the simulator
+    %
+    % QRSim properties:
+    %   par    - parameters from task
+    %   paths  - paths
+    %   task   - task
+    %
+    % QRSim methods:
+    %   init(taskName)  - initialises the simulator given a task
+    %   reset()         - resets the simulator to the state specified in the task
+    %   delete()        - destructor
+    %   step(obj,U)     - increments time and steps forward in sequence all the enviroment
+    %                     objects and platforms.
+    %
+            
     properties (Access=public)
-        par %config lfile
-        paths =[];  %path
+        par % parameters from task
+        paths =[];  %paths
         task   % task
-    end
-    
-    methods (Static,Access=private)
-        function paths = toPathArray(p)
-            ps = genpath(p);
-            
-            cps = textscan(ps,'%s','Delimiter',':');
-            cps = cps{1};
-            paths = [];
-            
-            for i=1:length(cps)
-                cp = cps{i};
-                if(isempty(strfind(cp,'.svn'))&&isempty(strfind(cp,'.git')))
-                   paths = [paths,cp,':']; %#ok<AGROW>
-                end
-            end  
-        end
     end
     
     methods (Access=public)
         function obj = QRSim()
+            % constructs object and sets up the paths
+            %
+            % Example:
+            %  obj = QRSim();
+            %       obj - new qrsim object
+            %
             p = which('QRSim.m');
             
             idx = strfind(p,'/');
@@ -37,13 +39,25 @@ classdef QRSim<handle
         end
         
         function delete(obj)
-            rmpath(obj.paths);
+            % destructor, cleanes the path
+            % this is called automatically by Matlab when using clear on a QRSim object.
+            %
+            % Example:
+            %   qrsim = QRSim();
+            %   clear qrsim;
+            %
+            if(strfind(path,obj.paths))
+                rmpath(obj.paths);
+            end
         end
         
         function obj = init(obj,taskName)
-            % INIT
             % Initializes the simulator state given a task.
-            
+            %
+            % Example:
+            %    obj.init('task_name');
+            %       task_name - class name of the task
+            %
             global state;           
             
             % load the required configuration
@@ -77,7 +91,11 @@ classdef QRSim<handle
         end
         
         function obj=reset(obj)
-            %resets the simulator to the state specified in the configuration files
+            %resets the simulator to the state specified in the task
+            %
+            % Example:
+            %    obj.reset(); 
+            %
             global state; %#ok<NUSED>
             
             clear('state.environment.gpsspacesegment','state.environment.wind','state.platforms');
@@ -88,6 +106,11 @@ classdef QRSim<handle
         
         function obj=step(obj,U)
             %increments time and steps forward in sequence all the enviroment object and platforms.
+            %
+            % Example:
+            %  obj.step(U);
+            %     U - 5 by m matrix of control inputs for each of the m platforms 
+            %
             global state;
             
             % update time
@@ -112,7 +135,8 @@ classdef QRSim<handle
     methods (Sealed,Access=private)
         
         function obj=createObjects(obj)
-            
+            % create environment and platform objects from the saved parameters
+
             global state;
             
             % space segment of GPS
@@ -131,6 +155,24 @@ classdef QRSim<handle
             end
             
         end  
+    end
+        
+    methods (Static,Access=private)
+        function paths = toPathArray(p)
+            % build a list of subpaths path recursively removing versioning subdirs
+            ps = genpath(p);
+            
+            cps = textscan(ps,'%s','Delimiter',':');
+            cps = cps{1};
+            paths = [];
+            
+            for i=1:length(cps)
+                cp = cps{i};
+                if(isempty(strfind(cp,'.svn'))&&isempty(strfind(cp,'.git')))
+                   paths = [paths,cp,':']; %#ok<AGROW>
+                end
+            end  
+        end
     end
     
 end

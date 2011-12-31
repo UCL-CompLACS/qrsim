@@ -29,7 +29,6 @@ classdef Pelican<Steppable & Platform
     %
     % Pelican Methods:
     % obj = Pelican(objparams) - constructs object
-    % plotTrajectory(flag)     - enables/disables plotting of the uav trajectory
     %        
     
     properties (Constant)
@@ -86,6 +85,7 @@ classdef Pelican<Steppable & Platform
             obj=obj@Steppable(objparams);
             
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
+            obj.eX = [objparams.X(1:6); zeros(11,1)];
             obj.valid = 1;
             
             obj.stateLimits = objparams.stateLimits;

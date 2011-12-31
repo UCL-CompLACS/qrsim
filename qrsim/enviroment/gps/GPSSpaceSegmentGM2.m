@@ -60,8 +60,18 @@ classdef GPSSpaceSegmentGM2 < Steppable & EnvironmentObject
             obj.PR_SIGMA = objparams.PR_SIGMA;
             
             % read in the precise satellite orbits
-            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);
-            state.environment.gpsspacesegment_.stdPe.compute();
+            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);            
+            state.environment.gpsspacesegment_.stdPe.compute();                        
+            [b,e] = state.environment.gpsspacesegment_.stdPe.tValidLimits();
+                                    
+            % if tStart is zero we define the start time randomly
+            if(obj.tStart==0)
+               obj.tStart=b+rand(1,1)*(e-b);
+            end                 
+                               
+            if((obj.tStart<b)||(obj.tStart>e))
+               error('GPS start time out of sp3 file bounds');
+            end 
             
             state.environment.gpsspacesegment_.svs = objparams.svs;
             

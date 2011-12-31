@@ -15,7 +15,9 @@ classdef Orbits < handle
     %   findEn(vt, t)               - finds index number of epoch t in the vector vt (Static)
     %   findInt(t, tb, interval, b) - finds vector interval that corresponds to the fit 
     %                                 interval (Static)
-    %    
+    %   tValidLimits()              - returns begin and end time within which the interpolation 
+    %                                 of the sp3 is valid
+    %   
     % Note:
     % This class implement the interpolation algorithm described in  
     % M. Horemuz,J.V. Andersson "Polynomial interpolation of GPS satellite coordinates"  
@@ -183,7 +185,7 @@ classdef Orbits < handle
             end
             %interval, for which the obj. orbit is valid
             obj.tBeg = obj.timeSet(1); %begin
-            obj.tEnd = obj.timeSet(end) + obj.INTERVAL;  %end            
+            obj.tEnd = obj.timeSet(end) + obj.INTERVAL;  %end           
         end
         
         function pos = getSatCoord(obj, prn, t)
@@ -224,7 +226,21 @@ classdef Orbits < handle
             ret.z = polyval(coefZ, tt, [], zmu);
             
             pos=[ret.x;ret.y;ret.z];
-        end        
+        end  
+        
+               
+        function [b, e] = tValidLimits(obj)
+            % return begin and end time within which the interpolation of the sp3 is valid
+            %
+            % Example:
+            % 
+            %   [b,e] = obj.tValidLimits();
+            %           b - time of beginning 
+            %           e - time of end
+            %
+            b = obj.tBeg;
+            e = obj.tEnd;
+        end    
     end
     
     methods (Static)
@@ -256,8 +272,7 @@ classdef Orbits < handle
             end
             
         end
-        
-        
+                    
         function [m, n] = findInt(t, tb, interval, b)            
             % find vector interval (indexes m,n) that corresponds to the fit interval
             %

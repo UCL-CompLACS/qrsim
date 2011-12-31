@@ -3,7 +3,9 @@ classdef AreaGraphics<handle
     % This implementation is very basic but has the advantage of not depending on any
     % additional toolbox
     %
-    
+    % AreaGraphics methos:
+    %   AreaGraphics(objparams) - constructs the object
+    %
     methods (Sealed)
         
         function obj = AreaGraphics(objparams)
@@ -11,20 +13,20 @@ classdef AreaGraphics<handle
             %
             % Example:
             %   obj = AreaGraphics(objparams)
-            %        objparams.limits = [minx maxx miny maxy minz maxz]  meters
+            %        objparams = [minx maxx miny maxy minz maxz]  meters
             %
             global state;
             
             set(0,'CurrentFigure',state.display3d.figure)
             
             % ground patch
-            cx = [objparams.limits(1) objparams.limits(1);
-                objparams.limits(1) objparams.limits(2);
-                objparams.limits(2) objparams.limits(2)];
+            cx = [objparams(1) objparams(1);
+                objparams(1) objparams(2);
+                objparams(2) objparams(2)];
             
-            cy = [objparams.limits(3) objparams.limits(4);
-                objparams.limits(4) objparams.limits(3);
-                objparams.limits(3) objparams.limits(4)];
+            cy = [objparams(3) objparams(4);
+                objparams(4) objparams(3);
+                objparams(3) objparams(4)];
             
             cz = zeros(3,2);
             
@@ -42,10 +44,10 @@ classdef AreaGraphics<handle
             set(gca,'CameraViewAngleMode','Manual');
             
             % set up a correct size for the plot
-            axis(objparams.limits);
-            arx = objparams.limits(2)-objparams.limits(1);
-            ary = objparams.limits(4)-objparams.limits(3);
-            arz = objparams.limits(6)-objparams.limits(5);
+            axis(objparams);
+            arx = objparams(2)-objparams(1);
+            ary = objparams(4)-objparams(3);
+            arz = objparams(6)-objparams(5);
             set(gca,'PlotBoxAspectRatio',[arx ary arz])
             
             % give names to things

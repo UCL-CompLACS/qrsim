@@ -61,7 +61,7 @@ classdef QuadrotorGraphics<handle
             obj.R = objparams.R; % rotor radius m
             obj.DFT = objparams.DFT; % distance from truss m
             
-	    % trajectory
+	        % trajectory
             obj.plotTrj = objparams.trajectory;	
 
             obj.X=initX(1:6);

@@ -7,11 +7,22 @@ classdef Platform<handle
     %    Platform(objparams)      - constructs the object, to be called only from derived
     %                             subclasses.
     %
-    properties (Access=protected)
+    properties
         params   % object initial paramters
     end
     
     methods (Sealed,Access=protected)
+        % constructs the object
+        %
+        % Example:
+        %
+        %   obj=Platform(objparams)
+        %                objparams - object parameters
+        %
+        % Note:
+        % this is an abstract class so this contructor is meant to be
+        % called by the subclass
+        %
         function obj=Platform(params)
             obj.params = params;
         end
