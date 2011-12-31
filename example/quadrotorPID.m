@@ -1,16 +1,12 @@
 function U = quadrotorPID(X,wp)
 
-%  CONTROLPID simple nested loops PID controller that can fly a quadrotor
-%  given a target waypoint. The dimension are considered decoupled.
+%  quadrotorPID simple nested loops PID controller that can fly a quadrotor
+%  given a target waypoint (wp). The platform axes are considered decoupled.
 %  
-%  At the inner level angles are tracked by a P controller that tries to
-%  achieve the desired attitude. The desidred attitude is enforced by a P
-%  controller that tries to achieve a linear velocity proportional to the
-%  distance from the target. Caps are in place an the maximum angle and
-%  maximum velocity that can be tracked.
+%  The desidred attitude is enforced by a P controller that tries to achieve a 
+%  linear velocity proportional to the  distance from the target.
+%  Limits are in place to not reach dangerous velocities.
 %
-%  Renzo De Nardi  r.denardi@ucl.ac.uk
-
 
 global pid;
 
@@ -27,8 +23,8 @@ Kv = 0.09;
 maxtilt = 0.34;
 
 % rotationg the wp to body coordinates
-d = ((wp.X-x)^2+(wp.Y-y)^2)^0.5;
-a = (atan2((wp.Y-y),(wp.X-x)) - psi);
+d = ((wp(1)-x)^2+(wp(2)-y)^2)^0.5;
+a = (atan2((wp(2)-y),(wp(1)-x)) - psi);
 
 bx = d * cos(a);
 by = d * sin(a);
@@ -46,11 +42,16 @@ desPhi = limit(desPhi,-maxtilt,maxtilt);
 
 
 Kiz = 0.0002;
-Kpz = 0.05;
+Kpz = 0.005;
 Kdz = 1.2;
 
 % vertical controller is a full PID
-ez = (wp.Z - z);
+ez = (wp(3) - z);
+
+if(~isfield(pid,'iz'))
+    pid.iz = 0;
+    pid.ez = 0;
+end
 
 th = 0.48 + Kpz * ez + Kiz * pid.iz + (ez - pid.ez) * Kdz;
 
@@ -58,7 +59,15 @@ pid.ez = ez;
 pid.iz = pid.iz + ez;
 
 
-U(1) = desTheta;
-U(2) = desPhi;
-U(3) = th;
-U(4) = 0;
+U(1,1) = desTheta;
+U(2,1) = desPhi;
+U(3,1) = th;
+U(4,1) = 0;
+U(5,1) = 10;
+end
+
+function v = limit(v, minval, maxval)
+
+v = max([min([maxval,v]),minval]);
+
+end

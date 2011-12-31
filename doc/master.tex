@@ -109,7 +109,7 @@ The object exposes three main methods:
 \end{itemize}
 
 
-\begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,numbers=left]
+\begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,numbers=left,basicstyle=\small]
 function obj=step(obj,U)
   global state;
            
@@ -149,7 +149,7 @@ As a first example we look at a single platform task which requires to maintain 
  
 To implement such a task, we start by creating a new class that extends the abstract class \texttt{Task} and implements the \texttt{init()} and \texttt{reward()} methods.
 The \texttt{init()} method (see listing \ref{lst:init}) 
-\begin{lstlisting}[float=ht!bp,caption=KeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left]
+\begin{lstlisting}[float=ht!bp,caption=KeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left,basicstyle=\small]
 function taskparams=init(obj)
  
  % Simulator step time in seconds
@@ -159,18 +159,22 @@ function taskparams=init(obj)
   taskparams.seed = 0; %if zero the seed depends on the system time         
             
   %%%%% environment %%%%%
-  taskparams.environment.area.limits = [-10 20 -7 7 -20 0]; % m, Z down
-  taskparams.environment.area.type = 'AreaGraphics';
+  taskparams.environment.area.limits = [-10 20 -7 7 -20 0];
+  taskparams.environment.area.type = 'BoxArea';
   [E N zone h] = lla2utm([51.71190;-0.21052;0]);
   taskparams.environment.area.originutmcoords.E = E;
   taskparams.environment.area.originutmcoords.N = N;
   taskparams.environment.area.originutmcoords.h = h;
   taskparams.environment.area.originutmcoords.zone =  zone;
+  taskparams.environment.area.graphics.on = taskparams.display3d.on;
+  taskparams.environment.area.graphics.type = 'AreaGraphics';
             
   % GPS
   taskparams.environment.gpsspacesegment.on = 0; 
   taskparams.environment.gpsspacesegment.dt = 0.2;
   taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
+  taskparams.environment.gpsspacesegment.tStart=%0 to initilise it randomly
+  taskparams.environment.gpsspacesegment.svs=[3,5,6,7,13,16,18,19,20,22,24,29,31];
   taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
   taskparams.environment.gpsspacesegment.PR_BETA = 2000; % process tau
   taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746; % process std
@@ -209,7 +213,7 @@ Lastly we see the \texttt{taskparams.display3d} parameters which allow to specif
 As already mentioned, a task must also define a reward function. For the task of mainitaining a fixed position in space a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
 Such a function gives higher rewards ta policy that maintain the quadrotor close to the starting point but also keeps it level (i.e. \texttt{X(4:6)=0}) and minimizes linear and rotational velocities (i.e. \texttt{X(7:12)=0});
 
-\begin{lstlisting}[float=ht!bp,caption=KeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left]
+\begin{lstlisting}[float=ht!bp,caption=KeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]
 function r=reward(obj)
   global state;
 
@@ -224,7 +228,7 @@ The complete listing for this task can be found in the file \texttt{KeepSpot.m}.
 \section{Example main}
 To clarify the use of the simulator through the \texttt{\sname} object, we shall present a simple example of use; namely we will use a manually designed PID controller to achieve the behaviour required by the \texttt{KeepSpot} task.
 Listing \ref{lst:main} shows the code of this bare bone example. 
-\begin{lstlisting}[float=ht!bp,caption=main script,language=Matlab,frame=lines,label=lst:main,numbers=left]
+\begin{lstlisting}[float=ht!bp,caption=main script,language=Matlab,frame=lines,label=lst:main,numbers=left,basicstyle=\small]
 global state;
 
 % create simulator object
@@ -240,7 +244,7 @@ for i=1:N,
     tloop=tic;    
 
     % compute controls
-    U=quadrotorPID(state.platform(1).eX);
+    U=quadrotorPID(state.platforms(1).eX,state.platforms(1).params.X(1:3));
     
     % step simulator 
     qrsim.step(U);
@@ -261,10 +265,13 @@ Since the task defines to run the simulation with the 3D visualization, it makes
 
 Finally we want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very consrvative controller and its performance are very much suboptimal. This said it might still be useful as a baseline for comparisons. 
 
-\begin{center}\label{fig:3d}
+\begin{center}
+\begin{figure}
+\label{fig:3d}
  \caption{3D visualisation}
- \includegraphics{./}
+% \includegraphics{./}
  % .: 0x0 pixel, 0dpi, 0.00x0.00 cm, bb=
+\end{figure}
 \end{center}
 
 Figure \ref{fig:3d} shows a snapshot from the 3D visualisation of the simulator where both the platform and its past trajectory are visible.

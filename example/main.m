@@ -1,3 +1,5 @@
+% bare bones example of use of the simulator object
+
 global state;
 
 % create simulator object
@@ -13,7 +15,7 @@ for i=1:N,
     tloop=tic;    
 
     % compute controls
-    U=quadrotorPID(state.platforms(1).eX);
+    U=quadrotorPID(state.platforms(1).eX,state.platforms(1).params.X(1:3));
     
     % step simulator 
     qrsim.step(U);
