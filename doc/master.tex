@@ -5,6 +5,7 @@
 %\usepackage{hyperref} this messes up the line breaks of url
 \usepackage{xspace}
 \usepackage{listings}
+\usepackage{graphicx}
 
 % Title Page
 \title{{CompLACS} Quadrotors Simulator}
@@ -21,14 +22,14 @@ This document describes the multi-vehicle quadrotor simulator (\sname) developed
 This report is divided into two parts, the first describes the logic and the structure of the simulator while the second presents a specific example of use. 
 Technical details about the dynamic models used in the simulator and their implementation are reported in the appendix. 
 
-A companion to this report is the documentation that Matlab can automatically generate from the source code, the reader is referred to it for all the more specific API details.
+A companion to this report is the documentation that Matlab can automatically generate from the source code (i.e. the command \texttt{doc}), the reader is referred to it for all the more specific API details.
 \end{abstract}
 
 \tableofcontents
 
 \chapter{Design and Concepts}
 
-\section{Rationale}
+\section{Rationale}\label{sec:rationale}
 UAVs provide a rich source of control problems some of which (namely the one connected with individual flight attitude control) have been successfully addressed in previous research. {CompLACS} focusses instead on the higher level problems of enabling multiple UAVs to achieve a common goal by communicating and cooperating as an autonomous flock. 
 
 A simulator that allows to devise and test algorithms aiming at such problems must reliably model the effects that are (at least to a certain extent) common to all platforms (e.g. wind or GPS errors) as well as the interaction between them (e.g. radio communication or collisions). 
@@ -280,11 +281,126 @@ Figure \ref{fig:3d} shows a snapshot from the 3D visualisation of the simulator 
 \appendix
 \chapter{Implementation Details}
 
-This appendix describes in detail and provide reference to the models implemented on the simulator.
+This appendix describes in detail and provide reference to the models implemented in \sname in order to replicate a typical quadrotor platform (namely the Ascending Technologies Pelican \cite{asctec2011pelican} in use at UCL) complete of sensors.
 While reading this material is not a prerequisite to use the simulator, reading it will provide in depth details about the parameters used in the various task files.
+
+\section{Reference Frame an symbols}
+
+For convenience we show here the body frame of reference used in many of the computation involving the helicopter dynamics (see figure \ref{fig:axes}). 
+\begin{figure}[htbp]
+ \begin{center}
+ \includegraphics[width=11cm]{./axes.eps}
+\caption{Body NED frame of reference and state variables.\label{fig:axes}}
+\end{center}
+\end{figure} 
+
+We also define several of the variable that are used in the simulator
+
 
 \section{Quadrotor dynamic model}
 
+Several dynamic models of quadrotor helicopters based on first principles have ben published in the literature (\cite{bouabdallah07phd}, \cite{balas07modelling}, \cite{hoffmann07quadrotor}), such examples consider the forces and moments acting on the helicopter in order to obtain the rotational and translational dynamics.
+These type of models replicate only the ``mechanics'' and the aerodynamics of the flying machine but do not include the action of the low level control system necessary to make the quadrotor rotational dynamics stable. Since the manufacturer of our quadrotor does not make public the design of the stabilization system, replicating it in software within the simulator is not a straightforward task. Given that the low level dynamics of the quadrotor is not our primary interest (as explained in section \ref{sec:rationale}), for the rotational dynamics we prefer to use an equivalent  model that replicates directly the combined effect of both the quadrotor dynamics and of its controller.
+We learn the parameter of such a model directly from flight data in order to match as accurately as possible the characteristics of our flight machine.
+For the translational dynamics we use a more standard model that consider the forces acting on the center of mass of the flight machine but we learn from data the relationship between the throttle control input and the generated thrust force since it is known to be very much dependent on the motors and propellers present on the rotorcraft.
+
+In the case of the pitch and roll motion the Pelican platform allows to directly specify the angles that the platform should maintain, these ``desired quantities'' ($u_{pt}$ and $u_{rl}$ respectively) constitute therefore two of the control inputs. 
+From flight tests we deemed that a second order model can provide a good representation of the dynamic response of the state variable $\theta$ and $\phi$ to changes in control. It was also evident that the control system controls the propeller so to limit the maximum rotational velocity (a common precaution that ensure to not exceed the sensing and/or control envelope). 
+
+These findings are encoded in equations \ref{eqn:p} and \ref{eqn:q} where $K_{pq0}$, $K_{pq1}$ and $K_{pq2}$ are constant factors that are obtained from flight data while $p_{max}=q_{max}$ is derived from the platform firmware settings.
+\begin{equation}\label{eqn:p}
+\dot{p}  =  \left\{ \begin{array}{l l} K_{pq1} (K_{pq0} u_{rl} - \phi) + K_{pq2} p & |p|<p_{max} \\ 0  & |p|\geq p_{max} \end{array} \right .\\
+\end{equation}
+\begin{equation}\label{eqn:q}
+\dot{q}  =  \left\{ \begin{array}{l l} K_{pq1} (K_{pq0} u_{pt} - \phi) + K_{pq2} q & |q|<q_{max} \\ 0  & |q|\geq q_{max} \end{array} \right .\\
+\end{equation}
+Perhaps quite obviously the same parameters are used for the pitch and roll dynamics since the platform is symmetric. 
+
+
+The yaw motion of the platform is controlled by specifying a desired yaw speed $u_{ya}$; even in this case a second order model provides a good fit to the flight data and leads to equation \ref{eqn:r}. 
+\begin{equation}\label{eqn:r}
+\dot{r} = K_{r0} u_{ya} + K_{r1} r
+\end{equation}
+Again the constant were obtained from flight data. 
+
+In the case of the translational dynamics the first relationship to capture is the one between the throttle control input ($u_{th}$) and the thrust force ($F_{th}$) experienced by the quadrotor. 
+Through a series of static tests emerged that the relationship between throttle and thrust can be represente by a second order polynomial 
+\begin{equation}
+F_T = (C_{th0} + C_{th1} u_{th} + C_{th2} u^2_{th} \label{eqn:ft}
+\end{equation}
+ this is a typical result (\cite{denardi2010phd},\cite{hoffmann07quadrotor}) in accordance with basic lift theory which predics a lift for proportional to the blades speed.
+Full throttle tests also evidenced that the maximum thrust is intimately related to the current battery voltage ($V_b$) and decreases as the battery depleats 
+\begin{equation}
+F_M = (C_{vb0}+C_{vb1} V_b) \label{eqn:fm}
+\end{equation}.
+
+Dynamic tests showed that due to inertia and drag effects, the thrust can not change instantanously, but instead it changes at a constant rate\footnote{We believe that this is due to the speed control loop present in the electronic speed controllers governing the motors.} $\tau_1$. Exception to this are very slow speed ranges for which a first order behaviour is exhibited instead. Combining this dynamic behaviour with the maximum thrust defined by the lowest between (\ref{eqn:ft}) and (\ref{eqn:ft}) we obtain:
+\begin{equation}
+\dot{F}_{th}=\left\{ \begin{array}{l l} -\tau_1 & max(F_T,F_M)<F_{th} \\ \tau_1  & max(F_T,F_M)\leqF_{th} \end{array} \right .\\
+\end{equation}
+
+Given $F_th$, the gravity force in body coordinates $g_b$ and the wind velocity in body coordinates $[u_w,v_w,w_w]$, the resulting acceleration in body coordinates can be computed as:
+\begin{eqnarray}
+\dot{u} &=& -q w + r v + g_b_x + K_{uv}(u-u_w)\\
+\dot{v} &=& -r u + p w + g_b_y + K_{uv}(v-v_w)\\
+\dot{w} & =& -p v + q u + g_b_z - \frac{F_{th}}{m} + K_w (w-w_w) l\bel{eqn:w}
+\end{eqnarray}
+Where $m$ is the mass of the quadrotor, and the the terms $K_{uv}(u-u_w)$,$K_{uv}(v-v_w)$ and $K_w(w-w_w)$ are the effects of the aerodynamic drag. The first two terms on the right hand side of the eqautions are result of the fact that the linear velocities $u,v,w$ are expressed in a rotation frame. 
+ 
+Equations (\ref{eqn:p})-(\ref{eqn:w}) provide the state update equations which are numerically integrated in order to simulate the time evolution of the state variables.
+The interested reader can find the implementation of the model presented in this section in the file \texttt{pelicamODE.m}.  
+
+\section{Inertial sensors models}
+
+On board a real quadrotor platform a series of sensors allows to produce an estimate of many of the flight variables which is very useful to control and stabilize the helicopter.
+A standard suite of sensor (e.g. the one present on a \cite{asctec2011pelican}) contains a tryaxial accelerometer, a set of three gyros, a set of three magnetometers, a pressure sensor and a GPS receiver.
+
+
+
+    % Simple barometer noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as additive white Gaussian 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
+
+$z_{baro}$ is output of a barometer, $h$ is true altitude, $b$ is bias noise which is modeled as first order 
+Gauss-Markov process $\nu_m$ is measurement noise.
+    \begin{equation}
+      z_{baro}=h+b+\nu_m
+      \dot{b}=-\frac{1}{\tau}b+\nu
+    \end{equation}
+ 
+
+Several authors have studied the 
+
+Since in our platform the low level stabilization is performed on board and is not of interest for the type of activity considered in CompLACS, at this instance we are not planning to make direct use of the accelerometers and gyros reading. We decided therefore
+
+The modular nature of the simulator will allow to easily upgrade to a more complex noise model if this is deemed necessary.   
+
+    % Simple accelerometer noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as an additive Gauss-Markov process. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
+
+    % Simple gyroscope noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as additive white Gaussian. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
+
+    % Simple orientation noise model.
+    % The following assumptions are made:
+    % - the noise is modelled as an additive Gauss-Markov process. 
+    % - the accelerometer refrence frame concides wih the body reference frame
+    % - no time delays
+
+The orientation of the flying mchine is generally estimated on-board using primarily the input from gyros and accelerometers and magnetometers, but in some cases might also include  other sensors (i.e. the GPS and barometer). Since all these sensors are combined using an estimator (e.g. a Kalman filter), designing a noise model for the orientation measurement is all but trivial. In our case matters are further complicated by the fact that the manufacturer does not make available in depth information about the attitude estimator.
+ 
+Pragmatically we decide to go for a much simpler noise model that attempts to capture the main characteristic of the errors in the estimated attitude. 
+high acceleration where the simplification often adopten in the mechanizaion equation of the estimator introduce some level of error. 
+
+Ornstein–Uhlenbeck process
 
 \section{GPS model}
             % constructs the object.
@@ -343,30 +459,6 @@ While reading this material is not a prerequisite to use the simulator, reading 
     % [3] "Wind Disturbance Estimation and Rejection for Quadrotor Position Control"
     %     Steven L. Waslander, Carlos Wang
 
-\section{Inertial sensors models}
-
-    % Simple accelerometer noise model.
-    % The following assumptions are made:
-    % - the noise is modelled as additive white Gaussian 
-    % - the accelerometer refrence frame concides wih the body reference frame
-    % - no time delays 
-
-    % Simple accelerometer noise model.
-    % The following assumptions are made:
-    % - the noise is modelled as an additive Gauss-Markov process. 
-    % - the accelerometer refrence frame concides wih the body reference frame
-    % - no time delays
-
-    % Simple gyroscope noise model.
-    % The following assumptions are made:
-    % - the noise is modelled as additive white Gaussian. 
-    % - the accelerometer refrence frame concides wih the body reference frame
-    % - no time delays
-
-    % Simple orientation noise model.
-    % The following assumptions are made:
-    % - the noise is modelled as an additive Gauss-Markov process. 
-    % - the accelerometer refrence frame concides wih the body reference frame
-    % - no time delays
-
+\bibliography{manual}
+\bibliographystyle{plain}
 \end{document}          
