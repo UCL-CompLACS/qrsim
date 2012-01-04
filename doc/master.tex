@@ -474,41 +474,43 @@ The interested reader can find the implementation of the model presented in this
 
 \subsection{GPS model}
 
-GPS is complex and errors arise from a wide variety of sources with differing characteristics. The quality of the computed position depends on errors affecting the satellite vehichles (sv from now on), the proagation of the GPS signal through the atmosphere, the number and configuration of svs used to compute a solution and the receiver itself.
+GPS is complex and errors arise from a wide variety of sources with differing characteristics. The quality of the computed position depends on errors affecting the satellite vehicles (sv from now on), the propagation of the GPS signal through the atmosphere, the number and configuration of svs used to compute a solution and the receiver itself.
 
+If instead concentrating on a noise model at the level of computed receiver position, we work at the level of the single pseudorange measurement provided by each of the svs our task is greately simplified since accurate models of the typical psuedorange erros are available (\cite{rankin1994anerror}, \cite{carlson2010mapping}). Given souch measurements we will need to compute the receiver position taking into acount its error characteristics.
 
-This complex error model is the largest barrier to accurate
-integration of GPS with other systems.
-Using position ﬁxes directly is problematic due to the noise characteristics of the
-processed receiver output. In addition to being highly non-white, the noise in the
-processed output is dependent on the set of satellites used in calculations. Eﬀorts to
-formally model positional oﬀsets as drifts are hampered by oﬀsets which suﬀer “jumps”
-at unpredictable times when the constellation of used satellites changes
+From an implementation perspective we split the GPS model into an \texttt{GPSSpaceSegmentGM} (this is an \texttt{environmentObject}) which models the pseudorange noise affecting the svs, and a \texttt{GPSreceiverG} object for each of the quadrotors. This also implies that the noise affecting the position measurement of quadrotor using the same satellites will be to a certain extent correlated, which is what happens in practice when quadrotor are flying in the same geographical location.
+  
+Following \cite{rankin1994anerror} the pseudorange measurements ($\rho$) can be written as:  
+\begin{equation}
+\rho=r+\delta_{eph}+\delta_{iono}+\delta_{tropo}-\delta_{clock}+\delta_{mp}+\nu_{rcvr},
+\end{equation}
+where:
+\begin{itemize}
+\item $r$, true range,
+\item $\delta_{eph}$, satellite ephemeris error,
+\item $\delta_{iono}$, ionosphere error,
+\item $\delta_{tropo}$, troposphere error,
+\item $\delta_{clock}$, receiver clock error,
+\item $\delta_{mp}$, multipath error,
+\item $\nu_{rcvr}$, receiver measurement noise.
+\end{itemize}
+The true range $r$ is simply the distance between the current (simulated) position of the receiver\footnote{For simplicity we assume the position of the receiver concides with th origing of the body frame of reference.} and the position of the satellite in question. The position the satellite is obtained from a log of actual satellite positions (see parameter \texttt{orbitfile} in listing \ref{lst:init}), therefore as the simulation time progresses the position of the satellites changes as it would in a real situation.
+The ephemeris, ionosphere, troposphere and multipath errors are modeled as Gauss-Markov processes. These processes have an
+exponential autocorrelation function with variance, $\sigma^2_s$ and time constant $\beta$; the receiver measurement noise term, is the accuracy which the code or can be tracked and is modeled as Gaussian white noise (with variance $\sigma^2_r$).
+A single pseudorange measurement takes the form:
+\begin{eqnarray}
+\rho & = & b_{pr} + \sigma_r\nu_{r}\\
+\dot{b}_{pr} & = & (e^{-\beta T}-1) b_{pr} + \sigma_s\nu_{s},
+\end{eqnarray}
+$\nu_r$ and $\nu_s$ are unit variance Gaussian noise source, $T$ is the time discretization interval.  
 
-\cite{rankin1994anerror} \cite{carlson2010mapping}
+The missing part of the model is the simulation of the receiver, which is constitude by two main steps, defining which satellites are visible (i.e. which measurement can be used) and computing the actual solution.
 
-            % constructs the object.
-            % Selects the satellite vehicles visible to this receiver among the ones in
-            % objparams.svs the total number of visible satellites is generate
-            % randomly (uniform number between objparams.minmaxnumsv(1) and
-            % objparams.minmaxnumsv(2)). The selection of satellites is kept FIX during
-            % all the simulation.
-    % Class that simulates the correlate noise affecting the GPS pseudorange.
-    % The running assumption is that all the receivers are (approximately) geographically
-    % co-located so that pseudorange measurements to the same satellite vehicle obtained
-    % by different receivers are strongly correlated.
-    %
-    % At each epoch the position of each satellite vehicles is determined interpolating
-    % the precise orbits file (SP3) defined in params.environment.gpsspacesegment.preciseorbitfile,
-    % pseudorange errors are considered additive and modelled by a Gauss-Markov process [1][2].
-    % Global variables are used to maintain the noise states shared between receivers.
-    %
-    % [1] J. Rankin, "An error model for sensor simulation GPS and differential GPS," IEEE
-    %     Position Location and Navigation Symposium, 1994, pp.260-266.
-    % [2] Carlson, Justin, "Mapping Large, Urban Environments with GPS-Aided SLAM" (2010).
-    %     Dissertations. Paper 44.
+The number of satellites visible by a receiver depends on the location, the time of the day, the antenna and the landscape surrounding the receiver (i.e. the obstacles). Since is usually difficult to tease apart the contribution of such effect we preferred to use data from a representative flight test to establish what satellites are usually visible.
+At run time we initialize each receiver with a potentially slightly different set of svs\footnote{The task parameter \texttt{svs}  see listing \ref{lst:init} defines the ids of the satellites that are potentially visible, a random number of these defined by the platform parameter \texttt{minmaxnumsv} will be chosen and associated with the receiver.}
 
-%% delay
+Given the set of svs associated to a receiver, for each of which we have a pseudorange measurement, simulating a new GPS position measurement is simply a matter of solving a least squares problem. 
+
 The interested reader can find the implementation of the model presented in this section in the files \texttt{GPSSpaceSegmentGM.m} and \texttt{GPSreceiver.m}.  
 
 \subsection{Wind model}
@@ -539,7 +541,7 @@ u_g=(1-a_uT)u_g+\sqrt{2a_uT}\sigma_u\nu_{n_u}\\
 v_g=(1-a_vT)v_g+\sqrt{2a_vT}\sigma_v\nu_{n_v}\\
 w_g=(1-a_wT)w_g+\sqrt{2a_wT}\sigma_w\nu_{n_w}
 \end{eqnarray}
-where $\nu_{n_u},\nu_{n_v}$ and $\nu_{n_w}$ are unite variance Gaussian noise source, $T$ is the discretization interval,  
+where $\nu_{n_u},\nu_{n_v}$ and $\nu_{n_w}$ are unit variance Gaussian noise source, $T$ is the time discretization interval,  
 \begin{eqnarray}
 a_u=\frac{V}{L_u}\\ 
 a_v=\frac{V}{L_v}\\ 
