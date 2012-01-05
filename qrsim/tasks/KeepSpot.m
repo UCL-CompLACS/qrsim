@@ -49,7 +49,7 @@ classdef KeepSpot<Task
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % specific setting due to the use of the ngs15992_16to17.sp3 file
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
-            taskparams.environment.gpsspacesegment.tStart = 0; %0 to init randomly
+            taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0); %0 to init randomly
             % a typical flight day had the following svs visible:
             %03G 05G 06G 07G 13G 16G 18G 19G 20G 22G 24G 29G 31G
             taskparams.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];

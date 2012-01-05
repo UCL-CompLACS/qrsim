@@ -210,6 +210,7 @@ classdef Orbits < handle
             end
             
             coefX = obj.XCoef(prn, en, :);
+            
             if abs(coefX(length(coefX))) < 1e-12
                 error('No data for given prn %d',prn);
             end

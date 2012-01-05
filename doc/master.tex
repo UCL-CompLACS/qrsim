@@ -11,18 +11,19 @@
 \title{{CompLACS} Quadrotors Simulator}
 \author{Renzo De Nardi,\\University College London\\\texttt{rdenardi@cs.ucl.ac.uk}}
 
-\newcommand{\sname}{QRsim\xspace}
-\newcommand{\web}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/}\xspace}
+\newcommand{\sname}{QRSim\xspace}
+\newcommand{\snamettt}{\texttt{QRSim}\xspace}
+\newcommand{\web}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-0.2.zip}\xspace}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This document describes the multi-vehicle quadrotor simulator (\sname) developed at UCL to devise and test algorithms for the UCL autonomous helicopters, one of the three application platforms of the {CompLACS} project.
-This report is divided into two parts, the first describes the logic and the structure of the simulator while the second presents a specific example of use. 
+This document describes the multi-vehicle quadrotor simulator (\sname) developed at UCL to devise and test algorithms for our flock autonomous helicopters, one of the three application platforms of the {CompLACS} project.
+This report is divided into two parts, the first describes the logic and the structure of the simulator while the second presents an example of use. 
 Technical details about the dynamic models used in the simulator and their implementation are reported in the appendix. 
 
-A companion to this report is the documentation that Matlab can automatically generate from the source code (i.e. the command \texttt{doc}), the reader is referred to it for all the more specific API details.
+A companion to this report is the documentation that Matlab can automatically generate from the source code (i.e. using the command \texttt{doc}), the reader is referred to it for all the more specific API details.
 \end{abstract}
 
 \tableofcontents
@@ -30,49 +31,50 @@ A companion to this report is the documentation that Matlab can automatically ge
 \chapter{Design and Concepts}
 
 \section{Rationale}\label{sec:rationale}
-UAVs provide a rich source of control problems some of which (namely the one connected with individual flight attitude control) have been successfully addressed in previous research. {CompLACS} focusses instead on the higher level problems of enabling multiple UAVs to achieve a common goal by communicating and cooperating as an autonomous flock. 
+UAVs provide a rich source of control problems some of which (namely the one connected with individual flight attitude control) have been successfully addressed in previous research (\cite{hoffman08quadrotor},\cite{shim03aflight},\cite{bouabdallah07phd} to list a few). The {CompLACS} project focusses instead on the higher level problems of enabling multiple UAVs to achieve a common goal by communicating and cooperating as an autonomous flock. 
 
-A simulator that allows to devise and test algorithms aiming at such problems must reliably model the effects that are (at least to a certain extent) common to all platforms (e.g. wind or GPS errors) as well as the interaction between them (e.g. radio communication or collisions). 
-At the same time, since the real platform used in this work are already provided with off the shelf stabilisation and attitude controllers, the requirement on accurately simulating the very low level dynamic behaviour of the platform can be relaxed.
-Both these sets of requirements make \sname substantially different from existing quadrotor simulator available in the literature. 
+A simulator that allows to devise and test algorithms aiming at such high level problems must reliably model the effects that are (at least to a certain extent) common to all platforms (e.g. wind or GPS errors) as well as the interaction between them.
+ 
+At the same time, since the real platform used in this work are already provided with off-the-shelf stabilisation and attitude controllers, the requirement on accurately simulating the very low level dynamic behaviour of the platform can be relaxed.
+Both these sets of requirements make \sname substantially different from existing freely available quadrotor simulators. 
 
 
 One of the objectives of {CompLACS} is to provide a generic interface to specifying learning and control problems, it is therefore important for the tools used in the initial investigation (i.e. the platforms simulators) to not be constrained to a rigid interface. 
-For this reason in \sname more than providing a unique and rigid interface to the application platform, we decided to build a modular and extensible API so to make it possible to redefine the platform interface with relative ease. 
+For this reason in \sname more than providing a single and rigid interface to the application platform, we decided to build a modular and extensible API so to make it possible to redefine the platform interface with relative ease. 
 
-Defining concrete application scenarios based on the available platforms and simulators is one of the forthcoming deliverable of {CompLACS} (milestones 6.2, 7.2), in the following section we aim at aiding this process by giving a clear conceptual view of \sname. 
+Defining concrete application scenarios based on the available platforms and simulators is one of the forthcoming deliverable of {CompLACS} (milestones 6.2, 7.2), this document aims at aiding this process by providing clear description of \sname and of its capabilities. 
 
 \section{Concepts}
+We start by presenting the main conceptual blocks that constitute the simulator.
 
-
-\subsection{Platforms and Environment}\label{sec:platandenv}
-Within \sname it is useful to make a logical distinction between two types of objects:
+\subsection{Platforms and Environment Objects}\label{sec:platandenv}
+Within \sname we make a logical distinction between two types of objects:
 \begin{itemize}
 \item platforms,
 \item environment objects.
 \end{itemize}
-To the first type belongs the description of the quadrotor dynamics but also the models of sensors and other phenomena that are platform specific (e.g. aerodynamic turbulence). The second class comprehends al the phenomena that are not platform specific and have direct or indirect impact on several platforms (e.g. the flight area or the satellite vehicles of the GPS system).
+To the first type belong the description of the quadrotor dynamics but also the models of sensors and other phenomena that are platform specific (e.g. aerodynamic turbulence). The second class comprehends al the phenomena that are not platform specific and have direct or indirect impact on several platforms (e.g. the flight area or the satellite vehicles of the GPS system).
 In many ways this distinction is rather natural and in \sname we are simply exploiting it in order to provide a sensible structure to the simulator.
 
-In general the platforms are the only objects that can be controlled by means of actions, of course those might eventually have an indirect effect on the environment. We must underline that this does not impose for any of the two classes to be time invariant, in fact both class of object might change during the course of a simulation as result of actions or simply as result of the time passing.
+In general the platforms are the only objects that can be controlled by means of actions, of course those might eventually have an indirect effect on the environment. We must underline that this does not impose for any of the two classes to be time invariant; in fact both types of objects might change during the course of a simulation as result of actions or simply as result of the time passing.
 
-To the extent allowed by Matlab we used object-oriented programming in order to map physical objects directly into a corresponding class; platforms subclass the abstract class \texttt{Platform} (defined in \texttt{/src/platforms/Platform.m}) and environment objects subclass \texttt{EnvironmentObject} (defined in \texttt{/src/environment}).
+To the extent allowed by Matlab we used object-oriented programming concepts in order to map physical objects directly into the corresponding classes. Platforms subclass the abstract class \texttt{Platform} (defined in \texttt{/qrsim/platforms/Platform.m}) and environment objects subclass \texttt{EnvironmentObject} (defined in \texttt{/qrsim/environment}).
 
 \subsection{State}\label{sec:state}
 
-At any point in time the state of the objects present in the simulator must be maintained; for reason of computational efficiency in Matlab we use a global structure to store such state. Rather obviously this data structure is called \texttt{state} and is accessible from any function or object method in the simulator.
+At any point in time the state of the objects present in the simulator must be maintained; for reason of computational efficiency in Matlab we use a \texttt{global} structure to store such state. Rather obviously this data structure is called \texttt{state} and by being global it is accessible from any function or object method of the simulator.
 
 Consistently with the definition in section \ref{sec:platandenv} we use the fields \texttt{state.environment} and the array \texttt{state.platforms} to store the handles to all the environment and platforms objects respectively. 
 Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms(1).X} gives access to the state variables of the first platform, while \texttt{state.environment.wind.direction} returns the current mean wind direction. 
-The direct access to the state variables should not be used to set the state, when such an operation is meaningful (e.g. for the platforms) a specific methods (\texttt{setState(X)}) is provided by the corresponding class\footnote{In addition to overwriting the object's state these calls also make sure that 
-any other internal variable (e.g. noise model states) is appropriately set.}.
-The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose that derived classes must define methods to reset the state to its initial value defined by the task (see section \ref{sec:createtask}).
-The reader is referred to the API documentation available through Matlab for more details on the properties of each single object.
 
-The global state structure stores also other important variables:
+It is worth noting that this direct access to the state variables should not be used to set the state.
+The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose derived classes to define methods to reset the state to its initial value defined by the task (see section \ref{sec:createtask}).
+When such a reset operation is meaningful (e.g. for the platforms) the class exposes it through a specific method (\texttt{setState(X)})\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set.}.
+
+The global \texttt{state} structure stores also other important variables:
 \begin{itemize}
  \item the simulator time \texttt{state.t}, used to ensure synchronization between all the environment and platforms objects;
- \item the pseudorandom number generator stream \texttt{state.rStream}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
+ \item the pseudo-random number generator stream \texttt{state.rStream}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
  \item the simulator time step \texttt{state.DT}, the time granularity with which the simulator time is incremented;
  \item the handle to the 3D graphics visualization \texttt{state.display3d}.
 \end{itemize}
@@ -80,33 +82,52 @@ The global state structure stores also other important variables:
 \subsection{Steppable}
 
 Since the platforms and environment that we are simulating are representation of physical objects, one natural way to think about their evolution in time is to consider time discretized into steps and to ``step forward'' the object's state at each time step. In the case of a quadrotor for instance, stepping forward is nothing more than integrating the ODE that describe its dynamics, for other object stepping forward might mean instead triggering an event associated with a specific time.
-In our implementation every object that evolves with time is derived from a common class (i.e. \texttt{Steppable}) which defines an abstract \texttt{update()} method and a time step property \texttt{dt}. \texttt{update()} propagates the object's state forward to the current time \texttt{state.t}, \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. As we will see in section \ref{sec:qrobj}, the method update is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns calls \texttt{update()} if a time equal to \texttt{dt} has passed since the object's state was updated\footnote{To simplify the updates the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{state.DT}); in practice this is not a very restrictive assumption.}.
+In our implementation every object that evolves with time is derived from a common class (i.e. \texttt{Steppable}) which defines an abstract \texttt{update()} method and a time step property \texttt{dt}.
+
+The method \texttt{update()} propagates the object's state forward to the current time \texttt{state.t}, \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. 
+
+As we will see in section \ref{sec:qrobj}, the \texttt{update()} method is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns only calls \texttt{update()} if a time equal to \texttt{dt} has passed since the last update\footnote{To simplify things the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{state.DT}); in practice this is not a very restrictive assumption.}.
 
 \subsection{Task}
 
-By combining different types of environment objects and platforms \sname allows to define a variety of single and multiple helicopter scenarios as well as many different objectives for the platforms to try to achieve. 
-The abstract class \texttt{Task} provides a way to derive task objects specifying both a scenario and an activity to be learned; the class defines two main methods \texttt{init()} and \texttt{reward()}.
+By combining different types of environment objects and platforms \sname allows to define a variety of single and multiple helicopter scenarios as well as many different objectives for the platforms.
 
-\texttt{init()} allows the user to define the type (i.e. the class name) of each of the environment objects as well as of each platform and sensor. 
-Along with the object type, a specification of all the class specific parameters is also needed.
+The abstract class \texttt{Task} provides a way to derive task objects that specify both a scenario and an activity to be learned; the class defines two main methods \texttt{init()} and \texttt{reward()}:
+\begin{itemize}
+ \item \texttt{init()} allows the user to define the type of each of the environment objects (i.e. the class name) and of each platform and sensor. Along with the object type, a specification of all the class specific parameters is also needed.
+ \item \texttt{reward()} allows for defining an instantaneous reward for the task, this can be used for the purpose of learning. The design of a reward function is very task specific but most often the user will rely on the global \texttt{state} structure in order to compute such a reward.
+\end{itemize}
 
-The \texttt{reward()} method allows for defining an instantaneous reward for the task, this can be used for the purpose of learning. The design of a reward function is very task specific but most often the user will rely on the global \texttt{state} structure in order to compute such a reward.
+We will present how to create a task in section \ref{sec:createtask}.
 
 \subsection{Other Abstract Classes}
 
-At the aim of making the code easy to extend, the software API defines also several other classes to abstract the Sensors in general but more specifically the GPSreceiver, the various inertia sensors and the aerodynamic effects. This allows to configure specific type of sensor through the task object (see section \ref{sec:createtask}) instead of having to modify the platform code.
+At the aim of making the code easy to extend, the software API defines also several other abstract classes:
+\begin{itemize}
+\item \texttt{AerodynamicTurbulence}
+\item \texttt{Sensors}
+\item \texttt{AHARS}
+\item \texttt{OrientationEstimator}
+\item \texttt{Gyroscope}
+\item \texttt{Altimeter}
+\item \texttt{Accelerometer}.
+Such abstract classes are used very much like software interfaces and allow to configure specific type of sensor through the task object parameters (see section \ref{sec:createtask}), in this way the correct class is loaded at run time.
+\end{itemize}
 
 \section{The \sname Object}\label{sec:qrobj}
 
-After a brief introduction of the fundamental building blocks of \sname we can look at they are used within the main class of the simulator. The \texttt{\sname} object allows to initialize setup and control the simulator as a whole. 
+After a brief introduction of the fundamental building blocks of \sname we can look at how they are used within the main class of the simulator. 
 
-The object exposes three main methods:
+The object \snamettt allows to initialize, set up and control the simulator as a whole. 
+
+\snamettt exposes three main methods:
 \begin{itemize}
- \item \texttt{init('task\_name')}, initializes the platforms the environment objects and the task according to what specified by the task \texttt{'task\_name'} (see section \ref{sec:createtask}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \texttt{\sname} object and is called only once.
- \item \texttt{reset()}, resets the simulator to the state specified in the configuration files\footnote{The parameters defined as random in the task are initialized to a new random state.}. This is generally called after a learning episode in order to restore the state of the simulator. 
- \item \texttt{step(U)}, steps in sequence all the environment object and all the platforms forward in time. This is the main command that accepts a matrix of control inputs \texttt{U} (e.g. one column array for each platform) and propagates the state of all the simulator's object. Listing \ref{lst:step} shows the implementation of the method; where it can be seen that first \texttt{state.t} is updated\footnote{This is the only statements that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward.
- After a call to step the new state can be accessed as described in section \ref{sec:state}.
- \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is meant to be called after stepping the simulator.
+ \item \texttt{init('task\_name')}, initializes the platforms the environment objects and the task according to what specified by the task \texttt{'task\_name'} (see section \ref{sec:createtask}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \snamettt object and must be called only once.
+ \item \texttt{reset()}, resets the simulator to the initial state specified by the task. This is generally called after a learning episode in order to restore the state of the simulator. 
+ \item \texttt{step(U)}, steps forward in time all the environment objects and all the platforms . This command accepts a matrix of control inputs \texttt{U} (i.e. one column array for each platform) and calls the \texttt{step()} method for each of the objects. Listing~\ref{lst:step} shows the implementation of the method.
+
+Very simply, first \texttt{state.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. at that point the new state can be accessed as described in section \ref{sec:state}.
+ \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is simply a pass through call to the task \texttt{reward()} method and is meant to be called after stepping the simulator.
 \end{itemize}
 
 
@@ -136,19 +157,20 @@ end
 \chapter{Installation and Use}
 
 \section{Installation}
-The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6)\footnote{The development and testing was carried out on R2010b for UNIX.}.
-No installation as such is required, the user simply needs to download the simulator source code form \web and unpack into a directory of choice.
+The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result no installation as such is required, the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6)\footnote{The development and testing was carried out on R2010b for UNIX.}.
 
-To use the simulator is sufficient to add its root directory (i.e. \texttt{qrsim}) to the current Matlab path; each time a \texttt{qrsim} is instantiated any other directory needed will also be added to the current path.
+The user simply needs to download the simulator source code form \web and unpack into the directory of choice.
+To use the simulator is sufficient to add its root directory (i.e. \texttt{qrsim}) to the current Matlab path\footnote{Each time a \texttt{qrsim} object is instantiated any other directory needed will also be added to the current path; they will be removed from the path once  \texttt{qrsim} is cleared.}.
 
-At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify.m}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}.}.
+At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify.m}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}; please refer to the Matlab documentation for more details.}.
 
 
 \section{Creating a Task}  \label{sec:createtask}
 
-As a first example we look at a single platform task which requires to maintain the quadrotor hovering at the position it has when the task starts; the solution requires continuous control since the helicopter is affected by time varying wind disturbances. 
+As a first example of use we look at a single platform task which requires to maintain the quadrotor hovering at the position it has when the task starts; the solution requires to adjust continuously controls since the helicopter is affected by time varying wind disturbances. We call this task KeepSpot. 
  
 To implement such a task, we start by creating a new class that extends the abstract class \texttt{Task} and implements the \texttt{init()} and \texttt{reward()} methods.
+
 The \texttt{init()} method (see listing \ref{lst:init}) 
 \begin{lstlisting}[float=ht!bp,caption=KeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left,basicstyle=\small]
 function taskparams=init(obj)
@@ -160,9 +182,9 @@ function taskparams=init(obj)
   taskparams.seed = 0; %if zero the seed depends on the system time         
             
   %%%%% environment %%%%%
-  taskparams.environment.area.limits = [-10 20 -7 7 -20 0];
+  taskparams.environment.area.limits = [-10 20 -7 7 -20 0]; //meters
   taskparams.environment.area.type = 'BoxArea';
-  [E N zone h] = lla2utm([51.71190;-0.21052;0]);
+  [E N zone h] = lla2utm([51.71190;-0.21052;0]); //origin in GPS coords
   taskparams.environment.area.originutmcoords.E = E;
   taskparams.environment.area.originutmcoords.N = N;
   taskparams.environment.area.originutmcoords.h = h;
@@ -174,7 +196,7 @@ function taskparams=init(obj)
   taskparams.environment.gpsspacesegment.on = 0; 
   taskparams.environment.gpsspacesegment.dt = 0.2;
   taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
-  taskparams.environment.gpsspacesegment.tStart=%0 to initilise it randomly
+  taskparams.environment.gpsspacesegment.tStart= 0; %0 to initilise it randomly
   taskparams.environment.gpsspacesegment.svs=[3,5,6,7,13,16,18,19,20,22,24,29,31];
   taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
   taskparams.environment.gpsspacesegment.PR_BETA = 2000; % process tau
@@ -192,7 +214,7 @@ function taskparams=init(obj)
   %%%%% platforms %%%%%
   % Configuration and initial state for each of the platforms
   taskparams.platforms(1).configfile = 'pelican_config';
-  taskparams.platforms(1).X = [0;0;-20;0;0;0]; 
+  taskparams.platforms(1).X = [0;0;-20;0;0;0]; % initial position
 
   %%%%% visualization %%%%%
   taskparams.display3d.on = 1;
@@ -200,19 +222,20 @@ function taskparams=init(obj)
   taskparams.display3d.height = 600;            
 end
 \end{lstlisting}
-returns a data structure that contains general fields like the simulator time step \texttt{taskparams.DT} and the seed of the pseudorandom number generator (\texttt{taskparams.seed}), fields for each of the environment objects (\texttt{taskparams.environment}), and for each of the platforms (\texttt{taskparams.platforms}). Although the fields depend on the type of object, by convention we name:
+returns a data structure that contains general fields like the simulator time step \texttt{taskparams.DT} and the seed of the pseudo-random number generator (\texttt{taskparams.seed}), fields for each of the environment objects (\texttt{taskparams.environment}), and for each of the platforms (\texttt{taskparams.platforms}). The fields depend on the number and type of objects, but by convention we name:
 \begin{itemize}
-\item \texttt{on} the flag that allows to enable and disable the object in question,
-\item \texttt{dt} the time step of the object,
-\item \texttt{type} the class name of the object,
-\item \texttt{DT} the time step of the simulator.
+\item \texttt{on}, the flag that allows to enable and disable the object in question,
+\item \texttt{dt}, the time step of the object,
+\item \texttt{type}, the class name of the object,
+\item \texttt{DT}, the time step of the simulator.
 \end{itemize}
-The number of sensors and parameters present in a platform would make quite cumbersome defining several identical platforms; for this reason we also allow to specify as a parameter a configuration file (see \texttt{'pelican\_config'}) so that the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform (see line 38).
+
+The number of sensors and parameters present in a platform would make defining several identical platforms quite cumbersome. For this reason all the platform parameters are specified in a single configuration file (see \texttt{'pelican\_config'}); in this way the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform using the parameter \texttt{taskparams.platforms(1).X} (see line 38).
 
 Lastly we see the \texttt{taskparams.display3d} parameters which allow to specify if the 3D visualization is active and the size of the window used for its rendering. 
 
-As already mentioned, a task must also define a reward function. For the task of maintaining a fixed position in space a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
-Such a function gives higher rewards to a policy that maintain the quadrotor close to the starting point but also keeps it level (i.e. \texttt{X(4:6)=0}) and minimizes linear and rotational velocities (i.e. \texttt{X(7:12)=0});
+As already explained, a task must also define a reward function. For the KeepSpot task a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
+Such a function gives higher rewards to a policy that maintain the quadrotor close to the starting point but also keeps it level (i.e. \texttt{X(4:6)=0}) and minimizes linear and rotational velocities (i.e. \texttt{X(7:12)=0}).
 
 \begin{lstlisting}[float=ht!bp,caption=KeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]
 function r=reward(obj)
@@ -223,12 +246,13 @@ function r=reward(obj)
   r = - e' * e; 
 end
 \end{lstlisting}
-
 The complete listing for this task can be found in the file \texttt{KeepSpot.m}.  
 
-\section{Example main}
-To clarify the use of the simulator through the \texttt{\sname} object, we shall present a simple example of use; namely we will use a manually designed PID controller to achieve the behavior required by the \texttt{KeepSpot} task.
+\section{Example Main}
+To clarify the use of the simulator through the \snamettt object, we shall present a simple example of use; namely we will use a manually designed PID controller to achieve the behavior required by the \texttt{KeepSpot} task\footnote{We want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very conservative controller and its performance are very much suboptimal. This said it might still be useful as a baseline for comparisons.}.
+
 Listing \ref{lst:main} shows the code of this bare bone example. 
+
 \begin{lstlisting}[float=ht!bp,caption=main script,language=Matlab,frame=lines,label=lst:main,numbers=left,basicstyle=\small]
 global state;
 
@@ -258,45 +282,48 @@ for i=1:N,
     pause(wait);    
 end
 \end{lstlisting}
-Before anything else we are required to initialize the global structure that will hold the simulator state and give access to the quadrotor state. Next, instantiating the \texttt{\sname} object will make sure that all the functions and classes of the simulator are reachable, is then possible to load all the task parameters by calling \texttt{qrsim.init()}. 
-The main for loop drives the simulation forward by calling in sequence the PID controller and the \texttt{qrsim.step(U)} method; given the current state of the platform, the PID computes the new control action  \texttt{U} which is then used to step the dynamics forward in time.
-Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing we show the call commented out since this is where normally it would be computed.
+Before anything else we are required to initialize the global structure \texttt{state} that will hold the simulator state and give access to the quadrotor state. Next, instantiating the \snamettt object will make sure that all the functions and classes of the simulator are reachable; is then possible to load all the task parameters by calling \texttt{qrsim.init()}. 
 
-Since the task defines to run the simulation with the 3D visualization, it makes sense to run in real time, line 25 introduces the necessary pause.  
+The main for loop (see line 12) drives the simulation forward by calling in sequence the PID controller and the \texttt{qrsim.step(U)} method; given the current state of the platform, the PID computes the new control action  \texttt{U} which is then used to step the dynamics forward in time.
 
-Finally we want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very conservative controller and its performance are very much suboptimal. This said it might still be useful as a baseline for comparisons. 
+Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing (line 22) we show the call commented out since this is where normally the reward would be computed.
 
-\begin{center}
+Since the task defines to run the simulation with the 3D visualization, it makes sense to run it in real time, therefore line 25 introduces the necessary pause.  
+
+
 \begin{figure}
+\begin{center}
 \label{fig:3d}
+\includegraphics[width=13cm]{./3d.eps}
  \caption{3D visualization}
-% \includegraphics{./}
- % .: 0x0 pixel, 0dpi, 0.00x0.00 cm, bb=
-\end{figure}
 \end{center}
+\end{figure}
 
 Figure \ref{fig:3d} shows a snapshot from the 3D visualization of the simulator where both the platform and its past trajectory are visible.
+
+There is obviously no need to define a specific main script like the one presented above, in certain application for instance it might make more sense to call the \snamettt directly from  a learning algorithm; this is perfectly fine as long as the calls are executed in the same sequence shown in listing \ref{lst:main}.
 
 
 \appendix
 \chapter{Implementation Details}
 
-This appendix describes and provide reference to the models implemented in \sname in order to replicate a typical quadrotor platform (namely the Ascending Technologies Pelican \cite{asctec2011pelican} in use at UCL) complete of its sensors.
-Here we primarily aim at giving a basic explaination of our implementation choices to the non expert, for more in depth treatement we refer to the pubblications referred in each of the following sections.
+This appendix describes the models implemented in \sname in order to replicate a typical quadrotor platform (namely the Ascending Technologies Pelican \cite{asctec2011pelican} in use at UCL) complete of its sensors.
+We primarily aim at giving a basic explanation of our implementation choices to the non expert, for more in depth treatment we refer to the publications referred in each of the following sections.
 
-\section{Reference Frame an symbols}
+\section{Reference Frame and Symbols}
 
-For convenience we show here the body frame of reference used in many of the computation involving the helicopter dynamics (see figure \ref{fig:axes}). 
-The global frame (not shown in the figure) is defined as the local tangent plane to the earth surface at the origin. By definition the body and global frame coincide when the quadrotor is at coordinates $(0,0,0)$ and its attitude is zero in all three angles.
-
+For convenience we show the body frame of reference used in many of the computation involving the helicopter dynamics (see figure \ref{fig:axes}).
+ 
+The global frame (not shown in the figure) is defined as the local tangent plane to the earth surface at the origin. 
+By definition the body and global frame coincide when the quadrotor is at coordinates $(0,0,0)$ and its attitude is zero in all three angles.
 \begin{figure}[htbp]
  \begin{center}
- \includegraphics[width=14cm]{./axes.eps}
+ \includegraphics[width=13cm]{./axes.eps}
 \caption{Body NED frame of reference and state variables.\label{fig:axes}}
 \end{center}
 \end{figure} 
 
-We also define several of the variable that are used in the simulator:
+We also define first several of the variable that are used in the simulator:
 \begin{itemize}
 
 \item \textbf{True platform state} X = [$p_x;p_y;p_z;\phi;\theta;\psi;u;v;w;p;q;r;F_{th}$]
@@ -355,57 +382,63 @@ We also define several of the variable that are used in the simulator:
 \end{itemize}
 
 
-\section{Quadrotor dynamic model}
+\section{Quadrotor Dynamic Model}
 
-Several dynamic models of quadrotor helicopters based on first principles have ben published in the literature (\cite{bouabdallah07phd}, \cite{balas07modelling}, \cite{hoffmann07quadrotor}), such examples consider the forces and moments acting on the helicopter in order to obtain the rotational and translational dynamics.
-These type of models replicate only the ``mechanics'' and the aerodynamics of the flying machine but do not include the action of the low level control system necessary to make the quadrotor rotational dynamics stable. Since the manufacturer of our quadrotor does not make public the design of the stabilization system, replicating it in software within the simulator is not a straightforward task. Given that the low level dynamics of the quadrotor is not our primary interest (as explained in section \ref{sec:rationale}), for the rotational dynamics we prefer to use an equivalent  model that replicates directly the combined effect of both the quadrotor dynamics and of its controller.
+Several dynamic models of quadrotor helicopters based on first principles have been published in the literature (\cite{bouabdallah07phd}, \cite{balas07modelling}, \cite{hoffmann07quadrotor}), such examples consider the forces and moments acting on the helicopter in order to obtain the rotational and translational dynamics.
+
+These type of models replicate only the ``mechanics'' and the aerodynamics of the flying machine but do not include the action of the low level control system necessary to stabilise the rotational dynamics. Since the manufacturer of our quadrotor does not make public the design of the stabilization system, simulating it is not a straightforward task. 
+
+Given that the low level dynamics of the quadrotor is not our primary interest (as explained in section \ref{sec:rationale}), for the rotational dynamics we prefer to use an equivalent  model that replicates directly the combined effect of both the quadrotor and of its controller.
 We learn the parameter of such a model directly from flight data in order to match as accurately as possible the characteristics of our flight machine.
-For the translational dynamics we use a more standard model that consider the forces acting on the center of mass of the flight machine but we learn from data the relationship between the throttle control input and the generated thrust force since it is known to be very much dependent on the motors and propellers present on the rotorcraft.
 
-In the case of the pitch and roll motion the Pelican platform allows to directly specify the angles that the platform should maintain, these ``desired quantities'' ($u_{pt}$ and $u_{rl}$ respectively) constitute therefore two of the control inputs. 
-From flight tests we deemed that a second order model can provide a good representation of the dynamic response of the state variable $\theta$ and $\phi$ to changes in control. It was also evident that the control system controls the propeller so to limit the maximum rotational velocity (a common precaution that ensure to not exceed the sensing and/or control envelope). 
+\subsubsection{Rotational Dynamics}
+For the translational dynamics we use a more standard model that consider the forces acting on the center of mass of the flight machine but we learn from data the relationship between the throttle control input and the generated thrust force. This is known to be very much dependent on the type of motors and propellers, learning it ensures we tch the characteristics of our platform.
 
-These findings are encoded in equations \ref{eqn:p} and \ref{eqn:q} where $K_{pq0}$, $K_{pq1}$ and $K_{pq2}$ are constant factors that are obtained from flight data while $p_{max}=q_{max}$ is derived from the platform firmware settings.
+In the case of the pitch and roll motion the Pelican platform accepts as control input the angles that the platform should maintain ($u_{pt}$ and $u_{rl}$ respectively); our model needs to map such controls into the rate of change of the corresponding rotational velocities $q$ and $p$. 
+From flight tests data we deemed that a second order model can provide a good representation of the dynamic response of the state variable $\theta$ and $\phi$ to changes in control. It was also evident that the low level controller drives the propellers so to limit the maximum rotational velocity (a common precaution that ensure to not exceed the sensing and/or control envelope). 
+
+We encoded these findings in equations \ref{eqn:p} and \ref{eqn:q} where $K_{pq0}$, $K_{pq1}$ and $K_{pq2}$ are constant factors that are obtained from flight data while $p_{max}=q_{max}$ are derived from the platform firmware settings.
 \begin{equation}\label{eqn:p}
-\dot{p}  =  \left\{ \begin{array}{l l} K_{pq1} (K_{pq0} u_{rl} - \phi) + K_{pq2} p & |p|<p_{max} \\ 0  & |p|\geq p_{max} \end{array} \right .\\
+\dot{p}  =  \left\{ \begin{array}{l l} K_{pq1} (K_{pq0} u_{rl} - \phi) + p K_{pq2} & |p|<p_{max} \\ 0  & |p|\geq p_{max} \end{array} \right .\\
 \end{equation}
 \begin{equation}\label{eqn:q}
-\dot{q}  =  \left\{ \begin{array}{l l} K_{pq1} (K_{pq0} u_{pt} - \phi) + K_{pq2} q & |q|<q_{max} \\ 0  & |q|\geq q_{max} \end{array} \right .\\
+\dot{q}  =  \left\{ \begin{array}{l l} K_{pq1} (K_{pq0} u_{pt} - \phi) + q K_{pq2} & |q|<q_{max} \\ 0  & |q|\geq q_{max} \end{array} \right .\\
 \end{equation}
 Perhaps quite obviously the same parameters are used for the pitch and roll dynamics since the platform is symmetric. 
 
-
-The yaw motion of the platform is controlled by specifying a desired yaw speed $u_{ya}$; even in this case a second order model provides a good fit to the flight data and leads to equation \ref{eqn:r}. 
+In the case of the yaw motion the control input to the pelican platform takes the for of the desired yaw speed $u_{ya}$. Even in this case a second order model provides a good fit to the flight data and leads to equation \ref{eqn:r}. 
 \begin{equation}\label{eqn:r}
-\dot{r} = K_{r0} u_{ya} + K_{r1} r
+\dot{r} = K_{r0} u_{ya} + r K_{r1}.
 \end{equation}
-Again the constant were obtained from flight data. 
+Again the constants were obtained from flight data. 
+
+\subsubsection{Translational Dynamics}
 
 In the case of the translational dynamics the first relationship to capture is the one between the throttle control input ($u_{th}$) and the thrust force ($F_{th}$) experienced by the quadrotor. 
-Through a series of static tests emerged that the relationship between throttle and thrust can be represented by a second order polynomial 
+Through a series of static tests emerged that the relationship between throttle and thrust can be represented by a second order polynomial: 
 \begin{equation}
 F_T = C_{th0} + C_{th1} u_{th} + C_{th2} u^2_{th} \label{eqn:ft}
 \end{equation}
- this is a typical result (\cite{denardi2010phd},\cite{hoffmann07quadrotor}) in accordance with basic lift theory which predicts a lift for proportional to the blades speed.
-Full throttle tests also evidenced that the maximum thrust is intimately related to the current battery voltage ($V_b$) and decreases as the battery depletes 
+ this is a typical result (\cite{denardi2010phd},\cite{hoffmann07quadrotor}) in accordance with basic lift theory which predicts a lift proportional to the square of the blades speed.
+Full throttle tests also evidenced that the maximum thrust is proportional to the current battery voltage ($V_b$) and decreases as the battery depletes: 
 \begin{equation}
 F_M = C_{vb0}+C_{vb1} V_b \label{eqn:fm}.
 \end{equation}
 
-Dynamic tests showed that due to inertia and drag effects, the thrust can not change instantaneously, but instead it changes at a constant rate\footnote{We believe that this is due to the speed control loop present in the electronic speed controllers governing the motors.} $\tau_1$. Exception to this are very slow speed ranges for which a first order behavior is exhibited instead. Combining this dynamic behaviour with the maximum thrust defined by the lowest between (\ref{eqn:ft}) and (\ref{eqn:ft}) we obtain:
+As expected due to inertia and drag effects, dynamic tests showed that the thrust can not change instantaneously, but instead it changes at a constant rate\footnote{We believe that this is due to the speed control loop present in the electronic speed controllers governing the motors.} $\tau_1$. Exception to this are very slow speed ranges for which behaviour compatible with a first order system is exhibited instead. Combining this dynamic behaviour with the maximum thrust defined by the lowest between (\ref{eqn:ft}) and (\ref{eqn:ft}) we obtain:
 \begin{equation}
-\dot{F}_{th}=\left\{ \begin{array}{l l} -\tau_1 & \max(F_T,F_M)<F_{th} \\ \tau_1  & \max(F_T,F_M)\leq F_{th} \end{array} \right .\\
+\dot{F}_{th}=\left\{ \begin{array}{l l} -\tau_1 & \max(F_T,F_M)<F_{th} \\ \tau_1  & \max(F_T,F_M)\leq F_{th}. \end{array} \right .\\
 \end{equation}
 
-Given $F_th$, the gravity force in body coordinates $g_b$ and the wind velocity in body coordinates $[u_w,v_w,w_w]$, the resulting acceleration in body coordinates can be computed as:
+Given $F_{th}$, the gravity force in body coordinates $g_b$ and the wind velocity in body coordinates $[u_w,v_w,w_w]$, the resulting accelerations in body coordinates can be computed as:
 \begin{eqnarray}
-\dot{u} &=& -q w + r v + g_{b_x} + K_{uv}(u-u_w)\\
+\dot{u} &=& -q w + r v + g_{b_x} + K_{uv}(u-u_w)\label{eqn:u}\\
 \dot{v} &=& -r u + p w + g_{b_y} + K_{uv}(v-v_w)\\
 \dot{w} & =& -p v + q u + g_{b_z} - \frac{F_{th}}{m} + K_w (w-w_w). \label{eqn:w}
 \end{eqnarray}
-Where $m$ is the mass of the quadrotor, and the the terms $K_{uv}(u-u_w)$,$K_{uv}(v-v_w)$ and $K_w(w-w_w)$ are the effects of the aerodynamic drag. The first two terms on the right hand side of the equations are result of the fact that the linear velocities $u,v,w$ are expressed in a rotation frame. 
+Where $m$ is the mass of the quadrotor and the the terms $K_{uv}(u-u_w)$,$K_{uv}(v-v_w)$ and $K_w(w-w_w)$ are the effects of the aerodynamic drag. The first two terms on the right hand side of the equations are needed to take into account the fact that the linear velocities $u,v,w$ are expressed in a rotating frame. 
  
-Equations (\ref{eqn:p})-(\ref{eqn:w}) provide the state update equations which are numerically integrated in order to simulate the time evolution of the state variables.
+Equations (\ref{eqn:p})-(\ref{eqn:r}) and (\ref{eqn:u})-(\ref{eqn:w}) provide the state update equations which are numerically integrated in order to simulate the time evolution of the state variables.
 The interested reader can find the implementation of the model presented in this section in the file \texttt{pelicanODE.m}.  
 
 %% noise?
@@ -413,48 +446,53 @@ The interested reader can find the implementation of the model presented in this
 \section{Sensors}
 
 On board a real quadrotor platform a series of sensors allows to produce an estimate of the variables that are needed to control and stabilize the helicopter.
-A standard suite of sensors (e.g. the ones present on a \cite{asctec2011pelican}) contains a try-axial accelerometer, a set of three gyros, a set of three magnetometers, a pressure sensor and a GPS receiver.
+A standard suite of sensors (e.g. the ones present on a Pelican) contains a try-axial accelerometer, a set of three gyros, a set of three magnetometers, a pressure sensor and a GPS receiver.
+
 Roughly speaking gyros, accelerometers and magnetometers are combined to estimate the platform attitude (i.e. the angles $\tilde{\phi},\tilde{\theta},\tilde{\psi}$), the GPS is used to determine the position coordinates $\tilde{p}_x$ and $\tilde{p}_y$ and their rate of change $\dot{p}_x$ and $\dot{p}_y$, and the pressure sensor (combined with the accelerometer) provides altitude ($h$) 
 and its rate of change ($\dot{h}$).
 
 
 \subsection{Barometric Altimeter}
 
-Pressure base altimeter constitutes a light weight and economical way of recovering the altitude of a flying machine. Their precision can reach the order of decimeter making them very valuable especially whe coupled with other sensors. The main drawback of an altimeter based on air pressure is that the air pressure tends to change slowly with time due to methereological effects.  Its noise process is therefore time correlated. Obviously the measured pressure is also affected by the local air turbulence (from the propellers).
+Pressure base altimeter constitutes a light weight and economical way of recovering the altitude of a flying machine. Their precision can reach the order of decimeters making them more accurate than a GPS receiver especially when coupled with other sensors. 
+
+The main drawback of an altimeter based on air pressure is that the air pressure tends to change slowly with time due to meteorological effects.  Its noise process is therefore time correlated. Obviously the measured pressure is also affected by the local air turbulence (from the propellers).
 Following \cite{stanley1991akalman} and \cite{seo2004position} we model the altimeter measurements as follows:
 \begin{eqnarray}
       h&=&-p_z+b_h+\nu_{h_m}  \\
        \dot{b}&=&-\frac{1}{\tau_b}b+\nu_{h_c}
 \end{eqnarray}
-where $h$ is output of a barometer altimeter, $-p_z$ is true altitude, $b$ is the bias noise which is modelled as first order Gauss-Markov process driven by the white Gaussian noise $\nu_{h_c}$ and $\nu_{h_m}$ is white Gaussian measurement noise. $\tau_b$ is the time constant of the Gauss-Markov process and allows for adjusting the time scale over which the correlation is expressed.
-It is worth noting that $-p_z$ is due to our choice of following the aereonautic convention and adopting a NED body frame.
+where $h$ is the of the altimeter, $-p_z$ is true altitude, $b$ is the bias noise which is modelled as first order Gauss-Markov process driven by the white Gaussian noise $\nu_{h_c}$ and $\nu_{h_m}$ is white Gaussian measurement noise. $\tau_b$ is the time constant of the Gauss-Markov process and allows for adjusting the time scale over which the correlation is expressed.
+It is worth noting that $-p_z$ is due to our choice of following the aeronautic convention and adopting a NED body frame.
+
 The interested reader can find the implementation of the model presented in this section in the file \texttt{AltimeterGM.m}.  
 
 
 \subsection{Orientation Estimator}
 
-The orientation of the flying machine is generally estimated on-board using primarily the input from gyros and accelerometers and magnetometers, but in some cases might also include  other sensors (i.e. the GPS and barometer). Since all these sensors are combined using an estimator (e.g. a Kalman filter), designing a noise model for the orientation measurement that correctly takes into accuont the estimation effects in the noise is all but trivial. In our case matters are further complicated by the fact that the manufacturer does not make available any clear information about the attitude estimator.
+The orientation of the flying machine is generally estimated on-board using primarily the input from gyros accelerometers and magnetometers, but in some cases might also include  other sensors (i.e. the GPS and barometer). Since all these sensors are combined using an estimator (e.g. a Kalman filter), designing a noise model for the orientation measurement that correctly takes into account the estimation effects is all but trivial. In our case matters are further complicated by the fact that the manufacturer does not make available any clear information about the attitude estimator.
  
 Pragmatically we decide to go for a much simpler noise model that attempts to capture the main characteristic of the errors in the estimated attitude. 
 Since the primary component of the estimated attitude is the integration of the gyros readings, the orientation noise tends to be correlated due to uncorrected gyro bias errors. 
-Additional correlation might be introduced also during high acceleration maneuvers due to the simplification often adopted in the mechanization equation of the estimator.
+Additional correlation might be introduced also during high acceleration manoeuvres due to the simplification often adopted in the mechanization equation of the estimator process model.
 Errors are mitigated by the use of acceleration and magnetometer measurements which allow to estimate and compensate for such biases.
 
-To replicate such behaviour of reverting back to zero, we choose as noise model for each of the three estimated angles a zero mean Ornstein–Uhlenbeck process. This allow to replicate the desired time correlation of the attitude estimates while still being a simple model. The resulting noise model is the following:
+To replicate such behaviour of reverting back to zero, we choose to model the noise on each each of the three estimated angles a zero mean Ornstein–Uhlenbeck process. This allow to replicate the desired time correlation of the attitude estimates while still being a simple model. The resulting noise model is the following:
 \begin{eqnarray}
-  \dot{b}_\phi &= &  - \lambda_\phi b_\phi + \nu_{b_\phi}\\
-  \dot{b}_\theta &= &  - \lambda_\theta b_\theta + \nu_{b_\theta}\\
-  \dot{b}_\psi &= &  - \lambda_\psi b_\psi + \nu_{b_\psi}\\
   \tilde{\phi} &=& \phi + b_\phi\\
   \tilde{\theta} &=& \theta + b_\theta\\
-  \tilde{\psi} &=& \psi + b_\psi
+  \tilde{\psi} &=& \psi + b_\psi \\
+  \dot{b}_\phi &= &  - \lambda_\phi b_\phi + \nu_{b_\phi}\\
+  \dot{b}_\theta &= &  - \lambda_\theta b_\theta + \nu_{b_\theta}\\
+  \dot{b}_\psi &= &  - \lambda_\psi b_\psi + \nu_{b_\psi}
 \end{eqnarray}
 where $\lambda_\phi,\lambda_\theta,\lambda_\psi$ are mean reversion speeds and  $\nu_{b_\phi},\nu_{b_\theta},\nu_{b_\psi}$ are white Gaussian noises.
+
 The interested reader can find the implementation of the model presented in this section in the file \texttt{OrientationEstimatorGM.m}. 
 
 \subsection{Accelerometer and Gyroscope}
 
-Several authors have studied the types of errors that commonly affects accelerometers and gyros (\cite{han2011quantization}\cite{hou2003inertial}) and very accurate, albeit complex representation of such noise models have been standardised \cite{ieee2006standard}. However since in our platform the low level stabilization is performed on board and is not of interest for the type of activity considered in CompLACS, such type of models are not justified by our requirements. 
+Several authors have studied the types of errors that commonly affects accelerometers and gyros (\cite{han2011quantization}\cite{hou2003inertial}) and very accurate, albeit complex, representation of such noise models have been standardised \cite{ieee2006standard}. However since in our platform the low level stabilization is performed on board and is not of interest for the type of activity considered in CompLACS, such type of models are not justified by our requirements. 
 At this stage we preferred to go for a simpler model that considers only the main white noise component of the standardized model. The modular nature of the simulator will allow to easily upgrade to a more complex noise model if this is deemed necessary.
 
 For both accelerometer and gyros reading (respectively $[\tilde{a}_x;\tilde{a}_y;\tilde{a}_z]$ and $[\tilde{p};\tilde{q};\tilde{r}]$) the noise is considered additive:
@@ -472,59 +510,64 @@ where  $\nu_p,\nu_q,\nu_r,\nu_x,\nu_y,\nu_z$ are white Gaussian processes.
 
 The interested reader can find the implementation of the model presented in this section in the file \texttt{AccelerometerG.m} and \texttt{GyroscopeG.m}.  
 
-\subsection{GPS model}
+\subsection{GPS Model}
 
 GPS is complex and errors arise from a wide variety of sources with differing characteristics. The quality of the computed position depends on errors affecting the satellite vehicles (sv from now on), the propagation of the GPS signal through the atmosphere, the number and configuration of svs used to compute a solution and the receiver itself.
 
-If instead concentrating on a noise model at the level of computed receiver position, we work at the level of the single pseudorange measurement provided by each of the svs our task is greately simplified since accurate models of the typical psuedorange erros are available (\cite{rankin1994anerror}, \cite{carlson2010mapping}). Given souch measurements we will need to compute the receiver position taking into acount its error characteristics.
+If instead of concentrating on a noise model at the level of computed receiver position, we work at the level of the single pseudo-range measurement provided by each of the svs our task is greatly simplified since accurate models of the typical pseudo-range errors are available (\cite{rankin1994anerror}, \cite{carlson2010mapping}). Given such measurements we will then need to compute the position solution taking into account the receiver characteristics.
 
-From an implementation perspective we split the GPS model into an \texttt{GPSSpaceSegmentGM} (this is an \texttt{environmentObject}) which models the pseudorange noise affecting the svs, and a \texttt{GPSreceiverG} object for each of the quadrotors. This also implies that the noise affecting the position measurement of quadrotor using the same satellites will be to a certain extent correlated, which is what happens in practice when quadrotor are flying in the same geographical location.
+From an implementation perspective we split the GPS model into an \texttt{GPSSpaceSegmentGM} (this is an \texttt{environmentObject}) which models the pseudo-range noise affecting the svs, and a \texttt{GPSreceiverG} object that models the receiver present on each of the quadrotors. Having a single \texttt{GPSSpaceSegmentGM}
+implies that the noise affecting the position measurement of quadrotors using the same satellites will be to a certain extent correlated. This is exactly what happens in practice when quadrotor are flying in the same geographical location and is one of the aspects that we necessarily want to capture with our model.
   
-Following \cite{rankin1994anerror} the pseudorange measurements ($\rho$) can be written as:  
+Following \cite{rankin1994anerror} the pseudo-range measurements ($\rho$) can be written as:  
 \begin{equation}
 \rho=r+\delta_{eph}+\delta_{iono}+\delta_{tropo}-\delta_{clock}+\delta_{mp}+\nu_{rcvr},
 \end{equation}
 where:
 \begin{itemize}
-\item $r$, true range,
-\item $\delta_{eph}$, satellite ephemeris error,
-\item $\delta_{iono}$, ionosphere error,
-\item $\delta_{tropo}$, troposphere error,
-\item $\delta_{clock}$, receiver clock error,
-\item $\delta_{mp}$, multipath error,
-\item $\nu_{rcvr}$, receiver measurement noise.
+\item $r$, is the true range,
+\item $\delta_{eph}$, is the satellite ephemeris error,
+\item $\delta_{iono}$, is the ionosphere error,
+\item $\delta_{tropo}$, is the troposphere error,
+\item $\delta_{clock}$, is the receiver clock error,
+\item $\delta_{mp}$, is the multipath error,
+\item $\nu_{rcvr}$, is the receiver measurement noise.
 \end{itemize}
-The true range $r$ is simply the distance between the current (simulated) position of the receiver\footnote{For simplicity we assume the position of the receiver concides with th origing of the body frame of reference.} and the position of the satellite in question. The position the satellite is obtained from a log of actual satellite positions (see parameter \texttt{orbitfile} in listing \ref{lst:init}), therefore as the simulation time progresses the position of the satellites changes as it would in a real situation.
-The ephemeris, ionosphere, troposphere and multipath errors are modeled as Gauss-Markov processes. These processes have an
-exponential autocorrelation function with variance, $\sigma^2_s$ and time constant $\beta$; the receiver measurement noise term, is the accuracy which the code or can be tracked and is modeled as Gaussian white noise (with variance $\sigma^2_r$).
-A single pseudorange measurement takes the form:
+The true range $r$ is simply the distance between the current (simulated) position of the receiver\footnote{For simplicity we assume the position of the receiver coincides with the origin of the body frame of reference.} and the position of the satellite in question. The position the satellite is obtained from a log of actual satellite positions (see parameter \texttt{orbitfile} in listing \ref{lst:init}), therefore as the simulation time progresses the position of the satellites changes as it would in a real scenario.
+
+As suggested in \cite{rankin1994anerror} we model the ephemeris, ionosphere, troposphere and multipath errors as Gauss-Markov processes. These processes have an exponential autocorrelation function with variance, $\sigma^2_s$ and time constant $\beta$; the receiver measurement noise term, is the accuracy with which the code can be tracked and is modelled as Gaussian white noise (with variance $\sigma^2_r$).
+A single pseudo-range measurement takes the form:
 \begin{eqnarray}
 \rho & = & b_{pr} + \sigma_r\nu_{r}\\
 \dot{b}_{pr} & = & (e^{-\beta T}-1) b_{pr} + \sigma_s\nu_{s},
 \end{eqnarray}
-$\nu_r$ and $\nu_s$ are unit variance Gaussian noise source, $T$ is the time discretization interval.  
+wher $\nu_r$ and $\nu_s$ are unit variance Gaussian noise source and $T$ is the time discretization interval.  
 
-The missing part of the model is the simulation of the receiver, which is constitude by two main steps, defining which satellites are visible (i.e. which measurement can be used) and computing the actual solution.
+The missing part of the model is the simulation of the receiver, which is formed by two main steps, defining which satellites are visible (i.e. which measurement can be used) and computing the actual solution.
 
-The number of satellites visible by a receiver depends on the location, the time of the day, the antenna and the landscape surrounding the receiver (i.e. the obstacles). Since is usually difficult to tease apart the contribution of such effect we preferred to use data from a representative flight test to establish what satellites are usually visible.
-At run time we initialize each receiver with a potentially slightly different set of svs\footnote{The task parameter \texttt{svs}  see listing \ref{lst:init} defines the ids of the satellites that are potentially visible, a random number of these defined by the platform parameter \texttt{minmaxnumsv} will be chosen and associated with the receiver.}
+The number of satellites visible by a receiver depends on the location, the time of the day, the antenna and the landscape surrounding the receiver (i.e. the obstacles). Since it is usually difficult to tease apart the contribution of such effects we prefer to use data from a representative flight test to establish what satellites are visible.
+At run time we initialize each receiver with a potentially slightly different set of svs\footnote{The task parameter \texttt{svs} (see listing \ref{lst:init}) defines the ids of the satellites that are potentially visible, a random number of these defined by the platform parameter \texttt{minmaxnumsv} will be chosen and associated with the receiver.}
 
-Given the set of svs associated to a receiver, for each of which we have a pseudorange measurement, simulating a new GPS position measurement is simply a matter of solving a least squares problem. 
+Given the set of svs associated to a receiver, for each of which we have a pseudo-range measurement, simulating a new GPS position measurement is simply a matter of solving a least squares problem. 
 
 The interested reader can find the implementation of the model presented in this section in the files \texttt{GPSSpaceSegmentGM.m} and \texttt{GPSreceiver.m}.  
 
-\subsection{Wind model}
+\subsection{Wind Model}
 
-The effects of wind and aerodynamic turbulence on a flying machine are notoriously difficult to model and when accurate techniques based on the physical processes governing air flow are available (e.g. CFD) the level of computation necessary is not compatible with a multi vehicle simulator that aims to be faster than real time.   
+The effects of wind and aerodynamic turbulence on a flying machine are notoriously difficult to model and even when accurate techniques based on the physical processes governing air flow are available (e.g. CFD) the level of computation tends to be prohibitive.   
+
 An alternative approach is to use a model that does have knowledge of the physics governing turbulence but that reproduces only its statistical properties.
-According to references \cite{milf8785c} and \cite{gage2003creating} for low altitudes\footnote{We report here the form of the model valid for alitudes lower than $1000ft$ ($304.8m$).} turbulence can be modelled as a stochastic process defined by velocity spectra. The turbulence field is assumed to be ``frozen'' in time and space (i.e. time variations are statistically equivalent to distance variations in traversing the turbulence field). This assumption implies that the turbulence-induced responses of the aircraft is result only of the motion of the aircraft relative to the turbulent field.
-Under the ``frozen field'' assumption, the turbulence can be modelled as a one-dimensional field that involves just the three orthogonal velocity components taken at a single point (namely the aircraft center of gravity). For each component the PSD of the stocastic process is defined and the turbulence can be generated using the corresponding time formulation.
-The von Karman and Dryden spectrum are two of the most standard form of specifying the PSD of the turbulence, we prefer the second (see equations \ref{eqn:dryden}) since, while more approximated, it is easily realized computationally.
+According to references \cite{milf8785c} and \cite{gage2003creating} for low altitudes\footnote{We report here the form of the model valid for altitudes lower than $1000ft$ ($304.8m$).} turbulence can be modelled as a stochastic process defined by its velocity spectra. The turbulence field is assumed to be ``frozen'' in time and space (i.e. time variations are statistically equivalent to distance variations in traversing the turbulence field). This assumption implies that the turbulence-induced responses of the aircraft is result only of the motion of the aircraft relative to the turbulent field.
+Under the ``frozen field'' assumption, the turbulence can be modelled as a one-dimensional field that involves just the three orthogonal velocity components taken at a single point (namely the aircraft centre of gravity). 
+
+For each component the PSD of the stochastic process is defined and the turbulence can be generated using the corresponding time formulation.
+The von Karman and Dryden spectrum are two of the most standard form of specifying the PSD of the turbulence, we prefer the second (see equations \ref{eqn:drydenu}) since, while more approximated, it is more easily implemented computationally.
+
 The Dryden spectrum takes the form:
-\begin{eqnarray}\label{eqn:dryden}
-\phi_{u_g}(\Omega) & = & \sigma^2_u \frac{2L_u}{\pi} \frac{1}{1+(L_u\Omega)^2}\\ 
+\begin{eqnarray}
+\phi_{u_g}(\Omega) & = & \sigma^2_u \frac{2L_u}{\pi} \frac{1}{1+(L_u\Omega)^2}\label{eqn:drydenu}\\ 
 \phi_{v_g}(\Omega) & = & \sigma^2_v \frac{2L_v}{\pi} \frac{1+12(L_v\Omega)^2}{\left[1+4(L_v\Omega)^2\right]^2}\\ 
-\phi_{w_g}(\Omega) & = & \sigma^2_w \frac{2L_w}{\pi} \frac{1+12(L_w\Omega)^2}{\left[1+4(L_w\Omega)^2\right]^2}
+\phi_{w_g}(\Omega) & = & \sigma^2_w \frac{2L_w}{\pi} \frac{1+12(L_w\Omega)^2}{\left[1+4(L_w\Omega)^2\right]^2}\label{eqn:drydenw}
 \end{eqnarray}
 where $L_u,L_v$ and $L_w$ are the turbulence scale length and $\sigma_u,\sigma_v$ and $\sigma_w$ are their intensities.
 Length scales and intensities depends on altitude and mean wind magnitude $u_{20}$ as follows:
@@ -533,15 +576,15 @@ L_u &=& 2L_v = 2L_w = \frac{h}{(0.177+0.000823 h)^{1.2}}\label{eqn:lu}\\
 \sigma_w&=&0.1u_{20} \\
 \frac{\sigma_u}{\sigma_w}&=&\frac{\sigma_u}{\sigma_w}=\frac{1}{(0.177+0.000823 h)^{0.4}}\label{eqn:sigmau}.
 \end{eqnarray}
-Rougly speaking equation (\ref{eqn:sigmau}) says that the RMS intensity of the turbulence increases at lower altitude, while equation (\ref{eqn:lu}) express that to lower altitudes are associated shorther length scales.
+Roughly speaking equation (\ref{eqn:sigmau}) says that the RMS intensity of the turbulence increases at lower altitude, while equation (\ref{eqn:lu}) express that to lower altitudes are associated shorter length scales.
 
-Following \cite{milf8785c} in the time domain (\ref{eqn:dryden}) can be implemented as discrete filters  
+Following \cite{milf8785c} in the time domain (\ref{eqn:drydenu})-(\ref{eqn:drydenw}) can be implemented as discrete filters:  
 \begin{eqnarray}
 u_g=(1-a_uT)u_g+\sqrt{2a_uT}\sigma_u\nu_{n_u}\\
 v_g=(1-a_vT)v_g+\sqrt{2a_vT}\sigma_v\nu_{n_v}\\
 w_g=(1-a_wT)w_g+\sqrt{2a_wT}\sigma_w\nu_{n_w}
 \end{eqnarray}
-where $\nu_{n_u},\nu_{n_v}$ and $\nu_{n_w}$ are unit variance Gaussian noise source, $T$ is the time discretization interval,  
+where $\nu_{n_u},\nu_{n_v}$ and $\nu_{n_w}$ are unit variance Gaussian noise source and $T$ is the time discretization interval,  
 \begin{eqnarray}
 a_u=\frac{V}{L_u}\\ 
 a_v=\frac{V}{L_v}\\ 
@@ -550,8 +593,11 @@ a_w=\frac{V}{L_w}
 and $V$ is the magnitude of the platform airspeed.
 
 The turbulence model that we just presented provides a way of simulating time varying turbulences at the level of a single quadrotor, however it is often the case that a predominant ``mean'' wind field is also present in the area and this affects all the platforms. 
-To model this to the turbulence model we also add a constant velocity vector\footnote{Magnitude at 6m from the ground and direction can be defined in the task configuration parameters.} which is identical for all the quadrotors. It is well known (\cite{milf8785c}) that even in the presence of a constant wind the airspeed depends logaritmically on the distance from the ground, an effect that is commonly called wind shear.
-Following standard practise we define the magnitude of the mean wind field by specifying its intensity at $20ft$ ($6.096m$) from the ground, the magnitude $u_h$ at altitude $h$ can be obtained from :
+
+To model this in addition to the turbulence model we also have a constant velocity vector\footnote{Magnitude at 6m from the ground and direction can be defined in the task configuration parameters.} which is identical for all the quadrotors. 
+
+It is well known (\cite{milf8785c}) that even in the presence of a constant wind the airspeed depends logarithmically on the distance from the ground, an effect that is commonly called wind shear.
+Following standard practise we define the magnitude of the mean wind field by specifying its intensity at $20ft$ ($6.096m$) from the ground, the magnitude $u_h$ at altitude $h$ can then be obtained from :
 \begin{equation}
 u_h = u_{20} \frac{\ln(h/z_0)}{\ln(20/z_0)}
 \end{equation}

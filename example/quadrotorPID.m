@@ -59,9 +59,9 @@ pid.ez = ez;
 pid.iz = pid.iz + ez;
 
 
-U(1,1) = desTheta;
-U(2,1) = desPhi;
-U(3,1) = th;
+U(1,1) = 0;%desTheta;
+U(2,1) = 0;%desPhi;
+U(3,1) = 0.6;%th;
 U(4,1) = 0;
 U(5,1) = 10;
 end
