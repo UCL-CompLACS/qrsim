@@ -53,13 +53,13 @@ c.sensors.ahars.DT = params.DT;
 c.sensors.ahars.accelerometer.on = 1;  % if off the accelerometer returns the noiseless acceleration
 c.sensors.ahars.accelerometer.type = 'AccelerometerG';
 c.sensors.ahars.accelerometer.dt = 0.02;
-c.sensors.ahars.accelerometer.SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
+c.sensors.ahars.accelerometer.SIGMA = [0.0025;0.0025;0.0025]; % noise standard deviation
 c.sensors.ahars.accelerometer.DT = params.DT;
 
 c.sensors.ahars.gyroscope.on = 1; % if off the gyroscope returns the noiseless rotational velocity
 c.sensors.ahars.gyroscope.type = 'GyroscopeG';
 c.sensors.ahars.gyroscope.dt = 0.02;
-c.sensors.ahars.gyroscope.SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
+c.sensors.ahars.gyroscope.SIGMA = [0.0002;0.0002;0.0002]; % noise standard deviation
 c.sensors.ahars.gyroscope.DT = params.DT;
 
 c.sensors.ahars.orientationEstimator.on = 1; % if off the estimator returns the noiseless orientation
@@ -72,12 +72,12 @@ c.sensors.ahars.orientationEstimator.DT = params.DT;
 c.sensors.ahars.altimeter.on = 1; % if off the altimeter returns the noiseless altitude
 c.sensors.ahars.altimeter.type = 'AltimeterGM';
 c.sensors.ahars.altimeter.dt = 0.02;
-c.sensors.ahars.altimeter.BETA = 1/3000;      % noise time constant
+c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 c.sensors.ahars.altimeter.DT = params.DT;
 
 % Aerodynamic Turbulence
-c.aerodynamicturbulence.on = 1;
+c.aerodynamicturbulence.on = 0;
 c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
 c.aerodynamicturbulence.dt = c.dt;
 c.aerodynamicturbulence.DT = params.DT;

@@ -5,21 +5,25 @@ classdef Pelican<Steppable & Platform
     %
     % Pelican Properties:
     % X   - state = [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
-    %       px,py,pz           [m]     position (NED coordinates)
-    %       phi,theta,psi      [rad]   attitude in Euler angles right-hand ZYX convention
-    %       u,v,w              [m/s]   velocity in body coordinates
-    %       p,q,r              [rad/s] rotational velocity  in body coordinates
-    %       thrust             [N]     rotors thrust
+    %       px,py,pz         [m]     position (NED coordinates)
+    %       phi,theta,psi    [rad]   attitude in Euler angles right-hand ZYX convention
+    %       u,v,w            [m/s]   velocity in body coordinates
+    %       p,q,r            [rad/s] rotational velocity  in body coordinates
+    %       thrust           [N]     rotors thrust
     %
-    % eX  - estimated state = [\~px;\~py;\~pz;\~phi;\~theta;\~psi;0;0;0;\~p;\~q;\~r;0;\~ax;\~ay;\~az;\~alt]
-    %       \~px,\~py,\~pz     [m]     position estimated by GPS (NED coordinates)
-    %       \~phi,\~theta,\~psi[rad]   estimated attitude in Euler angles right-hand ZYX convention
-    %       0,0,0                      placeholder (the uav does not provide velocity estimation)
-    %       \~p,\~q,\~r        [rad/s] measured rotational velocity in body coordinates
-    %       0                          placeholder (the uav does not provide thrust estimation)
-    %       \~ax,\~ay,\~az     [m/s^2] measured acceleration in body coordinates
-    %       alt                [m]     estimated altitude from altimeter NED, POSITIVE UP! 
-    % 
+    % eX  - estimated state = [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;
+    %                          ~h;~pxdot;~pydot;~hdot]
+    %       ~px,~py,~pz      [m]     position estimated by GPS (NED coordinates)
+    %       ~phi,~theta,~psi [rad]   estimated attitude in Euler angles right-hand ZYX convention
+    %       0,0,0                    placeholder (the uav does not provide velocity estimation)
+    %       ~p,~q,~r         [rad/s] measured rotational velocity in body coordinates
+    %       0                        placeholder (the uav does not provide thrust estimation)
+    %       ~ax,~ay,~az      [m/s^2] measured acceleration in body coordinates
+    %       ~h               [m]     estimated altitude from altimeter NED, POSITIVE UP! 
+    %       ~pxdot           [m/s]   x velocity from GPS (NED coordinates)
+    %       ~pydot           [m/s]   y velocity from GPS (NED coordinates)
+    %       ~hdot            [m/s]   altitude rate from altimeter (NED coordinates)
+    %   
     % U   - controls  = [pt,rl,th,ya,bat]
     %       pt  [-0.89..0.89]  [rad]   commanded pitch
     %       rl  [-0.89..0.89]  [rad]   commanded roll
@@ -57,8 +61,8 @@ classdef Pelican<Steppable & Platform
     end
     
     properties
-        X       % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
-        eX      % estimated state  [\~px;\~py;\~pz;\~phi;\~theta;\~psi;0;0;0;\~p;\~q;\~r;0;\~ax;\~ay;\~az;\~alt]
+        X   % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
+        eX  % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
     end
     
     methods (Sealed)
@@ -85,7 +89,7 @@ classdef Pelican<Steppable & Platform
             obj=obj@Steppable(objparams);
             
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
-            obj.eX = [objparams.X(1:6); zeros(11,1)];
+            obj.eX = [objparams.X(1:6); zeros(14,1)];
             obj.valid = 1;
             
             obj.stateLimits = objparams.stateLimits;
@@ -133,7 +137,7 @@ classdef Pelican<Steppable & Platform
             % ya  [-2048..2048] 1=2.17109414e-3 rad/s = 0.124394531 deg/s commanded yaw velocity
             % bat [9..12] Volts battery voltage
             %
-            if (size(U(:),1)~=5 || sum(U(:)>obj.CONTROL_LIMITS(:,1))~=5) || (sum(U(:)<obj.CONTROL_LIMITS(:,2))~=5),
+            if (size(U(:),1)~=5 || sum(U(:)>=obj.CONTROL_LIMITS(:,1))~=5) || (sum(U(:)<=obj.CONTROL_LIMITS(:,2))~=5),
                 error('Pelican:input',['wrong size of control inputs or values not within limits \n'...
                     '\tU = [pt;rl;th;ya;bat] \n\n'...
                     '\tpt  [-0.89..0.89] rad commanded pitch \n'...
@@ -219,15 +223,15 @@ classdef Pelican<Steppable & Platform
                     estimatedPosNED = obj.gpsreceiver.getMeasurement(obj.X);
                     
                     %return values
-                    obj.eX = [estimatedPosNED;estimatedAHA(1:3);zeros(3,1);...
-                        estimatedAHA(4:6);0;estimatedAHA(7:end)];
+                    obj.eX = [estimatedPosNED(1:3);estimatedAHA(1:3);zeros(3,1);...
+                        estimatedAHA(4:6);0;estimatedAHA(7:10);estimatedPosNED(4:5);estimatedAHA(11)];
                     
                     % graphics
                     obj.graphics.update(obj.X);
                     
                     obj.valid = 1;
                 else
-                    obj.eX = nan(17,1);
+                    obj.eX = nan(20,1);
                     obj.valid=0;
                 end
                 
