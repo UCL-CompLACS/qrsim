@@ -14,7 +14,7 @@ classdef GPSReceiverG < GPSReceiver
     %    GPSReceiverG(objparams)    - constructor
     %    getMeasurement(X)          - computes and returns a GPS estimate given the input
     %                                 noise free NED position
-    %    update(X)                 - generates a new noise sample
+    %    update(X)                  - generates a new noise sample
     %
     properties (Constant)
         v_light = 299792458;        % speed of light (Constant)
@@ -22,16 +22,17 @@ classdef GPSReceiverG < GPSReceiver
     
     properties (Access=private)
         svidx                       % array with the ids of the visible satellite vehicles
-        nsv                         % number of satellite visible by this receiver
+        nsv                         % number of satellite visible by this receiver  
+        pastEstimatedPosNED = zeros(3,1); % past North East Down coordinate returned by the receiver
         estimatedPosNED = zeros(3,1); % North East Down coordinate returned by the receiver
         originUTMcoords             % coordinates of the local reference frame
         R_SIGMA                     % receiver noise standard deviation
         receivernoise = zeros(3,1); % current receiver noise sample
-        pastPositions =0;           % array of past positions needed to simulate delay
+        pastPositions = 0;          % array of past positions needed to simulate delay
         delay;                      % time delay
     end
     
-    methods        
+    methods
         function obj=GPSReceiverG(objparams)
             % constructs the object.
             % Selects the satellite vehicles visible to this receiver among the ones in
@@ -74,22 +75,36 @@ classdef GPSReceiverG < GPSReceiver
             %
             % Example:
             %
-            %   estimatedPosNED = obj.getMeasurement(X)
-            %                     X - platform noise free state vector [px,py,pz,phi,theta,...
-            %                         psi,u,v,w,p,q,r,thrust]
-            %                     estimatedPosNED - 3 by 1 vector [m] estimated position
+            %   [~px;~py;~pz;~pxdot;~pydot] = obj.getMeasurement(X)
+            %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+            %       ~px,~py,~pz      [m]     position estimated by GPS (NED coordinates)    
+            %       ~pxdot           [m/s]   x velocity from GPS (NED coordinates)
+            %       ~pydot           [m/s]   y velocity from GPS (NED coordinates)
             %
             % Note: if active == 0, no noise is added, in other words:
             % estimatedPosNED = X(1:3)
             %
-            fprintf('get measurement GPSReceiverG active=%d\n',obj.active);
+            %fprintf('get measurement GPSReceiverG active=%d\n',obj.active);
             if(obj.active == 1)
                 
-                estimatedPosNED = obj.estimatedPosNED;
+                estimatedPosNED = [obj.estimatedPosNED;...
+                              (obj.estimatedPosNED(1:2)-obj.pastEstimatedPosNED(1:2))/obj.dt];
             else
-                estimatedPosNED = X(1:3);
-            end            
-        end        
+                % handy values
+                sph = sin(X(4)); cph = cos(X(4));
+                sth = sin(X(5)); cth = cos(X(5));
+                sps = sin(X(6)); cps = cos(X(6));
+                
+                dcm = [                (cth * cps),                   (cth * sps),     (-sth);
+                    (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps),(sph * cth);
+                     (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps),(cph * cth)];
+                
+                % velocity in global frame
+                gvel = (dcm')*X(7:9);
+                
+                estimatedPosNED = [X(1:3);gvel(1:2)];
+            end
+        end
     end
     
     methods (Access=protected)
@@ -106,20 +121,20 @@ classdef GPSReceiverG < GPSReceiver
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-
+            
             global state;
             obj.receivernoise = obj.R_SIGMA*randn(state.rStream,obj.nsv,1);
             
-            if(~exist('state.environment.gpsspacesegment_.svspos','var'))
+            if(~isfield(state.environment.gpsspacesegment_,'svspos'))
                 error('In order to run a GPSReceiver needs the corresponding space segment!');
-            end            
-                      
-            if(obj.pastPositions == 0)
-               obj.pastPositions = repmat(X(1:3),1,obj.delay); 
-            end    
+            end
             
-            obj.pastPositions = [obj.pastPositions;X(1:3)];
-            pastPos = obj.pastPositions(:,1); 
+            if(obj.pastPositions == 0)
+                obj.pastPositions = repmat(X(1:3),1,obj.delay);
+            end
+            
+            obj.pastPositions = [obj.pastPositions,X(1:3)];
+            pastPos = obj.pastPositions(:,1);
             obj.pastPositions = obj.pastPositions(:,2:end);
             
             truePosECEF = ned2ecef(pastPos, obj.originUTMcoords);
@@ -146,9 +161,16 @@ classdef GPSReceiverG < GPSReceiver
                 p = p+x;
             end % iter
             
-            obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
+            if(sum(obj.pastEstimatedPosNED)~=0)
+                obj.pastEstimatedPosNED = obj.estimatedPosNED;
+                obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
+            else
+                % avoids silly vel;ocities at startup
+                obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords); 
+                obj.pastEstimatedPosNED = obj.estimatedPosNED;
+            end
         end
-    end    
+    end
 end
 
 % [1] J. Rankin, "An error model for sensor simulation GPS and differential GPS," IEEE
