@@ -40,7 +40,7 @@ classdef AreaGraphics<handle
             
             % a reasonable starting view
             view([-30,25]);
-            camzoom(1.4);
+            camzoom(1.8);
             set(gca,'CameraViewAngleMode','Manual');
             
             % set up a correct size for the plot
