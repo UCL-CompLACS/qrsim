@@ -42,12 +42,12 @@ classdef GyroscopeG<Gyroscope
             % Example:
             %   ma = obj.getMeasurement(X)
             %        X - platform noise free state vector [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
-            %        ma - 3 by 1 "noisy" angular velocity in body frame [\~p;\~q;\~r] rad/s
+            %        ma - 3 by 1 "noisy" angular velocity in body frame [~p;~q;~r] rad/s
             %
             % Note: if active == 0, no noise is added, in other words:
             % ma = X(10:12)
             % 
-            fprintf('get measurement GyroscopeG active=%d\n',obj.active);
+            %fprintf('get measurement GyroscopeG active=%d\n',obj.active);
             if(obj.active==1)  %noisy
                 measurementAngularVelocity = obj.measurementAngularVelocity;
             else               %noiseless
