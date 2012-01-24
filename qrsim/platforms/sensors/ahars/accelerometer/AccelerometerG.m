@@ -41,12 +41,12 @@ classdef AccelerometerG<Accelerometer
             % Example:
             %   ma = obj.getMeasurement(a)
             %       ma - 3 by 1 vector of noise free acceleration in body frame [ax;ay;az] m/s^2
-            %       a  - 3 by 1 vector of "noisy" acceleration in body frame [\~ax;\~ay;\~az] m/s^2
+            %       a  - 3 by 1 vector of "noisy" acceleration in body frame [~ax;~ay;~az] m/s^2
             %
             % Note: if active == 0, no noise is added, in other words:
             % ma = a
             % 
-            fprintf('get measurement AccelerometerG active=%d\n',obj.active);
+            %fprintf('get measurement AccelerometerG active=%d\n',obj.active);
             if(obj.active==1)    %noisy
                 measurementAcceleration = obj.measurementAcceleration;
             else                 %noiseless
