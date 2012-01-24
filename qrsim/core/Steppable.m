@@ -16,7 +16,7 @@ classdef Steppable<handle
     %                        *hyperlink broken because the method is abstract
     %
     properties (Constant)
-        TOL=1e-10;    % tolerance used when comparing float times (Constant)
+        TOL=1e-6;    % tolerance used when comparing float times (Constant)
     end
     
     properties (Access=protected)
@@ -66,17 +66,17 @@ classdef Steppable<handle
             %       args - passed directly to update, see the update method 
             %
             global state;
-            fprintf('%s ',class(obj))
+%            fprintf('%s ',class(obj))
             if(obj.active==1)
                 r = rem(state.t,obj.dt);
                 if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)) && (obj.dt~=0))
-                    fprintf(' stepping\n')
+%                    fprintf(' stepping\n')
                     obj=obj.update(args);
                 else
-                    fprintf(' not a timestep\n') 
+%                    fprintf(' not a timestep\n') 
                 end
             else
-               fprintf(' not active\n') 
+%                fprintf(' not active\n') 
             end
         end
     end
