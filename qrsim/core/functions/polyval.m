@@ -1,4 +1,4 @@
-function [y, delta] = polyval(p,x,S,mu)
+function [y] = polyval(p,x,S,mu)
 %POLYVAL Evaluate polynomial.
 %   Y = POLYVAL(P,X) returns the value of a polynomial P evaluated at X. P
 %   is a vector of length N+1 whose elements are the coefficients of the
@@ -46,19 +46,21 @@ function [y, delta] = polyval(p,x,S,mu)
 %   approaches approximately 68%.
 
 % Check input is a vector
-if ~(isvector(p) || isempty(p))
+if ~((sum(size(p)>1)==1) || isempty(p))
     error('MATLAB:polyval:InvalidP',...
             'P must be a vector.');
 end
 
-nc = length(p);
-if isscalar(x) && (nargin < 3) && nc>0 && isfinite(x) && all(isfinite(p(:)))
-    % Make it scream for scalar x.  Polynomial evaluation can be
-    % implemented as a recursive digital filter.
-    y = filter(1,[1 -x],p);
-    y = y(nc);
-    return
+if (nargin ~= 4)
+    error('MATLAB:polyval:Four input arguments required.');
 end
+
+if (nargout ~= 1)
+    error('MATLAB:polyval:One output argument required.');
+end
+
+
+nc = length(p);
 
 siz_x = size(x);
 if nargin == 4
@@ -72,47 +74,4 @@ for i=2:nc
     y = x .* y + p(i);
 end
 
-if nargout > 1
-    if nargin < 3 || isempty(S)
-        error('MATLAB:polyval:RequiresS',...
-                'S is required to compute error estimates.');
-    end
-    
-    % Extract parameters from S
-    if isstruct(S),  % Use output structure from polyfit.
-      R = S.R;
-      df = S.df;
-      normr = S.normr;
-    else             % Use output matrix from previous versions of polyfit.
-      [ms,ns] = size(S);
-      if (ms ~= ns+2) || (nc ~= ns)
-          error('MATLAB:polyval:SizeS',...
-                'S matrix must be n+2-by-n where n = length(p).');
-      end
-      R = S(1:nc,1:nc);
-      df = S(nc+1,1);
-      normr = S(nc+2,1);
-    end
-
-    % Construct Vandermonde matrix for the new X.
-    x = x(:);
-    V(:,nc) = ones(length(x),1,class(x));
-    for j = nc-1:-1:1
-        V(:,j) = x.*V(:,j+1);
-    end
-
-    % S is a structure containing three elements: the triangular factor of
-    % the Vandermonde matrix for the original X, the degrees of freedom,
-    % and the norm of the residuals.
-    E = V/R;
-    e = sqrt(1+sum(E.*E,2));
-    if df == 0
-        warning('MATLAB:polyval:ZeroDOF',['Zero degrees of freedom implies ' ...
-                'infinite error bounds.']);
-        delta = Inf(size(e));
-    else
-        delta = normr/sqrt(df)*e;
-    end
-    delta = reshape(delta,siz_x);
-end
 

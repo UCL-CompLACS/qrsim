@@ -1,0 +1,10 @@
+/qrsim/core/functions/polyval.m~
+/qrsim/platforms/pelicanODE.mexa64
+/qrsim/core/functions/ecef2lla.mexa64
+/qrsim/core/functions/ecef2ned.mexa64
+/qrsim/core/functions/lla2ecef.mexa64
+/qrsim/core/functions/lla2utm.mexa64
+/qrsim/core/functions/ned2ecef.mexa64
+/qrsim/core/functions/polyval.c~
+/qrsim/core/functions/polyval.mexa64
+/qrsim/core/functions/utm2lla.mexa64

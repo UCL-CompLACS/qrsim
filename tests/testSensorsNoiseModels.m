@@ -1,6 +1,6 @@
 %function [e]=testSensorsNoiseModels()
 
-clear all;
+%clear all;
 close all;
 clc;
 e = 1;

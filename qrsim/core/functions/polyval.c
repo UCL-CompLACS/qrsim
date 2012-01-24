@@ -16,6 +16,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
     int rows = mxGetM(prhs[1]);
     int nc = mxGetN(prhs[0]);
     
+    if (mxGetM(prhs[0])!=1){
+        mexErrMsgTxt("P must be a vector.");
+    }
+    
     /* get pointers */
     double* p = mxGetPr(prhs[0]);
     double* x = mxGetPr(prhs[1]);    
