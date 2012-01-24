@@ -84,6 +84,7 @@ classdef QRSim<handle
             if (obj.par.display3d.on == 1)
                 state.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
                     [20,20,obj.par.display3d.width,obj.par.display3d.height]);
+                set(state.display3d.figure,'DoubleBuffer','on');
                 state.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             end
             
@@ -112,9 +113,6 @@ classdef QRSim<handle
             %     U - 5 by m matrix of control inputs for each of the m platforms 
             %
             global state;
-            
-            % update time
-            state.t=state.t+state.DT;
                         
             %%% step all the common objects
             
@@ -129,6 +127,14 @@ classdef QRSim<handle
             for i=1:length(state.platforms)
                 state.platforms(i).step(U(:,i));
             end
+            
+            % force figure refresh
+            if(obj.par.display3d.on == 1)
+                refresh(state.display3d.figure);
+            end
+                                    
+            % update time
+            state.t=state.t+state.DT;
         end
     end
             
