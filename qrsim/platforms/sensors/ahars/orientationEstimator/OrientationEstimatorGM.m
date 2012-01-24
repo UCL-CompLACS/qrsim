@@ -46,12 +46,12 @@ classdef OrientationEstimatorGM<OrientationEstimator
             %   mo = obj.getMeasurement(X)
             %        X - platform noise free state vector [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
             %        mo - 3 by 1 "noisy" orientation in global frame,
-            %             Euler angles ZYX [\~phi;\~theta;\~psi] rad
+            %             Euler angles ZYX [~phi;~theta;~psi] rad
             %
             % Note: if active == 0, no noise is added, in other words:
             % mo = X(4:6)
             % 
-                        fprintf('get measurement OrientationEstimatorGM active=%d\n',obj.active);
+%                        fprintf('get measurement OrientationEstimatorGM active=%d\n',obj.active);
             if(obj.active==1)    %noisy
                 estimatedOrientation = obj.estimatedOrientation;
             else                 %noiseless
@@ -66,7 +66,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
 	        global state;
-            obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*randn(state.rStream,3,1);
+            obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*randn(state.rStream,3,1);
             obj.estimatedOrientation = obj.n + X(4:6);
         end
     end
