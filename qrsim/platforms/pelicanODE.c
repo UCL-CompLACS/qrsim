@@ -39,7 +39,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexErrMsgTxt("State X has wrong dimensions.");
     }
     
-    if (mxGetM(prhs[1]) != 16 || mxGetN(prhs[1]) != 1) {
+    if (mxGetM(prhs[1]) != 15 || mxGetN(prhs[1]) != 1) {
         mexErrMsgTxt("Augmented Control U has wrong dimensions.");
     }
     
@@ -67,7 +67,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     const double windx = U[5];
     const double windy = U[6];    
     const double windz = U[7];
-    const double mass = U[9];
+    const double mass = U[8];
     
     const double phi = X[3];
     const double theta = X[4];
@@ -155,16 +155,17 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /*plane i.e. in the  -Z body direction */
     const double ra[3] = {gb[0], gb[1], gb[2]-((Fth+Xdot[12]*dt)/mass)};
     
-    Xdot[6] = -q*w + r*v + a[0] + kuv*(u-windx);
-    Xdot[7] = -r*u + p*w + a[1] + kuv*(v-windy);
-    Xdot[8] = -p*v + q*u + a[2] + kw*(w-windz);
+    Xdot[6] = -q*w + r*v + ra[0] + kuv*(u-windx);
+    Xdot[7] = -r*u + p*w + ra[1] + kuv*(v-windy);
+    Xdot[8] = -p*v + q*u + ra[2] + kw*(w-windz);
     
     a[0]=Xdot[6]-gb[0];
     a[1]=Xdot[7]-gb[1];   
     a[2]=Xdot[8]-gb[2];    
     
-    for(int i=0; i<6; i++){
-        Xdot[6+i]+=U[10+i];
+    int i;
+    for(i=0; i<6; i++){
+        Xdot[6+i]+=U[9+i];
     }
 }
 
