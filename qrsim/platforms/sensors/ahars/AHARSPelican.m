@@ -89,9 +89,9 @@ classdef AHARSPelican<AHARS
             %   eAHA = obj.ahars.getMeasurement([X;a]);
             %        X   - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
             %        a   - 3 by 1 vector of noise free acceleration in body frame [ax,ay,az] m/s^2
-            %        eAHA- [\~phi,\~theta,\~psi,\~p,\~q,\~r,\~ax,\~ay,\~az,\~h];
+            %        eAHA- [~phi,~theta,~psi,~p,~q,~r,~ax,~ay,~az,~h,~hdot];
             %
-            fprintf('get measurement AHARSPelican active=%d\n',obj.active);
+            %fprintf('get measurement AHARSPelican active=%d\n',obj.active);
             measurementAcceleration = obj.accelerometer.getMeasurement(stateAndAccelerations(end-2:end));
         
             measurementAngularVelocity = obj.gyroscope.getMeasurement(stateAndAccelerations(1:13));
@@ -101,7 +101,7 @@ classdef AHARSPelican<AHARS
             estimatedOrientation = obj.orientationEstimator.getMeasurement(stateAndAccelerations(1:13));
             
             estimatedAHA = [estimatedOrientation;measurementAngularVelocity;...
-                            measurementAcceleration;estimatedAltitude;];
+                            measurementAcceleration;estimatedAltitude];
         end
     end    
         
