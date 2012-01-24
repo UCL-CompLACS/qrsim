@@ -99,7 +99,7 @@ classdef GPSSpaceSegmentGM2 < Steppable & EnvironmentObject
             %
             global state;
             
-            disp('stepping GPSSpaceSegmentGM2');
+%            disp('stepping GPSSpaceSegmentGM2');
             % update noise states
             state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
                 state.environment.gpsspacesegment_.betas1+state.environment.gpsspacesegment_.prns1;
