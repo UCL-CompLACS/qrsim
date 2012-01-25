@@ -3,7 +3,7 @@ close all;
 
 set = 2;
 
-e = 300;
+e = 340;
 % radio with mo
 
 dt = 0.4;
@@ -56,5 +56,5 @@ plot(t,h);
 data.rate = 1/dt;
 data.freq = E;
 
-[retval, s, errorb] = allan(data,[2^0 2^1 2^2 2^4 2^6 2^8 2^10 2^12 2^14 2^16 2^18 2^19]*dt,'x acc');
+[retval, s, errorb] = allan(data,[2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*dt,'x acc');
 
