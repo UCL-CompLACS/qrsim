@@ -1,6 +1,6 @@
 %function [e]=testSensorsNoiseModels()
 
-%clear all;
+clear all;
 close all;
 clc;
 e = 1;
@@ -9,7 +9,7 @@ TOLFACTOR = 0.1;
 MEANTOL = 1e-2;
 global state;
 
-N = 30000;
+N = 10000;
 
 % some buffuers
 eX=zeros(20,N);
@@ -110,14 +110,3 @@ if((abs(mu) > MEANTOL) || ...
         fprintf('altimeter noise as expected, test: [PASSED]\n');
         e = e && 0; 
 end
-
-
-ep = eX(1:3,:)-X(1:3,:);
-
-t=(1:N)*state.DT;
-figure();
-plot(t,ep(1,:));
-
-figure();
-plot(ep(1,:),ep(2,:));
-%clear global state;
