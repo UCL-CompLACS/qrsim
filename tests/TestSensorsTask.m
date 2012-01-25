@@ -50,14 +50,14 @@ classdef TestSensorsTask<Task
             % a typical flight day had the following svs visible:
             %03G 05G 06G 07G 13G 16G 18G 19G 20G 22G 24G 29G 31G
             taskparams.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
-            %taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
-            %taskparams.environment.gpsspacesegment.PR_BETA = 2000;     % process time constant (from [2])
-            %taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation (from [2])
-            %taskparams.environment.gpsspacesegment.DT = taskparams.DT;
+%             taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
+%             taskparams.environment.gpsspacesegment.PR_BETA = 2000;     % process time constant (from [2])
+%             taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation (from [2])
+%             taskparams.environment.gpsspacesegment.DT = taskparams.DT;
             taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
-            taskparams.environment.gpsspacesegment.PR_BETA2 = 1;               % process time constant
-            taskparams.environment.gpsspacesegment.PR_BETA1 =  1.0075;            % process time constant   
-            taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;             % process standard deviation (from [2]) 
+            taskparams.environment.gpsspacesegment.PR_BETA2 = 4;               % process time constant
+            taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;          % process time constant   
+            taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;           % process standard deviation            
             taskparams.environment.gpsspacesegment.DT = taskparams.DT;
             
             % Wind
