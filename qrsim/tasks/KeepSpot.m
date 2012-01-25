@@ -57,6 +57,11 @@ classdef KeepSpot<Task
             taskparams.environment.gpsspacesegment.PR_BETA = 2000;     % process time constant (from [2])
             taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation (from [2])
             taskparams.environment.gpsspacesegment.DT = taskparams.DT;
+            %taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
+            %taskparams.environment.gpsspacesegment.PR_BETA2 = 4;               % process time constant
+            %taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;          % process time constant   
+            %taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;           % process standard deviation            
+            %taskparams.environment.gpsspacesegment.DT = taskparams.DT;
             
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
