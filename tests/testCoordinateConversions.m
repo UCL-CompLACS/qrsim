@@ -321,12 +321,12 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
             break;
         end
     end
-    disp('.');
+    fprintf('.');
     if(wt>0)
         break;
     end
 end
-
+fprintf('\n');
 e = e && wt;
 
 fprintf('test of MEX ecef2ned [%s]\n',toFailPass(wt));
