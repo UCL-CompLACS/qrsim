@@ -200,13 +200,13 @@ classdef Orbits < handle
             if (t - obj.tBeg) < 0  || (t - obj.tEnd) > 0
                 obj.tBeg
                 obj.tEnd
-                error('Given epoch %f %f is outside of the standard ephemeris',t.gweek,t.wsec);
+                error('Given epoch is outside of the ephemeris from the sp3 file');
             end
             
             en = obj.findEn(obj.timeSet, t);  %Finds epoch number en
             
             if en < 1
-                error('Given epoch %f %f is outside of the standard ephemeris',t.gweek,t.wsec);
+                error('Given epoch is outside of the ephemeris from the sp3 file');
             end
             
             coefX = obj.XCoef(prn, en, :);
