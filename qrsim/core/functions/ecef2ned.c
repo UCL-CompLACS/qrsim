@@ -153,12 +153,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
         NED[1+3*i] = xx- utmoriginE[0];
         NED[2+3*i] = utmoriginH[0]-h;
       
-        //char utmzone[] = {(char)((zone/10) +'0'),(char)((zone%10) +'0'),(char)(letter)};
-        //
-        //if((utmzone[0]!=utmoriginZONE[0])||(utmzone[1]!=utmoriginZONE[1])||(utmzone[2]!=utmoriginZONE[2])){
-        //    mexPrintf("zone %c%c%c    origin_zone%c%c%c\n",utmzone[0],utmzone[1],utmzone[2],utmoriginZONE[0],utmoriginZONE[1],utmoriginZONE[2]);
-        //    mexErrMsgTxt("something went horribly wrong with the coord converion the timezones do not match.");
-        //}
+        /*
+        char utmzone[] = {(char)((zone/10) +'0'),(char)((zone%10) +'0'),(char)(letter)};
+        
+        if((utmzone[0]!=utmoriginZONE[0])||(utmzone[1]!=utmoriginZONE[1])||(utmzone[2]!=utmoriginZONE[2])){
+            mexPrintf("zone %c%c%c    origin_zone%c%c%c\n",utmzone[0],utmzone[1],utmzone[2],utmoriginZONE[0],utmoriginZONE[1],utmoriginZONE[2]);
+            mexErrMsgTxt("something went horribly wrong with the coord converion the timezones do not match.");
+        }
+        */
        
     }
     
