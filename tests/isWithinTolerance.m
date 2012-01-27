@@ -5,7 +5,5 @@
  %
     t = (abs(a-b)<tol);
     
-    z = ones(size(a,1),size(a,2));
-    
-    f = (t==z);
+    f = all(t);
  end
