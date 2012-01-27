@@ -46,9 +46,9 @@ function [y] = polyval(p,x,S,mu)
 %   approaches approximately 68%.
 
 % Check input is a vector
-if ~((sum(size(p)>1)==1) || isempty(p))
+if (~(size(p,1)==1) || isempty(p))
     error('MATLAB:polyval:InvalidP',...
-            'P must be a vector.');
+            'P must be a row vector.');
 end
 
 if (nargin ~= 4)
