@@ -18,9 +18,9 @@ function ned = ecef2ned( ecef , utmorigin)
     lla = ecef2lla(ecef);
     [E,N,zone,h] = lla2utm(lla);
     
-    if (zone~= utmorigin.zone)
-        error('the timezones in the coord conversion do not match %s ~= %s',zone,utmorigin.zone);
-    end
+%    if (zone~= utmorigin.zone)
+%        error('the timezones in the coord conversion do not match %s ~= %s',zone,utmorigin.zone);
+%    end
     
     ned = [ N - utmorigin.N; E - utmorigin.E; utmorigin.h - h ];
 end

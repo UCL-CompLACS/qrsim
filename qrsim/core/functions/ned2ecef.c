@@ -32,10 +32,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /* get pointers */
     double* NED = mxGetPr(prhs[0]);
     
-    double* utmoriginE = mxGetPr(mxGetFieldByNumber(prhs[1], 0, 0));
-    double* utmoriginN = mxGetPr(mxGetFieldByNumber(prhs[1], 0, 1));
-    double* utmoriginH = mxGetPr(mxGetFieldByNumber(prhs[1], 0, 2));
-    mxChar* utmzone = mxGetChars(mxGetFieldByNumber(prhs[1], 0, 3));
+    int E_field_num = mxGetFieldNumber(prhs[1], "E");
+    double* utmoriginE = mxGetPr(mxGetFieldByNumber(prhs[1], 0, E_field_num));
+    int N_field_num = mxGetFieldNumber(prhs[1], "N");
+    double* utmoriginN = mxGetPr(mxGetFieldByNumber(prhs[1], 0, N_field_num));
+    int h_field_num = mxGetFieldNumber(prhs[1], "h");
+    double* utmoriginH = mxGetPr(mxGetFieldByNumber(prhs[1], 0, h_field_num));
+    int zone_field_num = mxGetFieldNumber(prhs[1], "zone");
+    mxChar* utmoriginZONE = mxGetChars(mxGetFieldByNumber(prhs[1], 0, zone_field_num));
     
     /* Create a matrix for the return argument */
     plhs[0] = mxCreateDoubleMatrix(3, cols, mxREAL);
@@ -48,15 +52,15 @@ void mexFunction( int nlhs, mxArray *plhs[],
         double Y=utmoriginN[0] + NED[3*i];
         double h = utmoriginH[0]-NED[2+3*i];
         
-        if (utmzone[2]>'X' || utmzone[2]<'C'){
-            mexPrintf("utm2lla: Warning utmzone should be a vector of strings like 30T, not 30t\n");
+        if (utmoriginZONE[2]>'X' || utmoriginZONE[2]<'C'){
+            mexPrintf("ned2ecef: Warning utmzone should be a vector of strings like 30T, not %c%c%c\n",utmoriginZONE[0],utmoriginZONE[1],utmoriginZONE[2]);
         }
         
-        if (utmzone[2]<'M'){
+        if (utmoriginZONE[2]<'M'){
             Y-=10000000;   /* Southern hemisphere*/
         }
         
-        int zone=(utmzone[0]-'0')*10+(utmzone[1]-'0');
+        int zone=(utmoriginZONE[0]-'0')*10+(utmoriginZONE[1]-'0');
         
         double S = ( ( zone * 6 ) - 183 );
         double lat =  Y / ( 6366197.724 * 0.9996 );
