@@ -40,15 +40,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     fprintf('.');
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MATLAB lla2ecef and ecef2lla [%s]\n',wts);
+fprintf('\ntest of MATLAB lla2ecef and ecef2lla [%s]\n',toFailPass(wt));
 
 % compile and cross test ecef2lla
 mex ecef2lla.c
@@ -68,15 +62,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     fprintf('.');
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MEX ecef2lla [%s]\n',wts);
+fprintf('\ntest of MEX ecef2lla [%s]\n',toFailPass(wt));
 
 
 % compile and cross test lla2ecef
@@ -98,15 +86,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     fprintf('.');
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MEX lla2ecef [%s]\n',wts);
+fprintf('\ntest of MEX lla2ecef [%s]\n',toFailPass(wt));
 
 % put back things as they were
 if(existsecef2lla)
@@ -147,15 +129,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     fprintf('.');
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MATLAB lla2utm and utm2lla [%s]\n',wts);
+fprintf('\ntest of MATLAB lla2utm and utm2lla [%s]\n',toFailPass(wt));
 
 % compile and cross test lla2utm
 mex lla2utm.c
@@ -175,15 +151,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     fprintf('.');
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MEX lla2utm [%s]\n',wts);
+fprintf('\ntest of MEX lla2utm [%s]\n',toFailPass(wt));
 
 % compile and cross test utm2lla
 delete(['lla2utm.',mexext]);
@@ -204,15 +174,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     fprintf('.');
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MEX lla2utm [%s]\n',wts);
+fprintf('\ntest of MEX utm2lla [%s]\n',toFailPass(wt));
 
 % put back things as they were
 if(~existsutm2lla)
@@ -276,16 +240,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     end
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MATLAB ned2ecef and ecef2ned [%s]\n',wts);
-
+fprintf('\ntest of MATLAB ned2ecef and ecef2ned [%s]\n',toFailPass(wt));
 
 % compile and cross test ned2ecef
 mex ned2ecef.c
@@ -325,15 +282,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     end
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('\ntest of MEX ned2ecef [%s]\n',wts);
+fprintf('\ntest of MEX ned2ecef [%s]\n',toFailPass(wt));
 
 
 % compile and cross test ecef2ned
@@ -376,15 +327,9 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     end
 end
 
-if(wt==0)
-    wts='FAILED';
-else
-    wts='PASSED';
-end
-
 e = e && wt;
 
-fprintf('test of MEX ecef2ned [%s]\n',wts);
+fprintf('test of MEX ecef2ned [%s]\n',toFailPass(wt));
 
 if(~existsecef2ned)
     delete(['ecef2ned.',mexext]);
@@ -395,3 +340,15 @@ if(existsned2ecef)
 end
 
 cd('../../../tests');
+
+end
+
+function [s]=toFailPass(f)
+
+if(f==0)
+    s='FAILED';
+else
+    s='PASSED';
+end
+
+end
