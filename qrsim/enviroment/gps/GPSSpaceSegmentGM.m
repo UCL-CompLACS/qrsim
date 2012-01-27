@@ -90,7 +90,7 @@ classdef GPSSpaceSegmentGM < Steppable & EnvironmentObject
             %  class and should not be called directly.
             %
             global state;
-            disp('stepping GPSSpaceSegmentGM');
+            %disp('stepping GPSSpaceSegmentGM');
             % update noise states
             state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
                 exp(-state.environment.gpsspacesegment_.betas*obj.dt)...

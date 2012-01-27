@@ -7,7 +7,14 @@ e = 1;
 
 TOLFACTOR = 0.1;
 MEANTOL = 1e-2;
+
+%retvals = [];
+
+%for j=1:3
+
 global state;
+
+
 
 N = 10000;
 
@@ -49,18 +56,62 @@ ep = eX(1:3,1:K:end)-X(1:3,1:K:end);
 
 t=(1:N/K)*state.DT;
 
-figure();
-plot(t,ep(1,:));
-xlabel('time[s]');
-ylabel('altitude [m]');
+% figure();
+% plot(t,ep(1,:));
+% xlabel('time[s]');
+% ylabel('altitude [m]');
+% 
+% 
+% figure();
+% plot(ep(1,:),ep(2,:));
+% xlabel('e_{px}[m]');
+% ylabel('e_{py}[m]');
+
+datas.rate = 1/state.platforms.params.sensors.gpsreceiver.dt;
+datas.freq = ep(1,:);
+
+tts = [2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*state.platforms.params.sensors.gpsreceiver.dt;
+[retvals, s, errorb] = allan(datas,tts,'e_{px}');
+
+%retvals = [retval;retvals]; %#ok<AGROW>
+
+%clear global state;
+
+%end
+
+tts = tts(1:length(retvals));
+
+%avg = sum(retvals)./j;
 
 
-figure();
-plot(ep(1,:),ep(2,:));
-xlabel('e_{px}[m]');
-ylabel('e_{py}[m]');
+fname = 'arTest2Video-8_3_111-14_27_53_gps.csv';
+d  = csvread(['/home/rdenardi/complacs/qrsim/tests/gt/gps/fromar2/',fname]);
+d = d(1:350,:);
+    
+t = d(:,1)'-d(1,1);
+lat = d(:,4)'./1e7;
+lon = d(:,5)'./1e7;
+h = d(:,6)'./1000;
 
-data.rate = 1/state.platforms.params.sensors.gpsreceiver.dt;
-data.freq = ep(1,:);
+[E,N,zone,h] = lla2utm([lat;lon;h]);
+E = E-E(1);
+N = N-N(1);
 
-[retval, s, errorb] = allan(data,[2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*state.platforms.params.sensors.gpsreceiver.dt,'e_{px}');
+
+figure;
+plot(E,N);
+
+dt = 0.4;
+datat.rate = 1/dt;
+datat.freq = E;
+
+ttt = [2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*dt;
+[retvalt, s, errorb] = allan(datat,ttt,'x acc');
+
+ttt = ttt(1:length(retvalt));
+
+figure;
+loglog(tts,retvals,'-o');
+hold on;
+loglog(ttt,retvalt,'-or');
+grid on;

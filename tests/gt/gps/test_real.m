@@ -3,7 +3,7 @@ close all;
 
 set = 2;
 
-e = 340;
+e = 450;
 % radio with mo
 
 dt = 0.4;
