@@ -1,10 +1,24 @@
 #include <math.h>
 #include "mex.h"
 
-#define c 6.399593625758674e+06
-#define e2 0.082094437950043
-#define e22 0.006739496742333
+#define c    6.399593625758674e+6
+#define e2   0.082094437950043
+#define e22  0.006739496742333
 
+#define f    (3.35281066474748e-3)
+#define a    6378137
+#define A    (6.69437999014132e-3)
+#define B    (37.2956017456798e-006)
+#define C    (259.252748095067e-009)
+#define D    (1.97169890868957e-009)
+#define n    (1.67922038638370e-3)
+#define beta1   (837.731820630353e-006)
+#define beta2   (760.852771424900e-009)
+#define beta3 (1.20933757363281e-009)
+#define beta4 (2.44337619452206e-012)
+#define ahat (6.36744914582342e+6)
+#define k0   0.9996
+#define FE   500000 
 
 char getLetter(double la){
     
@@ -65,15 +79,56 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     int i;
     
-    for(i=0; i<rows; i++){
+    for(i=0; i<cols; i++){
         
-        double la=lla[i*3];
-        double lo=lla[1+i*3];
+        const long double la=lla[i*3];
+        const long double lo=lla[1+i*3];
         
-        double lat = la * ( M_PI / 180 );
-        double lon = lo * ( M_PI / 180 );
+        char letter = getLetter(la);
+
+        if ((la < -90)||(la > 90)) {
+            mexErrMsgTxt("Invalid WGS84 latitude. \n");
+        }
         
-        int zone = (int)((lo/6) + 31);
+        if ((lo < -180)||(lo > 180)) {
+            mexErrMsgTxt("Invalid WGS84 longitude.\n");
+        }
+        
+        const long double FN = (la>0) ? 0 : 10000000;
+        
+        const long double lat = la * ( M_PI / 180 );
+        const long double lon = lo * ( M_PI / 180 );
+   
+        const long double sl = sin(lat);
+        const long double sl2 = sl*sl;
+        const long double sl4 = sl2*sl2;
+        const long double sl6 = sl2*sl4;
+
+        const long double phistar = lat - sl*cos(lat)*(A+B*sl2+C*sl4+D*C*sl6);
+        /*mexPrintf("phistar: %6.10f \n",phistar);*/
+              
+        int zone = (int)( ( lo / 6 ) + 31);
+        const long double lambda0 = ( ( zone * 6 ) - 183 );
+        const long double deltaLambda = lon - ( lambda0 * ( M_PI / 180 ) );
+        
+        /* mexPrintf("deltaLambda: %6.10f \n",deltaLambda);  */
+        
+        const long double xiprime = atan(tan(phistar)/cos(deltaLambda));
+        const long double etaprime = atanh(cos(phistar)*sin(deltaLambda));
+        
+        /*mexPrintf("xiprime: %6.10f etaprime: %6.10f \n",xiprime,etaprime);*/
+        
+        const long double x = k0*ahat*(xiprime+beta1*sin(2*xiprime)*cosh(2*etaprime)+
+                            beta2*sin(4*xiprime)*cosh(4*etaprime)+
+                            beta3*sin(6*xiprime)*cosh(6*etaprime)+
+                            beta4*sin(8*xiprime)*cosh(8*etaprime)) + FN;
+            
+        const long double y = k0*ahat*(etaprime+beta1*cos(2*xiprime)*sinh(2*etaprime)+
+                            beta2*cos(4*xiprime)*sinh(4*etaprime)+
+                            beta3*cos(6*xiprime)*sinh(6*etaprime)+
+                            beta4*cos(8*xiprime)*sinh(8*etaprime)) + FE;    
+        
+/*      int zone = (int)((lo/6) + 31);
         double S = ( ( zone * 6 ) - 183 );
         double deltaS = lon -  ( S * ( M_PI / 180 ) );
         
@@ -105,6 +160,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
         
         E[i]=xx;
         N[i]=yy;
+ */
+        E[i]=y;
+        N[i]=x;
+                
         utmzone[i*3]= (char)((zone/10) +'0');
         utmzone[1+i*3]= (char)((zone%10) +'0');
         utmzone[2+i*3]= (char)(letter);
