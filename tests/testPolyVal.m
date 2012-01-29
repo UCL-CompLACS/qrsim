@@ -1,8 +1,11 @@
 function [e]=testPolyVal()
 
+% returns 0 if no errors
+
 fprintf('during the test you might see warnings from the mex compiler,\n these are normal.\n');
 
 % assumes to be running from the test directory
+
 
 addpath(pwd());
 
@@ -59,3 +62,6 @@ end
 if(~existspolyval)
     delete(['polyval.',mexext]);
 end
+
+
+cd('../../../tests');

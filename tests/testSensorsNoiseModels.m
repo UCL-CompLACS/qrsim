@@ -1,4 +1,4 @@
-%function [e]=testSensorsNoiseModels()
+function [e]=testSensorsNoiseModels()
 
 clear all;
 close all;
@@ -9,7 +9,7 @@ TOLFACTOR = 0.1;
 MEANTOL = 1e-2;
 global state;
 
-N = 10000;
+N = 1000000;
 
 % some buffuers
 eX=zeros(20,N);
