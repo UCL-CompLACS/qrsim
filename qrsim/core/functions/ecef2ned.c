@@ -2,18 +2,29 @@
 #include "mex.h"
 
 
-#define aa   6378137               /*Semimajor axis*/
-#define f   0.003352810664747     /*Flattening*/
-#define e21  0.006694379990141     /*Square of first eccentricity*/
-#define ep2 0.006739496742276     /*Square of second eccentricity*/
-#define b   6356752.314245179     /*Semiminor axis*/
-#define rad2deg  57.295779513082323
+#define aa   6378137               
+#define ep2 0.006739496742276    
+#define b   6356752.314245179
 
+#define MAXPOW 6
+#define f    3.35281066474748e-3
+#define a1   6367449.14582
+#define e  8.181919084262149e-02
+#define e2 6.694379990141316e-03
+#define n_ 1.679220386383705e-03
+#define k0   0.9996
+#define FE   500000
+#define FN   10000000
+#define alp1 8.377318206244698e-04
+#define alp2 7.608527773572309e-07
+#define alp3 1.197645503329453e-09
+#define alp4 2.429170607201359e-12
+#define alp5 5.711757677865804e-15
+#define alp6 1.491117731258390e-17
 
-#define c 6.399593625758674e+06
-#define e2 0.082094437950043
-#define e22 0.006739496742333
-
+#if !defined(MAX)
+#define    MAX(A, B)    ((A) > (B) ? (A) : (B))
+#endif
 
 char getLetter(double la){
     
@@ -53,11 +64,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     int rows = mxGetM(prhs[0]);
     int cols = mxGetN(prhs[0]);
-
+    
     if (rows != 3) {
         mexErrMsgTxt("Input has wrong dimensions.");
     }
-   
+    
     /* get pointers */
     double* ecef = mxGetPr(prhs[0]);
     
@@ -73,9 +84,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     
     /* Create a matrix for the return argument */
-    plhs[0] = mxCreateDoubleMatrix(3,cols, mxREAL);
+    plhs[0] = mxCreateDoubleMatrix(3, cols, mxREAL);
     double* NED = mxGetPr(plhs[0]);
     
+    double alp[7] = {0, alp1, alp2, alp3, alp4, alp5, alp6};
     
     int i;
     
@@ -83,7 +95,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         double x = ecef[i*3];
         double y = ecef[i*3+1];
         double z = ecef[i*3+2];
-
+        
         /* Longitude*/
         double lambda = atan2(y, x);
         
@@ -94,7 +106,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         double beta = atan2(z, (1 - f) * rho);
         double sbeta = sin(beta); double cbeta = cos(beta);
         
-        double phi = atan2(z+b*ep2*sbeta*sbeta*sbeta, rho-aa*e21*cbeta*cbeta*cbeta);
+        double phi = atan2(z+b*ep2*sbeta*sbeta*sbeta, rho-aa*e2*cbeta*cbeta*cbeta);
         double sphi = sin(phi); double cphi = cos(phi);
         
         /* Fixed-point iteration with Bowring's formula*/
@@ -104,64 +116,114 @@ void mexFunction( int nlhs, mxArray *plhs[],
         while ((beta!=betaNew) && count < 5){
             beta = betaNew;
             sbeta = sin(beta); cbeta = cos(beta);
-            phi = atan2(z+b*ep2*sbeta*sbeta*sbeta, rho-aa*e21*cbeta*cbeta*cbeta);
+            phi = atan2(z+b*ep2*sbeta*sbeta*sbeta, rho-aa*e2*cbeta*cbeta*cbeta);
             sphi = sin(phi); cphi = cos(phi);
             betaNew = atan2((1 - f)*sphi, cphi);
             count++;
         }
         
         /* Calculate ellipsoidal height from the final value for latitude*/
-        double N = aa / sqrt(1 - e21 * sphi* sphi);
-        double h = rho * cphi + (z + e21 * N* sphi) * sphi - N;
+        double N = aa / sqrt(1 - e2 * sphi* sphi);
+        double h = rho * cphi + (z + e2 * N* sphi) * sphi - N;
         
-        double lat = phi;
-        double lon = lambda;   
+        double lat = phi * 180/M_PI;
+        double lon = lambda * 180/M_PI;
         
-        double lo = lon * (180/ M_PI);
+        int zone = (int)((lon/6)+31);
+        int lon0 = ((zone*6) - 183);
         
-        int zone = (int)((lo/6) + 31);
-        double S = ( ( zone * 6 ) - 183 );
-        double deltaS = lon -  ( S * ( M_PI / 180 ) );
-        
-        char letter = getLetter(lat*(180/ M_PI));
-        
-        double clat = cos(lat);
-        double clat2 = clat*clat;
-        double a = clat * sin(deltaS);
-        double epsilon = 0.5 * log( ( 1 +  a) / ( 1 - a ) );
-        double nu = atan( tan(lat) / cos(deltaS) ) - lat;
-        
-        double v = (c / sqrt(( 1 + ( e22 * clat2 ) ))) * 0.9996;
-        double ta = ( e22 / 2.0 ) * epsilon * epsilon * clat2;
-        double a1 = sin( 2 * lat );
-        double a2 = a1 * clat2;
-        double j2 = lat + ( a1 / 2.0 );
-        double j4 = ( ( 3 * j2 ) + a2 ) / 4.0;
-        double j6 = ( ( 5 * j4 ) + ( a2 * clat2) ) / 3.0;
-        double alpha = ( 3.0 / 4.0 ) * e22;
-        double betaa = ( 5.0 / 3.0 ) * alpha * alpha;
-        double gamma = ( 35.0 / 27.0 ) * alpha * alpha* alpha;
-        double Bm = 0.9996 * c * ( lat - alpha * j2 + betaa * j4 - gamma * j6 );
-        double xx = epsilon * v * ( 1 + ( ta / 3.0 ) ) + 500000;
-        double yy = nu * v * ( 1 + ta ) + Bm;
-        
-        if (yy<0){
-            yy=9999999+yy;
+        /*Avoid losing a bit of accuracy in lon (assuming lon0 is an integer)*/
+        if (lon - lon0 > 180){
+            lon = lon - (lon0 + 360);
+        } else {
+            if ((lon - lon0) <= -180){
+                lon = lon -(lon0 - 360);
+            }else{
+                lon = lon - lon0;
+            }
         }
+        /*Now lon in (-180, 180]*/
+        /*Explicitly enforce the parity*/
+        int latsign = (lat < 0) ? -1 : 1;
+        int lonsign = (lon < 0) ? -1 : 1;
+        
+        lon = lon*lonsign;
+        lat = lat*latsign;
+        
+        int backside = (lon > 90);
+        if (backside){
+            if (lat == 0){
+                latsign = -1;
+            }
+            lon = 180 - lon;
+        }
+        
+        phi = lat * M_PI/180;
+        double lam = lon * M_PI/180;
+        
+        double xip;
+        double etap;
+        
+        if (lat != 90){
+            const double c = MAX(0, cos(lam)); /*cos(M_PI/2) might be negative*/
+            const double tau = tan(phi);
+            const double secphi = hypot(1, tau);
+            const double sig = sinh(e*atanh(e*tau / secphi));
+            const double taup = hypot(1, sig) * tau - sig * secphi;
+            xip = atan2(taup, c);
+            etap =asinh(sin(lam) / hypot(taup, c));
+        }else{
+            xip = M_PI/2;
+            etap = 0;
+        }
+        const double c0 = cos(2 * xip);
+        const double ch0 = cosh(2 * etap);
+        const double s0 = sin(2 * xip);
+        const double sh0 = sinh(2 * etap);
+        double ar = 2 * c0 * ch0;
+        double ai = -2 * s0 * sh0; /*2 * cos(2*zeta')*/
+        
+        int n = MAXPOW;
+        double xi0 = (n & 1 ? alp[n] : 0);
+        double eta0 = 0;
+        double xi1 = 0;
+        double eta1 = 0;
+        
+        /*Accumulators for dzeta/dzeta'*/
+        double yr0 = (n & 1 ? 2 * MAXPOW * alp[n--] : 0);
+        double yi0 = 0;
+        double yr1 = 0;
+        double yi1 = 0;
+        
+        while (n>0){
+            xi1  = ar * xi0 - ai * eta0 - xi1 + alp[n];
+            eta1 = ai * xi0 + ar * eta0 - eta1;
+            yr1 = ar * yr0 - ai * yi0 - yr1 + 2 * n * alp[n];
+            yi1 = ai * yr0 + ar * yi0 - yi1;
+            n = n-1;
+            
+            xi0  = ar * xi1 - ai * eta1 - xi0 + alp[n];
+            eta0 = ai * xi1 + ar * eta1 - eta0;
+            yr0 = ar * yr1 - ai * yi1 - yr0 + 2 * n * alp[n];
+            yi0 = ai * yr1 + ar * yi1 - yi0;
+            n=n-1;
+        }
+        ar = s0 * ch0;
+        ai = c0 * sh0;
+        
+        const double xi  = xip  + ar * xi0 - ai * eta0;
+        const double eta = etap + ai * xi0 + ar * eta0;
+        
+        double yy = a1 * k0 * (backside ? M_PI - xi : xi) * latsign;
+        double xx = a1 * k0 * eta * lonsign;
+        
+        xx = xx + FE;
+        yy = (yy>0) ? yy : yy+FN;
         
         NED[3*i] = yy - utmoriginN[0];
-        NED[1+3*i] = xx- utmoriginE[0];
+        NED[1+3*i] = xx - utmoriginE[0];
         NED[2+3*i] = utmoriginH[0]-h;
-      
-        /*
-        char utmzone[] = {(char)((zone/10) +'0'),(char)((zone%10) +'0'),(char)(letter)};
         
-        if((utmzone[0]!=utmoriginZONE[0])||(utmzone[1]!=utmoriginZONE[1])||(utmzone[2]!=utmoriginZONE[2])){
-            mexPrintf("zone %c%c%c    origin_zone%c%c%c\n",utmzone[0],utmzone[1],utmzone[2],utmoriginZONE[0],utmoriginZONE[1],utmoriginZONE[2]);
-            mexErrMsgTxt("something went horribly wrong with the coord converion the timezones do not match.");
-        }
-        */
-       
     }
     
 }

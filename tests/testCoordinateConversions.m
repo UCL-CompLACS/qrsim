@@ -249,7 +249,7 @@ if(existslla2utm)
 end
 
 
-tolned = [1e-8;1e-8;1e-8];
+tolned = [1e-7;1e-7;1e-7];
 
 %%% ned to ecef
 
@@ -273,8 +273,8 @@ cd('functions');
 
 wt = 1;
 
-for lat = -78:8:78, %chosen to fall in the middle of a zone
-    for lon = -177:6:177, %chosen to fall in the middle of a zone
+for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
+    for lon = 360*(rand(1,3)-0.5), 
         for h = 0:10:100,
             
             [E,N,zone,H] = lla2utm([lat;lon;h]);
@@ -292,124 +292,96 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
                     wt = wt &&  isWithinTolerance(inned,outned,tolned);
                 end
             end
-            if~wt
-                break;
-            end
         end
-        if~wt
-            break;
-        end
-    end
-    fprintf('.');
-    if~wt
-        break;
-    end
+        fprintf('.');
+    end    
 end
 
 e = e || ~wt;
 
 fprintf('\ntest of MATLAB ned2ecef and ecef2ned [%s]\n',wtToFailPass(wt));
 
-% % compile and cross test ned2ecef
-% mex ned2ecef.c
-% 
-% cd('..');
-% cd('functions');
-% 
-% wt = 1;
-% 
-% for lat = -78:8:78, %chosen to fall in the middle of a zone
-%     for lon = -177:6:177, %chosen to fall in the middle of a zone
-%         for h = 0:10:100,
-%             
-%             [E,N,zone,H] = lla2utm([lat;lon;h]);
-%             utmorigin.E = E;
-%             utmorigin.N = N;
-%             utmorigin.zone = zone;
-%             utmorigin.h = H;
-%             
-%             for x = -100:10:100
-%                 for y = -100:10:100
-%                     
-%                     inned = [x;y;h];
-%                     outned = ecef2ned(ned2ecef(inned,utmorigin),utmorigin);
-%                     
-%                     wt = wt &&  isWithinTolerance(inned,outned,tolned);
-%                 end
-%             end
-%             if~wt
-%                 break;
-%             end
-%         end
-%         if~wt
-%             break;
-%         end
-%     end
-%     fprintf('.');
-%     if~wt
-%         break;
-%     end
-% end
-% 
-% e = e || ~wt;
-% 
-% fprintf('\ntest of MEX ned2ecef [%s]\n',wtToFailPass(wt));
-% 
-% 
-% % compile and cross test ecef2ned
-% delete(['ned2ecef.',mexext]);
-% 
-% cd('..');
-% cd('functions');
-% 
-% mex ecef2ned.c
-% 
-% wt = 1;
-% 
-% for lat = -78:8:78, %chosen to fall in the middle of a zone
-%     for lon = -177:6:177, %chosen to fall in the middle of a zone
-%         for h = 0:10:100,
-%             
-%             [E,N,zone,H] = lla2utm([lat;lon;h]);
-%             utmorigin.E = E;
-%             utmorigin.N = N;
-%             
-%             utmorigin.zone = zone;
-%             utmorigin.h = H;
-%             
-%             for x = -100:10:100
-%                 for y = -100:10:100
-%                     inned = [x;y;h];
-%                     outned = ecef2ned(ned2ecef(inned,utmorigin),utmorigin);
-%                     
-%                     wt = wt &&  isWithinTolerance(inned,outned,tolned);
-%                 end
-%             end
-%             if~wt
-%                 break;
-%             end
-%         end
-%         if~wt
-%             break;
-%         end
-%     end
-%     fprintf('.');
-%     if~wt
-%         break;
-%     end
-% end
-% fprintf('\n');
-% e = e || ~wt;
-% 
-% fprintf('test of MEX ecef2ned [%s]\n',wtToFailPass(wt));
-% 
-% if(~existsecef2ned)
-%     delete(['ecef2ned.',mexext]);
-% end
-% 
-% if(existsned2ecef)
-%     mex ecef2ned.c
-% end
+% compile and cross test ned2ecef
+mex ned2ecef.c
+
+cd('..');
+cd('functions');
+
+wt = 1;
+
+for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
+     for lon = 360*(rand(1,3)-0.5), 
+         for h = 0:10:100,
+            
+            [E,N,zone,H] = lla2utm([lat;lon;h]);
+            utmorigin.E = E;
+            utmorigin.N = N;
+            utmorigin.zone = zone;
+            utmorigin.h = H;
+            
+            for x = -100:10:100
+                for y = -100:10:100
+                    
+                    inned = [x;y;h];
+                    outned = ecef2ned(ned2ecef(inned,utmorigin),utmorigin);
+                    
+                    wt = wt &&  isWithinTolerance(inned,outned,tolned);
+                end
+            end
+        end
+        fprintf('.');
+    end
+end
+
+e = e || ~wt;
+
+fprintf('\ntest of MEX ned2ecef [%s]\n',wtToFailPass(wt));
+ 
+% compile and cross test ecef2ned
+delete(['ned2ecef.',mexext]);
+
+cd('..');
+cd('functions');
+
+mex ecef2ned.c
+
+wt = 1;
+
+for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
+    for lon = 360*(rand(1,3)-0.5), 
+        for h = 0:10:100,
+            
+            [E,N,zone,H] = lla2utm([lat;lon;h]);
+            utmorigin.E = E;
+            utmorigin.N = N;
+            
+            utmorigin.zone = zone;
+            utmorigin.h = H;
+            
+            for x = -100:10:100
+                for y = -100:10:100
+                    inned = [x;y;h];
+                    outned = ecef2ned(ned2ecef(inned,utmorigin),utmorigin);
+                    
+                    wt = wt &&  isWithinTolerance(inned,outned,tolned);
+                end
+            end
+        end
+        fprintf('.');
+    end
+end
+fprintf('\n');
+e = e || ~wt;
+
+fprintf('test of MEX ecef2ned [%s]\n',wtToFailPass(wt));
+
+if(~existsecef2ned)
+    delete(['ecef2ned.',mexext]);
+end
+
+if(existsned2ecef)
+    mex ecef2ned.c
+end
 
 cd(['..',filesep,'..',filesep,'..',filesep,'tests']);
 
