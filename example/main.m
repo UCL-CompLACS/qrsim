@@ -82,7 +82,7 @@ for i=1:N,
         idx=idx+1;
     end
     
-    disp(' ');
+    %disp(' ');
 end
 
 %global state;

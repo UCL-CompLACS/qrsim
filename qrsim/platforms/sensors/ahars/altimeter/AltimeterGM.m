@@ -31,7 +31,6 @@ classdef AltimeterGM<Altimeter
             %
             %   obj=AltimeterGM(objparams)
             %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
             %                objparams.BETA - noise time constant
             %                objparams.SIGMA - noise standard deviation

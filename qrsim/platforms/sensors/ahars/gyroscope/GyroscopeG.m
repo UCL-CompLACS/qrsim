@@ -28,7 +28,6 @@ classdef GyroscopeG<Gyroscope
             %
             %   obj=GyroscopeG(objparams)
             %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
             %                objparams.SIGMA - noise standard deviation
             %

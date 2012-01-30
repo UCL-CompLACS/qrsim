@@ -12,16 +12,22 @@ classdef GPSReceiver<Sensor
             %
             % Example:
             %
-            %   obj=Sensor(objparams)
-            %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
+            %   obj=GPSReceiver(objparams)
             %                objparams.on - 1 if the object is active
-            %                objparams.seed - prng seed, random if 0
             %
             % Note:
             % this is an abstract class so this contructor is meant to be called by any
             % subclass.
             %
+            global state;
+            
+            if(objparams.on)
+                assert(state.environment.gpsspacesegment.on,...
+                    'When a GPS receiver is active also a gpsspacesegment object must be active');
+                objparams.dt = state.environment.gpsspacesegment.params.dt;
+                objparams.tnsv  = length(state.environment.gpsspacesegment.params.svs);
+                objparams.originutmcoords = state.environment.area.params.originutmcoords;
+            end
             obj = obj@Sensor(objparams);
         end
     end

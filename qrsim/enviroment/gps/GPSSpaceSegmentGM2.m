@@ -42,25 +42,36 @@ classdef GPSSpaceSegmentGM2 < Steppable & EnvironmentObject
             %
             %   obj=GPSSpaceSegmentGM2(objparams);
             %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
             %                objparams.PR_BETA2 - process time constant
             %                objparams.PR_BETA1 - process time constant
             %                objparams.PR_SIGMA - process standard deviation
             %                objparams.tStart - simulation start in GPS time
+            %                objparams.orbitfile - satellites orbits
+            %                objparams.svs - visible satellites
             %
+            
             global state;
             
             obj=obj@Steppable(objparams);
             obj=obj@EnvironmentObject(objparams);
                         
+            assert(isfield(objparams,'tStart'),'The task must define a gps start time gpsspacesegment.tStart'); 
             obj.tStart = objparams.tStart;
+            
+            assert(isfield(objparams,'PR_BETA2'),'The task must define a gpsspacesegment.PR_BETA2');           
             obj.PR_BETA2 = objparams.PR_BETA2;
+            
+            assert(isfield(objparams,'PR_BETA1'),'The task must define a gpsspacesegment.PR_BETA1'); 
             obj.PR_BETA1 = objparams.PR_BETA1;
+            
+            assert(isfield(objparams,'PR_SIGMA'),'The task must define a gpsspacesegment.PR_SIGMA');             
             obj.PR_SIGMA = objparams.PR_SIGMA;
             
             % read in the precise satellite orbits
-            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);            
+            assert(isfield(objparams,'orbitfile'),'The task must define a gpsspacesegment.orbitfile');            
+            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);          
+                        
             state.environment.gpsspacesegment_.stdPe.compute();                        
             [b,e] = state.environment.gpsspacesegment_.stdPe.tValidLimits();
                                     
@@ -73,6 +84,7 @@ classdef GPSSpaceSegmentGM2 < Steppable & EnvironmentObject
                error('GPS start time out of sp3 file bounds');
             end 
             
+            assert(isfield(objparams,'svs'),'The task must define a gpsspacesegment.svs');
             state.environment.gpsspacesegment_.svs = objparams.svs;
             
             % for each of the possible svs we initialize the

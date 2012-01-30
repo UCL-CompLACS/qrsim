@@ -1,15 +1,15 @@
-classdef WindConstMean<AerodynamicTurbulence
+classdef WindConstMean<Wind
     % Class that simulates a constant wind field.
     % Given the current altitude of the platform the wind share effect is uded to compute
     % the magnitude and direction of the linear component of a constant wind field.
     %
     % WindConstMean Properties:
-    %    Z0                         - reference height (constant)  
+    %    Z0                         - reference height (constant)
     %
     % WindConstMean Methods:
     %    WindConstMean(objparams)   - constructs the object an sets its main fields
     %    getLinear(state)           - returns the linear component of the wind field
-    %    getRotational(state)       - always returns zero since this model does not have 
+    %    getRotational(state)       - always returns zero since this model does not have
     %                                 a rotational wind component
     %    update([])                 - no computation, since the wind field is constant
     %
@@ -27,25 +27,28 @@ classdef WindConstMean<AerodynamicTurbulence
             % constructs the object and sets its main fields
             %
             % Example:
-            % 
+            %
             %   obj=WindConstMean(objparams)
-            %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
-            %                objparams.on - 1 if the object is active 
-            %                objparams.seed - prng seed, random if 0 
+            %                objparams.on - 1 if the object is active
             %                objparams.W6 - velocity at 6m from ground in m/s
             %                objparams.direction - mean wind direction 3 by 1 vector
             %
             global state;
             
-            obj=obj@AerodynamicTurbulence(objparams);
+            objparams.dt = intmax*objparams.DT; % since this wind is constant
+            
+            obj=obj@Wind(objparams);
+            
+            assert(isfield(objparams,'W6'),'the task must define wind.W6');            
             obj.w6=objparams.W6;
+            
+            assert(isfield(objparams,'direction'),'the task must define wind.direction');  
             if(objparams.direction==0)
                 alpha = 2*pi*rand(state.rSteam,1,1);
                 obj.direction=[sin(alpha),cos(alpha),0];
             else
                 obj.direction=objparams.direction;
-            end    
+            end
         end
         
         function v = getLinear(obj,X)
@@ -56,28 +59,23 @@ classdef WindConstMean<AerodynamicTurbulence
             %
             % Example:
             %
-            %   v = obj.getLinear(state)  
+            %   v = obj.getLinear(state)
             %           state - 13 by 1 vector platform state
             %           v - 3 by 1 wind velocity vector in body coordinates
             %
-            % Note: if active == 0, a zero vector is returned
-            %  
-            if(obj.active==1)                
-                z = m2ft(-X(3)); %height of the platform from ground
-                w20 = ms2knots(obj.w6);
-                
-                % wind shear
-                if(z>0.05)
-                    vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.direction;
-                else
-                    vmean = zeros(3,1); 
-                end
-                
-                vmeanbody = angle2dcm(X(6),X(5),X(4))*vmean;
-                v = knots2ms(vmeanbody);
+            
+            z = m2ft(-X(3)); %height of the platform from ground
+            w20 = ms2knots(obj.w6);
+            
+            % wind shear
+            if(z>0.05)
+                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.direction;
             else
-                v = zeros(3,1);
+                vmean = zeros(3,1);
             end
+            
+            vmeanbody = angle2dcm(X(6),X(5),X(4))*vmean;
+            v = knots2ms(vmeanbody);
         end
         
         function v = getRotational(~,~)
@@ -86,7 +84,7 @@ classdef WindConstMean<AerodynamicTurbulence
             %
             % Example:
             %
-            %   v = obj.getRotational(state)  
+            %   v = obj.getRotational(state)
             %           state - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %

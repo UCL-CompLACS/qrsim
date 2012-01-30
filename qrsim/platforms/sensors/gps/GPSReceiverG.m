@@ -46,7 +46,6 @@ classdef GPSReceiverG < GPSReceiver
             %
             %   obj=GPSReceiverG(objparams)
             %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
             %                objparams.originutmcoords - coordinates of the local reference frame
             %                objparams.R_SIGMA - receiver noise standard deviation
@@ -125,9 +124,8 @@ classdef GPSReceiverG < GPSReceiver
             global state;
             obj.receivernoise = obj.R_SIGMA*randn(state.rStream,obj.nsv,1);
             
-            if(~isfield(state.environment.gpsspacesegment_,'svspos'))
-                error('In order to run a GPSReceiver needs the corresponding space segment!');
-            end
+            assert(isfield(state.environment.gpsspacesegment_,'svspos'), ...
+                'In order to run a GPSReceiver needs the corresponding space segment!');
             
             if(obj.pastPositions == 0)
                 obj.pastPositions = repmat(X(1:3),1,obj.delay);

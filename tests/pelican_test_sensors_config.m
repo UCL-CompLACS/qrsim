@@ -35,53 +35,43 @@ c.dynNoise = [0;0;0;0;0;0];
 
 % GPS Receiver
 c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
-c.sensors.gpsreceiver.type = 'GPSReceiverG';
-c.sensors.gpsreceiver.dt = params.environment.gpsspacesegment.dt;
-c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
-c.sensors.gpsreceiver.R_SIGMA = 0.002;            % receiver noise standard deviation 
-c.sensors.gpsreceiver.tnsv  = length(params.environment.gpsspacesegment.svs);
-c.sensors.gpsreceiver.originutmcoords = params.environment.area.originutmcoords;
-c.sensors.gpsreceiver.DT = params.DT;
-c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
+% c.sensors.gpsreceiver.type = 'GPSReceiverG';
+% c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
+% c.sensors.gpsreceiver.R_SIGMA = 0.002;            % receiver noise standard deviation 
+% c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 
 % AHARS attitude-heading-altitude reference system (a.k.a. imu + altimeter)
 % dt defined by the minimum dt of the sensors
 c.sensors.ahars.on = 1;  % setting it to 0 is equivalent to disabling all the ones below
 c.sensors.ahars.type = 'AHARSPelican';
-c.sensors.ahars.DT = params.DT;
 
 c.sensors.ahars.accelerometer.on = 1;  % if off the accelerometer returns the noiseless acceleration
 c.sensors.ahars.accelerometer.type = 'AccelerometerG';
 c.sensors.ahars.accelerometer.dt = 0.02;
 c.sensors.ahars.accelerometer.SIGMA = [0.0025;0.0025;0.0025]; % noise standard deviation
-c.sensors.ahars.accelerometer.DT = params.DT;
 
 c.sensors.ahars.gyroscope.on = 1; % if off the gyroscope returns the noiseless rotational velocity
 c.sensors.ahars.gyroscope.type = 'GyroscopeG';
 c.sensors.ahars.gyroscope.dt = 0.02;
 c.sensors.ahars.gyroscope.SIGMA = [0.0002;0.0002;0.0002]; % noise standard deviation
-c.sensors.ahars.gyroscope.DT = params.DT;
 
 c.sensors.ahars.orientationEstimator.on = 1; % if off the estimator returns the noiseless orientation
 c.sensors.ahars.orientationEstimator.type = 'OrientationEstimatorGM';
 c.sensors.ahars.orientationEstimator.dt = 0.02;
 c.sensors.ahars.orientationEstimator.BETA = [1/80;1/80;1/80];       % noise time constant
 c.sensors.ahars.orientationEstimator.SIGMA = [0.003536;0.003536;0.003536];   % noise standard deviation
-c.sensors.ahars.orientationEstimator.DT = params.DT;
    
 c.sensors.ahars.altimeter.on = 1; % if off the altimeter returns the noiseless altitude
 c.sensors.ahars.altimeter.type = 'AltimeterGM';
 c.sensors.ahars.altimeter.dt = 0.02;
 c.sensors.ahars.altimeter.TAU = 1/300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
-c.sensors.ahars.altimeter.DT = params.DT;
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;
-c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
-c.aerodynamicturbulence.dt = c.dt;
-c.aerodynamicturbulence.DT = params.DT;
-c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from ground in m/s
+% c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
+% c.aerodynamicturbulence.dt = c.dt;
+% c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from ground in m/s
 
 % Graphics
 c.graphics.on = params.display3d.on;

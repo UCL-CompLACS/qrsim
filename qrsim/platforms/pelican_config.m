@@ -36,11 +36,8 @@ c.dynNoise = [0.1;0.1;0.1;0.1;0.1;0.1];
 % GPS Receiver
 c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
 c.sensors.gpsreceiver.type = 'GPSReceiverG';
-c.sensors.gpsreceiver.dt = params.environment.gpsspacesegment.dt;
 c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
 c.sensors.gpsreceiver.R_SIGMA = 0.002;             % receiver noise standard deviation 
-c.sensors.gpsreceiver.tnsv  = length(params.environment.gpsspacesegment.svs);
-c.sensors.gpsreceiver.originutmcoords = params.environment.area.originutmcoords;
 c.sensors.gpsreceiver.DT = params.DT;
 c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 

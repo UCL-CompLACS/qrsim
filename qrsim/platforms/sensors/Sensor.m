@@ -18,7 +18,6 @@ classdef Sensor<Steppable
             %
             %   obj=Sensor(objparams)
             %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
             %
             % Note:

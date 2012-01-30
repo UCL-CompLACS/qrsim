@@ -201,7 +201,6 @@ function taskparams=init(obj)
   taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
   taskparams.environment.gpsspacesegment.PR_BETA = 2000; % process tau
   taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746; % process std
-  taskparams.environment.gpsspacesegment.DT = taskparams.DT;
             
   % Wind
   taskparams.environment.wind.on = 0;
@@ -209,7 +208,6 @@ function taskparams=init(obj)
   taskparams.environment.wind.direction = 0; %0 to initilise it randomly
   taskparams.environment.wind.W6 = 0.1;  %speed 6m from ground in m/s
   taskparams.environment.wind.dt = 1;    %not in use
-  taskparams.environment.wind.DT = taskparams.DT;
             
   %%%%% platforms %%%%%
   % Configuration and initial state for each of the platforms
@@ -226,8 +224,7 @@ returns a data structure that contains general fields like the simulator time st
 \begin{itemize}
 \item \texttt{on}, the flag that allows to enable and disable the object in question,
 \item \texttt{dt}, the time step of the object,
-\item \texttt{type}, the class name of the object,
-\item \texttt{DT}, the time step of the simulator.
+\item \texttt{type}, the class name of the object.
 \end{itemize}
 
 The number of sensors and parameters present in a platform would make defining several identical platforms quite cumbersome. For this reason all the platform parameters are specified in a single configuration file (see \texttt{'pelican\_config'}); in this way the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform using the parameter \texttt{taskparams.platforms(1).X} (see line 38).

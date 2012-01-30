@@ -75,7 +75,6 @@ classdef Pelican<Steppable & Platform
             %
             %   obj=Pelican(objparams);
             %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
             %                objparams.aerodynamicturbulence - aerodynamicturbulence parameters
             %                objparams.sensors.ahars - ahrs parameters
@@ -88,6 +87,8 @@ classdef Pelican<Steppable & Platform
             obj=obj@Platform(objparams);
             obj=obj@Steppable(objparams);
             
+            
+            
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
             obj.eX = [objparams.X(1:6); zeros(14,1)];
             obj.valid = 1;
@@ -99,6 +100,7 @@ classdef Pelican<Steppable & Platform
             %instantiation of sensor and wind objects, with some "manual" type checking
             
             % WIND
+            objparams.aerodynamicturbulence.DT = objparams.DT;
             tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
             if(isa(tmp,'AerodynamicTurbulence'))
                 obj.turbulence = tmp;
@@ -107,6 +109,7 @@ classdef Pelican<Steppable & Platform
             end
             
             % AHARS
+            objparams.sensors.ahars.DT = objparams.DT;
             tmp = feval(objparams.sensors.ahars.type,objparams.sensors.ahars);
             if(isa(tmp,'AHARS'))
                 obj.ahars = tmp;
@@ -115,6 +118,7 @@ classdef Pelican<Steppable & Platform
             end
             
             % GPS
+            objparams.sensors.gpsreceiver.DT = objparams.DT;
             tmp = feval(objparams.sensors.gpsreceiver.type,objparams.sensors.gpsreceiver);
             if(isa(tmp,'GPSReceiver'))
                 obj.gpsreceiver = tmp;
@@ -122,6 +126,7 @@ classdef Pelican<Steppable & Platform
                 error('c.sensors.gpsreceiver.type has to extend the class GPSReceiver');
             end
             
+            objparams.graphics.DT = objparams.DT;
             obj.graphics=feval(objparams.graphics.type,objparams.graphics,obj.X);
         end
     end

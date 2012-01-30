@@ -51,9 +51,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %
             %   obj=AerodynamicTurbulenceMILF8785(objparams)
             %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
             %                objparams.on - 1 if the object is active
-            %                objparams.seed - prng seed, random if 0
             %                objparams.W6 - velocity at 6m from ground in m/s
             %
             obj=obj@AerodynamicTurbulence(objparams);

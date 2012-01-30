@@ -23,9 +23,7 @@ classdef AHARSPelican<AHARS
             %
             %   obj = AHARS(objparams)
             %                   objparams.dt - timestep of this object
-            %                   objparams.DT - global simulation timestep
             %                   objparams.on - 1 if the object is active 
-            %                   objparams.seed - prng seed, not used
             %                   objparams.gyroscope - gyroscope parameters
             %                   objparams.accelerometer - accelerometer parameters
             %                   objparams.altimeter - altimeter parameters
@@ -35,7 +33,7 @@ classdef AHARSPelican<AHARS
                            objparams.altimeter.dt, objparams.orientationEstimator.dt]);
                        
             % useless but expected by superclass
-            objparams.seed = 0;
+            %objparams.seed = 0;
             
             obj = obj@AHARS(objparams);
             
@@ -51,6 +49,7 @@ classdef AHARSPelican<AHARS
             %even if obj.active==0 we still need to instantiate the sensor
             %they will simply behave as "transparent"
             
+            objparams.accelerometer.DT = objparams.DT;
             tmp = feval(objparams.accelerometer.type,objparams.accelerometer);            
             if(isa(tmp,'Accelerometer'))
                 obj.accelerometer=tmp;
@@ -58,13 +57,15 @@ classdef AHARSPelican<AHARS
                 error('params.platform.sensors.ahars.accelerometer.type has to extend the class Accelerometer');
             end
             
+            objparams.gyroscope.DT = objparams.DT;
             tmp = feval(objparams.gyroscope.type, objparams.gyroscope);
             if(isa(tmp,'Gyroscope'))
                 obj.gyroscope=tmp;
             else
                 error('params.platform.sensors.ahars.gyroscope.type has to extend the class Gyroscope');
             end
-                        
+            
+            objparams.altimeter.DT = objparams.DT;   
             tmp = feval(objparams.altimeter.type, objparams.altimeter);
             if(isa(tmp,'Altimeter'))
                 obj.altimeter=tmp;
@@ -72,6 +73,7 @@ classdef AHARSPelican<AHARS
                 error('params.platform.sensors.ahars.altimeter.type has to extend the class Altimeter');
             end
             
+            objparams.orientationEstimator.DT = objparams.DT;
             tmp = feval(objparams.orientationEstimator.type,objparams.orientationEstimator);                                         
             if(isa(tmp,'OrientationEstimator'))
                 obj.orientationEstimator=tmp;

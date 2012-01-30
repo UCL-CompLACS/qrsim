@@ -18,7 +18,13 @@ classdef BoxArea<EnvironmentObject
             %                objparams - object parameters
             %
             obj=obj@EnvironmentObject(objparams);
-            obj.graphics=feval(objparams.graphics.type,objparams.limits);            
+            
+            assert(isfield(objparams,'limits'),'The task must define environment.area.limits');
+            assert(isfield(objparams,'originutmcoords'),'The task must define environment.area.originutmcoords');
+            
+            if(objparams.graphics.on)
+                obj.graphics=feval(objparams.graphics.type,objparams.limits);            
+            end
         end
     end
 end

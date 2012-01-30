@@ -1,6 +1,6 @@
 %function [e]=testGPSNoiseModels()
 
-clear all;
+%clear all;
 close all;
 clc;
 e = 1;

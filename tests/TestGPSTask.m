@@ -24,8 +24,8 @@ classdef TestGPSTask<Task
             %%%%% visualization %%%%%
             % 3D display parameters
             taskparams.display3d.on = 0;
-            taskparams.display3d.width = 1000;
-            taskparams.display3d.height = 600;            
+%             taskparams.display3d.width = 1000;
+%             taskparams.display3d.height = 600;            
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
@@ -38,7 +38,7 @@ classdef TestGPSTask<Task
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone =  zone;
             taskparams.environment.area.graphics.on = taskparams.display3d.on;
-            taskparams.environment.area.graphics.type = 'AreaGraphics';
+%            taskparams.environment.area.graphics.type = 'AreaGraphics';
             
             % GPS
             % The
@@ -53,22 +53,18 @@ classdef TestGPSTask<Task
 %             taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
 %             taskparams.environment.gpsspacesegment.PR_BETA = 2000;     % process time constant (from [2])
 %             taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation (from [2])
-%             taskparams.environment.gpsspacesegment.DT = taskparams.DT;
             taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
             taskparams.environment.gpsspacesegment.PR_BETA2 = 4;               % process time constant
             taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;          % process time constant   
             taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;           % process standard deviation            
-            taskparams.environment.gpsspacesegment.DT = taskparams.DT;
             
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
             taskparams.environment.wind.on = 0;
-            taskparams.environment.wind.type = 'WindConstMean';
-            taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
-            taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
-            taskparams.environment.wind.dt = 1;    %not actually used since the model is constant
-            taskparams.environment.wind.DT = taskparams.DT;
+%             taskparams.environment.wind.type = 'WindConstMean';
+%             taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
+%             taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
