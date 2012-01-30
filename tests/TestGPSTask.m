@@ -1,4 +1,4 @@
-classdef TestSensorsTask<Task
+classdef TestGPSTask<Task
     % Simple task used to do sensor testing
     %
     % KeepSpot methods:
@@ -72,7 +72,7 @@ classdef TestSensorsTask<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_test_sensors_config';
+            taskparams.platforms(1).configfile = 'pelican_test_gps_config';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end

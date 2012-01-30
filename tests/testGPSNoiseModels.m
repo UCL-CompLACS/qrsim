@@ -30,7 +30,7 @@ U = [0;0;0.59004353928;0;11];
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TestSensorsTask');
+qrsim.init('TestGPSTask');
 
 disp('Generating data, this will take a while');
 
