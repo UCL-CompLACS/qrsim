@@ -1,24 +1,28 @@
 #include <math.h>
 #include "mex.h"
 
-#define c 6.399593625758674e+06
-#define e2 0.082094437950043
-#define e22 0.006739496742333
-
+#define MAXPOW 6
 #define f    3.35281066474748e-3
-#define a    6378137
-#define n    1.67922038638370e-3
-#define ahat 6.36744914582342e+6
+#define a1   6367449.14582
+#define e  8.181919084262149e-02
+#define e2 6.694379990141316e-03
+#define e2m 0.993305620009859
+#define n_ 1.679220386383705e-03
 #define k0   0.9996
 #define FE   500000
-#define delta1 837.732164060057e-006
-#define delta2 59.0586956793399e-009
-#define delta3 167.348888035485e-012
-#define delta4 216.773776302204e-015
-#define Astar 6.73949672874110e-003
-#define Bstar -53.1439050575023e-006
-#define Cstar 574.891266998559e-009
-#define Dstar -68.2045240928268e-009
+#define FN   10000000
+#define bet1 8.3773216406e-04
+#define bet2 5.9058701522e-08
+#define bet3 1.6734826653e-10
+#define bet4 2.1647980401e-13
+#define bet5 3.7879780462e-16
+#define bet6 7.2487488907e-19
+#define tol_ 1.49011611938e-09
+
+#if !defined(MAX)
+#define    MAX(A, B)    ((A) > (B) ? (A) : (B))
+#endif
+
 
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[] ) {
@@ -52,6 +56,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     plhs[0] = mxCreateDoubleMatrix(3, cols, mxREAL);
     double* lla = mxGetPr(plhs[0]);
     
+    double bet[7] = {0, bet1, bet2, bet3, bet4, bet5, bet6};
+    
     int i;
     
     for(i=0; i<cols; i++){
@@ -60,90 +66,126 @@ void mexFunction( int nlhs, mxArray *plhs[],
             mexPrintf("utm2lla: Warning utmzone should be a vector of strings like 30T, not 30t\n");
         }
         
-        double FN;
-        if (utmzone[2+3*i]>'M'){
-            FN = 0;
-        } else {
-            FN = 10000000;
+        double x=E[i];
+        double y=N[i];
+        
+        x = x -FE;
+        y = (utmzone[2+3*i]>'M') ? y : y-FN;
+        
+        const double zone = (utmzone[3*i]-'0')*10+(utmzone[1+3*i]-'0');
+        const double lon0 = ( ( zone * 6 ) - 183 );
+        
+        
+        double xi = y / (a1*k0);
+        double eta = x / (a1*k0);
+        
+        /* Explicitly enforce the parity*/
+        const int xisign = (xi < 0) ? -1 : 1;
+        const int etasign = (eta < 0) ? -1 : 1;
+        
+        xi = xi*xisign;
+        eta = eta*etasign;
+        
+        int backside = (xi > M_PI/2);
+        
+        if (backside){
+            xi = M_PI - xi;
+        }
+        double c0 = cos(2 * xi);
+        double ch0 = cosh(2 * eta);
+        double s0 = sin(2 * xi);
+        double sh0 = sinh(2 * eta);
+        double ar = 2 * c0 * ch0;
+        double ai = -2 * s0 * sh0;
+        int n = MAXPOW;
+        
+        /* Accumulators for zeta'*/
+        double xip0 = (n & 1 ? -bet[n] : 0);
+        
+        double etap0 = 0;
+        double xip1 = 0;
+        double etap1 = 0;
+        /* Accumulators for dzeta'/dzeta*/
+        double yr0 = (n & 1 ? - 2 * MAXPOW * bet[n--] : 0);
+        
+        double yi0 = 0;
+        double yr1 = 0;
+        double yi1 = 0;
+        while (n>0){
+            xip1  = ar * xip0 - ai * etap0 - xip1 - bet[n];
+            etap1 = ai * xip0 + ar * etap0 - etap1;
+            yr1 = ar * yr0 - ai * yi0 - yr1 - 2 * n * bet[n];
+            yi1 = ai * yr0 + ar * yi0 - yi1;
+            n=n-1;
+            xip0  = ar * xip1 - ai * etap1 - xip0 - bet[n];
+            etap0 = ai * xip1 + ar * etap1 - etap0;
+            yr0 = ar * yr1 - ai * yi1 - yr0 - 2 * n * bet[n];
+            yi0 = ai * yr1 + ar * yi1 - yi0;
+            n=n-1;
         }
         
-        const long double y=E[i];
-        const long double x=N[i];
-        const long double zone = (utmzone[3*i]-'0')*10+(utmzone[1+3*i]-'0');
-        const long double lambda0 = ( ( zone * 6 ) - 183 );
+        ar = s0 * ch0;
+        ai = c0 * sh0;
+        const double xip  = xi  + ar * xip0 - ai * etap0;
+        const double etap = eta + ai * xip0 + ar * etap0;
         
-        const long double xi = (x-FN)/(k0*ahat);
-        const long double eta = (y-FE)/(k0*ahat);
+        /* Convergence and scale for Gauss-Schreiber TM to Gauss-Krueger TM.*/
+        const double s = sinh(etap);
+        const double c = MAX(0, cos(xip)); /* cos(M_PI/2) might be negative*/
+        const double r = hypot(s, c);
+        double lam;
+        double phi;
+        if (r != 0){
+            lam = atan2(s, c);        /* Krueger p 17 (25)*/
+            /* Use Newton's method to solve for tau*/
+            
+            const double taup = sin(xip)/r;
+            /* To lowest order in e^2, taup = (1 - e^2) * tau = _e2m * tau; so use
+             * % tau = taup/_e2m as a starting guess.  Only 1 iteration is needed for
+             * % |lat| < 3.35 deg, otherwise 2 iterations are needed.  If, instead,
+             * % tau = taup is used the mean number of iterations increases to 1.99
+             * % (2 iterations are needed except near tau = 0).*/
+            double tau = taup/e2m;
+            const double stol = tol_ * MAX(1, fabs(taup));
+            
+            int j;
+            for (j = 1; j<=5;j++){
+                double tau1 = hypot(1, tau);
+                const double sig = sinh( e*atanh(e* tau / tau1 ) );
+                const double taupa = hypot(1, sig) * tau - sig * tau1;
+                const double dtau = (taup-taupa)*(1+e2m*tau*tau)/(e2m*tau1*hypot(1, taupa));
+                tau = tau + dtau;
+                if (!(fabs(dtau) >= stol)){
+                    break;
+                }
+            }
+            phi = atan(tau);
+        }else{
+            phi = M_PI/2;
+            lam = 0;
+        }
         
-        const long double  xiprime  =  xi - delta1*sin(2*xi)*cosh(2*eta)-
-                delta2*sin(4*xi)*cosh(4*eta)-
-                delta3*sin(6*xi)*cosh(6*eta)-
-                delta4*sin(8*xi)*cosh(8*eta);
+        double lat = phi / (M_PI/180) * xisign;
+        double lon = lam / (M_PI/180);
         
-        const long double etaprime = eta - delta1*cos(2*xi)*sinh(2*eta)-
-                delta2*cos(4*xi)*sinh(4*eta)-
-                delta3*cos(6*xi)*sinh(6*eta)-
-                delta4*cos(8*xi)*sinh(8*eta);
+        if (backside){
+            lon = 180 - lon;
+        }
+        lon = lon*etasign;
         
-        const long double phistar = asin(sin(xiprime)/cosh(etaprime));
-        
-        const long double deltaLambda = atan(sinh(etaprime)/cos(xiprime));
-        
-        const long double sps = sin(phistar);
-        const long double sps2 = sps*sps;
-        const long double sps4 = sps2*sps2;
-        const long double sps6 = sps2*sps4;
-        
-        const long double phi = phistar + sps*cos(phistar)*(Astar+Bstar*sps2+Cstar*sps4+Dstar*sps6);
-        
-        const long double lat = phi*(180/M_PI);
-        const long double lon = deltaLambda*(180/M_PI) + lambda0;
+        /* Avoid losing a bit of accuracy in lon (assuming lon0 is an integer) */
+        if (lon + lon0 >= 180){
+            lon = lon + lon0 - 360;
+        }else{
+            if (lon + lon0 < -180){
+                lon = lon + lon0 + 360;
+            }else{
+                lon = lon + lon0;
+            }
+        }
         
         lla[3*i] = lat;
         lla[1+3*i] = lon;
         lla[2+3*i] = h[i];
-        
-        
-        /*        double X=E[i]- 500000;
-        double Y=N[i];
- 
-        if (utmzone[2+3*i]>'X' || utmzone[2+3*i]<'C'){
-            mexPrintf("utm2lla: Warning utmzone should be a vector of strings like 30T, not 30t\n");
-        }
- 
-        if (utmzone[2+3*i]<'M'){
-            Y-=10000000;
-        }
- 
-        int zone=(utmzone[3*i]-'0')*10+(utmzone[1+3*i]-'0');
- 
-        double S = ( ( zone * 6 ) - 183 );
-        double lat =  Y / ( 6366197.724 * 0.9996 );
-        double clat = cos(lat);
-        double clat2 = clat * clat;
-        double v = ( c / sqrt( ( 1 + ( e22 * clat2 ) ) ) ) * 0.9996;
-        double a = X / v;
-        double a1 = sin( 2 * lat );
-        double a2 = a1 * clat2;
-        double j2 = lat + ( a1 / 2 );
-        double j4 = ( ( 3 * j2 ) + a2 ) / 4;
-        double j6 = ( ( 5 * j4 ) + ( a2 * clat2) ) / 3;
-        double alpha = ( 3 / 4.0 ) * e22;
-        double beta = ( 5 / 3.0 ) * alpha * alpha;
-        double gamma = ( 35 / 27.0 ) * alpha * alpha* alpha;
-        double Bm = 0.9996 * c * ( lat - alpha * j2 + beta * j4 - gamma * j6 );
-        double b = ( Y - Bm ) / v;
-        double Epsi = ( ( e22 * a*a ) / 2 ) * clat2;
-        double Eps = a * ( 1 - ( Epsi / 3 ) );
-        double nab = ( b * ( 1 - Epsi ) ) + lat;
-        double sineps = ( exp(Eps) - exp(-Eps) ) / 2;
-        double Delt = atan(sineps / (cos(nab) ) );
-        double TaO = atan(cos(Delt) * tan(nab));
- 
-        lla[3*i] = ( lat + ( 1 + e22* clat2 - ( 3 / 2.0 ) * e22 * sin(lat) * clat * ( TaO - lat ) ) * ( TaO - lat ) ) * (180 / M_PI);
-        lla[1+3*i] = (Delt *(180 / M_PI ) ) + S;
-        lla[2+3*i] = h[i];
-         */
     }
-    
 }

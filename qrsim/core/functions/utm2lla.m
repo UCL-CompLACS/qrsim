@@ -36,7 +36,7 @@ e2m = (1 - e2);
 n_ = f/(2-f);
 
 FE = 500000;
-%ahat = (a/(1+n))*(1+(n^2)/4+(n^4)/64);
+
 
 k0 = 0.9996;
 a1 = 6367449.14582;
@@ -45,7 +45,7 @@ maxpow = 6;
 tol_ = 1.49011611938e-09;
 
 nx = n_*n_;
-b1 = 1/(1+n_)*(nx*(nx*(nx+4)+64)+256)/256;
+
 bet(1) = n_*(n_*(n_*(n_*(n_*(384796*n_-382725)-6720)+932400)-1612800)+1209600)/2419200;
 bet(2) = nx*(n_*(n_*((1695744-1118711*n_)*n_-1174656)+258048)+80640)/3870720;
 nx = nx*n_;
@@ -56,7 +56,6 @@ nx = nx*n_;
 bet(5) = (453717-435388*n_)*nx/15966720;
 nx = nx*n_;
 bet(6) = 20648693*nx/638668800;
-
 
 % Memory pre-allocation
 %
@@ -70,12 +69,6 @@ for i=1:n1
     if (utmzone(3,i)>'X' || utmzone(3,i)<'C')
         error('utm2lla: utmzone should be a vector of strings like "30T"\n');
     end
-    
-    %    if (utmzone(3,i)>'M')
-    %       hemis='N';   % Northern hemisphere
-    %    else
-    %       hemis='S';
-    %    end
     
     if (utmzone(3,i)>'M')
         FN = 0;
@@ -143,24 +136,13 @@ for i=1:n1
         yi0 = ai * yr1 + ar * yi1 - yi0;
         n=n-1;
     end
-    ar = ar/2;
-    ai = ai/2;           % cos(2*zeta')
-    yr1 = 1 - yr1 + ar * yr0 - ai * yi0;
-    yi1 =   - yi1 + ai * yr0 + ar * yi0;
     ar = s0 * ch0;
-    ai = c0 * sh0; % sin(2*zeta)
+    ai = c0 * sh0; 
     xip  = xi  + ar * xip0 - ai * etap0;
     etap = eta + ai * xip0 + ar * etap0;
     % Convergence and scale for Gauss-Schreiber TM to Gauss-Krueger TM.
-    gamma = atan2(yi1, yr1);
-    k = b1 / hypot(yr1, yi1);
-    % JHS 154 has
-    %
-    %   phi' = asin(sin(xi') / cosh(eta')) (Krueger p 17 (25))
-    %   lam = asin(tanh(eta') / cos(phi')
-    %   psi = asinh(tan(phi'))
     s = sinh(etap);
-    c = max(real(0), cos(xip)); % cos(pi/2) might be negative
+    c = max(0, cos(xip)); % cos(pi/2) might be negative
     r = hypot(s, c);
     if (r ~= 0)
         lam = atan2(s, c);        % Krueger p 17 (25)
@@ -186,13 +168,9 @@ for i=1:n1
             end
         end
         phi = atan(tau);
-        gamma = gamma + atan(tan(xip) * tanh(etap)); %% Krueger p 19 (31)
-        %Note cos(phi') * cosh(eta') = r
-        k = k*sqrt(e2m + e2 * cos(phi)^2) *hypot(1, tau) * r;
     else
         phi = pi/2;
         lam = 0;
-        k = k*c;
     end
     lat = phi / (pi/180) * xisign;
     lon = lam / (pi/180);
@@ -200,6 +178,7 @@ for i=1:n1
         lon = 180 - lon;
     end
     lon = lon*etasign;
+    
     % Avoid losing a bit of accuracy in lon (assuming lon0 is an integer)
     if (lon + lon0 >= 180)
         lon = lon + lon0 - 360;
@@ -209,96 +188,7 @@ for i=1:n1
             lon = lon + lon0;
         end
     end
-    gamma = gamma / (pi/180);
-    if (backside)
-        gamma = 180 - gamma;
-    end
-    gamma = gamma * xisign * etasign;
-    k = k*k0;
     
     lla(:,i)=[lat;lon;h(i)];
-    
-    %    xi = (x-FN)/(k0*ahat);
-    %    eta = (y-FE)/(k0*ahat);
-    %
-    %    delta1 = (1/2)*n-(2/3)*n^2+(37/96)*n^3-(1/360)*n^4-(81/512)*n^5+(96199/604800)*n^6;
-    %    delta2 = (1/48)*n^2+(1/15)*n^3-(437/1440)*n^4+(46/105)*n^5-(1118711/3870720)*n^6;
-    %    delta3 = (17/480)*n^3-(37/840)*n^4-(209/4480)*n^5+(5569/90720)*n^6;
-    %    delta4 = (4397/161280)*n^4-(11/504)*n^5-(830251/7257600)*n^6;
-    %    delta5 = (4583/161280)*n^5-(108847/3991680)*n^6;
-    %    delta6 = (20648693/638668800)*n^6;
-    %
-    %    xiprime  =  xi - delta1*sin(2*xi)*cosh(2*eta)- ...
-    %                     delta2*sin(4*xi)*cosh(4*eta)- ...
-    %                     delta3*sin(6*xi)*cosh(6*eta)- ...
-    %                     delta4*sin(8*xi)*cosh(8*eta)- ...
-    %                     delta5*sin(10*xi)*cosh(10*eta)- ...
-    %                     delta6*sin(12*xi)*cosh(12*eta);
-    %
-    %    etaprime = eta - delta1*cos(2*xi)*sinh(2*eta)- ...
-    %                     delta2*cos(4*xi)*sinh(4*eta)- ...
-    %                     delta3*cos(6*xi)*sinh(6*eta)- ...
-    %                     delta4*cos(8*xi)*sinh(8*eta)- ...
-    %                     delta5*cos(10*xi)*sinh(10*eta)- ...
-    %                     delta6*cos(12*xi)*sinh(12*eta);
-    %
-    %    phistar = asin(sin(xiprime)/cosh(etaprime));
-    %
-    %    deltaLambda = atan(sinh(etaprime)/cos(xiprime));
-    %
-    %
-    %    Astar = e2+e2^2+e2^3+e2^4;
-    %    Bstar = (-1/6)*(7*e2^2+17*e2^3+30*e2^4);
-    %    Cstar = (1/120)*(224*e2^3+889*e2^4);
-    %    Dstar = (-1/126)*(4279*e2^4);
-    %
-    %    phi = phistar + sin(phistar)*cos(phistar)*(Astar+Bstar*sin(phistar)^2+Cstar*sin(phistar)^4+Dstar*sin(phistar)^6);
-    %
-    %    lat = phi*(180/pi);
-    %    lon = deltaLambda*(180/pi) + lambda0;
-    %
-    %    lla(:,i)=[lat;lon;h(i)];
-    
-    %    sa = 6378137.000000 ; sb = 6356752.314245;
-    %
-    %    e2 = ( ( ( sa ^ 2 ) - ( sb ^ 2 ) ) ^ 0.5 ) / sb;
-    %    e2squared = e2 ^ 2;
-    %    c = ( sa ^ 2 ) / sb;
-    %
-    %    X = x - 500000;
-    %
-    %    if hemis == 'S' || hemis == 's'
-    %        Y = y - 10000000;
-    %    else
-    %        Y = y;
-    %    end
-    %
-    %
-    %    S = ( ( zone * 6 ) - 183 );
-    %    lat =  Y / ( 6366197.724 * 0.9996 );
-    %    v = ( c / ( ( 1 + ( e2squared * ( cos(lat) ) ^ 2 ) ) ) ^ 0.5 ) * 0.9996;
-    %    a = X / v;
-    %    a1 = sin( 2 * lat );
-    %    a2 = a1 * ( cos(lat) ) ^ 2;
-    %    j2 = lat + ( a1 / 2 );
-    %    j4 = ( ( 3 * j2 ) + a2 ) / 4;
-    %    j6 = ( ( 5 * j4 ) + ( a2 * ( cos(lat) ) ^ 2) ) / 3;
-    %    alpha = ( 3 / 4 ) * e2squared;
-    %    beta = ( 5 / 3 ) * alpha ^ 2;
-    %    gamma = ( 35 / 27 ) * alpha ^ 3;
-    %    Bm = 0.9996 * c * ( lat - alpha * j2 + beta * j4 - gamma * j6 );
-    %    b = ( Y - Bm ) / v;
-    %    Epsi = ( ( e2squared * a^ 2 ) / 2 ) * ( cos(lat) )^ 2;
-    %    Eps = a * ( 1 - ( Epsi / 3 ) );
-    %
-    %    nab = ( b * ( 1 - Epsi ) ) + lat;
-    %    sinheps = ( exp(Eps) - exp(-Eps) ) / 2;
-    %    Delt = atan(sinheps / (cos(nab) ) );
-    %    TaO = atan(cos(Delt) * tan(nab));
-    %    longitude = (Delt *(180 / pi ) ) + S;
-    %    latitude = ( lat + ( 1 + e2squared* (cos(lat)^ 2) - ( 3 / 2 ) * e2squared *...
-    %        sin(lat) * cos(lat) * ( TaO - lat ) ) * ( TaO - lat ) ) * (180 / pi);
-    %
-    %   lla(:,i)=[latitude;longitude;h(i)];
     
 end

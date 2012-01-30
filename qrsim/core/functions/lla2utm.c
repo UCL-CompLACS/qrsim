@@ -1,24 +1,25 @@
 #include <math.h>
 #include "mex.h"
 
-#define c    6.399593625758674e+6
-#define e2   0.082094437950043
-#define e22  0.006739496742333
-
-#define f    (3.35281066474748e-3)
-#define a    6378137
-#define A    (6.69437999014132e-3)
-#define B    (37.2956017456798e-006)
-#define C    (259.252748095067e-009)
-#define D    (1.97169890868957e-009)
-#define n    (1.67922038638370e-3)
-#define beta1   (837.731820630353e-006)
-#define beta2   (760.852771424900e-009)
-#define beta3 (1.20933757363281e-009)
-#define beta4 (2.44337619452206e-012)
-#define ahat (6.36744914582342e+6)
+#define MAXPOW 6
+#define f    3.35281066474748e-3
+#define a1   6367449.14582
+#define e  8.181919084262149e-02
+#define e2 6.694379990141316e-03
+#define n_ 1.679220386383705e-03
 #define k0   0.9996
-#define FE   500000 
+#define FE   500000
+#define FN   10000000
+#define alp1 8.377318206244698e-04
+#define alp2 7.608527773572309e-07
+#define alp3 1.197645503329453e-09
+#define alp4 2.429170607201359e-12
+#define alp5 5.711757677865804e-15
+#define alp6 1.491117731258390e-17
+
+#if !defined(MAX)
+#define    MAX(A, B)    ((A) > (B) ? (A) : (B))
+#endif
 
 char getLetter(double la){
     
@@ -67,107 +68,132 @@ void mexFunction( int nlhs, mxArray *plhs[],
     double* lla = mxGetPr(prhs[0]);
     
     /* Create a matrix for the return argument */
-    plhs[0] = mxCreateDoubleMatrix(1,cols, mxREAL);
-    plhs[1] = mxCreateDoubleMatrix(1,cols, mxREAL);
+    plhs[0] = mxCreateDoubleMatrix(1, cols, mxREAL);
+    plhs[1] = mxCreateDoubleMatrix(1, cols, mxREAL);
     int dims[2]={rows, 1};
     plhs[2] = mxCreateCharArray(2, dims);
-    plhs[3] = mxCreateDoubleMatrix(1,cols, mxREAL);
+    plhs[3] = mxCreateDoubleMatrix(1, cols, mxREAL);
     double* E = mxGetPr(plhs[0]);
     double* N = mxGetPr(plhs[1]);
     mxChar* utmzone = mxGetChars(plhs[2]);
     double* h = mxGetPr(plhs[3]);
     
+    double alp[7] = {0,alp1,alp2,alp3,alp4,alp5,alp6};
+    
     int i;
     
     for(i=0; i<cols; i++){
         
-        const long double la=lla[i*3];
-        const long double lo=lla[1+i*3];
+        double lat=lla[i*3];
+        double lon=lla[1+i*3];
         
-        char letter = getLetter(la);
-
-        if ((la < -90)||(la > 90)) {
+        char letter = getLetter(lat);
+        
+        if ((lat < -90)||(lat > 90)) {
             mexErrMsgTxt("Invalid WGS84 latitude. \n");
         }
         
-        if ((lo < -180)||(lo > 180)) {
+        if ((lon < -180)||(lon > 180)) {
             mexErrMsgTxt("Invalid WGS84 longitude.\n");
         }
         
-        const long double FN = (la>0) ? 0 : 10000000;
+        int zone = (int)((lon/6)+31);
+        int lon0 = ((zone*6) - 183);
         
-        const long double lat = la * ( M_PI / 180 );
-        const long double lon = lo * ( M_PI / 180 );
-   
-        const long double sl = sin(lat);
-        const long double sl2 = sl*sl;
-        const long double sl4 = sl2*sl2;
-        const long double sl6 = sl2*sl4;
-
-        const long double phistar = lat - sl*cos(lat)*(A+B*sl2+C*sl4+D*C*sl6);
-        /*mexPrintf("phistar: %6.10f \n",phistar);*/
-              
-        int zone = (int)( ( lo / 6 ) + 31);
-        const long double lambda0 = ( ( zone * 6 ) - 183 );
-        const long double deltaLambda = lon - ( lambda0 * ( M_PI / 180 ) );
+        /*Avoid losing a bit of accuracy in lon (assuming lon0 is an integer)*/
+        if (lon - lon0 > 180){
+            lon = lon - (lon0 + 360);
+        } else {
+            if ((lon - lon0) <= -180){
+                lon = lon -(lon0 - 360);
+            }else{
+                lon = lon - lon0;
+            }
+        }
+        /*Now lon in (-180, 180]*/
+        /*Explicitly enforce the parity*/
+        int latsign = (lat < 0) ? -1 : 1;
+        int lonsign = (lon < 0) ? -1 : 1;
         
-        /* mexPrintf("deltaLambda: %6.10f \n",deltaLambda);  */
+        lon = lon*lonsign;
+        lat = lat*latsign;
         
-        const long double xiprime = atan(tan(phistar)/cos(deltaLambda));
-        const long double etaprime = atanh(cos(phistar)*sin(deltaLambda));
-        
-        /*mexPrintf("xiprime: %6.10f etaprime: %6.10f \n",xiprime,etaprime);*/
-        
-        const long double x = k0*ahat*(xiprime+beta1*sin(2*xiprime)*cosh(2*etaprime)+
-                            beta2*sin(4*xiprime)*cosh(4*etaprime)+
-                            beta3*sin(6*xiprime)*cosh(6*etaprime)+
-                            beta4*sin(8*xiprime)*cosh(8*etaprime)) + FN;
-            
-        const long double y = k0*ahat*(etaprime+beta1*cos(2*xiprime)*sinh(2*etaprime)+
-                            beta2*cos(4*xiprime)*sinh(4*etaprime)+
-                            beta3*cos(6*xiprime)*sinh(6*etaprime)+
-                            beta4*cos(8*xiprime)*sinh(8*etaprime)) + FE;    
-        
-/*      int zone = (int)((lo/6) + 31);
-        double S = ( ( zone * 6 ) - 183 );
-        double deltaS = lon -  ( S * ( M_PI / 180 ) );
-        
-        char letter = getLetter(la);
-        
-        double clat = cos(lat);
-        double clat2 = clat*clat;
-        double a = clat * sin(deltaS);
-        double epsilon = 0.5 * log( ( 1 +  a) / ( 1 - a ) );
-        double nu = atan( tan(lat) / cos(deltaS) ) - lat;
-        
-        double v = (c / sqrt(( 1 + ( e22 * clat2 ) ))) * 0.9996;
-        double ta = ( e22 / 2.0 ) * epsilon * epsilon * clat2;
-        double a1 = sin( 2 * lat );
-        double a2 = a1 * clat2;
-        double j2 = lat + ( a1 / 2.0 );
-        double j4 = ( ( 3 * j2 ) + a2 ) / 4.0;
-        double j6 = ( ( 5 * j4 ) + ( a2 * clat2) ) / 3.0;
-        double alpha = ( 3.0 / 4.0 ) * e22;
-        double beta = ( 5.0 / 3.0 ) * alpha * alpha;
-        double gamma = ( 35.0 / 27.0 ) * alpha * alpha* alpha;
-        double Bm = 0.9996 * c * ( lat - alpha * j2 + beta * j4 - gamma * j6 );
-        double xx = epsilon * v * ( 1 + ( ta / 3.0 ) ) + 500000;
-        double yy = nu * v * ( 1 + ta ) + Bm;
-        
-        if (yy<0){
-            yy=9999999+yy;
+        int backside = (lon > 90);
+        if (backside){
+            if (lat == 0){
+                latsign = -1;
+            }
+            lon = 180 - lon;
         }
         
-        E[i]=xx;
-        N[i]=yy;
- */
-        E[i]=y;
-        N[i]=x;
-                
+        double phi = lat * M_PI/180;
+        double lam = lon * M_PI/180;
+        
+        double xip;
+        double etap;
+        
+        if (lat != 90){
+            const double c = MAX(0, cos(lam)); /*cos(M_PI/2) might be negative*/
+            const double tau = tan(phi);
+            const double secphi = hypot(1, tau);
+            const double sig = sinh(e*atanh(e*tau / secphi));
+            const double taup = hypot(1, sig) * tau - sig * secphi;
+            xip = atan2(taup, c);
+            etap =asinh(sin(lam) / hypot(taup, c));
+        }else{
+            xip = M_PI/2;
+            etap = 0;
+        }
+        const double c0 = cos(2 * xip);
+        const double ch0 = cosh(2 * etap);
+        const double s0 = sin(2 * xip);
+        const double sh0 = sinh(2 * etap);
+        double ar = 2 * c0 * ch0;
+        double ai = -2 * s0 * sh0; /*2 * cos(2*zeta')*/
+        
+        int n = MAXPOW;
+        double xi0 = (n & 1 ? alp[n] : 0);
+        double eta0 = 0;
+        double xi1 = 0;
+        double eta1 = 0;
+        
+        /*Accumulators for dzeta/dzeta'*/
+        double yr0 = (n & 1 ? 2 * MAXPOW * alp[n--] : 0);
+        double yi0 = 0;
+        double yr1 = 0;
+        double yi1 = 0;
+        
+        while (n>0){
+            xi1  = ar * xi0 - ai * eta0 - xi1 + alp[n];
+            eta1 = ai * xi0 + ar * eta0 - eta1;
+            yr1 = ar * yr0 - ai * yi0 - yr1 + 2 * n * alp[n];
+            yi1 = ai * yr0 + ar * yi0 - yi1;
+            n = n-1;
+
+            xi0  = ar * xi1 - ai * eta1 - xi0 + alp[n];
+            eta0 = ai * xi1 + ar * eta1 - eta0;
+            yr0 = ar * yr1 - ai * yi1 - yr0 + 2 * n * alp[n];
+            yi0 = ai * yr1 + ar * yi1 - yi0;
+            n=n-1;
+        }
+        ar = s0 * ch0;
+        ai = c0 * sh0;
+
+        const double xi  = xip  + ar * xi0 - ai * eta0;
+        const double eta = etap + ai * xi0 + ar * eta0;
+        
+        double y = a1 * k0 * (backside ? M_PI - xi : xi) * latsign;
+        double x = a1 * k0 * eta * lonsign;
+
+        x = x+ FE;
+        y = (y>0) ? y : y+FN;
+        
+        E[i] = x;
+        N[i]=y;
         utmzone[i*3]= (char)((zone/10) +'0');
         utmzone[1+i*3]= (char)((zone%10) +'0');
         utmzone[2+i*3]= (char)(letter);
         h[i]=lla[2+i*3];
     }
-
+    
 }

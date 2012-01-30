@@ -118,17 +118,42 @@ tollla = [1e-11;1e-11;1e-7];
 existslla2utm = exist(['lla2utm.',mexext],'file');
 existsutm2lla = exist(['utm2lla.',mexext],'file');
 if(existslla2utm)
-%    delete(['lla2utm.',mexext]);
+    delete(['lla2utm.',mexext]);
 end
 
 if(existsutm2lla)
-%    delete(['utm2lla.',mexext]);
+    delete(['utm2lla.',mexext]);
 end
 
 cd('..');
 cd('functions');
 
 % testing lla to utm MATLAB  conversions
+wt = 1;
+
+for lat = -86:8:86, %chosen to fall in the middle of a zone
+    for lon = -177:6:177, %chosen to fall in the middle of a zone
+        for h = 0:10:100,
+            inlla = [lat;lon;h];
+            [E,N,utmzone,H] = lla2utm(inlla);
+            outlla = utm2lla(E,N,utmzone,H);
+            
+            wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
+        end
+    end
+    fprintf('.');
+end
+
+e = e || ~wt;
+
+fprintf('\ntest of MATLAB lla2utm and utm2lla [%s]\n',wtToFailPass(wt));
+
+% compile and cross test lla2utm
+mex lla2utm.c
+
+cd('..');
+cd('functions');
+
 wt = 1;
 
 for lat = -78:8:78, %chosen to fall in the middle of a zone
@@ -146,68 +171,43 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MATLAB lla2utm and utm2lla [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MEX lla2utm [%s]\n',wtToFailPass(wt));
 
-% % compile and cross test lla2utm
-% mex lla2utm.c
-% 
-% cd('..');
-% cd('functions');
-% 
-% wt = 1;
-% 
-% for lat = -78:8:78, %chosen to fall in the middle of a zone
-%     for lon = -177:6:177, %chosen to fall in the middle of a zone
-%         for h = 0:10:100,
-%             inlla = [lat;lon;h];
-%             [E,N,utmzone,H] = lla2utm(inlla);
-%             outlla = utm2lla(E,N,utmzone,H);
-%             
-%             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
-%         end
-%     end
-%     fprintf('.');
-% end
-% 
-% e = e || ~wt;
-% 
-% fprintf('\ntest of MEX lla2utm [%s]\n',wtToFailPass(wt));
-% 
-% % compile and cross test utm2lla
-% delete(['lla2utm.',mexext]);
-% mex utm2lla.c
-% 
-% cd('..');
-% cd('functions');
-% 
-% wt = 1;
-% 
-% for lat = -78:8:78, %chosen to fall in the middle of a zone
-%     for lon = -177:6:177, %chosen to fall in the middle of a zone
-%         for h = 0:10:100,
-%             inlla = [lat;lon;h];
-%             [E,N,utmzone,H] = lla2utm(inlla);
-%             outlla = utm2lla(E,N,utmzone,H);
-%             
-%             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
-%         end
-%     end
-%     fprintf('.');
-% end
-% 
-% e = e || ~wt;
-% 
-% fprintf('\ntest of MEX utm2lla [%s]\n',wtToFailPass(wt));
-% 
-% % put back things as they were
-% if(~existsutm2lla)
-%     delete(['utm2lla.',mexext]);
-% end
-% if(existslla2utm)
-%     mex 'lla2utm.c'
-% end
-% 
-% 
+% compile and cross test utm2lla
+delete(['lla2utm.',mexext]);
+mex utm2lla.c
+
+cd('..');
+cd('functions');
+
+wt = 1;
+
+for lat = -78:8:78, %chosen to fall in the middle of a zone
+    for lon = -177:6:177, %chosen to fall in the middle of a zone
+        for h = 0:10:100,
+            inlla = [lat;lon;h];
+            [E,N,utmzone,H] = lla2utm(inlla);
+            outlla = utm2lla(E,N,utmzone,H);
+            
+            wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
+        end
+    end
+    fprintf('.');
+end
+
+e = e || ~wt;
+
+fprintf('\ntest of MEX utm2lla [%s]\n',wtToFailPass(wt));
+
+% put back things as they were
+if(~existsutm2lla)
+    delete(['utm2lla.',mexext]);
+end
+if(existslla2utm)
+    mex 'lla2utm.c'
+end
+
+
 % tolned = [1e-8;1e-8;1e-8];
 % 
 % %%% ned to ecef

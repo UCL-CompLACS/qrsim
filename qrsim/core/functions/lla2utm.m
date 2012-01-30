@@ -34,7 +34,7 @@ f = 1/298.257223563;
 
 e2 = f*(2-f);
 e = sqrt(abs(e2));
-e2m = (1 - e2);
+%e2m = (1 - e2);
 
 n_ = f/(2-f);
 
@@ -47,7 +47,7 @@ maxpow = 6;
 
 
 nx = n_*n_;
-b1 = 1/(1+n_)*(nx*(nx*(nx+4)+64)+256)/256;
+%b1 = 1/(1+n_)*(nx*(nx*(nx+4)+64)+256)/256;
 alp(1) = n_*(n_*(n_*(n_*(n_*(31564*n_-66675)+34440)+47250)-100800)+75600)/151200;
 alp(2) = nx*(n_*(n_*((863232-1983433*n_)*n_+748608)-1161216)+524160)/1935360;
 nx = nx*n_;
@@ -103,18 +103,18 @@ for i=1:n2
     if (lat ~= 90)
         c = max([0,cos(lam)]); % cos(pi/2) might be negative
         tau = tan(phi);
-        secphi = hypot(real(1), tau);
+        secphi = hypot(1, tau);
         sig = sinh(e*atanh(e*tau / secphi));
         taup = hypot(1, sig) * tau - sig * secphi;
         xip = atan2(taup, c);
         etap =asinh(sin(lam) / hypot(taup, c));
-        gamma = atan(tan(lam) * taup / hypot(1, taup)); % Krueger p 22 (44)
-        k = sqrt(e2m + e2 * cos(phi)^2) * secphi / hypot(taup, c);
+        %gamma = atan(tan(lam) * taup / hypot(1, taup)); % Krueger p 22 (44)
+        %k = sqrt(e2m + e2 * cos(phi)^2) * secphi / hypot(taup, c);
     else
         xip = pi/2;
         etap = 0;
-        gamma = lam;
-        k = sqrt( (1 + e)^(1 + e) * (1 - e)^(1 - e));
+        %gamma = lam;
+        %k = sqrt( (1 + e)^(1 + e) * (1 - e)^(1 - e));
     end
     c0 = cos(2 * xip); ch0 = cosh(2 * etap);
     s0 = sin(2 * xip); sh0 = sinh(2 * etap);
@@ -154,18 +154,20 @@ for i=1:n2
         n=n-1;
         % fprintf('c) n=%d\n',n);
     end
-    ar = ar/2; ai = ai/2;           % cos(2*zeta')
-    yr1 = 1 - yr1 + ar * yr0 - ai * yi0;
-    yi1 =   - yi1 + ai * yr0 + ar * yi0;
-    ar = s0 * ch0; ai = c0 * sh0; % sin(2*zeta')
+    %ar = ar/2;
+    %ai = ai/2;           % cos(2*zeta')
+    %yr1 = 1 - yr1 + ar * yr0 - ai * yi0;
+    %yi1 =   - yi1 + ai * yr0 + ar * yi0;
+    ar = s0 * ch0;
+    ai = c0 * sh0; % sin(2*zeta')
     
     xi  = xip  + ar * xi0 - ai * eta0;
     eta = etap + ai * xi0 + ar * eta0;
     % Fold in change in convergence and scale for Gauss-Schreiber TM to
     % Gauss-Krueger TM.
-    gamma = gamma - atan2(yi1, yr1);
-    k = k*b1 * hypot(yr1, yi1);
-    gamma = gamma/(pi/180);
+    %gamma = gamma - atan2(yi1, yr1);
+    %k = k*b1 * hypot(yr1, yi1);
+    %gamma = gamma/(pi/180);
     
     if(backside)
         y = a1 * k0 * (pi - xi) * latsign;
@@ -173,13 +175,12 @@ for i=1:n2
         y = a1 * k0 * xi * latsign;
     end
     x = a1 * k0 * eta * lonsign;
-    if (backside)
-        gamma = 180 - gamma;
-    end
-    gamma = gamma*latsign * lonsign;
-    k = k*k0;
+    %if (backside)
+    %    gamma = 180 - gamma;
+    %end
+    %gamma = gamma*latsign * lonsign;
+    %k = k*k0;
     
-
     if(y>0)
         FN = 0;
     else
@@ -189,63 +190,6 @@ for i=1:n2
     x= x+ FE;
     y= y+ FN;
     
-    %     lat = la * ( pi / 180 );
-    %     lon = lo * ( pi / 180 );
-    %
-    %     FE = 500000;
-    %
-    %     if(lat>0)
-    %         FN = 0;
-    %     else
-    %         FN = 10000000;
-    %     end
-    %
-    %     A = e2;
-    %     B = (1/6)*(5*e2^2-e2^3);
-    %     C = (1/120)*(104*e2^3-45*e2^4);
-    %     D = (1/1260)*(1237*e2^4);
-    %
-    %     phistar = lat - sin(lat)*cos(lat)*(A+B*sin(lat)^2+C*sin(lat)^4+D*C*sin(lat)^6);
-    %
-    %     beta1 = (1/2)*n-(2/3)*n^2+(5/16)*n^3+(41/180)*n^4-(127/288)*n^5+(7891/37800)*n^6;
-    %     beta2 = (13/48)*n^2-(3/5)*n^3+(557/1440)*n^4+(281/630)*n^5-(1983433/1935360)*n^6;
-    %     beta3 = (61/240)*n^3+(103/140)*n^4+(15061/26880)*n^5+(167603/181440)*n^6;
-    %     beta4 = (49561/161280)*n^4-(179/168)*n^5+(6601661/7257600)*n^6;
-    %     beta5 = (34729/80640)*n^5-(3418889/1995840)*n^6;
-    %     beta6 = (212378941/319334400)*n^6;
-    %
-    %     zone = fix( ( lo / 6 ) + 31);
-    %     lambda0 = ( ( zone * 6 ) - 183 );
-    %     deltaLambda = lon - ( lambda0 * ( pi / 180 ) );
-    %
-    %     xiprime = atan(tan(phistar)/cos(deltaLambda));
-    %     etaprime = atanh(cos(phistar)*sin(deltaLambda));
-    %
-    %     x = k0*ahat*(xiprime+...
-    %         beta1*sin(2*xiprime)*cosh(2*etaprime)+...
-    %         beta2*sin(4*xiprime)*cosh(4*etaprime)+...
-    %         beta3*sin(6*xiprime)*cosh(6*etaprime)+...
-    %         beta4*sin(8*xiprime)*cosh(8*etaprime)+...
-    %         beta5*sin(10*xiprime)*cosh(10*etaprime)+...
-    %         beta6*sin(12*xiprime)*cosh(12*etaprime)) + FN;
-    %
-    %     y = k0*ahat*(etaprime+...
-    %         beta1*cos(2*xiprime)*sinh(2*etaprime)+...
-    %         beta2*cos(4*xiprime)*sinh(4*etaprime)+...
-    %         beta3*cos(6*xiprime)*sinh(6*etaprime)+...
-    %         beta4*cos(8*xiprime)*sinh(8*etaprime)+...
-    %         beta5*cos(10*xiprime)*sinh(10*etaprime)+...
-    %         beta6*cos(12*xiprime)*sinh(12*etaprime)) + FE;
-    
-    %    sa = 6378137.000000 ; sb = 6356752.314245;
-    %
-    %    e2 = ( ( ( sa ^ 2 ) - ( sb ^ 2 ) ) ^ 0.5 ) / sb;
-    %    e2squared = e2 ^ 2;
-    %    c = ( sa ^ 2 ) / sb;
-    %
-    %    zone = fix( ( lo / 6 ) + 31);
-    %    S = ( ( zone * 6 ) - 183 );
-    %    deltaS = lon - ( S * ( pi / 180 ) );
     lat = lat*latsign;
     if (lat<-72), letter='C';
     elseif (lat<-64), letter='D';
@@ -269,29 +213,6 @@ for i=1:n2
     else letter='X';
     end
     
-    %    a = cos(lat) * sin(deltaS);
-    %    epsilon = 0.5 * log( ( 1 +  a) / ( 1 - a ) );
-    %    nu = atan( tan(lat) / cos(deltaS) ) - lat;
-    %    v = ( c / ( ( 1 + ( e2squared * ( cos(lat) ) ^ 2 ) ) ) ^ 0.5 ) * 0.9996;
-    %    ta = ( e2squared / 2 ) * epsilon ^ 2 * ( cos(lat) ) ^ 2;
-    %    a1 = sin( 2 * lat );
-    %    a2 = a1 * ( cos(lat) ) ^ 2;
-    %    j2 = lat + ( a1 / 2 );
-    %    j4 = ( ( 3 * j2 ) + a2 ) / 4;
-    %    j6 = ( ( 5 * j4 ) + ( a2 * ( cos(lat) ) ^ 2) ) / 3;
-    %    alpha = ( 3 / 4 ) * e2squared;
-    %    beta = ( 5 / 3 ) * alpha ^ 2;
-    %    gamma = ( 35 / 27 ) * alpha ^ 3;
-    %    Bm = 0.9996 * c * ( lat - alpha * j2 + beta * j4 - gamma * j6 );
-    %    xx = epsilon * v * ( 1 + ( ta / 3 ) ) + 500000;
-    %    yy = nu * v * ( 1 + ta ) + Bm;
-    %
-    %    if (yy<0)
-    %        yy=9999999+yy;
-    %    end
-    
-    %  E(i)=xx;
-    %  N(i)=yy;
     E(i)=x;
     N(i)=y;
     utmzone(:,i)=sprintf('%02d%c',zone,letter);
