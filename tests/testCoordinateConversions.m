@@ -1,5 +1,7 @@
 function [e] = testCoordinateConversions()
 
+addpath('conversions');
+
 % returns 0 if no errors
 
 fprintf('this unit test will take a while...\n');
@@ -394,5 +396,7 @@ if(f)
 else
     s='FAILED';
 end
+
+rmpath('conversions');
 
 end

@@ -1,5 +1,7 @@
 function [e]=testSensorsNoiseModels()
 
+addpath('sensors');
+
 clear all;
 close all;
 clc;
@@ -109,4 +111,8 @@ if((abs(mu) > MEANTOL) || ...
     else
         fprintf('altimeter noise as expected, test: [PASSED]\n');
         e = e && 0; 
+end
+
+rmpath('sensors');
+
 end

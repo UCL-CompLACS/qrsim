@@ -8,7 +8,7 @@ classdef Wind<Steppable
     %    update([])                 - no computation
     %
     
-    methods (Sealed)
+    methods 
         function obj = Wind(objparams)
             % constructs the object and sets its main fields
             %
@@ -20,7 +20,7 @@ classdef Wind<Steppable
             obj=obj@Steppable(objparams);
                 
         end
-        
+  
         function v = getLinear(obj,~)
             % returns always zero.
             %
@@ -46,7 +46,7 @@ classdef Wind<Steppable
         end
     end
     
-    methods  (Sealed, Access=protected)
+    methods (Access=protected)
         function obj = update(obj, ~)
             % no updates are carries out.
             %

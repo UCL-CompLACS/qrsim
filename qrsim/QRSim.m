@@ -69,9 +69,11 @@ classdef QRSim<handle
             state.t = 0;
             
             % simulation timestep
+            assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
             state.DT = obj.par.DT;
             
             % random number generator stream
+            assert(isfield(obj.par,'seed'),'qrsim:noseed','the task must define a seed');
             if(obj.par.seed~=0)
                 state.rStream = RandStream('mt19937ar','Seed',obj.par.seed);
             else
@@ -81,11 +83,11 @@ classdef QRSim<handle
             %%% instantiates the objects that are part of the environment
             
             % 3D visualization
-            assert(isfield(obj.par.display3d,'on'),'the task must define display3d.on');
+            assert(isfield(obj.par,'display3d')&&isfield(obj.par.display3d,'on'),'qrsim:nodisplay3d','the task must define display3d.on');
             if (obj.par.display3d.on == 1)
                 
                 assert((isfield(obj.par.display3d,'width')&&isfield(obj.par.display3d,'height')),...
-                    ['If the 3D display is on, the task must define width and height '...
+                    'qrsim:nodisplay3dwidthorheight',['If the 3D display is on, the task must define width and height '...
                         'parameters of the rendering window']);                
                 
                 state.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
@@ -93,7 +95,7 @@ classdef QRSim<handle
                 set(state.display3d.figure,'DoubleBuffer','on');
             end
             
-            assert(isfield(obj.par.environment.area,'type'),'A task must always define an enviroment.area.type ');            
+            assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');            
             state.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             
             obj.createObjects();
@@ -154,10 +156,13 @@ classdef QRSim<handle
             global state;
             
             % space segment of GPS
-            assert(isfield(obj.par.environment.gpsspacesegment,'on'),'the task must define environment.gpsspacesegment.on');
-            
+            assert(isfield(obj.par.environment,'gpsspacesegment')&&isfield(obj.par.environment.gpsspacesegment,'on'),...
+                'qrsim:nogpsspacesegment',['the task must define environment.gpsspacesegment.on\n',...
+                'this can be environment.gpsspacesegment.on=0; if no GPS is needed']);            
             if(obj.par.environment.gpsspacesegment.on)
                 obj.par.environment.gpsspacesegment.DT = obj.par.DT;
+                assert(isfield(obj.par.environment.gpsspacesegment,'type'),...
+                'qrsim:nogpsspacesegmenttype','the task must define environment.gpsspacesegment.type');                
                 state.environment.gpsspacesegment = feval(obj.par.environment.gpsspacesegment.type,...
                 obj.par.environment.gpsspacesegment);
             else
@@ -166,21 +171,24 @@ classdef QRSim<handle
             end
             
             % common part of Wind
-            assert(isfield(obj.par.environment.wind,'on'),'the task must define environment.wind.on');
-            
+            assert(isfield(obj.par.environment,'wind')&&isfield(obj.par.environment.wind,'on'),'qrsim:nowind',...
+            'the task must define environment.wind this can be environment.wind.on=0; if no wind is needed');            
             if(obj.par.environment.wind.on)
                 obj.par.environment.wind.DT = obj.par.DT;
+                assert(isfield(obj.par.environment.wind,'type'),...
+                'qrsim:nowindtype','the task must define environment.wind.type');  
                 state.environment.wind =feval(obj.par.environment.wind.type, obj.par.environment.wind);
             else
                 state.environment.wind = feval('Wind', obj.par.environment.wind);
             end
              
             %%% instantiates the platform objects   
-            assert(isfield(obj.par,'platforms')&&(~isempty(obj.par.platforms)),'the task must define at least one platform');
+            assert(isfield(obj.par,'platforms')&&(~isempty(obj.par.platforms)),'qrsim:noplatforms','the task must define at least one platform');
             for i=1:length(obj.par.platforms)
+                assert(isfield(obj.par.platforms(i),'configfile'),'qrsim:noplatforms','the task must define a configfile for each platform');
                 p = loadPlatformConfig(obj.par.platforms(i).configfile, obj.par);
                 p.DT = obj.par.DT;
-                assert(isfield(obj.par.platforms(i),'X'),'the platform config file must define a stste X for platform %d',i);
+                assert(isfield(obj.par.platforms(i),'X'),'qrsim:noplatformsx','the platform config file must define a stste X for platform %d',i);
                 p.X = obj.par.platforms(i).X;
                 state.platforms(i)=feval(p.type,p);
             end

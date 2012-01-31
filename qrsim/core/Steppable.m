@@ -48,8 +48,8 @@ classdef Steppable<handle
             if(objparams.on)
                 obj.active = objparams.on;
                 
-                assert(isfield(objparams,'dt'),'The task must define the parameter dt for the object %s',class(obj));
-                assert(isfield(objparams,'DT'),'The task must define the parameter DT for the object %s',class(obj));
+                assert(isfield(objparams,'dt'),'steppable:nodt','The task must define the parameter dt for the object %s',class(obj));
+                assert(isfield(objparams,'DT'),'steppable:nodt','The task must define the parameter DT for the object %s',class(obj));
                 
                 r = rem(objparams.dt,objparams.DT);
                 if(((r<obj.TOL)||((objparams.dt-r)<obj.TOL)) && (objparams.dt~=0))

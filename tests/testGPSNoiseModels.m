@@ -1,5 +1,7 @@
 %function [e]=testGPSNoiseModels()
 
+addpath('gps');
+
 %clear all;
 close all;
 clc;
@@ -115,3 +117,5 @@ loglog(tts,retvals,'-o');
 hold on;
 loglog(ttt,retvalt,'-or');
 grid on;
+
+rmpath('gps');

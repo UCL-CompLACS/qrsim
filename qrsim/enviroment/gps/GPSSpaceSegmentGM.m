@@ -49,17 +49,17 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
             
             obj=obj@GPSSpaceSegment(objparams);           
             
-            assert(isfield(objparams,'tStart'),'The task must define a gps start time gpsspacesegment.tStart'); 
+            assert(isfield(objparams,'tStart'),'gpsspacesegmentgm:notstart','The task must define a gps start time gpsspacesegment.tStart'); 
             obj.tStart = objparams.tStart;
             
-            assert(isfield(objparams,'PR_BETA'),'The task must define a gpsspacesegment.PR_BETA');           
+            assert(isfield(objparams,'PR_BETA'),'gpsspacesegmentgm:nobeta','The task must define a gpsspacesegment.PR_BETA');           
             obj.PR_BETA = objparams.PR_BETA;
             
-            assert(isfield(objparams,'PR_SIGMA'),'The task must define a gpsspacesegment.PR_SIGMA');             
+            assert(isfield(objparams,'PR_SIGMA'),'gpsspacesegmentgm:nosigma','The task must define a gpsspacesegment.PR_SIGMA');             
             obj.PR_SIGMA = objparams.PR_SIGMA;
             
             % read in the precise satellite orbits
-            assert(isfield(objparams,'orbitfile'),'The task must define a gpsspacesegment.orbitfile');            
+            assert(isfield(objparams,'orbitfile'),'gpsspacesegmentgm:noorbitfile','The task must define a gpsspacesegment.orbitfile');            
             state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);          
                         
             state.environment.gpsspacesegment_.stdPe.compute();                        
@@ -74,7 +74,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
                error('GPS start time out of sp3 file bounds');
             end 
             
-            assert(isfield(objparams,'svs'),'The task must define a gpsspacesegment.svs');
+            assert(isfield(objparams,'svs'),'gpsspacesegmentgm:nosvs','The task must define a gpsspacesegment.svs');
             state.environment.gpsspacesegment_.svs = objparams.svs;
             
             % for each of the possible svs we initialize the
