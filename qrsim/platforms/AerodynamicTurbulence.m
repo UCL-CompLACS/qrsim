@@ -21,7 +21,7 @@ classdef AerodynamicTurbulence<Steppable
     end
     
     methods
-        function v = getLinear(obj,state)
+        function v = getLinear(~,~)
             % returns the linear component of the disturbance (always zero)
             %
             % Example:
@@ -34,7 +34,7 @@ classdef AerodynamicTurbulence<Steppable
         end
         
         
-        function v = getRotational(obj,state)
+        function v = getRotational(~,~)
             % returns the rotational component of the disturbance (always zero)
             %
             % Example:
@@ -49,8 +49,10 @@ classdef AerodynamicTurbulence<Steppable
     end
     
     methods  (Access=protected)    
-        function obj = update(obj, XandWind)
+        function obj = update(obj, ~)
             % nothing to be done
+            % Note: this method is called by step() if the time is a multiple
+            % of this object dt, therefore it should not be called directly.
         end
     end
     

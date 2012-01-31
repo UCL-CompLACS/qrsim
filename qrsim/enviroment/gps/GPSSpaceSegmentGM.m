@@ -16,7 +16,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
     %
     % GPSSpaceSegmentGM Methods:
     %    GPSSpaceSegmentGM(objparams)- constructor
-    %    update([])                 - propagates the noise state forward in time
+    %    update([])                  - propagates the noise state forward in time
     %
     
     properties (Access=private)

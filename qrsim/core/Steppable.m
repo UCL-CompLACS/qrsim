@@ -21,7 +21,6 @@ classdef Steppable<handle
     
     properties (Access=protected)
         dt            % timestep of this object
-        active = 0;   % 1 if the object is in active use
     end
     
     methods (Sealed)
@@ -46,21 +45,19 @@ classdef Steppable<handle
             assert(isfield(objparams,'on'),'The task must define the parameter on for the object %s',class(obj));
             
             if(objparams.on)
-                obj.active = objparams.on;
-                
                 assert(isfield(objparams,'dt'),'steppable:nodt','The task must define the parameter dt for the object %s',class(obj));
                 assert(isfield(objparams,'DT'),'steppable:nodt','The task must define the parameter DT for the object %s',class(obj));
-                
-                r = rem(objparams.dt,objparams.DT);
-                if(((r<obj.TOL)||((objparams.dt-r)<obj.TOL)) && (objparams.dt~=0))
-                    obj.dt = objparams.dt;
-                else
-                    error('dt must be a multiple of the simulation timestep %fs',objparams.DT);
-                end
-            
             else
-                % make sure it will never step
-                obj.dt = realmax;                
+                assert(isfield(objparams,'dt'),'steppable:nodt',['Although the object %s is not ON, the task must define its parameter \n',...
+                    'this is needed to define the update rate of the noiseless version of %s'],class(obj),class(obj));
+                assert(isfield(objparams,'DT'),'steppable:nodt',['Although the object %s is not ON, the task must define its parameter \n',...
+                    'this is needed to define the update rate of the noiseless version of %s'],class(obj),class(obj));
+            end
+            r = rem(objparams.dt,objparams.DT);
+            if(((r<obj.TOL)||((objparams.dt-r)<obj.TOL)) && (objparams.dt~=0))
+                obj.dt = objparams.dt;
+            else
+                error('dt must be a multiple of the simulation timestep %fs',objparams.DT);
             end
         end
     end
@@ -77,17 +74,13 @@ classdef Steppable<handle
             %       args - passed directly to update, see the update method
             %
             global state;
-%            fprintf('%s ',class(obj))
-            if(obj.active==1)
-                r = rem(state.t,obj.dt);
-                if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)) && (obj.dt~=0))
-%                    fprintf(' stepping\n')
-                    obj=obj.update(args);
-                else
-%                    fprintf(' not a timestep\n')
-                end
+            
+            r = rem(state.t,obj.dt);
+            if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)) && (obj.dt~=0))
+                %                    fprintf(' stepping\n')
+                obj=obj.update(args);
             else
-%                fprintf(' not active\n')
+                %                    fprintf(' not a timestep\n')
             end
         end
     end

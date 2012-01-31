@@ -36,11 +36,16 @@ classdef AltimeterGM<Altimeter
             %                objparams.SIGMA - noise standard deviation
             %
             obj = obj@Altimeter(objparams);
+            
+            assert(isfield(objparams,'TAU'),'altimetergm:notau',...
+                'the platform config file a must define altimetergm.TAU parameter');            
             obj.TAU = objparams.TAU;
+            assert(isfield(objparams,'SIGMA'),'altimetergm:nosigma',...
+                'the platform config file a must define altimetergm.SIGMA parameter');  
             obj.SIGMA = objparams.SIGMA;
         end
         
-        function estimatedAltitude = getMeasurement(obj,X)
+        function estimatedAltitude = getMeasurement(obj,~)
             % returns a noisy altitude measurement
             %
             % Example:
@@ -49,28 +54,9 @@ classdef AltimeterGM<Altimeter
             %        ~h - scalar "noisy" altitude in global frame m
             %        ~hdot - scalar "noisy" altitude rate in global frame m
             %
-            % Note: if active == 0, no noise is added, in other words:
-            % ~h = -X(3)
-            %
-            %fprintf('get measurement AltimeterGM active=%d\n',obj.active);
-            if(obj.active==1)%noisy
-                estimatedAltitude = [obj.estimatedAltitude;...
+
+            estimatedAltitude = [obj.estimatedAltitude;...
                                      (obj.estimatedAltitude-obj.pastEstimatedAltitude)/obj.dt];
-            else             %noiseless
-                % handy values
-                sph = sin(X(4)); cph = cos(X(4));
-                sth = sin(X(5)); cth = cos(X(5));
-                sps = sin(X(6)); cps = cos(X(6));
-                
-                dcm = [                (cth * cps),                   (cth * sps),      (-sth);
-                    (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps), (sph * cth);
-                     (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps), (cph * cth)];
-                
-                % velocity in global frame
-                gvel = (dcm')*X(7:9);
-                
-                estimatedAltitude = [-X(3);-gvel(3)];
-            end
         end
     end
     
@@ -80,8 +66,7 @@ classdef AltimeterGM<Altimeter
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
             global state;
-            %disp('stepping AltimeterGM');
-            %obj.n = (1-(obj.dt./obj.TAU)).*obj.n + obj.SIGMA.*randn(state.rStream,1,1);
+            
             obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStream,1,1);
             if(obj.pastEstimatedAltitude~=0)
                obj.pastEstimatedAltitude = obj.estimatedAltitude;

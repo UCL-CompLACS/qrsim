@@ -1,7 +1,7 @@
 classdef OrientationEstimatorGM<OrientationEstimator
     % Simple orientation noise model.
     % The following assumptions are made:
-    % - the noise is modelled as an additive Gauss-Markov process. 
+    % - the noise is modelled as an additive Gauss-Markov process.
     % - the accelerometer refrence frame concides wih the body reference frame
     % - no time delays
     %
@@ -34,11 +34,15 @@ classdef OrientationEstimatorGM<OrientationEstimator
             %                objparams.SIGMA - noise standard deviation
             %
             obj=obj@OrientationEstimator(objparams);
+            assert(isfield(objparams,'BETA'),'orientationestimatorgm:nobeta',...
+                'the platform config file a must define orientationEstimator.BETA parameter');
             obj.BETA = objparams.BETA;    % noise time constant
+            assert(isfield(objparams,'SIGMA'),'orientationestimatorgm:nosigma',...
+                'the platform config file a must define orientationEstimator.SIGMA parameter');
             obj.SIGMA = objparams.SIGMA;  % noise standard deviation
         end
         
-        function estimatedOrientation = getMeasurement(obj,X)
+        function estimatedOrientation = getMeasurement(obj,~)
             % returns a noisy orientation measurement
             %
             % Example:
@@ -47,15 +51,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
             %        mo - 3 by 1 "noisy" orientation in global frame,
             %             Euler angles ZYX [~phi;~theta;~psi] rad
             %
-            % Note: if active == 0, no noise is added, in other words:
-            % mo = X(4:6)
-            % 
-%                        fprintf('get measurement OrientationEstimatorGM active=%d\n',obj.active);
-            if(obj.active==1)    %noisy
-                estimatedOrientation = obj.estimatedOrientation;
-            else                 %noiseless
-                estimatedOrientation = X(4:6);
-            end
+            estimatedOrientation = obj.estimatedOrientation;
         end
     end
     
@@ -64,7 +60,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
             % updates the orientation sensor noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-	        global state;
+            global state;
             obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*randn(state.rStream,3,1);
             obj.estimatedOrientation = obj.n + X(4:6);
         end

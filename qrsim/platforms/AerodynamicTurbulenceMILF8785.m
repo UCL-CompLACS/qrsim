@@ -83,7 +83,6 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %           state - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
-            %
             v=zeros(3,1);
         end
     end

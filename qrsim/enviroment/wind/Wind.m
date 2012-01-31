@@ -18,11 +18,13 @@ classdef Wind<Steppable
             %   obj=WindConstMean(objparams)
             %                objparams.on - 0 to have this type of object
             %          
-            obj=obj@Steppable(objparams);
-                
+                        
+            objparams.dt = intmax*objparams.DT; % since this wind is constant
+            
+            obj=obj@Steppable(objparams);                
         end
   
-        function v = getLinear(obj,~)
+        function v = getLinear(~,~)
             % returns always zero.
             %
             % Example:
@@ -50,6 +52,11 @@ classdef Wind<Steppable
     methods (Access=protected)
         function obj = update(obj, ~)
             % no updates are carries out.
+            %
+            % Note:
+            %  this method is called automatically by the step() of the Steppable parent
+            %  class and should not be called directly.
+            %
         end
     end
 end

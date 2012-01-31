@@ -1,9 +1,9 @@
-classdef TaskNoAreaGraphics<Task
+classdef TaskNoPlatformAHARS<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
         
-        function taskparams=init(~)
+        function taskparams=init(obj)
             % loads and returns all the parameters for the various simulator objects
             
             % Simulator step time in second this should not be changed...
@@ -67,12 +67,12 @@ classdef TaskNoAreaGraphics<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(1).configfile = 'pelican_config_no_ahars';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end
         
-        function r=reward(~) 
+        function r=reward(obj) 
             % nothing this is just a test task
         end
     end

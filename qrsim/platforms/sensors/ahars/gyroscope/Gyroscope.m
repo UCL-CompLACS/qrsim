@@ -1,11 +1,16 @@
 classdef Gyroscope<Sensor
-    % Abstract class for a generic Gyroscope sensor.
-    % This is a simple wrapper, it does not include any code, its only purpouse is to 
-    % allow for runtime type checking.
+    % Base class for a generic noiseless Gyroscope sensor.
     %
     % Gyroscope Methods:
-    %    Gyroscope(objparams) - constructs the object, to be called only from derived subclasses.
+    %   Gyroscope(objparams)             - constructs the object
+    %   getMeasurement(X)                - returns a noiseless angular velocity measurement
+    %   update(X)                        - stores teh current rotational velocity
     %
+    
+    properties (Access=private)
+        angularVelocity; % last angular velocity
+    end
+    
     methods (Sealed)
         function obj = Gyroscope(objparams)       
             % constructs the object
@@ -14,14 +19,32 @@ classdef Gyroscope<Sensor
             %
             %   obj=Gyroscope(objparams)
             %                objparams.dt - timestep of this object
-            %                objparams.on - 1 if the object is active
-            %
-            % Note:
-            % this is an abstract class so this contructor is meant to be called by any
-            % subclass.
+            %                objparams.on - 0 for this object
             %
             obj = obj@Sensor(objparams);
         end
     end    
+    
+    methods 
+         function measurementAngularVelocity = getMeasurement(obj,~)
+            % returns a noisy angular velocity measurement
+            %
+            % Example:
+            %   ma = obj.getMeasurement(X)
+            %        X - platform noise free state vector [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
+            %        ma - 3 by 1 noiseless angular velocity in body frame [p;q;r] rad/s
+            %
+            measurementAngularVelocity = obj.angularVelocity;
+        end
+    end
+    
+    methods (Access=protected)
+        function obj=update(obj,X)
+            % stores the angular velocity
+            % Note: this method is called by step() if the time is a multiple
+            % of this object dt, therefore it should not be called directly.
+            obj.angularVelocity = X(10:12);
+        end
+    end
 end
 

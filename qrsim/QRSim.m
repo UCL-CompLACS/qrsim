@@ -159,8 +159,8 @@ classdef QRSim<handle
             assert(isfield(obj.par.environment,'gpsspacesegment')&&isfield(obj.par.environment.gpsspacesegment,'on'),...
                 'qrsim:nogpsspacesegment',['the task must define environment.gpsspacesegment.on\n',...
                 'this can be environment.gpsspacesegment.on=0; if no GPS is needed']);            
+            obj.par.environment.gpsspacesegment.DT = obj.par.DT;
             if(obj.par.environment.gpsspacesegment.on)
-                obj.par.environment.gpsspacesegment.DT = obj.par.DT;
                 assert(isfield(obj.par.environment.gpsspacesegment,'type'),...
                 'qrsim:nogpsspacesegmenttype','the task must define environment.gpsspacesegment.type');                
                 state.environment.gpsspacesegment = feval(obj.par.environment.gpsspacesegment.type,...
@@ -173,8 +173,8 @@ classdef QRSim<handle
             % common part of Wind
             assert(isfield(obj.par.environment,'wind')&&isfield(obj.par.environment.wind,'on'),'qrsim:nowind',...
             'the task must define environment.wind this can be environment.wind.on=0; if no wind is needed');            
+            obj.par.environment.wind.DT = obj.par.DT; 
             if(obj.par.environment.wind.on)
-                obj.par.environment.wind.DT = obj.par.DT;
                 assert(isfield(obj.par.environment.wind,'type'),...
                 'qrsim:nowindtype','the task must define environment.wind.type');  
                 state.environment.wind =feval(obj.par.environment.wind.type, obj.par.environment.wind);

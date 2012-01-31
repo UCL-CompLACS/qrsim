@@ -20,7 +20,6 @@ classdef GPSReceiver<Sensor
             %   obj=GPSReceiver(objparams)
             %                objparams.on - 0 to have this type of object
             %
-            %
             global state;
             
             if(objparams.on)
@@ -31,7 +30,7 @@ classdef GPSReceiver<Sensor
             obj = obj@Sensor(objparams);
         end
         
-        function estimatedPosNED = getMeasurement(obj,X)
+        function estimatedPosNED = getMeasurement(obj,~)
             % returns a noise free GPS estimate given the current noise free position
             %
             % Example:
@@ -59,15 +58,12 @@ classdef GPSReceiver<Sensor
         end
     end
     
-    methods (Access=protected)
-        
+    methods (Access=protected)        
         function obj=update(obj,X)
             % simply stores the state to be used by getMeasurement()
             %
-            % Note:
-            %  this method is called automatically by the step() of the Steppable parent
-            %  class and should not be called directly.
-            %
+            % Note: this method is called by step() if the time is a multiple
+            % of this object dt, therefore it should not be called directly.
             obj.X = X;
         end
     end

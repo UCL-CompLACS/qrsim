@@ -31,10 +31,12 @@ classdef AccelerometerG<Accelerometer
             %                objparams.SIGMA - noise standard deviation
             %
             obj = obj@Accelerometer(objparams);
+            assert(isfield(objparams,'SIGMA'),'accelerometerg:sigma',...
+                'the platform configuration must define accelerometer.SIGMA');
             obj.SIGMA = objparams.SIGMA;
         end
         
-        function measurementAcceleration = getMeasurement(obj,a)
+        function measurementAcceleration = getMeasurement(obj,~)
             % returns a noisy acceleration measurement
             %
             % Example:
@@ -42,15 +44,7 @@ classdef AccelerometerG<Accelerometer
             %       ma - 3 by 1 vector of noise free acceleration in body frame [ax;ay;az] m/s^2
             %       a  - 3 by 1 vector of "noisy" acceleration in body frame [~ax;~ay;~az] m/s^2
             %
-            % Note: if active == 0, no noise is added, in other words:
-            % ma = a
-            % 
-            %fprintf('get measurement AccelerometerG active=%d\n',obj.active);
-            if(obj.active==1)    %noisy
-                measurementAcceleration = obj.measurementAcceleration;
-            else                 %noiseless
-                measurementAcceleration = a(1:3);
-            end
+            measurementAcceleration = obj.measurementAcceleration;
         end
     end
     

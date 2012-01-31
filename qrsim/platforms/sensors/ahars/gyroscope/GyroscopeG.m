@@ -11,7 +11,7 @@ classdef GyroscopeG<Gyroscope
     % GyroscopeG Methods:
     %   GyroscopeG(objparams)            - constructs the object
     %   getMeasurement(X)                - returns a noisy angular velocity measurement
-    %   update(X)                       - updates the gyroscope sensor noisy measurement
+    %   update(X)                        - updates the gyroscope sensor noisy measurement
     %
     properties (Access = private)
         SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
@@ -32,10 +32,12 @@ classdef GyroscopeG<Gyroscope
             %                objparams.SIGMA - noise standard deviation
             %
             obj=obj@Gyroscope(objparams);
+            assert(isfield(objparams,'SIGMA'),'gyroscopeg:nosigma',...
+                'the platform config file a must define gyroscope.SIGMA parameter');  
             obj.SIGMA = objparams.SIGMA;
         end
         
-        function measurementAngularVelocity = getMeasurement(obj,X)
+        function measurementAngularVelocity = getMeasurement(obj,~)
             % returns a noisy angular velocity measurement
             %
             % Example:
@@ -43,15 +45,7 @@ classdef GyroscopeG<Gyroscope
             %        X - platform noise free state vector [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
             %        ma - 3 by 1 "noisy" angular velocity in body frame [~p;~q;~r] rad/s
             %
-            % Note: if active == 0, no noise is added, in other words:
-            % ma = X(10:12)
-            % 
-            %fprintf('get measurement GyroscopeG active=%d\n',obj.active);
-            if(obj.active==1)  %noisy
-                measurementAngularVelocity = obj.measurementAngularVelocity;
-            else               %noiseless
-                measurementAngularVelocity = X(10:12);
-            end
+            measurementAngularVelocity = obj.measurementAngularVelocity;
         end
     end
     
