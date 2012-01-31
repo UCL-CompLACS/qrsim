@@ -10,12 +10,13 @@ classdef Wind<Steppable
     
     methods 
         function obj = Wind(objparams)
-            % constructs the object and sets its main fields
+            % constructs the object 
+            % This object is created when wind is not active
             %
             % Example:
             % 
             %   obj=WindConstMean(objparams)
-            %                objparams.on - 1 if the object is active
+            %                objparams.on - 0 to have this type of object
             %          
             obj=obj@Steppable(objparams);
                 
@@ -49,11 +50,6 @@ classdef Wind<Steppable
     methods (Access=protected)
         function obj = update(obj, ~)
             % no updates are carries out.
-            %
-            % Note:
-            %  this method is called automatically by the step() of the Steppable parent
-            %  class and should not be called directly.
-            %
         end
     end
 end

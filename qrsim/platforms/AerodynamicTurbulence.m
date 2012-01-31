@@ -1,54 +1,57 @@
 classdef AerodynamicTurbulence<Steppable
-    % Abstract base class for aerodynamic disturbances.
+    % Base class for no aerodynamic disturbances
+    % (i.e. both linear and rotational contributions are zero)
     %
     % AerodynamicTurbulence Methods:
-    %   AerodynamicTurbulence(objparams) - constructs the object and calls the SteppablePRNG 
-    %                                      constructor
-    %   getLinear(state)*                - returns the linear component of the disturbance 
-    %                                      (Abstract)
-    %   getRotational(state)*            - returns the rotational component of the 
-    %                                      disturbance (Abstract)
+    %   AerodynamicTurbulence(objparams) - constructs the object
+    %   getLinear(state)                 - returns the linear component (always zero)
+    %   getRotational(state)             - returns the rotational component   (always zero)
     %
-    %                                    *hyperlink broken because the method is abstract
-    %    
     methods
         function obj = AerodynamicTurbulence(objparams)
             % constructs the object and calls the SteppablePRNG constructor
             %
             % Example:
-            % 
-            %   obj=AerodynamicTurbulence(objparams)
-            %                objparams.dt - timestep of this object
-            %                objparams.on - 1 if the object is active 
             %
-            % Note:
-            % this is an abstract class so this contructor is meant to be called by any 
-            % subclass.
+            %   obj=AerodynamicTurbulence(objparams)
+            %                objparams.on - 0 to have this type of object
             %
             obj = obj@Steppable(objparams);
         end
     end
     
-    methods (Abstract)
-        v = getLinear(obj,state);
-        % returns the linear component of the disturbance 
-        % Note: this method is subclass specific and must be implemented by any subclass. 
-        %
-        % Example:
-        %
-        %   obj.getLinear(state);
-        %       state - subclass specific
-        %
+    methods
+        function v = getLinear(obj,state)
+            % returns the linear component of the disturbance (always zero)
+            %
+            % Example:
+            %
+            %   v = obj.getLinear(state);
+            %           state - 13 by 1 vector platform state
+            %            v - zeros 3 by 1 vector
+            %
+            v = zeros(3,1);
+        end
         
-        w = getRotational(obj,state);
-        % returns the rotational component of the disturbance 
-        % Note: this method is subclass specific and must be implemented by any subclass. 
-        %
-        % Example:
-        %
-        %   obj.getRotational(state);
-        %       state - subclass specific
-        %
+        
+        function v = getRotational(obj,state)
+            % returns the rotational component of the disturbance (always zero)
+            %
+            % Example:
+            %
+            %   v = obj.getRotational(state);
+            %           state - 13 by 1 vector platform state
+            %           v - zeros 3 by 1 vector
+            %
+            %
+            v=zeros(3,1);
+        end
+    end
+    
+    methods  (Access=protected)    
+        function obj = update(obj, XandWind)
+            % nothing to be done
+        end
     end
     
 end

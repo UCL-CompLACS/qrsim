@@ -70,6 +70,40 @@ e = e & loadTask('TaskNoPlatformsConfigFile','qrsim:noplatforms','missing platfo
  
 e = e & loadTask('TaskNoPlatformsX','qrsim:noplatformsx','missing platforms initial state task parameter');
 
+e = e & loadTask('TaskNoPlatformType','qrsim:noplatformtype','missing platform type parameter');
+
+e = e & loadTask('TaskNoPlatformStateLimits','pelican:nostatelimits','missing platform state limits');
+
+e = e & loadTask('TaskNoPlatformCollisionDistance','pelican:nocollisiondistance','missing platform collision distance');
+
+e = e & loadTask('TaskNoPlatformDynNoise','pelican:nodynnoise','missing platform dynamic noise');
+
+e = e & loadTask('TaskNoPlatformGPSReceiver','pelican:nogpsreceiver','missing platform gps receiver');
+
+% TaskPlatformGPSReceiverOff make sure a GPSReceiver is loaded instead
+
+e = e & loadTask('TaskNoPlatformGPSReceiverType','pelican:nogpsreceivertype','missing platform gps receiver type');
+
+e = e & loadTask('TaskNoPlatformGPSReceiverSigma','gpsreceiverg:nosigma','missing gps receiver sigma');
+
+e = e & loadTask('TaskNoPlatformGPSReceiverNumSVS','gpsreceiverg:nonumsvs','missing gps receiver num svs');
+
+e = e & loadTask('TaskNoPlatformGPSReceiverDelay','gpsreceiverg:nodelay','missing gps receiverdelay');
+
+
+%'pelican:noahars',
+%'pelican:noaharstype'
+
+e = e & loadTask('TaskNoAerodynamicTurbulence','pelican:noaerodynamicturbulence','missing aerodynamic turbulence');
+
+% TaskAerodynamicTurbulenceOff check that with aerodynamicturbulence,on =0 we create a new AerodynamicTurbulence object
+
+e = e & loadTask('TaskNoAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
+
+e = e & loadTask('TaskNoAerodynamicTurbulenceDt','steppable:nodt','missing aerodynamic turbulence dt');
+
+e = e & loadTask('TaskNoAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6');
+
 rmpath('assert');
 
 end

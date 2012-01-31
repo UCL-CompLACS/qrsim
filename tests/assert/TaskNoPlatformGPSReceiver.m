@@ -1,4 +1,4 @@
-classdef TaskNoAreaGraphics<Task
+classdef TaskNoPlatformGPSReceiver<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
@@ -67,9 +67,8 @@ classdef TaskNoAreaGraphics<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(1).configfile = 'pelican_config_no_gps_receiver';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
-            
         end
         
         function r=reward(obj) 

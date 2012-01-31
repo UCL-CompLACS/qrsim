@@ -1,4 +1,4 @@
-classdef TaskNoAreaGraphics<Task
+classdef TaskNoAerodynamicTurbulenceDt<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
@@ -67,7 +67,7 @@ classdef TaskNoAreaGraphics<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(1).configfile = 'pelican_config_no_aerodynamic_turbulence_dt';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end

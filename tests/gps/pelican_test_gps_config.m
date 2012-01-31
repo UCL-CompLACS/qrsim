@@ -14,9 +14,6 @@ if(~exist('params','var'))
     error('The platform parameters must be loaded after the global parameters');
 end
 
-% simulator %
-c.DT = params.DT;
-
 % platforms %
 c.dt = 0.02;
 c.on = 1;

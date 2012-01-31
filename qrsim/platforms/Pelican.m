@@ -86,30 +86,50 @@ classdef Pelican<Steppable & Platform
             %
             obj=obj@Platform(objparams);
             obj=obj@Steppable(objparams);
-            
-            
-            
+                      
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
             obj.eX = [objparams.X(1:6); zeros(14,1)];
             obj.valid = 1;
             
+            assert(isfield(objparams,'stateLimits'),'pelican:nostatelimits',...
+                'the platform config file must define the stateLimits parameter');
             obj.stateLimits = objparams.stateLimits;
-            obj.collisionD = objparams.collisionDistance;
+            
+            assert(isfield(objparams,'collisionDistance'),'pelican:nocollisiondistance',...
+                'the platform config file must define the collisionDistance parameter');
+            obj.collisionD = objparams.collisionDistance; 
+            
+            assert(isfield(objparams,'dynNoise'),'pelican:nodynnoise',...
+                'the platform config file must define the dynNoise parameter');
             obj.dynNoise = objparams.dynNoise;
             
             %instantiation of sensor and wind objects, with some "manual" type checking
             
-            % WIND
-            objparams.aerodynamicturbulence.DT = objparams.DT;
-            tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
-            if(isa(tmp,'AerodynamicTurbulence'))
-                obj.turbulence = tmp;
+            % TURBULENCE
+            objparams.aerodynamicturbulence.DT = objparams.DT; 
+            assert(isfield(objparams,'aerodynamicturbulence')&&isfield(objparams.aerodynamicturbulence,'on'),'pelican:noaerodynamicturbulence',...
+                  'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
+              
+            if(objparams.aerodynamicturbulence.on) 
+                assert(isfield(objparams.aerodynamicturbulence,'type'),'pelican:noaerodynamicturbulencetype',...
+                  'the platform config file must define an aerodynamicturbulence.type ');    
+                tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
+                if(isa(tmp,'AerodynamicTurbulence'))
+                    obj.turbulence = tmp;
+                else
+                    error('c.aerodynamicturbulence.type has to extend the class AerodynamicTurbulence');
+                end
             else
-                error('c.aerodynamicturbulence.type has to extend the class AerodynamicTurbulence');
+                obj.turbulence = feval('AerodynamicTurbulence', objparams.aerodynamicturbulence);
             end
             
             % AHARS
             objparams.sensors.ahars.DT = objparams.DT;
+            assert(isfield(objparams.sensors,'ahars'),'pelican:noahars',...
+                'the platform config file must define an ahars');
+            
+            assert(isfield(objparams.sensors.ahars,'type'),'pelican:noaharstype',...
+                    'the platform config file must define an ahars.type'); 
             tmp = feval(objparams.sensors.ahars.type,objparams.sensors.ahars);
             if(isa(tmp,'AHARS'))
                 obj.ahars = tmp;
@@ -119,11 +139,20 @@ classdef Pelican<Steppable & Platform
             
             % GPS
             objparams.sensors.gpsreceiver.DT = objparams.DT;
-            tmp = feval(objparams.sensors.gpsreceiver.type,objparams.sensors.gpsreceiver);
-            if(isa(tmp,'GPSReceiver'))
-                obj.gpsreceiver = tmp;
-            else
-                error('c.sensors.gpsreceiver.type has to extend the class GPSReceiver');
+            assert(isfield(objparams.sensors,'gpsreceiver')&&isfield(objparams.sensors.gpsreceiver,'on'),'pelican:nogpsreceiver',...
+                'the platform config file must define a gps receiver if not needed set gpsreceiver.on = 0');
+            
+            if(objparams.sensors.gpsreceiver.on)            
+                assert(isfield(objparams.sensors.gpsreceiver,'type'),'pelican:nogpsreceivertype',...
+                    'the platform config file must define a gpsreceiver.type'); 
+                tmp = feval(objparams.sensors.gpsreceiver.type,objparams.sensors.gpsreceiver);
+                if(isa(tmp,'GPSReceiver'))
+                    obj.gpsreceiver = tmp;
+                else
+                    error('c.sensors.gpsreceiver.type has to extend the class GPSReceiver');
+                end
+            else 
+                obj.gpsreceiver = feval('GPSReceiver',objparams.sensors.gpsreceiver);
             end
             
             objparams.graphics.DT = objparams.DT;

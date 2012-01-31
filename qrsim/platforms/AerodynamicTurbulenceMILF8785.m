@@ -4,10 +4,10 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     % According to references[1, 2], turbulence can be modelled as a stochastic process
     % defined by velocity spectra. The turbulence field is assumed to be "frozen" in time
     % and space (i.e.: time variations are statistically equivalent to distance variations
-    % in traversing the turbulence field). This assumption implies that the turbulence-induced 
-    % responses of the aircraft is result only of the motion of the aircraft relative to 
+    % in traversing the turbulence field). This assumption implies that the turbulence-induced
+    % responses of the aircraft is result only of the motion of the aircraft relative to
     % the turbulent field (i.e. w = Omega * V).
-    % 
+    %
     % MILF8785-C specifies both linear and rotational components of the
     % turbulence however this class currently implements only the linear disturbences.
     % The turbulence axes orientation in this region is defined as being aligned with
@@ -55,6 +55,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %                objparams.W6 - velocity at 6m from ground in m/s
             %
             obj=obj@AerodynamicTurbulence(objparams);
+            assert(isfield(objparams,'W6'),'aerodynamicturbulencemilf8785:now6',...
+                'the platform config file must define a aerodynamicturbulence.W6 parameter');
             obj.w6=objparams.W6;
         end
         
@@ -66,13 +68,9 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %   v = obj.getLinear(state)
             %           state - 13 by 1 vector platform state
             %           v - linear component of the component gust in body coordinates
-            %           3 by 1 vector 
+            %           3 by 1 vector
             %
-            if(obj.active==1)
-                v = obj.vgust;
-            else
-                v = zeros(3,1);
-            end
+            v = obj.vgust;
         end
         
         function v = getRotational(~,~)
@@ -105,20 +103,20 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             
             % airspeed along the flight path, governs the lengthscale,
             % we can simply subtract velocity and mean wind since both are
-            % in body coordinates      
+            % in body coordinates
             relativeWind = X(7:9)-meanWind;
             
-            V = norm(relativeWind);%m/s 
+            V = norm(relativeWind);%m/s
             
-            alpha = atan2(relativeWind(3),relativeWind(1)); % angle of attac           
-            beta = asin(relativeWind(2)/V); % sideslip angle         
+            alpha = atan2(relativeWind(3),relativeWind(1)); % angle of attac
+            beta = asin(relativeWind(2)/V); % sideslip angle
             
             cb = cos(beta);  sb = sin(beta);
             ca = cos(alpha); sa = sin(alpha);
             Cwb = [ ca*cb   -ca*sb -sa;
-                    sb       cb     0 ;
-                    sa*cb   -sa*sb  ca ];
-                
+                sb       cb     0 ;
+                sa*cb   -sa*sb  ca ];
+            
             z = m2ft(-X(3)); %height of the platform from ground
             w20 = ms2knots(obj.w6);
             

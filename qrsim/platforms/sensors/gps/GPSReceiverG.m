@@ -22,7 +22,7 @@ classdef GPSReceiverG < GPSReceiver
     
     properties (Access=private)
         svidx                       % array with the ids of the visible satellite vehicles
-        nsv                         % number of satellite visible by this receiver  
+        nsv                         % number of satellite visible by this receiver
         pastEstimatedPosNED = zeros(3,1); % past North East Down coordinate returned by the receiver
         estimatedPosNED = zeros(3,1); % North East Down coordinate returned by the receiver
         originUTMcoords             % coordinates of the local reference frame
@@ -41,30 +41,32 @@ classdef GPSReceiverG < GPSReceiver
             % objparams.minmaxnumsv(2)). The selection of satellites is kept FIX during
             % all the simulation.
             %
-            %
             % Example:
             %
             %   obj=GPSReceiverG(objparams)
             %                objparams.dt - timestep of this object
             %                objparams.on - 1 if the object is active
-            %                objparams.originutmcoords - coordinates of the local reference frame
             %                objparams.R_SIGMA - receiver noise standard deviation
             %                objparams.delay - time delay in multiples of receiver's dt
             %
             global state;
             obj=obj@GPSReceiver(objparams);
+
+            obj.originUTMcoords = state.environment.area.params.originutmcoords;
             
-            obj.originUTMcoords = objparams.originutmcoords;
+            assert(isfield(objparams,'R_SIGMA'),'gpsreceiverg:nosigma','the platform config must define the gpsreceiver.R_SIGMA parameter');
             obj.R_SIGMA = objparams.R_SIGMA;
+            assert(isfield(objparams,'delay'),'gpsreceiverg:nodelay','the platform config must define the gpsreceiver.delay parameter');
             obj.delay = objparams.delay;
             
             % pick randomly the satellites visible for this receiver
+            assert(isfield(objparams,'minmaxnumsv'),'gpsreceiverg:nonumsvs','the platform config must define the gpsreceiver.minmaxnumsv parameter');
             obj.nsv = objparams.minmaxnumsv(1)...
                 +randi(state.rStream,objparams.minmaxnumsv(2) ...
                 -objparams.minmaxnumsv(1));
             
             obj.svidx = zeros(1,obj.nsv);
-            r = randperm(state.rStream,objparams.tnsv);
+            r = randperm(state.rStream,length(state.environment.gpsspacesegment.params.svs));
             obj.svidx = r(1:obj.nsv);
         end
         
@@ -76,33 +78,14 @@ classdef GPSReceiverG < GPSReceiver
             %
             %   [~px;~py;~pz;~pxdot;~pydot] = obj.getMeasurement(X)
             %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
-            %       ~px,~py,~pz      [m]     position estimated by GPS (NED coordinates)    
+            %       ~px,~py,~pz      [m]     position estimated by GPS (NED coordinates)
             %       ~pxdot           [m/s]   x velocity from GPS (NED coordinates)
             %       ~pydot           [m/s]   y velocity from GPS (NED coordinates)
             %
-            % Note: if active == 0, no noise is added, in other words:
-            % estimatedPosNED = X(1:3)
-            %
-            %fprintf('get measurement GPSReceiverG active=%d\n',obj.active);
-            if(obj.active == 1)
-                
-                estimatedPosNED = [obj.estimatedPosNED;...
-                              (obj.estimatedPosNED(1:2)-obj.pastEstimatedPosNED(1:2))/obj.dt];
-            else
-                % handy values
-                sph = sin(X(4)); cph = cos(X(4));
-                sth = sin(X(5)); cth = cos(X(5));
-                sps = sin(X(6)); cps = cos(X(6));
-                
-                dcm = [                (cth * cps),                   (cth * sps),     (-sth);
-                    (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps),(sph * cth);
-                     (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps),(cph * cth)];
-                
-                % velocity in global frame
-                gvel = (dcm')*X(7:9);
-                
-                estimatedPosNED = [X(1:3);gvel(1:2)];
-            end
+            
+            estimatedPosNED = [obj.estimatedPosNED;...
+                (obj.estimatedPosNED(1:2)-obj.pastEstimatedPosNED(1:2))/obj.dt];
+            
         end
     end
     
@@ -164,7 +147,7 @@ classdef GPSReceiverG < GPSReceiver
                 obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
             else
                 % avoids silly vel;ocities at startup
-                obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords); 
+                obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
                 obj.pastEstimatedPosNED = obj.estimatedPosNED;
             end
         end

@@ -30,12 +30,7 @@ c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limi
 c.collisionDistance = 2; % two platforms colser than this distance are deemed in collision 
 c.dynNoise = [0.1;0.1;0.1;0.1;0.1;0.1];
 
-% GPS Receiver
-c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
-c.sensors.gpsreceiver.type = 'GPSReceiverG';
-c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
-c.sensors.gpsreceiver.R_SIGMA = 0.002;             % receiver noise standard deviation 
-c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
+
 
 % AHARS attitude-heading-altitude reference system (a.k.a. imu + altimeter)
 % dt defined by the minimum dt of the sensors

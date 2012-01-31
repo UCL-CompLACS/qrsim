@@ -19,13 +19,6 @@ c.dt = 0.02;
 c.on = 1;
 c.type = 'Pelican';
 
-% max and min limits for each of the state variables, exceeding this limits
-% makes the state invalid (i.e. 19x1 nan)
-c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limits(3:4);...
-    params.environment.area.limits(5:6);... % position limits defined by the area
-    -pi,pi;-pi,pi;-pi,pi;... % attitude limits
-    -15,15;-15,15;-15,15;... % linear velocity limits
-    -2,2;-2,2;-2,2]; %rotational velocity limits
     
 c.collisionDistance = 2; % two platforms colser than this distance are deemed in collision 
 c.dynNoise = [0.1;0.1;0.1;0.1;0.1;0.1];

@@ -1,13 +1,5 @@
-% This script defines all the typical parameters of an AscTec pelican quadrotor
-% 
-% These paramters must be loaded using the function loadConfig and are then
-% passed to the platform constructor, which will take care of propagating the correct 
-% parameters to each of the objects part of a platform.  
-%
-% Example of use:
-%
-%  platform  = loadConfig('pelican_config');
-%  n = Pelican(platform);
+% This script is missing one or more of the typical parameters of an AscTec pelican quadrotor
+% IT SHOULD BE USED ONLY FOR UNIT TESTING 
 %
 
 if(~exist('params','var'))
@@ -17,7 +9,6 @@ end
 % platforms %
 c.dt = 0.02;
 c.on = 1;
-c.type = 'Pelican';
 
 % max and min limits for each of the state variables, exceeding this limits
 % makes the state invalid (i.e. 19x1 nan)

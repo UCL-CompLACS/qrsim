@@ -188,8 +188,9 @@ classdef QRSim<handle
                 assert(isfield(obj.par.platforms(i),'configfile'),'qrsim:noplatforms','the task must define a configfile for each platform');
                 p = loadPlatformConfig(obj.par.platforms(i).configfile, obj.par);
                 p.DT = obj.par.DT;
-                assert(isfield(obj.par.platforms(i),'X'),'qrsim:noplatformsx','the platform config file must define a stste X for platform %d',i);
+                assert(isfield(obj.par.platforms(i),'X'),'qrsim:noplatformsx','the platform config file must define a stsae X for platform %d',i);
                 p.X = obj.par.platforms(i).X;
+                assert(isfield(p,'type'),'qrsim:noplatformtype','the platform config file must define a platform type');
                 state.platforms(i)=feval(p.type,p);
             end
             
