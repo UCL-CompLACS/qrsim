@@ -1,4 +1,4 @@
-classdef TaskNoAerodynamicTurbulenceType<Task
+classdef TaskNoPlatformAerodynamicTurbulence<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
@@ -30,7 +30,7 @@ classdef TaskNoAerodynamicTurbulenceType<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.graphics.on = taskparams.display3d.on;
+
             taskparams.environment.area.graphics.type = 'AreaGraphics';
             
             % GPS
@@ -67,7 +67,7 @@ classdef TaskNoAerodynamicTurbulenceType<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_no_aerodynamic_turbulence_type';
+            taskparams.platforms(1).configfile = 'pelican_config_no_aerodynamic_turbulence';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end

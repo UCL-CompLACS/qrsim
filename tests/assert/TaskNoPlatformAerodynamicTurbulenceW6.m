@@ -1,4 +1,4 @@
-classdef TaskAerodynamicTurbulenceOff<Task
+classdef TaskNoPlatformAerodynamicTurbulenceW6<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
@@ -30,7 +30,6 @@ classdef TaskAerodynamicTurbulenceOff<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.graphics.on = taskparams.display3d.on;
             taskparams.environment.area.graphics.type = 'AreaGraphics';
             
             % GPS
@@ -60,14 +59,14 @@ classdef TaskAerodynamicTurbulenceOff<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 0;
+            taskparams.environment.wind.on = 1;
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
             taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_aerodynamic_turbulence_off';
+            taskparams.platforms(1).configfile = 'pelican_config_no_aerodynamic_turbulence_w6';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end

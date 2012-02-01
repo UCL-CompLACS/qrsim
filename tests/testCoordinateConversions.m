@@ -36,13 +36,13 @@ cd('functions');
 tolecef = [1e-8;1e-8;1e-8];
 wt = 1;
 
-f = fopen(['..',filesep,'..',filesep,'..',filesep,'tests',filesep,'ECEFTESTcoords.csv'],'r');
+f = fopen(['..',filesep,'..',filesep,'..',filesep,'tests',filesep,'conversions',filesep,'ECEFTESTcoords.csv'],'r');
 d = fscanf(f,'%f,%f,%f,%f,%f\n',[5,inf]);
 fclose(f);
 
 for i=1:size(d,1),
     
-    inlla = [d(1:2,i);0];    
+    inlla = [d(1:2,i);0];
     outecef = lla2ecef(inlla);
     testecef = d(3:5,i);
     
@@ -67,7 +67,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
     end
     fprintf('.');
 end
-   
+
 e = e || ~wt;
 
 fprintf('\ntest of MATLAB lla2ecef and ecef2lla [%s]\n',wtToFailPass(wt));
@@ -154,13 +154,13 @@ cd('functions');
 tolutm = [1e-4;1e-4;1e-15;1e-15;1e-15];
 wt = 1;
 
-f = fopen(['..',filesep,'..',filesep,'..',filesep,'tests',filesep,'UTMTESTcoords.csv'],'r');
+f = fopen(['..',filesep,'..',filesep,'..',filesep,'tests',filesep,'conversions',filesep,'UTMTESTcoords.csv'],'r');
 d = fscanf(f,'%f,%f,%f,%f,%s\n',[7,inf]);
 fclose(f);
 
 for i=1:size(d,1),
     
-    inlla = [d(1:2,i);0];    
+    inlla = [d(1:2,i);0];
     [E,N,utmzone,~] = lla2utm(inlla);
     oututm = [E;N;double(utmzone(1));double(utmzone(2));double(utmzone(3))];
     testutm = d(3:7,i);
@@ -276,7 +276,7 @@ cd('functions');
 wt = 1;
 
 for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
-    for lon = 360*(rand(1,3)-0.5), 
+    for lon = 360*(rand(1,3)-0.5),
         for h = 0:10:100,
             
             [E,N,zone,H] = lla2utm([lat;lon;h]);
@@ -296,7 +296,7 @@ for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
             end
         end
         fprintf('.');
-    end    
+    end
 end
 
 e = e || ~wt;
@@ -312,8 +312,8 @@ cd('functions');
 wt = 1;
 
 for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
-     for lon = 360*(rand(1,3)-0.5), 
-         for h = 0:10:100,
+    for lon = 360*(rand(1,3)-0.5),
+        for h = 0:10:100,
             
             [E,N,zone,H] = lla2utm([lat;lon;h]);
             utmorigin.E = E;
@@ -338,7 +338,7 @@ end
 e = e || ~wt;
 
 fprintf('\ntest of MEX ned2ecef [%s]\n',wtToFailPass(wt));
- 
+
 % compile and cross test ecef2ned
 delete(['ned2ecef.',mexext]);
 
@@ -350,7 +350,7 @@ mex ecef2ned.c
 wt = 1;
 
 for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
-    for lon = 360*(rand(1,3)-0.5), 
+    for lon = 360*(rand(1,3)-0.5),
         for h = 0:10:100,
             
             [E,N,zone,H] = lla2utm([lat;lon;h]);
@@ -387,6 +387,9 @@ end
 
 cd(['..',filesep,'..',filesep,'..',filesep,'tests']);
 
+
+rmpath('conversions');
+
 end
 
 function [s]=wtToFailPass(f)
@@ -396,7 +399,5 @@ if(f)
 else
     s='FAILED';
 end
-
-rmpath('conversions');
 
 end

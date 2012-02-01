@@ -30,7 +30,7 @@ classdef TaskNoAreaGraphicsType<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.graphics.on = taskparams.display3d.on;
+
 
         end
         

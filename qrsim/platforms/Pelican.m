@@ -48,7 +48,7 @@ classdef Pelican<Steppable & Platform
     
     properties (Access = public)
         gpsreceiver % handle to the gps receiver
-        turbulence  % handle to the aerodynamic turbulence
+        aerodynamicTurbulence  % handle to the aerodynamic turbulence
         ahars       % handle to the attitude heading altitude reference system
         graphics    % handle to the quadrotor graphics
         meanWind    % mean wind vector
@@ -115,12 +115,12 @@ classdef Pelican<Steppable & Platform
                   'the platform config file must define an aerodynamicturbulence.type ');    
                 tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
                 if(isa(tmp,'AerodynamicTurbulence'))
-                    obj.turbulence = tmp;
+                    obj.aerodynamicTurbulence = tmp;
                 else
                     error('c.aerodynamicturbulence.type has to extend the class AerodynamicTurbulence');
                 end
             else
-                obj.turbulence = feval('AerodynamicTurbulence', objparams.aerodynamicturbulence);
+                obj.aerodynamicTurbulence = feval('AerodynamicTurbulence', objparams.aerodynamicturbulence);
             end
             
             % AHARS
@@ -242,8 +242,8 @@ classdef Pelican<Steppable & Platform
                 %turbulence
                 obj.meanWind = state.environment.wind.getLinear(obj.X);
                 
-                obj.turbulence.step([obj.X;obj.meanWind]);                
-                obj.turbWind = obj.turbulence.getLinear(obj.X);
+                obj.aerodynamicTurbulence.step([obj.X;obj.meanWind]);                
+                obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                                 
                 accNoise = obj.dynNoise.*randn(state.rStream,6,1);
                 

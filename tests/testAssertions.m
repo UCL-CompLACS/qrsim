@@ -17,7 +17,6 @@ e = e & loadWorkingTaskWith3DDisplayOff('TaskDisplay3DOff','3D display off');
 e = e & loadBadlySpecifiedTask('TaskNoAreaType','qrsim:noareatype','missing area.type task parameter');
 e = e & loadBadlySpecifiedTask('TaskNoAreaLimits','boxarea:nolimits','missing area.limits task parameter');
 e = e & loadBadlySpecifiedTask('TaskNoAreaOriginUTMCoords','boxarea:nooriginutmcoords','missing area.originutmcoords task parameter');
-e = e & loadBadlySpecifiedTask('TaskNoAreaGraphics','boxarea:nographics','missing area.graphics.on task parameter');
 e = e & loadBadlySpecifiedTask('TaskNoAreaGraphicsType','boxarea:nographicstype','missing area.graphics.type task parameter');
 
 e = e & loadWorkingTaskWithObjectOff('TaskGPSSpaceSegmentOff','state.environment.gpsspacesegment','GPSSpaceSegment','gpsspacesegment off');
@@ -41,7 +40,7 @@ e = e & loadWorkingTaskWithObjectOff('TaskWindOff','state.environment.wind','Win
  
 e = e & loadBadlySpecifiedTask('TaskNoWindType','qrsim:nowindtype','missing wind.type task parameter');
 e = e & loadBadlySpecifiedTask('TaskNoWindDirection','windconstmean:nodirection','missing wind.direction task parameter');
-e = e & loadBadlySpecifiedTask('TaskNoWindW6','wind:now6','missing wind.W6 task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoWindW6','windconstmean:now6','missing wind.W6 task parameter');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformsConfigFile','qrsim:noplatforms','missing platforms task parameter');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformsX','qrsim:noplatformsx','missing platforms initial state task parameter');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformType','qrsim:noplatformtype','missing platform type parameter');
@@ -59,11 +58,13 @@ e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverDelay','gpsreceiverg:no
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAHARS','pelican:noahars','missing ahars');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAHARSType','pelican:noaharstype','missing ahars type');
 
-e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulence','qrsim:noaerodynamicturbulence','missing aerodynamic turbulence');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulence','qrsim:noaerodynamicturbulence','missing aerodynamic turbulence');
 
-e = e & loadWorkingTaskWithObjectOff('TaskAerodynamicTurbulenceOff','state.platforms(1).aerodynamicturbulence','AerodynamicTurbulence','aerodynamic turbulence off');
+e = e & loadWorkingTaskWithObjectOff('TaskPlatformAerodynamicTurbulenceOff','state.platforms(1).aerodynamicTurbulence','AerodynamicTurbulence','aerodynamic turbulence off');
 
-e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
+
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6 parameter');
 
 e = e & loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms(1).ahars.accelerometer','Accelerometer','accelerometer off');
 
@@ -84,7 +85,7 @@ e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterType','ahahrspelican:noal
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterTau','altimetergm:notau','missing altimeter tau');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterSigma','altimetergm:nosigma','missing altimeter sigma');
 
-e = e & loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms(1).ahars.orientationestimator','OrientationEstimator','orientation estimator off');
+e = e & loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms(1).ahars.orientationEstimator','OrientationEstimator','orientation estimator off');
 
 e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimator','ahahrspelican:noorientationestimator','missing orientation estimator');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorType','ahahrspelican:noorientationestimatortype','missing orientation estimator type');
@@ -151,7 +152,7 @@ U = [0;0;0.59004353928;0;11];
 try
     qrsim.init(task);
     
-    if(strcmp(class(obj),shouldBeClass)~=0)
+    if(~isa(eval(obj),shouldBeClass))
         e = 1;
         fprintf('\nUNEXPECTED TYPE:%s instead of %s\n',class(obj),shouldBeClass);
     end

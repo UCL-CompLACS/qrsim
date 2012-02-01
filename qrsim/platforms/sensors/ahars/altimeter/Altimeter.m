@@ -27,7 +27,7 @@ classdef Altimeter<Sensor
     end
     
     methods
-        function estimatedAltitude = getMeasurement(~,~)
+        function estimatedAltitude = getMeasurement(obj,~)
             % returns noiseless altitude
             estimatedAltitude = obj.alt;
         end

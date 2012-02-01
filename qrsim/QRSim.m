@@ -96,6 +96,7 @@ classdef QRSim<handle
             end
             
             assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
+            obj.par.environment.area.graphics.on = obj.par.display3d.on;
             state.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             
             obj.createObjects();
@@ -195,11 +196,6 @@ classdef QRSim<handle
                 assert(isfield(p,'aerodynamicturbulence')&&isfield(p.aerodynamicturbulence,'on'),'qrsim:noaerodynamicturbulence',...
                   'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
               
-                if(p.aerodynamicturbulence.on)
-                    assert(isfield(obj.par.environment.wind,'W6'),...
-                        'if aerodynamicturbulence.on=1 the task must define environment.wind.W6 even if wind is not active i.e. environment.wind=0');
-                    p.aerodynamicturbulence.W6 = obj.par.environment.wind.W6;
-                end
                 assert(isfield(p,'type'),'qrsim:noplatformtype','the platform config file must define a platform type');
                 state.platforms(i)=feval(p.type,p);
             end

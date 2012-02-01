@@ -52,8 +52,8 @@ end
 fprintf('\n');
 
 % compute the Allan variance to compare it with the ground thruth
-
-K = state.platforms.params.sensors.gpsreceiver.dt/state.DT;
+dt = state.environment.gpsspacesegment.params.dt;
+K = dt/state.DT;
 ep = eX(1:3,1:K:end)-X(1:3,1:K:end);
 
 t=(1:N/K)*state.DT;
@@ -69,10 +69,10 @@ t=(1:N/K)*state.DT;
 % xlabel('e_{px}[m]');
 % ylabel('e_{py}[m]');
 
-datas.rate = 1/state.platforms.params.sensors.gpsreceiver.dt;
+datas.rate = 1/dt;
 datas.freq = ep(1,:);
 
-tts = [2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*state.platforms.params.sensors.gpsreceiver.dt;
+tts = [2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*dt;
 [retvals, s, errorb] = allan(datas,tts,'e_{px}');
 
 %retvals = [retval;retvals]; %#ok<AGROW>

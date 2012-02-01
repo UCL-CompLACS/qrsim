@@ -32,13 +32,17 @@ c.dynNoise = [0.1;0.1;0.1;0.1;0.1;0.1];
 
 % GPS Receiver
 c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
+c.sensors.gpsreceiver.type = 'GPSReceiverG';
+c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
+c.sensors.gpsreceiver.R_SIGMA = 0.002;             % receiver noise standard deviation 
+c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 
 % AHARS attitude-heading-altitude reference system (a.k.a. imu + altimeter)
 % dt defined by the minimum dt of the sensors
 c.sensors.ahars.on = 1;  % setting it to 0 is equivalent to disabling all the ones below
 c.sensors.ahars.type = 'AHARSPelican';
 
-c.sensors.ahars.accelerometer.on = 1;  % if off the accelerometer returns the noiseless acceleration
+c.sensors.ahars.accelerometer.on = 0;  % if off the accelerometer returns the noiseless acceleration
 c.sensors.ahars.accelerometer.type = 'AccelerometerG';
 c.sensors.ahars.accelerometer.dt = 0.02;
 c.sensors.ahars.accelerometer.SIGMA = [0.0025;0.0025;0.0025]; % noise standard deviation
@@ -55,13 +59,27 @@ c.sensors.ahars.orientationEstimator.BETA = [1/100;1/100;1/100];       % noise t
 c.sensors.ahars.orientationEstimator.SIGMA = [0.0005;0.0005;0.0005];   % noise standard deviation
    
 c.sensors.ahars.altimeter.on = 1; % if off the altimeter returns the noiseless altitude
-c.sensors.ahars.altimeter.type = 'AltimeterGM';
+
 c.sensors.ahars.altimeter.dt = 0.02;
 c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;
+c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
+c.aerodynamicturbulence.dt = c.dt;
+c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from ground in m/s
 
+% Graphics
+c.graphics.on = params.display3d.on;
+c.graphics.type = 'PelicanGraphics';
+c.graphics.trajectory = 1; % plot trajectory
+c.graphics.AL = 0.4;       % arm length m
+c.graphics.AT = 0.01;      % arm width m
+c.graphics.AW = 0.02;      % arm thickness m
+c.graphics.BW = 0.12;      % body width m
+c.graphics.BT = 0.08;      % body thickness m
+c.graphics.R = 0.08;       % rotor radius m 
+c.graphics.DFT = 0.02;     % distance from truss m
 
 

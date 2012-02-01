@@ -7,9 +7,6 @@ classdef Wind<Steppable
     %    getRotational(state)       - always returns zero
     %    update([])                 - no computation
     %
-    properties
-        w6                %velocity at 6m from ground in m/s
-    end
     
     methods 
         function obj = Wind(objparams)
@@ -24,11 +21,8 @@ classdef Wind<Steppable
             %          
                         
             objparams.dt = intmax*objparams.DT; % since this wind is constant
-            
-            obj=obj@Steppable(objparams);                
-                                    
-            assert(isfield(objparams,'W6'),'wind:now6','the task must define wind.W6');            
-            obj.w6=objparams.W6;
+   
+            obj=obj@Steppable(objparams);              
         end
   
         function v = getLinear(~,~)

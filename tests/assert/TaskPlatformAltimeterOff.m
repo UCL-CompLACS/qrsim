@@ -13,9 +13,7 @@ classdef TaskPlatformAltimeterOff<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;
-            taskparams.display3d.width = 1000;
-            taskparams.display3d.height = 600;            
+            taskparams.display3d.on = 0;   
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
@@ -30,8 +28,6 @@ classdef TaskPlatformAltimeterOff<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.graphics.on = taskparams.display3d.on;
-            taskparams.environment.area.graphics.type = 'AreaGraphics';
             
             % GPS
             % The space segment of the gps system
@@ -46,10 +42,6 @@ classdef TaskPlatformAltimeterOff<Task
             % id number of visible satellites, the one below are from a typical flight day at RVC
             % these need to match the contents of gpsspacesegment.orbitfile
             taskparams.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
-            % the following model is from [2]
-            %taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
-            %taskparams.environment.gpsspacesegment.PR_BETA = 2000;     % process time constant
-            %taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation
             % the following model was instead designed to match measurements of real
             % data, it appears more relistic than the above
             taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
@@ -61,9 +53,6 @@ classdef TaskPlatformAltimeterOff<Task
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
             taskparams.environment.wind.on = 0;
-            taskparams.environment.wind.type = 'WindConstMean';
-            taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
-            taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms

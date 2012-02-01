@@ -62,20 +62,3 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;
-c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
-
-
-
-% Graphics
- 
-c.graphics.type = 'PelicanGraphics';
-c.graphics.trajectory = 1; % plot trajectory
-c.graphics.AL = 0.4;       % arm length m
-c.graphics.AT = 0.01;      % arm width m
-c.graphics.AW = 0.02;      % arm thickness m
-c.graphics.BW = 0.12;      % body width m
-c.graphics.BT = 0.08;      % body thickness m
-c.graphics.R = 0.08;       % rotor radius m 
-c.graphics.DFT = 0.02;     % distance from truss m
-
-
