@@ -18,7 +18,6 @@ classdef WindConstMean<Wind
     end
     
     properties (Access=private)
-        w6                %velocity at 6m from ground in m/s
         direction         %mean wind direction
     end
     
@@ -39,10 +38,7 @@ classdef WindConstMean<Wind
             
             obj=obj@Wind(objparams);
             
-            assert(isfield(objparams,'W6'),'windconstmean:w6','the task must define wind.W6');            
-            obj.w6=objparams.W6;
-            
-            assert(isfield(objparams,'direction'),'windconstmean:direction','the task must define wind.direction');  
+            assert(isfield(objparams,'direction'),'windconstmean:nodirection','the task must define wind.direction');  
             if(objparams.direction==0)
                 alpha = 2*pi*rand(state.rSteam,1,1);
                 obj.direction=[sin(alpha),cos(alpha),0];

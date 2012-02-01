@@ -71,7 +71,7 @@ c.aerodynamicturbulence.dt = c.dt;
 
 % Graphics
 c.graphics.on = params.display3d.on;
-c.graphics.type = 'QuadrotorGraphics';
+c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m
 c.graphics.AT = 0.01;      % arm width m

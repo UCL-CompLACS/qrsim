@@ -6,99 +6,178 @@ addpath('assert');
 
 e = 0;
 
-e = e & loadTask('TaskNoDT','qrsim:nodt','missing DT task parameter');
-e = e & loadTask('TaskNoSeed','qrsim:noseed','missing seed task parameter');
-e = e & loadTask('TaskNoDisplay3D','qrsim:nodisplay3d','missing display3d task parameter');
-e = e & loadTask('TaskNoDisplay3DHeight','qrsim:nodisplay3dwidthorheight','missing display3d.height task parameter');
-e = e & loadTask('TaskNoDisplay3DWidth','qrsim:nodisplay3dwidthorheight','missing display3d.width task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoDT','qrsim:nodt','missing DT task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoSeed','qrsim:noseed','missing seed task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoDisplay3D','qrsim:nodisplay3d','missing display3d task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoDisplay3DHeight','qrsim:nodisplay3dwidthorheight','missing display3d.height task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoDisplay3DWidth','qrsim:nodisplay3dwidthorheight','missing display3d.width task parameter');
 
-%test TaskDisplay3DOff making sure that all loads fine withdisplay3d.on=0
+e = e & loadWorkingTaskWith3DDisplayOff('TaskDisplay3DOff','3D display off');
 
-e = e & loadTask('TaskNoAreaType','qrsim:noareatype','missing area.type task parameter');
-e = e & loadTask('TaskNoAreaLimits','boxarea:nolimits','missing area.limits task parameter');
-e = e & loadTask('TaskNoAreaOriginUTMCoords','boxarea:nooriginutmcoords','missing area.originutmcoords task parameter');
-e = e & loadTask('TaskNoAreaGraphics','boxarea:nographics','missing area.graphics.on task parameter');
-e = e & loadTask('TaskNoAreaGraphicsType','boxarea:nographicstype','missing area.graphics.type task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoAreaType','qrsim:noareatype','missing area.type task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoAreaLimits','boxarea:nolimits','missing area.limits task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoAreaOriginUTMCoords','boxarea:nooriginutmcoords','missing area.originutmcoords task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoAreaGraphics','boxarea:nographics','missing area.graphics.on task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoAreaGraphicsType','boxarea:nographicstype','missing area.graphics.type task parameter');
 
-% test TaskGPSSPaceSegmentOff making sure that a GPSSpaceSegment is loaded
+e = e & loadWorkingTaskWithObjectOff('TaskGPSSpaceSegmentOff','state.environment.gpsspacesegment','GPSSpaceSegment','gpsspacesegment off');
 
-e = e & loadTask('TaskNoGPSSpaceSegmentType','qrsim:nogpsspacesegmenttype','missing gpsspacesegment.type task parameter');
-e = e & loadTask('TaskNoGPSSpaceSegmentDt','steppable:nodt','missing gpsspacesegment.dt task parameter');
-e = e & loadTask('TaskNoGPSSpacesegmentOrbitFileA','gpsspacesegmentgm2:noorbitfile','missing gpsspacesegment.orbitfile task parameter');
-e = e & loadTask('TaskNoGPSSpacesegmentOrbitFileB','gpsspacesegmentgm:noorbitfile','missing gpsspacesegment.orbitfile task parameter');
-e = e & loadTask('TaskNoGPSSpacesegmenttStartA','gpsspacesegmentgm2:notstart','missing gpsspacesegment.tStart task parameter');
-e = e & loadTask('TaskNoGPSSpacesegmenttStartB','gpsspacesegmentgm:notstart','missing gpsspacesegment.tStart task parameter'); 
-e = e & loadTask('TaskNoGPSSpacesegmenttSVSA','gpsspacesegmentgm2:nosvs','missing gpsspacesegment.svs task parameter');
-e = e & loadTask('TaskNoGPSSpacesegmenttSVSB','gpsspacesegmentgm:nosvs','missing gpsspacesegment.svs task parameter');
-e = e & loadTask('TaskNoGPSSpaceSegmentBeta2','gpsspacesegmentgm2:nobeta2','missing gpsspacesegment.PR_BETA2 task parameter');
-e = e & loadTask('TaskNoGPSSpaceSegmentBeta1','gpsspacesegmentgm2:nobeta1','missing gpsspacesegment.PR_BETA1 task parameter');
-e = e & loadTask('TaskNoGPSSpaceSegmentBeta','gpsspacesegmentgm:nobeta','missing gpsspacesegment.PR_BETA task parameter');
-e = e & loadTask('TaskNoGPSSpaceSegmentSigmaA','gpsspacesegmentgm2:nosigma','missing gpsspacesegment.PR_SIGMA task parameter');
-e = e & loadTask('TaskNoGPSSpaceSegmentSigmaB','gpsspacesegmentgm:nosigma','missing gpsspacesegment.PR_SIGMA task parameter');
-e = e & loadTask('TaskNoWind','qrsim:nowind','missing wind.on task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentType','qrsim:nogpsspacesegmenttype','missing gpsspacesegment.type task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentDt','steppable:nodt','missing gpsspacesegment.dt task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpacesegmentOrbitFileA','gpsspacesegmentgm2:noorbitfile','missing gpsspacesegment.orbitfile task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpacesegmentOrbitFileB','gpsspacesegmentgm:noorbitfile','missing gpsspacesegment.orbitfile task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttStartA','gpsspacesegmentgm2:notstart','missing gpsspacesegment.tStart task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttStartB','gpsspacesegmentgm:notstart','missing gpsspacesegment.tStart task parameter'); 
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttSVSA','gpsspacesegmentgm2:nosvs','missing gpsspacesegment.svs task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttSVSB','gpsspacesegmentgm:nosvs','missing gpsspacesegment.svs task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentBeta2','gpsspacesegmentgm2:nobeta2','missing gpsspacesegment.PR_BETA2 task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentBeta1','gpsspacesegmentgm2:nobeta1','missing gpsspacesegment.PR_BETA1 task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentBeta','gpsspacesegmentgm:nobeta','missing gpsspacesegment.PR_BETA task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentSigmaA','gpsspacesegmentgm2:nosigma','missing gpsspacesegment.PR_SIGMA task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentSigmaB','gpsspacesegmentgm:nosigma','missing gpsspacesegment.PR_SIGMA task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoWind','qrsim:nowind','missing wind.on task parameter');
 
-% % test TaskWindOff making sure that a Wind is loaded
+e = e & loadWorkingTaskWithObjectOff('TaskWindOff','state.environment.wind','Wind','wind off');
  
-e = e & loadTask('TaskNoWindType','qrsim:nowindtype','missing wind.type task parameter');
-e = e & loadTask('TaskNoWindDirection','windconstmean:direction','missing wind.direction task parameter');
-e = e & loadTask('TaskNowindW6','windconstmean:w6','missing wind.W6 task parameter');
-e = e & loadTask('TaskNoPlatformsConfigFile','qrsim:noplatforms','missing platforms task parameter');
-e = e & loadTask('TaskNoPlatformsX','qrsim:noplatformsx','missing platforms initial state task parameter');
-e = e & loadTask('TaskNoPlatformType','qrsim:noplatformtype','missing platform type parameter');
-e = e & loadTask('TaskNoPlatformStateLimits','pelican:nostatelimits','missing platform state limits');
-e = e & loadTask('TaskNoPlatformCollisionDistance','pelican:nocollisiondistance','missing platform collision distance');
-e = e & loadTask('TaskNoPlatformDynNoise','pelican:nodynnoise','missing platform dynamic noise');
-e = e & loadTask('TaskNoPlatformGPSReceiver','pelican:nogpsreceiver','missing platform gps receiver');
+e = e & loadBadlySpecifiedTask('TaskNoWindType','qrsim:nowindtype','missing wind.type task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoWindDirection','windconstmean:nodirection','missing wind.direction task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoWindW6','wind:now6','missing wind.W6 task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformsConfigFile','qrsim:noplatforms','missing platforms task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformsX','qrsim:noplatformsx','missing platforms initial state task parameter');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformType','qrsim:noplatformtype','missing platform type parameter');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformStateLimits','pelican:nostatelimits','missing platform state limits');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformCollisionDistance','pelican:nocollisiondistance','missing platform collision distance');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformDynNoise','pelican:nodynnoise','missing platform dynamic noise');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiver','pelican:nogpsreceiver','missing platform gps receiver');
 
-% TaskPlatformGPSReceiverOff make sure a GPSReceiver is loaded instead
+e = e & loadWorkingTaskWithObjectOff('TaskPlatformGPSReceiverOff','state.platforms(1).gpsreceiver','GPSReceiver','gpsreceiver off');
 
-e = e & loadTask('TaskNoPlatformGPSReceiverType','pelican:nogpsreceivertype','missing platform gps receiver type');
-e = e & loadTask('TaskNoPlatformGPSReceiverSigma','gpsreceiverg:nosigma','missing gps receiver sigma');
-e = e & loadTask('TaskNoPlatformGPSReceiverNumSVS','gpsreceiverg:nonumsvs','missing gps receiver num svs');
-e = e & loadTask('TaskNoPlatformGPSReceiverDelay','gpsreceiverg:nodelay','missing gps receiverdelay');
-e = e & loadTask('TaskNoPlatformAHARS','pelican:noahars','missing ahars');
-e = e & loadTask('TaskNoPlatformAHARSType','pelican:noaharstype','missing ahars type');
-e = e & loadTask('TaskNoAerodynamicTurbulence','pelican:noaerodynamicturbulence','missing aerodynamic turbulence');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverType','pelican:nogpsreceivertype','missing platform gps receiver type');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverSigma','gpsreceiverg:nosigma','missing gps receiver sigma');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverNumSVS','gpsreceiverg:nonumsvs','missing gps receiver num svs');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverDelay','gpsreceiverg:nodelay','missing gps receiverdelay');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAHARS','pelican:noahars','missing ahars');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAHARSType','pelican:noaharstype','missing ahars type');
+e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulence','pelican:noaerodynamicturbulence','missing aerodynamic turbulence');
 
-% TaskAerodynamicTurbulenceOff check that with aerodynamicturbulence,on =0 we create a new AerodynamicTurbulence object
+e = e & loadWorkingTaskWithObjectOff('TaskAerodynamicTurbulenceOff','state.platforms(1).aerodynamicturbulence','AerodynamicTurbulence','aerodynamic turbulence off');
 
-e = e & loadTask('TaskNoAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
-e = e & loadTask('TaskNoAerodynamicTurbulenceDt','steppable:nodt','missing aerodynamic turbulence dt');
-e = e & loadTask('TaskNoAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6');
+e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
+e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulenceDt','steppable:nodt','missing aerodynamic turbulence dt');
+e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6');
 
-% TaskPlatformAccelerometerOff check that with on =0 we create a new Accelerometer object
+e = e & loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms(1).ahars.accelerometer','Accelerometer','accelerometer off');
 
-e = e & loadTask('TaskNoPlatformAccelerometer','ahahrspelican:noaccelerometer','missing accelerometer');
-e = e & loadTask('TaskNoPlatformAccelerometerType','ahahrspelican:noaccelerometertype','missing accelerometer type');
-e = e & loadTask('TaskNoPlatformAccelerometerSigma','accelerometerg:sigma','missing accelerometer sigma');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAccelerometer','ahahrspelican:noaccelerometer','missing accelerometer');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAccelerometerType','ahahrspelican:noaccelerometertype','missing accelerometer type');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAccelerometerSigma','accelerometerg:sigma','missing accelerometer sigma');
 
-% TaskPlatformGyroscopeOff check that with on =0 we create a new Gyroscope object
+e = e & loadWorkingTaskWithObjectOff('TaskPlatformGyroscopeOff','state.platforms(1).ahars.gyroscope','Gyroscope','gyroscope off');
 
-e = e & loadTask('TaskNoPlatformGyroscope','ahahrspelican:nogyroscope','missing gyroscope');
-e = e & loadTask('TaskNoPlatformGyroscopeType','ahahrspelican:nogyroscopetype','missing gyroscope type');
-e = e & loadTask('TaskNoPlatformGyroscopeSigma','gyroscopeg:nosigma','missing gyroscope sigma');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGyroscope','ahahrspelican:nogyroscope','missing gyroscope');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGyroscopeType','ahahrspelican:nogyroscopetype','missing gyroscope type');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGyroscopeSigma','gyroscopeg:nosigma','missing gyroscope sigma');
 
-% TaskPlatformAltimeterOff check that with on =0 we create a new Altimeter object
+e = e & loadWorkingTaskWithObjectOff('TaskPlatformAltimeterOff','state.platforms(1).ahars.altimeter','Altimeter','altimeter off');
 
-e = e & loadTask('TaskNoPlatformAltimeter','ahahrspelican:noaltimeter','missing altimeter');
-e = e & loadTask('TaskNoPlatformAltimeterType','ahahrspelican:noaltimetertype','missing altimeter type');
-e = e & loadTask('TaskNoPlatformAltimeterTau','altimetergm:notau','missing altimeter tau');
-e = e & loadTask('TaskNoPlatformAltimeterSigma','altimetergm:nosigma','missing altimeter sigma');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeter','ahahrspelican:noaltimeter','missing altimeter');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterType','ahahrspelican:noaltimetertype','missing altimeter type');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterTau','altimetergm:notau','missing altimeter tau');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterSigma','altimetergm:nosigma','missing altimeter sigma');
 
 
-% TaskPlatformOrientationEstimatorOff check that with on =0 we create a new OrientationEstimator object
+e = e & loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms(1).ahars.orientationestimator','OrientationEstimator','orientation estimator off');
 
-e = e & loadTask('TaskNoPlatformOrientationEstimator','ahahrspelican:noorientationestimator','missing orientation estimator');
-e = e & loadTask('TaskNoPlatformOrientationEstimatorType','ahahrspelican:noorientationestimatortype','missing orientation estimator type');
-e = e & loadTask('TaskNoPlatformOrientationEstimatorBeta','orientationestimatorgm:nobeta','missing orientation estimator beta');
-e = e & loadTask('TaskNoPlatformOrientationEstimatorSigma','orientationestimatorgm:nosigma','missing orientation estimator sigma');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimator','ahahrspelican:noorientationestimator','missing orientation estimator');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorType','ahahrspelican:noorientationestimatortype','missing orientation estimator type');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorBeta','orientationestimatorgm:nobeta','missing orientation estimator beta');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorSigma','orientationestimatorgm:nosigma','missing orientation estimator sigma');
 
+% 'pelican:nographics'
+%'pelican:nographicstype'
 rmpath('assert');
 
 end
 
 
-function e = loadTask(task,id,msg)
+function e = loadWorkingTaskWith3DDisplayOff(task,msg)
+
+global state; %#ok<NUSED>
+
+qrsim = QRSim();
+e = 0;
+
+% a control that in absence of noise gives perfect hover
+U = [0;0;0.59004353928;0;11];
+
+try
+    qrsim.init(task);
+    
+    e = e || (state.environment.area.params.graphics.on ~= 0);
+    e = e || (~ischar('state.environment.area.graphics'));
+    e = e || (strcmp(class(state.platforms(1).graphics),'QuadrotorGraphics')~=1);
+
+    % do a few steps to make sure things actually work
+    for i=1:50
+        qrsim.step(U);
+    end
+catch exception
+     e = 1;  
+     fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+end
+
+if(e)
+    fprintf(['Test ',msg,' [FAILED]\n']);
+else
+    fprintf(['Test ',msg,' [PASSED]\n']);
+end
+
+clear('global state');
+clear('qrsim');
+close('all');
+
+end
+
+
+function e = loadWorkingTaskWithObjectOff(task,obj,shouldBeClass,msg)
+
+global state; %#ok<NUSED>
+
+qrsim = QRSim();
+e = 0;
+
+% a control that in absence of noise gives perfect hover
+U = [0;0;0.59004353928;0;11];
+
+%try
+    qrsim.init(task);
+    
+    if(strcmp(class(obj),shouldBeClass)~=0)
+        e = 1;
+    end
+    
+    % do a few steps to make sure things actually work
+    for i=1:50
+        qrsim.step(U);
+    end
+%catch exception
+%    e = 1;  
+%    fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+%end
+
+if(e)
+    fprintf(['Test ',msg,' [FAILED]\n']);
+else
+    fprintf(['Test ',msg,' [PASSED]\n']);
+end
+
+clear('global state');
+clear('qrsim');
+close('all');
+
+end
+
+function e = loadBadlySpecifiedTask(task,id,msg)
 
 global state; %#ok<NUSED>
 
@@ -110,8 +189,8 @@ try
     e = 1;
 catch exception
     if(~strcmp(exception.identifier,id))
-        e = 1;  
-        fprintf('(Got exception %s with message %s)',exception.identifier,exception.message);
+        e = 1;
+        fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
     end
 end
 clear('global state');

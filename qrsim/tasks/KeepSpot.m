@@ -8,7 +8,11 @@ classdef KeepSpot<Task
     %   init()   - loads and returns all the parameters for the various simulator objects
     %   reward() - returns the instantateous reward for this task
     %
-    
+    % 
+    % GENERAL NOTES:
+    % - if the on flag is zero, the NOISELESS version of the object is loaded instead
+    % - the step dt MUST be always specified eve if on=0
+    %
     methods (Sealed,Access=public)
         
         function taskparams=init(obj)

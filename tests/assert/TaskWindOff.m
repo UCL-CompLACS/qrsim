@@ -1,4 +1,4 @@
-classdef TaskNoAreaGraphics<Task
+classdef TaskWindOff<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
@@ -61,7 +61,12 @@ classdef TaskNoAreaGraphics<Task
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
             taskparams.environment.wind.on = 0;
-            
+            taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s            
+                        
+            %%%%% platforms %%%%%
+            % Configuration and initial state for each of the platforms
+            taskparams.platforms(1).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(1).X = [0;0;-20;0;0;0];
         end
         
         function r=reward(obj) 

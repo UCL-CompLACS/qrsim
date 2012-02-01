@@ -106,11 +106,17 @@ classdef Pelican<Steppable & Platform
             %instantiation of sensor and wind objects, with some "manual" type checking
             
             % TURBULENCE
-            objparams.aerodynamicturbulence.DT = objparams.DT; 
             assert(isfield(objparams,'aerodynamicturbulence')&&isfield(objparams.aerodynamicturbulence,'on'),'pelican:noaerodynamicturbulence',...
                   'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
-              
+            objparams.aerodynamicturbulence.DT = objparams.DT;               
             if(objparams.aerodynamicturbulence.on) 
+                
+                objparams.aerodynamicturbulence.dt = objparams.dt;
+                
+                assert(isfield(state.environment.wind,'W6'),...
+                    'if aerodynamicturbulence.on=1 the task must define environment.wind.W6 even if wind is not active i.e. environment.wind=0');
+                objparams.aerodynamicturbulence.W6 = state.environment.wind.W6;
+                
                 assert(isfield(objparams.aerodynamicturbulence,'type'),'pelican:noaerodynamicturbulencetype',...
                   'the platform config file must define an aerodynamicturbulence.type ');    
                 tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
@@ -124,10 +130,9 @@ classdef Pelican<Steppable & Platform
             end
             
             % AHARS
-            objparams.sensors.ahars.DT = objparams.DT;
             assert(isfield(objparams.sensors,'ahars')&&isfield(objparams.sensors.ahars,'on'),'pelican:noahars',...
                 'the platform config file must define an ahars');
-            
+            objparams.sensors.ahars.DT = objparams.DT;            
             assert(isfield(objparams.sensors.ahars,'type'),'pelican:noaharstype',...
                     'the platform config file must define an ahars.type'); 
             tmp = feval(objparams.sensors.ahars.type,objparams.sensors.ahars);
@@ -138,10 +143,9 @@ classdef Pelican<Steppable & Platform
             end
             
             % GPS
-            objparams.sensors.gpsreceiver.DT = objparams.DT;
             assert(isfield(objparams.sensors,'gpsreceiver')&&isfield(objparams.sensors.gpsreceiver,'on'),'pelican:nogpsreceiver',...
                 'the platform config file must define a gps receiver if not needed set gpsreceiver.on = 0');
-            
+            objparams.sensors.gpsreceiver.DT = objparams.DT;
             if(objparams.sensors.gpsreceiver.on)            
                 assert(isfield(objparams.sensors.gpsreceiver,'type'),'pelican:nogpsreceivertype',...
                     'the platform config file must define a gpsreceiver.type'); 
@@ -155,8 +159,17 @@ classdef Pelican<Steppable & Platform
                 obj.gpsreceiver = feval('GPSReceiver',objparams.sensors.gpsreceiver);
             end
             
+            % GRAPHICS
+            assert(isfield(objparams,'graphics')&&isfield(objparams.graphics,'on'),'pelican:nographics',...
+                'the platform config file must define a graphics parameter if not needed set graphics.on = 0');
             objparams.graphics.DT = objparams.DT;
-            obj.graphics=feval(objparams.graphics.type,objparams.graphics,obj.X);
+            if(objparams.graphics.on)
+                assert(isfield(objparams.graphics,'type'),'pelican:nographicstype',...
+                    'the platform config file must define a graphics.type'); 
+                obj.graphics=feval(objparams.graphics.type,objparams.graphics,obj.X);
+            else
+                obj.graphics=feval('QuadrotorGraphics',objparams.graphics,obj.X);    
+            end            
         end
     end
     

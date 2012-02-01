@@ -35,8 +35,19 @@ classdef TaskGPSSpaceSegmentOff<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on=0;
+            taskparams.environment.gpsspacesegment.on = 0; % if off the gps returns the noiseless position
+            taskparams.environment.gpsspacesegment.dt = 0.2;          
             
+            % Wind
+            % i.e. a steady omogeneous wind with a direction and magnitude
+            % this is common to all helicopters
+            taskparams.environment.wind.on = 0;
+            taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
+                        
+            %%%%% platforms %%%%%
+            % Configuration and initial state for each of the platforms
+            taskparams.platforms(1).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(1).X = [0;0;-20;0;0;0];
         end
         
         function r=reward(obj) 

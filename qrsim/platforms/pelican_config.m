@@ -9,7 +9,11 @@
 %  platform  = loadConfig('pelican_config');
 %  n = Pelican(platform);
 %
-
+% GENERAL NOTES:
+% - if the on flag is zero, the NOISELESS version of the object is loaded instead
+% - the step dt MUST be always specified eve if on=0
+%
+    
 if(~exist('params','var'))
     error('The platform parameters must be loaded after the global parameters');
 end
@@ -72,7 +76,7 @@ c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from g
 
 % Graphics
 c.graphics.on = params.display3d.on;
-c.graphics.type = 'QuadrotorGraphics';
+c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m
 c.graphics.AT = 0.01;      % arm width m

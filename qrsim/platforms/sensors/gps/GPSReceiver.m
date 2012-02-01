@@ -24,9 +24,13 @@ classdef GPSReceiver<Sensor
             
             if(objparams.on)
                 assert((state.environment.gpsspacesegment.params.on==1),...
-                    'When a GPS receiver is active also a corresponding gpsspacesegment object must be active');
-                objparams.dt = state.environment.gpsspacesegment.params.dt;
+                    'When a GPS receiver is active also a corresponding gpsspacesegment object must be active');                
             end
+            
+            assert(isfield(state.environment.gpsspacesegment.params,'dt'),...
+                    'GPS space segment must always define a dt parameter even when not active');               
+            objparams.dt = state.environment.gpsspacesegment.params.dt;
+            
             obj = obj@Sensor(objparams);
         end
         
