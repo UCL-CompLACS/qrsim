@@ -7,7 +7,7 @@ classdef Wind<Steppable
     %    getRotational(state)       - always returns zero
     %    update([])                 - no computation
     %
-    properties (Access=protected)
+    properties
         w6                %velocity at 6m from ground in m/s
     end
     

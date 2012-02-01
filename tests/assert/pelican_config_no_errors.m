@@ -70,7 +70,7 @@ c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying s
 
 
 % Graphics
-c.graphics.on = params.display3d.on;
+ 
 c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m

@@ -66,7 +66,7 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 
 % Graphics
-c.graphics.on = params.display3d.on;
+ 
 c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m

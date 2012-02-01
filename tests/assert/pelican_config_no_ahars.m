@@ -42,11 +42,11 @@ c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;
 c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
-c.aerodynamicturbulence.dt = c.dt;
-c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from ground in m/s
+
+
 
 % Graphics
-c.graphics.on = params.display3d.on;
+ 
 c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m

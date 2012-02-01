@@ -88,14 +88,14 @@ classdef QRSim<handle
                 
                 assert((isfield(obj.par.display3d,'width')&&isfield(obj.par.display3d,'height')),...
                     'qrsim:nodisplay3dwidthorheight',['If the 3D display is on, the task must define width and height '...
-                        'parameters of the rendering window']);                
+                    'parameters of the rendering window']);
                 
                 state.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
                     [20,20,obj.par.display3d.width,obj.par.display3d.height]);
                 set(state.display3d.figure,'DoubleBuffer','on');
             end
             
-            assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');            
+            assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
             state.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             
             obj.createObjects();
@@ -158,31 +158,31 @@ classdef QRSim<handle
             % space segment of GPS
             assert(isfield(obj.par.environment,'gpsspacesegment')&&isfield(obj.par.environment.gpsspacesegment,'on'),...
                 'qrsim:nogpsspacesegment',['the task must define environment.gpsspacesegment.on\n',...
-                'this can be environment.gpsspacesegment.on=0; if no GPS is needed']);            
+                'this can be environment.gpsspacesegment.on=0; if no GPS is needed']);
             obj.par.environment.gpsspacesegment.DT = obj.par.DT;
             if(obj.par.environment.gpsspacesegment.on)
                 assert(isfield(obj.par.environment.gpsspacesegment,'type'),...
-                'qrsim:nogpsspacesegmenttype','the task must define environment.gpsspacesegment.type');                
+                    'qrsim:nogpsspacesegmenttype','the task must define environment.gpsspacesegment.type');
                 state.environment.gpsspacesegment = feval(obj.par.environment.gpsspacesegment.type,...
-                obj.par.environment.gpsspacesegment);
+                    obj.par.environment.gpsspacesegment);
             else
                 state.environment.gpsspacesegment = feval('GPSSpaceSegment',...
-                obj.par.environment.gpsspacesegment);    
+                    obj.par.environment.gpsspacesegment);
             end
             
             % common part of Wind
             assert(isfield(obj.par.environment,'wind')&&isfield(obj.par.environment.wind,'on'),'qrsim:nowind',...
-            'the task must define environment.wind this can be environment.wind.on=0; if no wind is needed');            
-            obj.par.environment.wind.DT = obj.par.DT; 
+                'the task must define environment.wind this can be environment.wind.on=0; if no wind is needed');
+            obj.par.environment.wind.DT = obj.par.DT;
             if(obj.par.environment.wind.on)
                 assert(isfield(obj.par.environment.wind,'type'),...
-                'qrsim:nowindtype','the task must define environment.wind.type');  
+                    'qrsim:nowindtype','the task must define environment.wind.type');
                 state.environment.wind =feval(obj.par.environment.wind.type, obj.par.environment.wind);
             else
                 state.environment.wind = feval('Wind', obj.par.environment.wind);
             end
-             
-            %%% instantiates the platform objects   
+            
+            %%% instantiates the platform objects
             assert(isfield(obj.par,'platforms')&&(~isempty(obj.par.platforms)),'qrsim:noplatforms','the task must define at least one platform');
             for i=1:length(obj.par.platforms)
                 assert(isfield(obj.par.platforms(i),'configfile'),'qrsim:noplatforms','the task must define a configfile for each platform');
@@ -191,6 +191,15 @@ classdef QRSim<handle
                 assert(isfield(obj.par.platforms(i),'X'),'qrsim:noplatformsx','the platform config file must define a state X for platform %d',i);
                 p.X = obj.par.platforms(i).X;
                 p.graphics.on = obj.par.display3d.on;
+                
+                assert(isfield(p,'aerodynamicturbulence')&&isfield(p.aerodynamicturbulence,'on'),'qrsim:noaerodynamicturbulence',...
+                  'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
+              
+                if(p.aerodynamicturbulence.on)
+                    assert(isfield(obj.par.environment.wind,'W6'),...
+                        'if aerodynamicturbulence.on=1 the task must define environment.wind.W6 even if wind is not active i.e. environment.wind=0');
+                    p.aerodynamicturbulence.W6 = obj.par.environment.wind.W6;
+                end
                 assert(isfield(p,'type'),'qrsim:noplatformtype','the platform config file must define a platform type');
                 state.platforms(i)=feval(p.type,p);
             end

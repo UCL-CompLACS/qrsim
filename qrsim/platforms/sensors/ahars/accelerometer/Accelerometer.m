@@ -43,7 +43,7 @@ classdef Accelerometer<Sensor
             % saves the accelerometer noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            obj.a = obj.n + a(1:3);
+            obj.a = a(1:3);
         end
         
     end

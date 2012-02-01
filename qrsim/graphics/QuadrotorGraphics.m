@@ -11,13 +11,10 @@ classdef QuadrotorGraphics<handle
         function obj=QuadrotorGraphics(~,~)
             % constructs the object
         end
-        
+    end
+    
+    methods
         function obj = update(obj,~)
-            % does nothing
-            %
-        end
-        
-        function obj = initGlobalGraphics(obj)
             % does nothing
             %
         end

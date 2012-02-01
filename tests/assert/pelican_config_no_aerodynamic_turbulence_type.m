@@ -66,11 +66,11 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 1;
-c.aerodynamicturbulence.dt = c.dt;
-c.aerodynamicturbulence.W6 = params.environment.wind.W6;  %velocity at 6m from ground in m/s
+
+
 
 % Graphics
-c.graphics.on = params.display3d.on;
+ 
 c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m

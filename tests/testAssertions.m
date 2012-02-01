@@ -58,13 +58,12 @@ e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverNumSVS','gpsreceiverg:n
 e = e & loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverDelay','gpsreceiverg:nodelay','missing gps receiverdelay');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAHARS','pelican:noahars','missing ahars');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAHARSType','pelican:noaharstype','missing ahars type');
-e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulence','pelican:noaerodynamicturbulence','missing aerodynamic turbulence');
+
+e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulence','qrsim:noaerodynamicturbulence','missing aerodynamic turbulence');
 
 e = e & loadWorkingTaskWithObjectOff('TaskAerodynamicTurbulenceOff','state.platforms(1).aerodynamicturbulence','AerodynamicTurbulence','aerodynamic turbulence off');
 
 e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
-e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulenceDt','steppable:nodt','missing aerodynamic turbulence dt');
-e = e & loadBadlySpecifiedTask('TaskNoAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6');
 
 e = e & loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms(1).ahars.accelerometer','Accelerometer','accelerometer off');
 
@@ -85,7 +84,6 @@ e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterType','ahahrspelican:noal
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterTau','altimetergm:notau','missing altimeter tau');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformAltimeterSigma','altimetergm:nosigma','missing altimeter sigma');
 
-
 e = e & loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms(1).ahars.orientationestimator','OrientationEstimator','orientation estimator off');
 
 e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimator','ahahrspelican:noorientationestimator','missing orientation estimator');
@@ -93,8 +91,9 @@ e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorType','ahahrsp
 e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorBeta','orientationestimatorgm:nobeta','missing orientation estimator beta');
 e = e & loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorSigma','orientationestimatorgm:nosigma','missing orientation estimator sigma');
 
-% 'pelican:nographics'
-%'pelican:nographicstype'
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGraphicsType','pelican:nographicstype','missing graphics type');
+e = e & loadBadlySpecifiedTask('TaskNoPlatformGraphicsParams','pelicangraphics:nopar','missing graphics parameter');
+
 rmpath('assert');
 
 end
@@ -149,21 +148,22 @@ e = 0;
 % a control that in absence of noise gives perfect hover
 U = [0;0;0.59004353928;0;11];
 
-%try
+try
     qrsim.init(task);
     
     if(strcmp(class(obj),shouldBeClass)~=0)
         e = 1;
+        fprintf('\nUNEXPECTED TYPE:%s instead of %s\n',class(obj),shouldBeClass);
     end
     
     % do a few steps to make sure things actually work
     for i=1:50
         qrsim.step(U);
     end
-%catch exception
-%    e = 1;  
-%    fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
-%end
+catch exception
+    e = 1;  
+    fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+end
 
 if(e)
     fprintf(['Test ',msg,' [FAILED]\n']);

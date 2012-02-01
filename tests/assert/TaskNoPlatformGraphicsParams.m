@@ -1,9 +1,9 @@
-classdef TaskNoAerodynamicTurbulenceDt<Task
+classdef TaskNoPlatformGraphicsParams<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
         
-        function taskparams=init(obj)
+        function taskparams=init(~)
             % loads and returns all the parameters for the various simulator objects
             
             % Simulator step time in second this should not be changed...
@@ -13,7 +13,7 @@ classdef TaskNoAerodynamicTurbulenceDt<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;
+            taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;            
             
@@ -67,12 +67,12 @@ classdef TaskNoAerodynamicTurbulenceDt<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_no_aerodynamic_turbulence_dt';
+            taskparams.platforms(1).configfile = 'pelican_config_no_graphics_params';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end
         
-        function r=reward(obj) 
+        function r=reward(~) 
             % nothing this is just a test task
         end
     end

@@ -84,6 +84,7 @@ classdef Pelican<Steppable & Platform
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
             %
+
             obj=obj@Platform(objparams);
             obj=obj@Steppable(objparams);
                       
@@ -106,16 +107,9 @@ classdef Pelican<Steppable & Platform
             %instantiation of sensor and wind objects, with some "manual" type checking
             
             % TURBULENCE
-            assert(isfield(objparams,'aerodynamicturbulence')&&isfield(objparams.aerodynamicturbulence,'on'),'pelican:noaerodynamicturbulence',...
-                  'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
-            objparams.aerodynamicturbulence.DT = objparams.DT;               
+            objparams.aerodynamicturbulence.DT = objparams.DT;
+            objparams.aerodynamicturbulence.dt = objparams.dt;          
             if(objparams.aerodynamicturbulence.on) 
-                
-                objparams.aerodynamicturbulence.dt = objparams.dt;
-                
-                assert(isfield(state.environment.wind,'W6'),...
-                    'if aerodynamicturbulence.on=1 the task must define environment.wind.W6 even if wind is not active i.e. environment.wind=0');
-                objparams.aerodynamicturbulence.W6 = state.environment.wind.W6;
                 
                 assert(isfield(objparams.aerodynamicturbulence,'type'),'pelican:noaerodynamicturbulencetype',...
                   'the platform config file must define an aerodynamicturbulence.type ');    
