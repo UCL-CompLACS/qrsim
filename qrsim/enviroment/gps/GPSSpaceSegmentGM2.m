@@ -77,7 +77,7 @@ classdef GPSSpaceSegmentGM2 < Steppable & EnvironmentObject
                                     
             % if tStart is zero we define the start time randomly
             if(obj.tStart==0)
-               obj.tStart=b+rand(1,1)*(e-b);
+               obj.tStart=b+rand(state.rStream,1,1)*(e-b);
             end                 
                                
             if((obj.tStart<b)||(obj.tStart>e))

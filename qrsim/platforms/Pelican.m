@@ -165,6 +165,20 @@ classdef Pelican<Steppable & Platform
                 obj.graphics=feval('QuadrotorGraphics',objparams.graphics,obj.X);    
             end            
         end
+        
+        function obj = setState(X)
+           % set platform state 
+                    gpsreceiver % handle to the gps receiver
+        aerodynamicTurbulence  % handle to the aerodynamic turbulence
+        ahars       % handle to the attitude heading altitude reference system
+        graphics    % handle to the quadrotor graphics
+        meanWind    % mean wind vector
+        turbWind    % turbulence vector 
+        a           % linear accelerations in body coordinates [ax;ay;az]
+        valid       % the state of the platform is invalid
+        stateLimits % 13 by 2 vector of allowed values of the state
+        dynNoise    % standard deviation of the noise dynamics
+        end
     end
     
     methods (Sealed,Access=private)

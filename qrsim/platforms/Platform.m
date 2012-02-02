@@ -29,8 +29,8 @@ classdef Platform<handle
         end
     end
     
-    %methods (Abstract,Access=protected)        
-    %    setState(state);
-    %    % sets the platform state to the value passed             
-    %end
+    methods (Abstract)        
+        setState(state);
+        % sets the platform state to the value passed             
+    end
 end
