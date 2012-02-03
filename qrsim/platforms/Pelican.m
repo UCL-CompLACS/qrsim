@@ -19,11 +19,11 @@ classdef Pelican<Steppable & Platform
     %       ~p,~q,~r         [rad/s] measured rotational velocity in body coordinates
     %       0                        placeholder (the uav does not provide thrust estimation)
     %       ~ax,~ay,~az      [m/s^2] measured acceleration in body coordinates
-    %       ~h               [m]     estimated altitude from altimeter NED, POSITIVE UP! 
+    %       ~h               [m]     estimated altitude from altimeter NED, POSITIVE UP!
     %       ~pxdot           [m/s]   x velocity from GPS (NED coordinates)
     %       ~pydot           [m/s]   y velocity from GPS (NED coordinates)
     %       ~hdot            [m/s]   altitude rate from altimeter (NED coordinates)
-    %   
+    %
     % U   - controls  = [pt,rl,th,ya,bat]
     %       pt  [-0.89..0.89]  [rad]   commanded pitch
     %       rl  [-0.89..0.89]  [rad]   commanded roll
@@ -32,12 +32,13 @@ classdef Pelican<Steppable & Platform
     %       bat [9..12]        [Volts] battery voltage
     %
     % Pelican Methods:
-    % obj = Pelican(objparams) - constructs object
-    %        
-    
+    %    Pelican(objparams) - constructs object
+    %    reset()            - resets all the platform subcomponents
+    %    setState(state)    - reinitialise the current state and noise
+    %
     properties (Constant)
-        CONTROL_LIMITS = [-0.89,0.89; -0.89,0.89; 0,1; -4.4,4.4; 9,12]; %limits of the control inputs       
-        SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversuion factors 
+        CONTROL_LIMITS = [-0.89,0.89; -0.89,0.89; 0,1; -4.4,4.4; 9,12]; %limits of the control inputs
+        SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversuion factors
         BATTERY_RANGE = [9,12]; % range of valid battery values volts
         
         % The parameters of the system dynamics are defined in the
@@ -46,13 +47,13 @@ classdef Pelican<Steppable & Platform
         MASS = 1.68; %  mass of the platform Kg
     end
     
-    properties (Access = public)
+    properties (Access = private)
         gpsreceiver % handle to the gps receiver
         aerodynamicTurbulence  % handle to the aerodynamic turbulence
         ahars       % handle to the attitude heading altitude reference system
         graphics    % handle to the quadrotor graphics
         meanWind    % mean wind vector
-        turbWind    % turbulence vector 
+        turbWind    % turbulence vector
         a           % linear accelerations in body coordinates [ax;ay;az]
         valid       % the state of the platform is invalid
         stateLimits % 13 by 2 vector of allowed values of the state
@@ -84,10 +85,10 @@ classdef Pelican<Steppable & Platform
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
             %
-
+            
             obj=obj@Platform(objparams);
             obj=obj@Steppable(objparams);
-                      
+            
             obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
             obj.eX = [objparams.X(1:6); zeros(14,1)];
             obj.valid = 1;
@@ -98,7 +99,7 @@ classdef Pelican<Steppable & Platform
             
             assert(isfield(objparams,'collisionDistance'),'pelican:nocollisiondistance',...
                 'the platform config file must define the collisionDistance parameter');
-            obj.collisionD = objparams.collisionDistance; 
+            obj.collisionD = objparams.collisionDistance;
             
             assert(isfield(objparams,'dynNoise'),'pelican:nodynnoise',...
                 'the platform config file must define the dynNoise parameter');
@@ -108,11 +109,11 @@ classdef Pelican<Steppable & Platform
             
             % TURBULENCE
             objparams.aerodynamicturbulence.DT = objparams.DT;
-            objparams.aerodynamicturbulence.dt = objparams.dt;          
-            if(objparams.aerodynamicturbulence.on) 
+            objparams.aerodynamicturbulence.dt = objparams.dt;
+            if(objparams.aerodynamicturbulence.on)
                 
                 assert(isfield(objparams.aerodynamicturbulence,'type'),'pelican:noaerodynamicturbulencetype',...
-                  'the platform config file must define an aerodynamicturbulence.type ');    
+                    'the platform config file must define an aerodynamicturbulence.type ');
                 tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
                 if(isa(tmp,'AerodynamicTurbulence'))
                     obj.aerodynamicTurbulence = tmp;
@@ -126,9 +127,9 @@ classdef Pelican<Steppable & Platform
             % AHARS
             assert(isfield(objparams.sensors,'ahars')&&isfield(objparams.sensors.ahars,'on'),'pelican:noahars',...
                 'the platform config file must define an ahars');
-            objparams.sensors.ahars.DT = objparams.DT;            
+            objparams.sensors.ahars.DT = objparams.DT;
             assert(isfield(objparams.sensors.ahars,'type'),'pelican:noaharstype',...
-                    'the platform config file must define an ahars.type'); 
+                'the platform config file must define an ahars.type');
             tmp = feval(objparams.sensors.ahars.type,objparams.sensors.ahars);
             if(isa(tmp,'AHARS'))
                 obj.ahars = tmp;
@@ -140,16 +141,16 @@ classdef Pelican<Steppable & Platform
             assert(isfield(objparams.sensors,'gpsreceiver')&&isfield(objparams.sensors.gpsreceiver,'on'),'pelican:nogpsreceiver',...
                 'the platform config file must define a gps receiver if not needed set gpsreceiver.on = 0');
             objparams.sensors.gpsreceiver.DT = objparams.DT;
-            if(objparams.sensors.gpsreceiver.on)            
+            if(objparams.sensors.gpsreceiver.on)
                 assert(isfield(objparams.sensors.gpsreceiver,'type'),'pelican:nogpsreceivertype',...
-                    'the platform config file must define a gpsreceiver.type'); 
+                    'the platform config file must define a gpsreceiver.type');
                 tmp = feval(objparams.sensors.gpsreceiver.type,objparams.sensors.gpsreceiver);
                 if(isa(tmp,'GPSReceiver'))
                     obj.gpsreceiver = tmp;
                 else
                     error('c.sensors.gpsreceiver.type has to extend the class GPSReceiver');
                 end
-            else 
+            else
                 obj.gpsreceiver = feval('GPSReceiver',objparams.sensors.gpsreceiver);
             end
             
@@ -159,25 +160,57 @@ classdef Pelican<Steppable & Platform
             objparams.graphics.DT = objparams.DT;
             if(objparams.graphics.on)
                 assert(isfield(objparams.graphics,'type'),'pelican:nographicstype',...
-                    'the platform config file must define a graphics.type'); 
+                    'the platform config file must define a graphics.type');
                 obj.graphics=feval(objparams.graphics.type,objparams.graphics,obj.X);
             else
-                obj.graphics=feval('QuadrotorGraphics',objparams.graphics,obj.X);    
-            end            
+                obj.graphics=feval('QuadrotorGraphics',objparams.graphics,obj.X);
+            end
         end
         
         function obj = setState(obj,X)
-           % set platform state 
-         %           gpsreceiver % handle to the gps receiver
-        %aerodynamicTurbulence  % handle to the aerodynamic turbulence
-        %ahars       % handle to the attitude heading altitude reference system
-       % graphics    % handle to the quadrotor graphics
-       % meanWind    % mean wind vector
-        %turbWind    % turbulence vector 
-        %a           % linear accelerations in body coordinates [ax;ay;az]
-        %valid       % the state of the platform is invalid
-        %stateLimits % 13 by 2 vector of allowed values of the state
-       % dynNoise    % standard deviation of the noise dynamics
+            % reinitialise the current state and noise
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - platform new state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+            %           if the length of the X vector is 12, thrust is initialized automatically
+            %           if the length of the X vector is 6, all the velocities are set to zero
+            
+            assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
+                'setState() on a pelican object requires an input of length 6, 12 or 13');
+            
+            if(size(X,1)==6)
+                X = [X;zeros(6,1)];
+            end
+            
+            if(size(X,1)==12)
+                X = [X;abs(obj.MASS*obj.G)];
+            end
+            
+            obj.X = X;
+            obj.eX = X;
+            
+            obj.gpsreceiver.setState(X);
+            obj.aerodynamicTurbulence.setState(X);
+            obj.ahars.setState(X);
+            
+            obj.meanWind = zeros(3,1);
+            obj.turbWind = zeros(3,1);
+            obj.a  = zeros(3,1);
+            
+            obj.valid = 1;
+        end
+        
+        function obj = reset(obj)
+            % resets all the platform subcomponents
+            %
+            % Example:
+            %   obj.reset();
+            %
+            obj.gpsreceiver.reset();
+            obj.aerodynamicTurbulence.reset();
+            obj.ahars.reset();
         end
     end
     
@@ -194,12 +227,12 @@ classdef Pelican<Steppable & Platform
             %
             assert(~((size(U(:),1)~=5) || (sum(U(:)>=obj.CONTROL_LIMITS(:,1))~=5) || (sum(U(:)<=obj.CONTROL_LIMITS(:,2))~=5)),...
                 'pelican:inputoob',['wrong size of control inputs or values not within limits \n',...
-                    '\tU = [pt;rl;th;ya;bat] \n\n',...
-                    '\tpt  [-0.89..0.89] rad commanded pitch \n',...
-                    '\trl  [-0.89..0.89] rad commanded roll \n',...
-                    '\tth  [0..1] unitless commanded throttle \n',...
-                    '\tya  [-4.4..4.4] rad/s commanded yaw velocity \n',...
-                    '\tbat [9..12] Volts battery voltage \n']);
+                '\tU = [pt;rl;th;ya;bat] \n\n',...
+                '\tpt  [-0.89..0.89] rad commanded pitch \n',...
+                '\trl  [-0.89..0.89] rad commanded roll \n',...
+                '\tth  [0..1] unitless commanded throttle \n',...
+                '\tya  [-4.4..4.4] rad/s commanded yaw velocity \n',...
+                '\tbat [9..12] Volts battery voltage \n']);
             
             US = U.*obj.SI_2_UAVCTRL;
         end
@@ -209,7 +242,7 @@ classdef Pelican<Steppable & Platform
             valid =1;
             for i=1:length(obj.X),
                 valid = valid || (obj.X(i)<obj.stateLimits(i,1)) ||(obj.X(i)>obj.stateLimits(i,2));
-            end    
+            end
         end
         
         function coll = inCollision(obj)
@@ -255,9 +288,9 @@ classdef Pelican<Steppable & Platform
                 %turbulence
                 obj.meanWind = state.environment.wind.getLinear(obj.X);
                 
-                obj.aerodynamicTurbulence.step([obj.X;obj.meanWind]);                
+                obj.aerodynamicTurbulence.step([obj.X;obj.meanWind]);
                 obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
-                                
+                
                 accNoise = obj.dynNoise.*randn(state.rStream,6,1);
                 
                 % dynamics

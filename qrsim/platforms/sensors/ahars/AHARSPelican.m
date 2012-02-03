@@ -7,8 +7,10 @@ classdef AHARSPelican<AHARS
     %
     % AHARSPelican Methods:
     %   obj=AHARSPelican(objparams) - constructs the object
+    %   reset()            - resets all sensors
+    %   setState(state)    - reinitialise the current state and noise
     %
-    properties (Access=public)
+    properties (Access=private)
         accelerometer              % accelerometer sensor
         orientationEstimator       % orientation estimator
         gyroscope                  % gyroscope sensor
@@ -145,6 +147,41 @@ classdef AHARSPelican<AHARS
             estimatedAHA = [estimatedOrientation;measurementAngularVelocity;...
                 measurementAcceleration;estimatedAltitude];
         end
+        
+        function obj = setState(obj,X)
+            % reinitialise the current state and noise
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - platform new state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+            %           if the length of the X vector is 12, thrust is initialized automatically
+            %           if the length of the X vector is 6, all the velocities are set to zero
+            %
+            obj.accelerometer.setState(X);
+            obj.gyroscope.setState(X);
+            obj.altimeter.setState(X);
+            obj.orientationEstimator.setState(X);
+            
+            obj.meanWind = zeros(3,1);
+            obj.turbWind = zeros(3,1);
+            obj.a  = zeros(3,1);
+            
+            obj.valid = 1;
+        end
+        
+        function obj = reset(obj)
+            % resets all the sensors
+            %
+            % Example:
+            %   obj.reset();
+            %
+            obj.accelerometer.reset();
+            obj.gyroscope.reset();
+            obj.altimeter.reset();
+            obj.orientationEstimator.reset();
+        end
+        
     end
     
     methods (Sealed,Access=protected)

@@ -105,12 +105,15 @@ classdef QRSim<handle
         end
         
         function obj=reset(obj)
-            %resets the simulator to the state specified in the task
+            % resets the simulator to the state specified in the task, any random parametr is reinitialised
             %
             % Example:
             %    obj.reset();
             %
             global state; %#ok<NUSED>
+            
+            % reimplement using the object reset methods
+            % and spinning of the rng
             
             clear('state.environment.gpsspacesegment','state.environment.wind','state.platforms');
             

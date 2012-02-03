@@ -6,6 +6,7 @@ classdef Wind<Steppable
     %    getLinear(state)           - always returns zero
     %    getRotational(state)       - always returns zero
     %    update([])                 - no computation
+    %    reset()                    - no action
     %
     
     methods 
@@ -48,6 +49,10 @@ classdef Wind<Steppable
             %
             v=zeros(3,1);
         end
+
+	function obj = reset(obj)
+	   % does nothing
+	end
     end
     
     methods (Access=protected)

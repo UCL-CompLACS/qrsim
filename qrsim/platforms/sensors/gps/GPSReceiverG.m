@@ -15,6 +15,8 @@ classdef GPSReceiverG < GPSReceiver
     %    getMeasurement(X)          - computes and returns a GPS estimate given the input
     %                                 noise free NED position
     %    update(X)                  - generates a new noise sample
+    %    setState(X)                - reinitializes the current state and noise
+    %    reset()                    - re-init the ids of the visible satellites
     %
     properties (Constant)
         v_light = 299792458;        % speed of light (Constant)
@@ -29,7 +31,9 @@ classdef GPSReceiverG < GPSReceiver
         R_SIGMA                     % receiver noise standard deviation
         receivernoise = zeros(3,1); % current receiver noise sample
         pastPositions = 0;          % array of past positions needed to simulate delay
-        delay;                      % time delay
+        delay;                      % time delay 
+        minmaxnumsv;                % limits for visible number of satellites
+        totalnumsvs;                % total number of satellites in the space segment
     end
     
     methods
@@ -61,13 +65,11 @@ classdef GPSReceiverG < GPSReceiver
             
             % pick randomly the satellites visible for this receiver
             assert(isfield(objparams,'minmaxnumsv'),'gpsreceiverg:nonumsvs','the platform config must define the gpsreceiver.minmaxnumsv parameter');
-            obj.nsv = objparams.minmaxnumsv(1)...
-                +randi(state.rStream,objparams.minmaxnumsv(2) ...
-                -objparams.minmaxnumsv(1));
+            obj.minmaxnumsv = objparams.minmaxnumsv;
+            obj.totalnumsvs = length(state.environment.gpsspacesegment.params.svs);
             
-            obj.svidx = zeros(1,obj.nsv);
-            r = randperm(state.rStream,length(state.environment.gpsspacesegment.params.svs));
-            obj.svidx = r(1:obj.nsv);
+            % init the ids of the visible satellites
+            obj.reset();
         end
         
         
@@ -86,6 +88,42 @@ classdef GPSReceiverG < GPSReceiver
             estimatedPosNED = [obj.estimatedPosNED;...
                 (obj.estimatedPosNED(1:2)-obj.pastEstimatedPosNED(1:2))/obj.dt];
             
+        end
+        
+        function obj = reset(obj)
+           % re-init the ids of the visible satellites
+           %
+           % Example:
+           %
+           %   obj.reset()
+           %
+           global state;
+           obj.nsv = obj.minmaxnumsv(1)+randi(state.rStream,obj.minmaxnumsv(2)-obj.minmaxnumsv(1));
+            
+           obj.svidx = zeros(1,obj.nsv);
+           r = randperm(state.rStream,obj.totalnumsvs);
+           obj.svidx = r(1:obj.nsv); 
+           
+           obj.receivernoise = obj.R_SIGMA*randn(state.rStream,obj.nsv,1);
+        end
+        
+        function obj = setState(obj,X)
+            % reinitialise the current state and noise
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - new platform state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+            %           only the first 3 elements of X are actually used
+            %
+            obj.estimatedPosNED = X(1:3);
+            
+            obj.pastEstimatedPosNED = X(1:3);
+            
+            obj.pastPositions = repmat(X(1:3),1,obj.delay);
+
+            % now reset the visible satellites
+            obj.reset();
         end
     end
     
@@ -146,7 +184,7 @@ classdef GPSReceiverG < GPSReceiver
                 obj.pastEstimatedPosNED = obj.estimatedPosNED;
                 obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
             else
-                % avoids silly vel;ocities at startup
+                % avoids silly velocities at startup
                 obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
                 obj.pastEstimatedPosNED = obj.estimatedPosNED;
             end

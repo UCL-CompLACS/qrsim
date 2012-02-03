@@ -6,9 +6,11 @@ classdef GPSReceiver<Sensor
     %    getMeasurement(X)          - computes and returns a noise free GPS estimate given the input
     %                                 noise free NED position
     %    update(X)                  - stores current state
+    %    reset()                    - does nothing
+    %    setState(X)                - re-initialise the state to a new value
     %
     properties (Access=private)
-        X; % last state
+        X; % last state [px,py,pz,phi,theta,psi,u,v,w]
     end
     
     methods
@@ -60,6 +62,21 @@ classdef GPSReceiver<Sensor
             
             estimatedPosNED = [obj.X(1:3);gvel(1:2)];
         end
+        
+        function obj = reset(obj)
+           % does nothing            
+        end
+        
+        function obj = setState(obj,X)
+           % re-initialise the state to a new value
+           %
+           % Example:
+           %
+           %   obj.setState(X)
+           %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+           %
+           obj.X = X;
+        end
     end
     
     methods (Access=protected)        
@@ -68,7 +85,7 @@ classdef GPSReceiver<Sensor
             %
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            obj.X = X;
+            obj.X = X(1:9);
         end
     end
 end

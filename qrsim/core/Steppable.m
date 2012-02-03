@@ -99,16 +99,16 @@ classdef Steppable<handle
         %
     end
     
-    %methods (Abstract,Access=protected)
-    %     obj=reset(obj)
-    % reset the object state (if any)
-    %
-    % Note: this method is subclass specific and must be implemented by any subclass.
-    %
-    % Example:
-    %
-    %   obj.reset();
-    %
-    % end
+    methods (Abstract,Access=protected)
+        obj=reset(obj)
+        % reset the object state (if any)
+        %
+        % Note: this method is subclass specific and must be implemented by any subclass.
+        %
+        % Example:
+        %
+        %   obj.reset();
+        %
+    end
 end
 

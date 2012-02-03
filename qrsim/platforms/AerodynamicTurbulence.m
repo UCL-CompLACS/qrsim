@@ -6,6 +6,7 @@ classdef AerodynamicTurbulence<Steppable
     %   AerodynamicTurbulence(objparams) - constructs the object
     %   getLinear(state)                 - returns the linear component (always zero)
     %   getRotational(state)             - returns the rotational component   (always zero)
+    %   reset()                          - no action
     %
     methods
         function obj = AerodynamicTurbulence(objparams)
@@ -46,6 +47,10 @@ classdef AerodynamicTurbulence<Steppable
             %
             v=zeros(3,1);
         end
+
+	function obj = reset(obj)
+	    % nothing to be done
+	end
     end
     
     methods  (Access=protected)    
@@ -55,6 +60,8 @@ classdef AerodynamicTurbulence<Steppable
             % of this object dt, therefore it should not be called directly.
         end
     end
+
+
     
 end
 
