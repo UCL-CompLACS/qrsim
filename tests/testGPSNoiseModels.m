@@ -1,4 +1,4 @@
-%function [e]=testGPSNoiseModels()
+function [e]=testGPSNoiseModels()
 
 addpath('gps');
 
@@ -119,3 +119,5 @@ loglog(ttt,retvalt,'-or');
 grid on;
 
 rmpath('gps');
+
+end

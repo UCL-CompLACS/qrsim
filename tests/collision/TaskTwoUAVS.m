@@ -1,31 +1,10 @@
-classdef KeepSpot<Task
-    % Simple task in which a qudrotor has to keep its starting position despite the wind.
-    % Single platform task which requires to maintain the quadrotor hovering at the 
-    % position it has when the task starts; the solution requires non constant control 
-    % since the helicopter is affected by time varying wind disturbances.
+classdef TaskTwoUAVS<Task
+    % Task used to test assertions on DT
     %
-    % KeepSpot methods:
-    %   init()   - loads and returns all the parameters for the various simulator objects
-    %   reward() - returns the instantateous reward for this task
-    %
-    % 
-    % GENERAL NOTES:
-    % - if the on flag is zero, the NOISELESS version of the object is loaded instead
-    % - the step dt MUST be always specified eve if on=0
-    %
-    properties (Constant)
-        PENALTY = 1000;
-    end    
-        
     methods (Sealed,Access=public)
         
-        function taskparams=init(obj)
+        function taskparams=init(~)
             % loads and returns all the parameters for the various simulator objects
-            %
-            % Example:
-            %   params = obj.init();
-            %          params - all the task parameters
-            %
             
             % Simulator step time in second this should not be changed...
             taskparams.DT = 0.02;
@@ -34,9 +13,7 @@ classdef KeepSpot<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 1;
-            taskparams.display3d.width = 1000;
-            taskparams.display3d.height = 600;            
+            taskparams.display3d.on = 0;           
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
@@ -51,8 +28,6 @@ classdef KeepSpot<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.graphics.on = taskparams.display3d.on;
-            taskparams.environment.area.graphics.type = 'AreaGraphics';
             
             % GPS
             % The space segment of the gps system
@@ -62,65 +37,38 @@ classdef KeepSpot<Task
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
             % simulation start in GPS time, this needs to agree with the sp3 file above, 
             % alternatively it can be set to 0 to have a random initialization
-            %taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0); 
-            taskparams.environment.gpsspacesegment.tStart = 0;             
+            taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0); 
+            %taskparams.environment.gpsspacesegment.tStart = 0;             
             % id number of visible satellites, the one below are from a typical flight day at RVC
             % these need to match the contents of gpsspacesegment.orbitfile
             taskparams.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
-            % the following model is from [2]
-            %taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
-            %taskparams.environment.gpsspacesegment.PR_BETA = 2000;     % process time constant
-            %taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation
             % the following model was instead designed to match measurements of real
             % data, it appears more relistic than the above
             taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
             taskparams.environment.gpsspacesegment.PR_BETA2 = 4;       % process time constant
-            taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;  % process time constant   
+            taskparams.environment.gpsspacesegment.PR_BETA1 = 1.005;  % process time constant   
             taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;   % process standard deviation            
             
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 0;
+            taskparams.environment.wind.on = 1;
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
             taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config';
-            taskparams.platforms(1).X = [0;0;-20;0;0;0];
+            taskparams.platforms(1).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(1).X = [0;0;-50;0;0;0];
             
+            taskparams.platforms(2).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(2).X = [0;0;-20;0;0;0];            
         end
         
-        function r=reward(obj) 
-            % returns the instantateous reward for this task
-            %
-            % Example:
-            %   r = obj.reward();
-            %          r - the reward
-            %
-            global state;
-            
-            if(state.platforms(1).valid)
-                e = state.platforms(1).X(1:12);
-                e = e(1:3)-state.platforms(1).params.X(1:3);
-                r = - e' * e; 
-            else
-                % returning a large penalty in case the state is not valid
-                % i.e. the helicopter is out of the area, there was a
-                % collision or the helicopter has crashed 
-                r = - obj.PENALTY;
-            end
-                
+        function r=reward(~) 
+            % nothing this is just a test task
         end
     end
     
 end
-
-
-
-% [1] J. Rankin, "An error model for sensor simulation GPS and differential GPS," IEEE
-%     Position Location and Navigation Symposium, 1994, pp.260-266.
-% [2] Carlson, Justin, "Mapping Large, Urban Environments with GPS-Aided SLAM" (2010).
-%     Dissertations. Paper 44.

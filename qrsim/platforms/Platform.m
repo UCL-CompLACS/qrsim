@@ -30,7 +30,7 @@ classdef Platform<handle
     end
     
     methods (Abstract)        
-        setState(state);
+        setState(obj,state);
         % sets the platform state to the value passed             
     end
 end

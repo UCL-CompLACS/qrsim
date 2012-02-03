@@ -57,9 +57,11 @@ classdef QRSim<handle
             % Example:
             %    obj.init('task_name');
             %       task_name - class name of the task
-            %
-            global state;
+            %                       
+            assert(~isempty(whos('global','state')),'qrsim:noglobalstate',...
+                'Before initializing qrsim a global state variable must be decleared');
             
+            global state;
             % load the required configuration
             obj.task = feval(taskName);
             

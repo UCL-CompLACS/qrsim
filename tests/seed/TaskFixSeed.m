@@ -59,7 +59,7 @@ classdef TaskFixSeed<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_no_errors';
+            taskparams.platforms(1).configfile = 'pelican_config_everything_on';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end

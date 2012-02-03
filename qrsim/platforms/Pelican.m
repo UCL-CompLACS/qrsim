@@ -166,18 +166,18 @@ classdef Pelican<Steppable & Platform
             end            
         end
         
-        function obj = setState(X)
+        function obj = setState(obj,X)
            % set platform state 
-                    gpsreceiver % handle to the gps receiver
-        aerodynamicTurbulence  % handle to the aerodynamic turbulence
-        ahars       % handle to the attitude heading altitude reference system
-        graphics    % handle to the quadrotor graphics
-        meanWind    % mean wind vector
-        turbWind    % turbulence vector 
-        a           % linear accelerations in body coordinates [ax;ay;az]
-        valid       % the state of the platform is invalid
-        stateLimits % 13 by 2 vector of allowed values of the state
-        dynNoise    % standard deviation of the noise dynamics
+         %           gpsreceiver % handle to the gps receiver
+        %aerodynamicTurbulence  % handle to the aerodynamic turbulence
+        %ahars       % handle to the attitude heading altitude reference system
+       % graphics    % handle to the quadrotor graphics
+       % meanWind    % mean wind vector
+        %turbWind    % turbulence vector 
+        %a           % linear accelerations in body coordinates [ax;ay;az]
+        %valid       % the state of the platform is invalid
+        %stateLimits % 13 by 2 vector of allowed values of the state
+       % dynNoise    % standard deviation of the noise dynamics
         end
     end
     
@@ -192,17 +192,16 @@ classdef Pelican<Steppable & Platform
             % ya  [-2048..2048] 1=2.17109414e-3 rad/s = 0.124394531 deg/s commanded yaw velocity
             % bat [9..12] Volts battery voltage
             %
-            if (size(U(:),1)~=5 || sum(U(:)>=obj.CONTROL_LIMITS(:,1))~=5) || (sum(U(:)<=obj.CONTROL_LIMITS(:,2))~=5),
-                error('Pelican:input',['wrong size of control inputs or values not within limits \n'...
-                    '\tU = [pt;rl;th;ya;bat] \n\n'...
-                    '\tpt  [-0.89..0.89] rad commanded pitch \n'...
-                    '\trl  [-0.89..0.89] rad commanded roll \n'...
-                    '\tth  [0..1] unitless commanded throttle \n'...
-                    '\tya  [-4.4..4.4] rad/s commanded yaw velocity \n'...
+            assert(~((size(U(:),1)~=5) || (sum(U(:)>=obj.CONTROL_LIMITS(:,1))~=5) || (sum(U(:)<=obj.CONTROL_LIMITS(:,2))~=5)),...
+                'pelican:inputoob',['wrong size of control inputs or values not within limits \n',...
+                    '\tU = [pt;rl;th;ya;bat] \n\n',...
+                    '\tpt  [-0.89..0.89] rad commanded pitch \n',...
+                    '\trl  [-0.89..0.89] rad commanded roll \n',...
+                    '\tth  [0..1] unitless commanded throttle \n',...
+                    '\tya  [-4.4..4.4] rad/s commanded yaw velocity \n',...
                     '\tbat [9..12] Volts battery voltage \n']);
-            else
-                US = U.*obj.SI_2_UAVCTRL;
-            end
+            
+            US = U.*obj.SI_2_UAVCTRL;
         end
         
         function valid = stateIsWithinLimits(obj)
