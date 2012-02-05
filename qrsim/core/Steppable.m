@@ -99,7 +99,7 @@ classdef Steppable<handle
         %
     end
     
-    methods (Abstract,Access=protected)
+    methods (Abstract)
         obj=reset(obj)
         % reset the object state (if any)
         %

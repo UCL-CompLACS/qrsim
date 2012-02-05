@@ -23,6 +23,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
         PR_BETA                     % process time constant (from [2])
         PR_SIGMA                    % process standard deviation (from [2])
         tStart                      % simulation start GPS time
+        randomTStart                  % true is the tStart is random
     end
     
     methods
@@ -38,41 +39,32 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
             %
             %   obj=GPSSpaceSegmentGM(objparams);
             %                objparams.dt - timestep of this object
-            %                objparams.on - 1 if the object is active 
+            %                objparams.on - 1 if the object is active
             %                objparams.PR_BETA - process time constant
-            %                objparams.PR_SIGMA - process standard deviation 
+            %                objparams.PR_SIGMA - process standard deviation
             %                objparams.tStart - simulation start in GPS time
             %                objparams.orbitfile - satellites orbits
             %                objparams.svs - visible satellites
             %
             global state;
             
-            obj=obj@GPSSpaceSegment(objparams);           
+            obj=obj@GPSSpaceSegment(objparams);
             
-            assert(isfield(objparams,'tStart'),'gpsspacesegmentgm:notstart','The task must define a gps start time gpsspacesegment.tStart'); 
+            assert(isfield(objparams,'tStart'),'gpsspacesegmentgm:notstart','The task must define a gps start time gpsspacesegment.tStart');
             obj.tStart = objparams.tStart;
+            obj.randomTStart = (obj.tStart==0);
             
-            assert(isfield(objparams,'PR_BETA'),'gpsspacesegmentgm:nobeta','The task must define a gpsspacesegment.PR_BETA');           
+            assert(isfield(objparams,'PR_BETA'),'gpsspacesegmentgm:nobeta','The task must define a gpsspacesegment.PR_BETA');
             obj.PR_BETA = objparams.PR_BETA;
             
-            assert(isfield(objparams,'PR_SIGMA'),'gpsspacesegmentgm:nosigma','The task must define a gpsspacesegment.PR_SIGMA');             
+            assert(isfield(objparams,'PR_SIGMA'),'gpsspacesegmentgm:nosigma','The task must define a gpsspacesegment.PR_SIGMA');
             obj.PR_SIGMA = objparams.PR_SIGMA;
             
             % read in the precise satellite orbits
-            assert(isfield(objparams,'orbitfile'),'gpsspacesegmentgm:noorbitfile','The task must define a gpsspacesegment.orbitfile');            
-            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);          
-                        
-            state.environment.gpsspacesegment_.stdPe.compute();                        
-            [b,e] = state.environment.gpsspacesegment_.stdPe.tValidLimits();
-                                    
-            % if tStart is zero we define the start time randomly
-            if(obj.tStart==0)
-               obj.tStart=b+rand(state.rStream,1,1)*(e-b);
-            end                 
-                               
-            if((obj.tStart<b)||(obj.tStart>e))
-               error('GPS start time out of sp3 file bounds');
-            end 
+            assert(isfield(objparams,'orbitfile'),'gpsspacesegmentgm:noorbitfile','The task must define a gpsspacesegment.orbitfile');
+            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);
+            
+            state.environment.gpsspacesegment_.stdPe.compute();
             
             assert(isfield(objparams,'svs'),'gpsspacesegmentgm:nosvs','The task must define a gpsspacesegment.svs');
             state.environment.gpsspacesegment_.svs = objparams.svs;
@@ -80,11 +72,38 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
             % for each of the possible svs we initialize the
             % common part of the pseudorange noise models
             state.environment.gpsspacesegment_.nsv = length(objparams.svs);
-            state.environment.gpsspacesegment_.prns=zeros(state.environment.gpsspacesegment_.nsv,1);
             
             state.environment.gpsspacesegment_.betas = (1/obj.PR_BETA)*ones(state.environment.gpsspacesegment_.nsv,1);
             state.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment_.nsv,1);
             
+            obj.reset();
+        end
+        
+        
+        function obj = reset(obj)
+            % reinitialize the noise model
+            global state;
+            
+            [b,e] = state.environment.gpsspacesegment_.stdPe.tValidLimits();
+            
+            if(obj.randomTStart)
+                obj.tStart=b+rand(state.rStream,1,1)*(e-b);
+            end
+            
+            if((obj.tStart<b)||(obj.tStart>e))
+                error('GPS start time out of sp3 file bounds');
+            end
+            
+            state.environment.gpsspacesegment_.prns=zeros(state.environment.gpsspacesegment_.nsv,1);
+            
+            % spin up the noise process
+            for i=1:randi(state.rStream,1000)
+                % update noise states
+                state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
+                    exp(-state.environment.gpsspacesegment_.betas*obj.dt)...
+                    +state.environment.gpsspacesegment_.w.*randn(state.rStream,...
+                    state.environment.gpsspacesegment_.nsv,1);
+            end
         end
     end
     
@@ -98,7 +117,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
             %  class and should not be called directly.
             %
             global state;
-            %disp('stepping GPSSpaceSegmentGM');
+            
             % update noise states
             state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
                 exp(-state.environment.gpsspacesegment_.betas*obj.dt)...
