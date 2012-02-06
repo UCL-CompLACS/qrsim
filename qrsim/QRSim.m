@@ -142,6 +142,8 @@ classdef QRSim<handle
             state.environment.wind.step([]);
             
             %%% step all the platforms given U
+            assert(size(state.platforms,1)==size(U,2),'qrsim:wronginputsize',...
+                'the number of colum of the control input matrix has to be equal to the number of platforms');
             
             for i=1:length(state.platforms)
                 state.platforms(i).step(U(:,i));

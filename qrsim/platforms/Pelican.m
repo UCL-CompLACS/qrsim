@@ -47,7 +47,7 @@ classdef Pelican<Steppable & Platform
         MASS = 1.68; %  mass of the platform Kg
     end
     
-    properties (Access = private)
+    properties (Access = public)
         gpsreceiver % handle to the gps receiver
         aerodynamicTurbulence  % handle to the aerodynamic turbulence
         ahars       % handle to the attitude heading altitude reference system
@@ -55,7 +55,7 @@ classdef Pelican<Steppable & Platform
         meanWind    % mean wind vector
         turbWind    % turbulence vector
         a           % linear accelerations in body coordinates [ax;ay;az]
-        valid       % the state of the platform is invalid
+
        
         collisionD  % distance from any other object that defines a collision
         dynNoise    % standard deviation of the noise dynamics
@@ -65,6 +65,7 @@ classdef Pelican<Steppable & Platform
          stateLimits % 13 by 2 vector of allowed values of the state
         X   % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
         eX  % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
+                valid       % the state of the platform is invalid
     end
     
     methods (Sealed)
@@ -192,9 +193,21 @@ classdef Pelican<Steppable & Platform
             if(size(X,1)==12)
                 X = [X;abs(obj.MASS*obj.G)];
             end
-            
+           
             obj.X = X;
-            obj.eX = X;
+            
+            % handy values
+            sph = sin(X(4)); cph = cos(X(4));
+            sth = sin(X(5)); cth = cos(X(5));
+            sps = sin(X(6)); cps = cos(X(6));
+            
+            dcm = [                (cth * cps),                   (cth * sps),      (-sth);
+                (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps), (sph * cth);
+                (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps), (cph * cth)];
+            
+            % velocity in global frame
+            gvel = (dcm')*X(7:9);      
+            obj.eX = [X(1:6);zeros(3,1);X(10:12);zeros(4,1);-X(3);gvel];
             
             obj.gpsreceiver.setState(X);
             obj.ahars.setState(X);

@@ -30,5 +30,9 @@ classdef BoxArea<EnvironmentObject
                 obj.graphics=feval(objparams.graphics.type,objparams.limits);            
             end
         end
+        
+        function obj = reset(obj)
+            % does nothing
+        end
     end
 end

@@ -2,23 +2,23 @@ function [ e ] = testLimits()
 %test the checks we are imposing on each of the state variables,
 % on the flight volume and on the control inputs
 
-clear all;
+%clear all;
 
 cd('limits');
 
 e = 0;
 
 % test the case in which we start out of the boundaries
-e = e | testStartingOutOfBounds('test of helicopter starting out of bounds');
+e = e | testStartingOutOfBounds('helicopter starting out of bounds');
 
 
 % test the case in which we sart from inside the area and we
 % to a wp outside using a PID
-e = e | testFlyingOutOfBounds('test of helicopter flying out of the test area');
+e = e | testFlyingOutOfBounds('helicopter flying out of the test area');
 
 
 % test control input limits
-e = e | testControlsOutOfBounds('test of control inputs out of bounds');
+e = e | testControlsOutOfBounds('control inputs out of bounds');
 
 cd('..');
 
@@ -40,36 +40,54 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 qrsim.init('TaskNoWind');
 
+UwrongSize =[0.2,-0.2;
+               0,   0;
+             0.6, 0.6;
+               0,   0;
+              11,  11]; 
+
+% test wrong control size
+try
+    qrsim.step(UwrongSize);
+    e = e || 1;
+catch exception
+    if(~strcmp(exception.identifier,'qrsim:wronginputsize'))
+        e = e || 1;
+        fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+    end
+end
+
+
 % controls
-% pt  [-0.89..0.89] rad commanded pitch 
-% trl [-0.89..0.89] rad commanded roll 
+% pt  [-0.89..0.89] rad commanded pitch
+% trl [-0.89..0.89] rad commanded roll
 % th  [0..1] unitless commanded throttle
 % ya  [-4.4..4.4] rad/s commanded yaw velocity
 % bat [9..12] Volts battery voltage
 
 UUgood = [0.2,-0.2,  0,   0,   0,  0,  0,  0,  0,   0;
-            0,   0,0.1,-0.1,   0,  0,  0,  0,  0,   0;
-          0.6, 0.6,0.6, 0.6, 0.1,0.9,0.6,0.6,0.6, 0.6;
-            0,   0,  0,   0,   0,  0, -1,  1,  0,   0;
-           11,  11, 11,  11,  11, 11, 11, 11,  9,  12];
+    0,   0,0.1,-0.1,   0,  0,  0,  0,  0,   0;
+    0.6, 0.6,0.6, 0.6, 0.1,0.9,0.6,0.6,0.6, 0.6;
+    0,   0,  0,   0,   0,  0, -1,  1,  0,   0;
+    11,  11, 11,  11,  11, 11, 11, 11,  9,  12];
 
-for i = 1: size(UUgood,2),    
+for i = 1: size(UUgood,2),
     try
         qrsim.step(UUgood(:,i));
     catch exception
         e = e || 1;
         fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
-    end    
+    end
 end
 
 
 UUbad = [  1, -1,  0,  0,   0,  0,  0,  0,  0,  0;
-           0,  0,  1, -1,   0,  0,  0,  0,  0,  0;
-         0.6,0.6,0.6,0.6,-0.6,1.6,0.6,0.6,0.6,0.6;
-           0,  0,  0,  0,   0,  0, -5,  5,  0,  0;
-          11, 11, 11, 11,  11, 11, 11, 11,  8, 13];
+    0,  0,  1, -1,   0,  0,  0,  0,  0,  0;
+    0.6,0.6,0.6,0.6,-0.6,1.6,0.6,0.6,0.6,0.6;
+    0,  0,  0,  0,   0,  0, -5,  5,  0,  0;
+    11, 11, 11, 11,  11, 11, 11, 11,  8, 13];
 
-for i = 1: size(UUbad,2),    
+for i = 1: size(UUbad,2),
     try
         qrsim.step(UUbad(:,i));
         e = e || 1;
@@ -78,7 +96,7 @@ for i = 1: size(UUbad,2),
             e = 1;
             fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
         end
-    end    
+    end
 end
 
 if(e)
@@ -109,11 +127,11 @@ qrsim = QRSim();
 qrsim.init('TaskNoWind');
 
 wps=[   0,   0, 100, 0;
-        0,   0,-100, 0;
-      100,   0,   0, 0;
-     -100,   0,   0, 0;
-        0, 100,   0, 0;
-        0,-100,   0, 0];
+    0,   0,-100, 0;
+    100,   0,   0, 0;
+    -100,   0,   0, 0;
+    0, 100,   0, 0;
+    0,-100,   0, 0];
 
 for j = 1:size(wps,1)
     

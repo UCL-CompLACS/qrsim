@@ -8,24 +8,190 @@ cd('setreset');
 % after a setState X should be what was set
 e = simpleSetState();
 
-
-
-% with random seed:
-% two setState to the same state should give the same X but different eX
-
-% with fix seed:
-% two setSate should give the same X and same eX
-
 % with random seed
-% init should give different eX than an init + reset bu the same X
+% init should give different eX than an init + reset but the same X
+e = e | initAndResetFromRandomSeed('set twice with random seed');
 
 % with fix seed
 % init should give same eX and X than an init + reset
+e = e | initAndResetFromFixedSeed('set twice with fixed seed');
+
+% with random seed:
+% two setState to the same state should give the same X but different eX
+e = e | setAndRunFromRandomSeed('set and run twice with random seed');
+
+% with fix seed:
+% two setSate should give the same X and same eX
+e = e | setAndRunFromFixedSeed('set and run twice with fixed seed');
 
 
 cd('..');
 
 end
+
+
+function e = initAndResetFromRandomSeed(msg)
+
+e = 0;
+
+% new state structure
+global state;
+setX = [1;2;3;0;0;pi;0;0;0;0;0;0];
+
+% create simulator object
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+qrsim.init('TaskNoWindRandomSeed');
+
+X1 = state.platforms(1).X;
+eX1 = state.platforms(1).eX;
+
+state.platforms(1).setState(setX);
+
+X2 = state.platforms(1).X;
+eX2 = state.platforms(1).eX;
+
+e = e || ~all(X1==X2) || all(eX1==eX2);
+
+% clear the state
+clear global state;
+
+if(e)
+    fprintf(['Test ',msg,' [FAILED]\n']);
+else
+    fprintf(['Test ',msg,' [PASSED]\n']);
+end
+
+end
+
+
+function e = initAndResetFromFixedSeed(msg)
+
+e = 0;
+
+% new state structure
+global state;
+setX = [1;2;3;0;0;pi;0;0;0;0;0;0];
+
+% create simulator object
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+qrsim.init('TaskNoWindFixedSeed');
+
+X1 = state.platforms(1).X;
+eX1 = state.platforms(1).eX;
+
+state.platforms(1).setState(setX);
+
+X2 = state.platforms(1).X;
+eX2 = state.platforms(1).eX;
+
+e = e || ~all(X1==X2) || ~all(eX1==eX2);
+
+% clear the state
+clear global state;
+
+if(e)
+    fprintf(['Test ',msg,' [FAILED]\n']);
+else
+    fprintf(['Test ',msg,' [PASSED]\n']);
+end
+
+end
+
+function e = setAndRunFromRandomSeed(msg)
+
+e = 0;
+
+% new state structure
+global state;
+U = [0;0;0.59004353928;0;11];
+setX = [1;2;3;0;0;pi;0;0;0;0;0;0];
+
+% create simulator object
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+qrsim.init('TaskNoWindRandomSeed');
+
+state.platforms(1).setState(setX);
+
+for i=1:50
+    qrsim.step(U);
+end    
+
+X1 = state.platforms(1).X;
+eX1 = state.platforms(1).eX;
+
+state.platforms(1).setState(setX);
+
+for i=1:50
+    qrsim.step(U);
+end    
+
+X2 = state.platforms(1).X;
+eX2 = state.platforms(1).eX;
+
+e = e || ~all(X1==X2) || all(eX1==eX2);
+
+% clear the state
+clear global state;
+
+if(e)
+    fprintf(['Test ',msg,' [FAILED]\n']);
+else
+    fprintf(['Test ',msg,' [PASSED]\n']);
+end
+
+end
+
+
+function e = setAndRunFromFixedSeed(msg)
+
+e = 0;
+
+% new state structure
+global state;
+U = [0;0;0.59004353928;0;11];
+setX = [1;2;3;0;0;pi;0;0;0;0;0;0];
+
+% create simulator object
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+qrsim.init('TaskNoWindFixedSeed');
+
+state.platforms(1).setState(setX);
+    
+
+X1 = state.platforms(1).X;
+eX1 = state.platforms(1).eX;
+
+state.platforms(1).setState(setX);
+
+for i=1:50
+    qrsim.step(U);
+end    
+
+X2 = state.platforms(1).X;
+eX2 = state.platforms(1).eX;
+
+e = e || ~all(X1==X2) || ~all(eX1==eX2);
+
+% clear the state
+clear global state;
+
+if(e)
+    fprintf(['Test ',msg,' [FAILED]\n']);
+else
+    fprintf(['Test ',msg,' [PASSED]\n']);
+end
+
+end
+
+
 
 function e = simpleSetState()
 
@@ -38,7 +204,7 @@ global state;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskNoWind');
+qrsim.init('TaskNoWindRandomSeed');
 
 % failing
 shortX = [0;1;2];
