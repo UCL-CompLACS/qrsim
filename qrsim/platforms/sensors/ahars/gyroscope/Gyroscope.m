@@ -5,6 +5,8 @@ classdef Gyroscope<Sensor
     %   Gyroscope(objparams)             - constructs the object
     %   getMeasurement(X)                - returns a noiseless angular velocity measurement
     %   update(X)                        - stores teh current rotational velocity
+    %   reset()                          - does nothing
+    %   setState(X)                      - sets the current angular velocity and resets
     %
     
     properties (Access=private)
@@ -35,6 +37,17 @@ classdef Gyroscope<Sensor
             %        ma - 3 by 1 noiseless angular velocity in body frame [p;q;r] rad/s
             %
             measurementAngularVelocity = obj.angularVelocity;
+         end
+                 
+        function obj=reset(obj)
+            % does nothing            
+        end
+        
+        function obj = setState(obj,X)
+            % sets the current angular velocity and resets
+            obj.angularVelocity = X(10:12);
+            
+            obj.reset();
         end
     end
     

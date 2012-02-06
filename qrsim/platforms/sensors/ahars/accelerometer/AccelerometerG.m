@@ -12,7 +12,9 @@ classdef AccelerometerG<Accelerometer
     %   AccelerometerG(objparams)        - constructs the object
     %   getMeasurement(a)                - returns a noisy acceleration measurement
     %   update(a)                        - updates the accelerometer sensor noise state
-    %
+    %   reset()                          - reinitialize noise terms
+    %   setState(a)                      - sets the current acceleration and resets
+    %  
     properties (Access = private)
         SIGMA                            % noise standard deviation
         n = zeros(3,1);                  % noise sample at current timestep
@@ -45,6 +47,17 @@ classdef AccelerometerG<Accelerometer
             %       a  - 3 by 1 vector of "noisy" acceleration in body frame [~ax;~ay;~az] m/s^2
             %
             measurementAcceleration = obj.measurementAcceleration;
+        end        
+                
+        function obj=reset(obj)
+            % does nothing  
+            % since the noise model does not have state variables
+        end
+        
+        function obj = setState(obj,a)
+            % sets the current acceleration and resets
+            obj.measurementAcceleration = a;
+            obj.reset();
         end
     end
     

@@ -13,8 +13,7 @@ classdef QRSim<handle
     %   delete()        - destructor
     %   step(obj,U)     - increments time and steps forward in sequence all the enviroment
     %                     objects and platforms.
-    %
-    
+    %    
     properties (Access=public)
         par % parameters from task
         paths =[];  %paths
@@ -110,14 +109,18 @@ classdef QRSim<handle
             % Example:
             %    obj.reset();
             %
-            global state; %#ok<NUSED>
+            global state;
             
-            % reimplement using the object reset methods
-            % and spinning of the rng
+            state.environment.gpsspacesegment.reset();
+            state.environment.wind.reset();
+            state.environment.area.reset();
             
-            clear('state.environment.gpsspacesegment','state.environment.wind','state.platforms');
+            for i=1:length(state.platforms)
+                state.platforms(i).setState(obj.par.platforms(i).X);
+            end
             
-            obj.createObjects();
+            %clear('state.environment.gpsspacesegment','state.environment.wind','state.platforms');
+            %obj.createObjects();
         end
         
         

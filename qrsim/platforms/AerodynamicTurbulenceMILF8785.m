@@ -58,6 +58,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             assert(isfield(objparams,'W6'),'aerodynamicturbulencemilf8785:now6',...
                 'the platform config file must define a aerodynamicturbulence.W6 parameter');
             obj.w6=objparams.W6;
+            
+            obj.reset();
         end
         
         function v = getLinear(obj,~)
@@ -85,6 +87,16 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %
             v=zeros(3,1);
         end
+        
+        function obj = reset(obj)
+            % nothing to be done
+            % TODO
+        end
+        
+        function obj = setState(obj,~)
+            % nothing to be done
+            % TODO
+        end
     end
     
     methods  (Sealed, Access=protected)
@@ -107,7 +119,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             
             V = norm(relativeWind);%m/s
             
-            alpha = atan2(relativeWind(3),relativeWind(1)); % angle of attac
+            alpha = atan2(relativeWind(3),relativeWind(1)); % angle of attack
             beta = asin(relativeWind(2)/V); % sideslip angle
             
             cb = cos(beta);  sb = sin(beta);

@@ -1,7 +1,7 @@
 classdef GyroscopeG<Gyroscope
     % Simple gyroscope noise model.
     % The following assumptions are made:
-    % - the noise is modelled as additive white Gaussian. 
+    % - the noise is modelled as additive white Gaussian.
     % - the accelerometer refrence frame concides wih the body reference frame
     % - no time delays
     %
@@ -12,6 +12,8 @@ classdef GyroscopeG<Gyroscope
     %   GyroscopeG(objparams)            - constructs the object
     %   getMeasurement(X)                - returns a noisy angular velocity measurement
     %   update(X)                        - updates the gyroscope sensor noisy measurement
+    %   reset()                          - does nothing
+    %   setState(X)                      - sets the current angular velocity and resets
     %
     properties (Access = private)
         SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
@@ -33,7 +35,7 @@ classdef GyroscopeG<Gyroscope
             %
             obj=obj@Gyroscope(objparams);
             assert(isfield(objparams,'SIGMA'),'gyroscopeg:nosigma',...
-                'the platform config file a must define gyroscope.SIGMA parameter');  
+                'the platform config file a must define gyroscope.SIGMA parameter');
             obj.SIGMA = objparams.SIGMA;
         end
         
@@ -47,6 +49,18 @@ classdef GyroscopeG<Gyroscope
             %
             measurementAngularVelocity = obj.measurementAngularVelocity;
         end
+        
+        function obj=reset(obj)
+            % does nothing
+            % since the noise model does not have state variables
+        end
+        
+        function obj = setState(obj,X)
+            % sets the current angular velocity and resets
+            obj.measurementAngularVelocity = X(10:12);
+            
+            obj.reset();
+        end
     end
     
     methods (Sealed,Access=protected)
@@ -54,7 +68,7 @@ classdef GyroscopeG<Gyroscope
             % updates the gyroscope noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-	        global state;
+            global state;
             obj.n = obj.SIGMA.*randn(state.rStream,3,1);
             obj.measurementAngularVelocity = obj.n + X(10:12);
         end

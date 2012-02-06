@@ -56,12 +56,13 @@ classdef Pelican<Steppable & Platform
         turbWind    % turbulence vector
         a           % linear accelerations in body coordinates [ax;ay;az]
         valid       % the state of the platform is invalid
-        stateLimits % 13 by 2 vector of allowed values of the state
+       
         collisionD  % distance from any other object that defines a collision
         dynNoise    % standard deviation of the noise dynamics
     end
     
     properties
+         stateLimits % 13 by 2 vector of allowed values of the state
         X   % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
         eX  % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
     end
@@ -176,9 +177,13 @@ classdef Pelican<Steppable & Platform
             %       X - platform new state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
             %           if the length of the X vector is 12, thrust is initialized automatically
             %           if the length of the X vector is 6, all the velocities are set to zero
+            global state;
             
             assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
                 'setState() on a pelican object requires an input of length 6, 12 or 13');
+            
+            assert(obj.thisStateIsWithinLimits(X),'pelican:settingoobstate',...
+                'the state passed therough setState() is not valid (i.e. out of limits)');
             
             if(size(X,1)==6)
                 X = [X;zeros(6,1)];
@@ -192,11 +197,13 @@ classdef Pelican<Steppable & Platform
             obj.eX = X;
             
             obj.gpsreceiver.setState(X);
-            obj.aerodynamicTurbulence.setState(X);
             obj.ahars.setState(X);
             
-            obj.meanWind = zeros(3,1);
-            obj.turbWind = zeros(3,1);
+            %turbulence
+            obj.meanWind = state.environment.wind.getLinear(obj.X);
+            obj.aerodynamicTurbulence.setState([obj.X;obj.meanWind]);
+            obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
+            
             obj.a  = zeros(3,1);
             
             obj.valid = 1;
@@ -237,11 +244,11 @@ classdef Pelican<Steppable & Platform
             US = U.*obj.SI_2_UAVCTRL;
         end
         
-        function valid = stateIsWithinLimits(obj)
+        function valid = thisStateIsWithinLimits(obj,X)
             % returns 0 if the state is out of bounds
             valid =1;
-            for i=1:length(obj.X),
-                valid = valid || (obj.X(i)<obj.stateLimits(i,1)) ||(obj.X(i)>obj.stateLimits(i,2));
+            for i=1:length(X),
+                valid = valid || (X(i)<obj.stateLimits(i,1)) ||(X(i)>obj.stateLimits(i,2));
             end
         end
         
@@ -297,7 +304,7 @@ classdef Pelican<Steppable & Platform
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;obj.meanWind + obj.turbWind; obj.MASS; accNoise], obj.dt);
                 
                 
-                if(obj.stateIsWithinLimits() && ~obj.inCollision())
+                if(obj.thisStateIsWithinLimits(obj.X) && ~obj.inCollision())
                     
                     % AHARS
                     obj.ahars.step([obj.X;obj.a]);

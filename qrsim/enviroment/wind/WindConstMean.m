@@ -2,6 +2,8 @@ classdef WindConstMean<Wind
     % Class that simulates a constant wind field.
     % Given the current altitude of the platform the wind share effect is uded to compute
     % the magnitude and direction of the linear component of a constant wind field.
+    % The running assumprion is that the wind varies on a time scale somewhat larger
+    % than the scale of vehicle flight time.
     %
     % WindConstMean Properties:
     %    Z0                         - reference height (constant)

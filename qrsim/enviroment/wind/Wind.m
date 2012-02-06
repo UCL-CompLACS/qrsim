@@ -9,29 +9,29 @@ classdef Wind<Steppable
     %    reset()                    - no action
     %
     
-    methods 
+    methods
         function obj = Wind(objparams)
-            % constructs the object 
+            % constructs the object
             % This object is created when wind is not active
             %
             % Example:
-            % 
+            %
             %   obj=WindConstMean(objparams)
             %                objparams.on - 0 to have this type of object
             %                objparams.W6 - velocity at 6m from ground in m/s
-            %          
-                        
+            %
+            
             objparams.dt = intmax*objparams.DT; % since this wind is constant
-   
-            obj=obj@Steppable(objparams);              
+            
+            obj=obj@Steppable(objparams);
         end
-  
+        
         function v = getLinear(~,~)
             % returns always zero.
             %
             % Example:
             %
-            %   v = obj.getLinear(state)  
+            %   v = obj.getLinear(state)
             %           state - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
@@ -43,16 +43,16 @@ classdef Wind<Steppable
             %
             % Example:
             %
-            %   v = obj.getRotational(state)  
+            %   v = obj.getRotational(state)
             %           state - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
             v=zeros(3,1);
         end
-
-	function obj = reset(obj)
-	   % does nothing
-	end
+        
+        function obj = reset(obj)
+            % does nothing
+        end
     end
     
     methods (Access=protected)

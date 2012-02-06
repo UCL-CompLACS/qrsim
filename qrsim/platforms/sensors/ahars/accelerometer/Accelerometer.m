@@ -5,8 +5,9 @@ classdef Accelerometer<Sensor
     %   Accelerometer(objparams)         - constructs the object
     %   getMeasurement(a)                - returns a noiseless acceleration measurement
     %   update(a)                        - stores the current accelerations
-    %
-    
+    %   reset()                          - does nothing
+    %   setState(a)                      - sets the current acceleration and resets
+    %   
     properties (Access=private)
        a; % last acceleration 
     end    
@@ -35,6 +36,16 @@ classdef Accelerometer<Sensor
             %       ma  - 3 by 1 vector of noise free acceleration in body frame [ax;ay;az] m/s^2
             % 
             measurementAcceleration = obj.a;
+        end
+        
+        function obj=reset(obj)
+            % does nothing            
+        end
+        
+        function obj = setState(obj,a)
+            % sets the current acceleration and resets
+            obj.a = a;
+            obj.reset();
         end
     end
     

@@ -3,6 +3,7 @@ classdef BoxArea<EnvironmentObject
     %
     % BoxArea Methods:
     %    BoxArea(objparams) -  constructs the object
+    %    reset()            -  does nothing
     %
     properties (Access=private)
        graphics % handle to the graphics object

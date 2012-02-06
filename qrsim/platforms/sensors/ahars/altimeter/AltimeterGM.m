@@ -13,14 +13,15 @@ classdef AltimeterGM<Altimeter
     %   AltimeterGM(objparams)     - constructs the object
     %   getMeasurement(X)          - returns a noisy altitude measurement
     %   update(X)                  - updates the altimeter noisy altitude measurement
+    %   reset()                    - does nothing
+    %   setState(X)                - sets the current altitude and its derivative and resets
     %
-    
     properties (Access = private)
         TAU                       % noise time constant
         SIGMA                      % noise standard deviation
         estimatedAltitude = zeros(1,1); % measurement at last valid timestep
         pastEstimatedAltitude = zeros(1,1); % measurement at past valid timestep
-        n = zeros(1,1);            % measurement at last valid timestep
+        n                         % measurement at last valid timestep
     end
     
     methods (Sealed)
@@ -43,6 +44,8 @@ classdef AltimeterGM<Altimeter
             assert(isfield(objparams,'SIGMA'),'altimetergm:nosigma',...
                 'the platform config file a must define altimetergm.SIGMA parameter');  
             obj.SIGMA = objparams.SIGMA;
+            
+            obj.reset();
         end
         
         function estimatedAltitude = getMeasurement(obj,~)
@@ -57,7 +60,37 @@ classdef AltimeterGM<Altimeter
 
             estimatedAltitude = [obj.estimatedAltitude;...
                                      (obj.estimatedAltitude-obj.pastEstimatedAltitude)/obj.dt];
+        end        
+                                 
+        function obj=reset(obj)
+            % reinitialize the noise state
+            global state;
+            obj.n = 0;
+            
+            for i=1:randi(state.rStream,1000),                
+                obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStream,1,1);
+            end
         end
+        
+        function obj = setState(obj,X)
+            % sets the current altitude and its derivative and resets
+            
+            % handy values
+            sph = sin(X(4)); cph = cos(X(4));
+            sth = sin(X(5)); cth = cos(X(5));
+            sps = sin(X(6)); cps = cos(X(6));
+            
+            dcm = [                (cth * cps),                   (cth * sps),      (-sth);
+                (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps), (sph * cth);
+                (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps), (cph * cth)];
+            
+            % velocity in global frame
+            gvel = (dcm')*X(7:9);           
+            obj.pastEstimatedAltitude = -X(3) + gvel(3)*obj.dt;
+            obj.estimatedAltitude = -X(3);
+            
+            obj.reset();
+        end 
     end
     
     methods (Sealed,Access=protected)

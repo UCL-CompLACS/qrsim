@@ -7,6 +7,7 @@ classdef AerodynamicTurbulence<Steppable
     %   getLinear(state)                 - returns the linear component (always zero)
     %   getRotational(state)             - returns the rotational component   (always zero)
     %   reset()                          - no action
+    %   setState()                       - no action
     %
     methods
         function obj = AerodynamicTurbulence(objparams)
@@ -47,21 +48,26 @@ classdef AerodynamicTurbulence<Steppable
             %
             v=zeros(3,1);
         end
-
-	function obj = reset(obj)
-	    % nothing to be done
-	end
+        
+        function obj = reset(obj)
+            % nothing to be done
+        end
+        
+        function obj = setState(obj,~)
+            % nothing to be done
+            obj.reset();
+        end
     end
     
-    methods  (Access=protected)    
+    methods  (Access=protected)
         function obj = update(obj, ~)
             % nothing to be done
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
         end
     end
-
-
+    
+    
     
 end
 

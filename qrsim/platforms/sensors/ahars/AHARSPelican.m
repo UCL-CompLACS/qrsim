@@ -158,16 +158,11 @@ classdef AHARSPelican<AHARS
             %           if the length of the X vector is 12, thrust is initialized automatically
             %           if the length of the X vector is 6, all the velocities are set to zero
             %
-            obj.accelerometer.setState(X);
+            
+            obj.accelerometer.setState(zeros(3,1));
             obj.gyroscope.setState(X);
             obj.altimeter.setState(X);
-            obj.orientationEstimator.setState(X);
-            
-            obj.meanWind = zeros(3,1);
-            obj.turbWind = zeros(3,1);
-            obj.a  = zeros(3,1);
-            
-            obj.valid = 1;
+            obj.orientationEstimator.setState(X);           
         end
         
         function obj = reset(obj)
