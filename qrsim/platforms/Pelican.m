@@ -159,12 +159,10 @@ classdef Pelican<Steppable & Platform
             if(objparams.graphics.on)
                 assert(isfield(objparams.graphics,'type'),'pelican:nographicstype',...
                     'the platform config file must define a graphics.type');
-                obj.graphics=feval(objparams.graphics.type,objparams.graphics,obj.X);
+                obj.graphics=feval(objparams.graphics.type,objparams.graphics,objparams.X);
             else
-                obj.graphics=feval('QuadrotorGraphics',objparams.graphics,obj.X);
+                obj.graphics=feval('QuadrotorGraphics',objparams.graphics,objparams.X);
             end
-            
-            %obj.setState(objparams.X);
         end
         
         function obj = setState(obj,X)
@@ -182,7 +180,7 @@ classdef Pelican<Steppable & Platform
                 'setState() on a pelican object requires an input of length 6, 12 or 13 instead we have %d',size(X,1));
             
             assert(obj.thisStateIsWithinLimits(X),'pelican:settingoobstate',...
-                'the state passed therough setState() is not valid (i.e. out of limits)');
+                'the state passed through setState() is not valid (i.e. out of limits)');
             
             if(size(X,1)==6)
                 X = [X;zeros(6,1)];
@@ -212,6 +210,9 @@ classdef Pelican<Steppable & Platform
                         estimatedAHA(4:6);0;estimatedAHA(7:10);estimatedPosNED(4:5);estimatedAHA(11)];
                    
             obj.valid = 1;
+            
+            % clean the trajectory plot if any
+            obj.graphics.reset();
         end
         
         function obj = reset(obj)
@@ -223,6 +224,7 @@ classdef Pelican<Steppable & Platform
             obj.gpsreceiver.reset();
             obj.aerodynamicTurbulence.reset();
             obj.ahars.reset();
+            obj.graphics.reset();
         end
     end
     
@@ -237,7 +239,7 @@ classdef Pelican<Steppable & Platform
             % ya  [-2048..2048] 1=2.17109414e-3 rad/s = 0.124394531 deg/s commanded yaw velocity
             % bat [9..12] Volts battery voltage
             %
-            assert(~((size(U(:),1)~=5) || (sum(U(:)>=obj.CONTROL_LIMITS(:,1))~=5) || (sum(U(:)<=obj.CONTROL_LIMITS(:,2))~=5)),...
+            assert(size(U(:),1)==5 && all(U>=obj.CONTROL_LIMITS(:,1)) && all(U<=obj.CONTROL_LIMITS(:,2)),...
                 'pelican:inputoob',['wrong size of control inputs or values not within limits \n',...
                 '\tU = [pt;rl;th;ya;bat] \n\n',...
                 '\tpt  [-0.89..0.89] rad commanded pitch \n',...
@@ -251,10 +253,9 @@ classdef Pelican<Steppable & Platform
         
         function valid = thisStateIsWithinLimits(obj,X)
             % returns 0 if the state is out of bounds
-            valid =1;
-            for i=1:length(X),
-                valid = valid || (X(i)<obj.stateLimits(i,1)) ||(X(i)>obj.stateLimits(i,2));
-            end
+            to = min(size(X,1),size(obj.stateLimits,1));
+            
+            valid = all(X(1:to)>=obj.stateLimits(1:to,1)) && all(X(1:to)<=obj.stateLimits(1:to,2));
         end
         
         function coll = inCollision(obj)

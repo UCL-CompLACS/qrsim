@@ -16,7 +16,10 @@ classdef QuadrotorGraphics<handle
     methods
         function obj = update(obj,~)
             % does nothing
-            %
+        end
+        
+        function obj = reset(obj)
+             % does nothing       
         end
     end
     

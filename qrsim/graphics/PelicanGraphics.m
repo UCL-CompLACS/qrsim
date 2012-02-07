@@ -48,21 +48,21 @@ classdef PelicanGraphics<QuadrotorGraphics
             
             obj=obj@QuadrotorGraphics(objparams,initX);
             
-            assert(isfield(obj,'AL'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'AL'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter AL');
-            assert(isfield(obj,'AT'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'AT'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter AT');
-            assert(isfield(obj,'AW'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'AW'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter AW');
-            assert(isfield(obj,'BW'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'BW'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter BW');
-            assert(isfield(obj,'BT'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'BT'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter BT');
-            assert(isfield(obj,'R'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'R'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter R');
-            assert(isfield(obj,'DFT'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'DFT'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter DFT');
-            assert(isfield(obj,'trajectory'),'pelicangraphics:nopar',...
+            assert(isfield(objparams,'trajectory'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter trajectory');
             
             % arms
@@ -139,13 +139,24 @@ classdef PelicanGraphics<QuadrotorGraphics
             
             if (obj.plotTrj)
                 s = max(0,length(obj.gHandle.trjData.x-100));
-                obj.gHandle.trjData.x = [obj.gHandle.trjData.x(s:end) obj.X(1)];
-                obj.gHandle.trjData.y = [obj.gHandle.trjData.y(s:end) obj.X(2)];
-                obj.gHandle.trjData.z = [obj.gHandle.trjData.z(s:end) obj.X(3)];
-                
+                if(isempty(obj.gHandle.trjData.x))
+                    obj.gHandle.trjData.x = obj.X(1);
+                    obj.gHandle.trjData.y = obj.X(2);
+                    obj.gHandle.trjData.z = obj.X(3);
+                else
+                    obj.gHandle.trjData.x = [obj.gHandle.trjData.x(s:end) obj.X(1)];
+                    obj.gHandle.trjData.y = [obj.gHandle.trjData.y(s:end) obj.X(2)];
+                    obj.gHandle.trjData.z = [obj.gHandle.trjData.z(s:end) obj.X(3)];
+                end
                 obj.gHandle.trjLine = line(obj.gHandle.trjData.x,obj.gHandle.trjData.y,...
                     obj.gHandle.trjData.z,'LineWidth',2,'LineStyle','-');
             end
+        end
+        
+        function obj = reset(obj)
+            obj.gHandle.trjData.x = [];
+            obj.gHandle.trjData.y = [];
+            obj.gHandle.trjData.z = [];
         end
     end
     
@@ -186,9 +197,9 @@ classdef PelicanGraphics<QuadrotorGraphics
             obj.gHandle.r3 = patch(r3(:,1),r3(:,2),r3(:,3),'b');
             obj.gHandle.r4 = patch(r4(:,1),r4(:,2),r4(:,3),'b');
             
-            obj.gHandle.trjData.x = obj.X(1);
-            obj.gHandle.trjData.y = obj.X(2);
-            obj.gHandle.trjData.z = obj.X(3);
+            obj.gHandle.trjData.x = [];
+            obj.gHandle.trjData.y = [];
+            obj.gHandle.trjData.z = [];
         end
         
         function obj = initGlobalGraphics(obj)

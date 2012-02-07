@@ -1,4 +1,4 @@
-classdef TaskNoWind<Task
+classdef TaskNoWindPlatformOutOfBounds2<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
@@ -13,7 +13,7 @@ classdef TaskNoWind<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;   
+            taskparams.display3d.on = 0;           
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
@@ -52,12 +52,15 @@ classdef TaskNoWind<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 0;
+            taskparams.environment.wind.on = 1;
+            taskparams.environment.wind.type = 'WindConstMean';
+            taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
+            taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_no_turbulence';
-            taskparams.platforms(1).X = [0;0;0;0;0;0];
+            taskparams.platforms(1).X = [0;0;0;0;0;30];
             
         end
         

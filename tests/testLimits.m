@@ -9,8 +9,12 @@ cd('limits');
 e = 0;
 
 % test the case in which we start out of the boundaries
-e = e | testStartingOutOfBounds('helicopter starting out of bounds');
+e = e | testSettingStateOutOfBounds('helicopter setting state out of bounds');
 
+% test the case in which we start out of the boundaries
+e = e | testConfigFileStateOutOfBounds('TaskNoWindPlatformOutOfBounds1','helicopter config file state out of bounds 1');
+e = e | testConfigFileStateOutOfBounds('TaskNoWindPlatformOutOfBounds2','helicopter config file state out of bounds 2');
+e = e | testConfigFileStateOutOfBounds('TaskNoWindPlatformOutOfBounds3','helicopter config file state out of bounds 3');
 
 % test the case in which we sart from inside the area and we
 % to a wp outside using a PID
@@ -41,10 +45,10 @@ qrsim = QRSim();
 qrsim.init('TaskNoWind');
 
 UwrongSize =[0.2,-0.2;
-               0,   0;
-             0.6, 0.6;
-               0,   0;
-              11,  11]; 
+    0,   0;
+    0.6, 0.6;
+    0,   0;
+    11,  11];
 
 % test wrong control size
 try
@@ -118,7 +122,7 @@ global state;
 e = 0;
 
 % number of steps we run the simulation for
-N = 100;
+N = 500;
 
 % create simulator object
 qrsim = QRSim();
@@ -127,11 +131,11 @@ qrsim = QRSim();
 qrsim.init('TaskNoWind');
 
 wps=[   0,   0, 100, 0;
-    0,   0,-100, 0;
-    100,   0,   0, 0;
-    -100,   0,   0, 0;
-    0, 100,   0, 0;
-    0,-100,   0, 0];
+        0,   0,-100, 0;
+      100,   0,   0, 0;
+     -100,   0,   0, 0;
+        0, 100,   0, 0;
+        0,-100,   0, 0];
 
 for j = 1:size(wps,1)
     
@@ -149,8 +153,7 @@ for j = 1:size(wps,1)
     end
     e = e || state.platforms(1).valid;
     
-    qrsim.reset();
-    
+    qrsim.reset();    
 end
 
 if(e)
@@ -162,7 +165,7 @@ end
 end
 
 
-function e = testStartingOutOfBounds(msg)
+function e = testSettingStateOutOfBounds(msg)
 
 e = 0;
 
@@ -173,7 +176,6 @@ global state;
 
 qrsim = QRSim();
 
-U = [0;0;0.59004353928;0;11];
 
 qrsim.init('TaskNoWind');
 
@@ -181,31 +183,52 @@ limits = state.platforms(1).stateLimits;
 
 for i=1:size(limits,1),
     
-    % test positive limits
-    l = limits(:,1)*0.5; % safely within limits
-    l(i) = limits(i,1)*1.01; % out of limits (this relies on the max and min limits being one positive the other negative)
-    
-    state.platforms(1).setState(l);
-    
-    qrsim.step(U);
-    
-    e = e || state.platforms(1).valid;
-    
-    qrsim.reset();
-    
-    
-    % test negative limits
-    l = limits(:,2)*0.5; % safely within limits
-    l(i) = limits(i,2)*1.01; % out of limits (this relies on the max limits being one positive the other negative)
-    
-    state.platforms(1).setState(l);
-    
-    qrsim.step(U);
-    
-    e = e || state.platforms(1).valid;
-    
-    qrsim.reset();
-    
+    for j=1:1,
+        l = limits(:,j)*0.5; % safely within limits
+        l(i) = limits(i,j)*1.01; % out of limits (this relies on the max and min limits being one positive the other negative)
+        
+        try
+            state.platforms(1).setState(l);
+            e = e || 1;
+        catch exception
+            if(~strcmp(exception.identifier,'pelican:settingoobstate'))
+                e = 1;
+                fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+            end
+        end
+    end
+end
+
+% clear the state
+clear global state;
+
+if(e)
+    fprintf(['Test ',msg,' [FAILED]\n']);
+else
+    fprintf(['Test ',msg,' [PASSED]\n']);
+end
+
+end
+
+function e = testConfigFileStateOutOfBounds(task,msg)
+
+e = 0;
+
+clear('global');
+
+% new state structure
+global state;
+
+qrsim = QRSim();
+
+try
+    qrsim.init(task);
+    e = e || 1;
+catch exception
+    if(~strcmp(exception.identifier,'pelican:settingoobstate'))
+        e = 1;
+        fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+    end
 end
 
 % clear the state
