@@ -42,14 +42,7 @@ classdef OrientationEstimator<Sensor
         
         function obj=reset(obj)
             % does nothing            
-        end
-        
-        function obj = setState(obj,X)
-            % sets the current orientation and resets
-            obj.orientation = X(4:6);
-            
-            obj.reset();
-        end  
+        end 
     end
     
     methods (Access=protected)

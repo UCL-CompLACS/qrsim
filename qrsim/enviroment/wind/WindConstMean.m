@@ -76,7 +76,7 @@ classdef WindConstMean<Wind
                 vmean = zeros(3,1);
             end
             
-            vmeanbody = angle2dcm(X(6),X(5),X(4))*vmean;
+            vmeanbody = dcm(X)*vmean;
             v = knots2ms(vmeanbody);
         end
         

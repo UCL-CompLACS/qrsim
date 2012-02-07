@@ -11,10 +11,10 @@ classdef AHARSPelican<AHARS
     %   setState(state)    - reinitialise the current state and noise
     %
     properties (Access=private)
-        accelerometer              % accelerometer sensor
-        orientationEstimator       % orientation estimator
-        gyroscope                  % gyroscope sensor
-        altimeter                  % altimeter sensor
+        accelerometer;              % accelerometer sensor
+        orientationEstimator;       % orientation estimator
+        gyroscope;                  % gyroscope sensor
+        altimeter;                  % altimeter sensor
     end
     
     methods (Sealed)

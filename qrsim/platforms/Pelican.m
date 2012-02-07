@@ -48,24 +48,24 @@ classdef Pelican<Steppable & Platform
     end
     
     properties (Access = public)
-        gpsreceiver % handle to the gps receiver
-        aerodynamicTurbulence  % handle to the aerodynamic turbulence
-        ahars       % handle to the attitude heading altitude reference system
-        graphics    % handle to the quadrotor graphics
-        meanWind    % mean wind vector
-        turbWind    % turbulence vector
-        a           % linear accelerations in body coordinates [ax;ay;az]
+        gpsreceiver; % handle to the gps receiver
+        aerodynamicTurbulence;  % handle to the aerodynamic turbulence
+        ahars ;      % handle to the attitude heading altitude reference system
+        graphics;    % handle to the quadrotor graphics
+        meanWind;    % mean wind vector
+        turbWind;    % turbulence vector
+        a;           % linear accelerations in body coordinates [ax;ay;az]
 
        
-        collisionD  % distance from any other object that defines a collision
-        dynNoise    % standard deviation of the noise dynamics
+        collisionD;  % distance from any other object that defines a collision
+        dynNoise;    % standard deviation of the noise dynamics
     end
     
     properties
-         stateLimits % 13 by 2 vector of allowed values of the state
-        X   % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
-        eX  % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
-                valid       % the state of the platform is invalid
+         stateLimits; % 13 by 2 vector of allowed values of the state
+        X;   % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
+        eX ; % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
+                valid;       % the state of the platform is invalid
     end
     
     methods (Sealed)
@@ -90,10 +90,6 @@ classdef Pelican<Steppable & Platform
             
             obj=obj@Platform(objparams);
             obj=obj@Steppable(objparams);
-            
-            obj.X = [objparams.X(1:6); zeros(6,1); abs(obj.MASS*obj.G)];
-            obj.eX = [objparams.X(1:6); zeros(14,1)];
-            obj.valid = 1;
             
             assert(isfield(objparams,'stateLimits'),'pelican:nostatelimits',...
                 'the platform config file must define the stateLimits parameter');
@@ -167,6 +163,8 @@ classdef Pelican<Steppable & Platform
             else
                 obj.graphics=feval('QuadrotorGraphics',objparams.graphics,obj.X);
             end
+            
+            %obj.setState(objparams.X);
         end
         
         function obj = setState(obj,X)
@@ -181,7 +179,7 @@ classdef Pelican<Steppable & Platform
             global state;
             
             assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
-                'setState() on a pelican object requires an input of length 6, 12 or 13');
+                'setState() on a pelican object requires an input of length 6, 12 or 13 instead we have %d',size(X,1));
             
             assert(obj.thisStateIsWithinLimits(X),'pelican:settingoobstate',...
                 'the state passed therough setState() is not valid (i.e. out of limits)');
@@ -196,29 +194,23 @@ classdef Pelican<Steppable & Platform
            
             obj.X = X;
             
-            % handy values
-            sph = sin(X(4)); cph = cos(X(4));
-            sth = sin(X(5)); cth = cos(X(5));
-            sps = sin(X(6)); cps = cos(X(6));
-            
-            dcm = [                (cth * cps),                   (cth * sps),      (-sth);
-                (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps), (sph * cth);
-                (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps), (cph * cth)];
-            
-            % velocity in global frame
-            gvel = (dcm')*X(7:9);      
-            obj.eX = [X(1:6);zeros(3,1);X(10:12);zeros(4,1);-X(3);gvel];
-            
+            % set things
             obj.gpsreceiver.setState(X);
             obj.ahars.setState(X);
             
-            %turbulence
             obj.meanWind = state.environment.wind.getLinear(obj.X);
             obj.aerodynamicTurbulence.setState([obj.X;obj.meanWind]);
             obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
             
             obj.a  = zeros(3,1);
             
+            % get measurements
+            estimatedAHA = obj.ahars.getMeasurement([obj.X;obj.a]);                   
+            estimatedPosNED = obj.gpsreceiver.getMeasurement(obj.X);
+                    
+            obj.eX = [estimatedPosNED(1:3);estimatedAHA(1:3);zeros(3,1);...
+                        estimatedAHA(4:6);0;estimatedAHA(7:10);estimatedPosNED(4:5);estimatedAHA(11)];
+                   
             obj.valid = 1;
         end
         

@@ -10,7 +10,7 @@ classdef GPSReceiver<Sensor
     %    setState(X)                - re-initialise the state to a new value
     %
     properties (Access=private)
-        X; % last state [px,py,pz,phi,theta,psi,u,v,w]
+        posVelNED; 
     end
     
     methods
@@ -36,7 +36,7 @@ classdef GPSReceiver<Sensor
             obj = obj@Sensor(objparams);
         end
         
-        function estimatedPosNED = getMeasurement(obj,~)
+        function posVelNED = getMeasurement(obj,~)
             % returns a noise free GPS estimate given the current noise free position
             %
             % Example:
@@ -47,36 +47,14 @@ classdef GPSReceiver<Sensor
             %       pxdot         [m/s]   noiseless x velocity (NED coordinates)
             %       pydot         [m/s]   noiseless y velocity (NED coordinates)
             %
-            
-            % handy values
-            sph = sin(obj.X(4)); cph = cos(obj.X(4));
-            sth = sin(obj.X(5)); cth = cos(obj.X(5));
-            sps = sin(obj.X(6)); cps = cos(obj.X(6));
-            
-            dcm = [                (cth * cps),                   (cth * sps),     (-sth);
-                (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps),(sph * cth);
-                (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps),(cph * cth)];
-            
-            % velocity in global frame
-            gvel = (dcm')*obj.X(7:9);
-            
-            estimatedPosNED = [obj.X(1:3);gvel(1:2)];
+
+            posVelNED = obj.posVelNED;
         end
         
         function obj = reset(obj)
            % does nothing            
         end
-        
-        function obj = setState(obj,X)
-           % re-initialise the state to a new value
-           %
-           % Example:
-           %
-           %   obj.setState(X)
-           %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
-           %
-           obj.X = X;
-        end
+
     end
     
     methods (Access=protected)        
@@ -85,7 +63,10 @@ classdef GPSReceiver<Sensor
             %
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            obj.X = X(1:9);
+                        
+            % velocity in global frame
+            gvel = (dcm(X)')*X(7:9);
+            obj.posVelNED = [X(1:3);gvel(1:2)];
         end
     end
 end

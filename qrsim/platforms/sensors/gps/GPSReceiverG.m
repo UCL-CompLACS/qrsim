@@ -25,15 +25,15 @@ classdef GPSReceiverG < GPSReceiver
     properties (Access=private)
         svidx                       % array with the ids of the visible satellite vehicles
         nsv                         % number of satellite visible by this receiver
-        pastEstimatedPosNED = zeros(3,1); % past North East Down coordinate returned by the receiver
-        estimatedPosNED = zeros(3,1); % North East Down coordinate returned by the receiver
+        pastEstimatedPosNED         % past North East Down coordinate returned by the receiver
+        estimatedPosVelNED          % North East Down coordinate and velocities returned by the receiver
         originUTMcoords             % coordinates of the local reference frame
         R_SIGMA                     % receiver noise standard deviation
-        receivernoise = zeros(3,1); % current receiver noise sample
-        pastPositions = 0;          % array of past positions needed to simulate delay
-        delay;                      % time delay 
-        minmaxnumsv;                % limits for visible number of satellites
-        totalnumsvs;                % total number of satellites in the space segment
+        receivernoise               % current receiver noise sample
+        delayedPositionsNED         % array of past positions needed to simulate delay
+        delay                       % time delay 
+        minmaxnumsv                 % limits for visible number of satellites
+        totalnumsvs                 % total number of satellites in the space segment
     end
     
     methods
@@ -67,13 +67,10 @@ classdef GPSReceiverG < GPSReceiver
             assert(isfield(objparams,'minmaxnumsv'),'gpsreceiverg:nonumsvs','the platform config must define the gpsreceiver.minmaxnumsv parameter');
             obj.minmaxnumsv = objparams.minmaxnumsv;
             obj.totalnumsvs = length(state.environment.gpsspacesegment.params.svs);
-            
-            % init the ids of the visible satellites
-            obj.reset();
         end
         
         
-        function estimatedPosNED = getMeasurement(obj,X)
+        function estimatedPosVelNED = getMeasurement(obj,~)
             % returns a GPS estimate given the current noise free position
             %
             % Example:
@@ -85,8 +82,7 @@ classdef GPSReceiverG < GPSReceiver
             %       ~pydot           [m/s]   y velocity from GPS (NED coordinates)
             %
             
-            estimatedPosNED = [obj.estimatedPosNED;...
-                (obj.estimatedPosNED(1:2)-obj.pastEstimatedPosNED(1:2))/obj.dt];
+            estimatedPosVelNED = obj.estimatedPosVelNED;
             
         end
         
@@ -98,6 +94,7 @@ classdef GPSReceiverG < GPSReceiver
            %   obj.reset()
            %
            global state;
+           
            obj.nsv = obj.minmaxnumsv(1)+randi(state.rStream,obj.minmaxnumsv(2)-obj.minmaxnumsv(1));
             
            obj.svidx = zeros(1,obj.nsv);
@@ -108,22 +105,50 @@ classdef GPSReceiverG < GPSReceiver
         end
         
         function obj = setState(obj,X)
-            % reinitialise the current state and noise
-            %
-            % Example:
-            %
-            %   obj.setState(X)
-            %       X - new platform state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
-            %           only the first 3 elements of X are actually used
-            %
-            obj.estimatedPosNED = X(1:3);
+           % re-initialise the state to a new value
+           %
+           % Example:
+           %
+           %   obj.setState(X)
+           %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+           %
+           obj.reset();
+           obj.delayedPositionsNED = [];
+           obj.update(X);
+        end
+    end
+    
+    methods (Sealed, Access=protected)
+        
+        function estimatedPosNED = solveFromObservations(obj,posNED)
+                        
+            global state;
             
-            obj.pastEstimatedPosNED = X(1:3);
+            truePosECEF = ned2ecef(posNED, obj.originUTMcoords);
             
-            obj.pastPositions = repmat(X(1:3),1,obj.delay);
-
-            % now reset the visible satellites
-            obj.reset();
+            obs = zeros(obj.nsv,1); 
+            for i = 1:obj.nsv,
+                % compute pseudorange
+                obs(i,1) = norm(truePosECEF-state.environment.gpsspacesegment_.svspos(:,obj.svidx(i)))...
+                    +state.environment.gpsspacesegment_.prns(obj.svidx(i))...
+                    +obj.receivernoise(i);
+            end
+            
+            % ordinary lest square solution initialised at the previous solution
+            p = [obj.pastEstimatedPosNED;0];
+            for iter = 1:4 % even 3 iterations should do since we prime it
+                A = zeros(obj.nsv,4);
+                omc = zeros(obj.nsv,1); % observed minus computed observation
+                for i = 1:obj.nsv,
+                    XX = state.environment.gpsspacesegment_.svspos(:,obj.svidx(i));
+                    omc(i,:) = obs(i)-norm(XX-p(1:3),'fro')-p(4);
+                    A(i,:) = [(-(XX(1)-p(1)))/obs(i),(-(XX(2)-p(2)))/obs(i),(-(XX(3)-p(3)))/obs(i),1];
+                end % i
+                x = A\omc;
+                p = p+x;
+            end % iter
+            
+            estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords); 
         end
     end
     
@@ -148,46 +173,34 @@ classdef GPSReceiverG < GPSReceiver
             assert(isfield(state.environment.gpsspacesegment_,'svspos'), ...
                 'In order to run a GPSReceiver needs the corresponding space segment!');
             
-            if(obj.pastPositions == 0)
-                obj.pastPositions = repmat(X(1:3),1,obj.delay);
+            if(isempty(obj.delayedPositionsNED))
+                % make up the delayed from the velocities
+                % assuming a constant velocity that is
+                
+                obj.delayedPositionsNED = zeros(3,obj.delay);
+                
+                gvel = (dcm(X)')*X(7:9);
+                
+                for i=1:obj.delay,
+                    obj.delayedPositionsNED(:,1+obj.delay-i) = X(1:3) - gvel*i*obj.dt;
+                end
+                
+                obj.pastEstimatedPosNED = zeros(3,1);
+                obj.pastEstimatedPosNED = obj.solveFromObservations(X(1:3) - gvel*(obj.delay+2)*obj.dt);
+                obj.estimatedPosVelNED(1:3,1) = obj.solveFromObservations(X(1:3) - gvel*(obj.delay+1)*obj.dt);
             end
             
-            obj.pastPositions = [obj.pastPositions,X(1:3)];
-            pastPos = obj.pastPositions(:,1);
-            obj.pastPositions = obj.pastPositions(:,2:end);
+            % delay chain
+            obj.delayedPositionsNED = [obj.delayedPositionsNED,X(1:3)];
+            delayedPos = obj.delayedPositionsNED(:,1);
+            obj.delayedPositionsNED = obj.delayedPositionsNED(:,2:end);
             
-            truePosECEF = ned2ecef(pastPos, obj.originUTMcoords);
+            estimatedPosNED = obj.solveFromObservations(delayedPos);
             
-            obs = zeros(obj.nsv,1);
-            for i = 1:obj.nsv,
-                % compute pseudorange
-                obs(i,1) = norm(truePosECEF-state.environment.gpsspacesegment_.svspos(:,obj.svidx(i)))...
-                    +state.environment.gpsspacesegment_.prns(obj.svidx(i))...
-                    +obj.receivernoise(i);
-            end
+            obj.pastEstimatedPosNED = obj.estimatedPosVelNED(1:3);
+            obj.estimatedPosVelNED(1:3) =  estimatedPosNED;           
             
-            % ordinary lest square solution initialised at the previous solution
-            p = [obj.estimatedPosNED;0];
-            for iter = 1:5 % even 3 iterations should do since we prime it
-                A = zeros(obj.nsv,4);
-                omc = zeros(obj.nsv,1); % observed minus computed observation
-                for i = 1:obj.nsv,
-                    XX = state.environment.gpsspacesegment_.svspos(:,obj.svidx(i));
-                    omc(i,:) = obs(i)-norm(XX-p(1:3),'fro')-p(4);
-                    A(i,:) = [(-(XX(1)-p(1)))/obs(i),(-(XX(2)-p(2)))/obs(i),(-(XX(3)-p(3)))/obs(i),1];
-                end % i
-                x = A\omc;
-                p = p+x;
-            end % iter
-            
-            if(sum(obj.pastEstimatedPosNED)~=0)
-                obj.pastEstimatedPosNED = obj.estimatedPosNED;
-                obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
-            else
-                % avoids silly velocities at startup
-                obj.estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
-                obj.pastEstimatedPosNED = obj.estimatedPosNED;
-            end
+            obj.estimatedPosVelNED(4:5) = (estimatedPosNED(1:2) - obj.pastEstimatedPosNED(1:2))/obj.dt;
         end
     end
 end

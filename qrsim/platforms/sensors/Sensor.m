@@ -8,7 +8,7 @@ classdef Sensor<Steppable
     %                             subclasses.
     %    getMeasurement(state)* - given a current state of the system returns a measurement
     %                             or an estimate
-    %    setState(state)*       - re-initialise the state to a new value
+    %    setState(state)        - re-initialise the state to a new value
     %
     %                           *hyperlink broken because the method is abstract
     methods
@@ -27,14 +27,23 @@ classdef Sensor<Steppable
             %
             obj=obj@Steppable(objparams);
         end
+                
+        function obj = setState(obj,X)
+           % re-initialise the state to a new value
+           %
+           % Example:
+           %
+           %   obj.setState(X)
+           %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+           %
+           obj.reset();
+           obj.update(X);
+        end
     end
     
     methods (Abstract)
         meas=getMeasurement(obj,state);
         % given a current state of the system returns a measurement or an estimate 
-
-        obj=setState(obj,state);
-        % re-initialise the state to a new value
     end
     
 end

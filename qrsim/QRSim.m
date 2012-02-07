@@ -65,9 +65,7 @@ classdef QRSim<handle
             obj.task = feval(taskName);
             
             obj.par = obj.task.init();
-            
-            % simulation time
-            state.t = 0;
+
             
             % simulation timestep
             assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
@@ -75,11 +73,6 @@ classdef QRSim<handle
             
             % random number generator stream
             assert(isfield(obj.par,'seed'),'qrsim:noseed','the task must define a seed');
-            if(obj.par.seed~=0)
-                state.rStream = RandStream('mt19937ar','Seed',obj.par.seed);
-            else
-                state.rStream = RandStream('mt19937ar','Seed',sum(100*clock));
-            end
             
             %%% instantiates the objects that are part of the environment
             
@@ -101,6 +94,8 @@ classdef QRSim<handle
             state.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             
             obj.createObjects();
+            
+            obj.reset();
         end
         
         function obj=reset(obj)
@@ -110,6 +105,15 @@ classdef QRSim<handle
             %    obj.reset();
             %
             global state;
+                        
+            % simulation time
+            state.t = 0;
+            
+            if(obj.par.seed~=0)
+                state.rStream = RandStream('mt19937ar','Seed',obj.par.seed);
+            else
+                state.rStream = RandStream('mt19937ar','Seed',sum(100*clock));
+            end
             
             state.environment.gpsspacesegment.reset();
             state.environment.wind.reset();
@@ -117,10 +121,7 @@ classdef QRSim<handle
             
             for i=1:length(state.platforms)
                 state.platforms(i).setState(obj.par.platforms(i).X);
-            end
-            
-            %clear('state.environment.gpsspacesegment','state.environment.wind','state.platforms');
-            %obj.createObjects();
+            end           
         end
         
         

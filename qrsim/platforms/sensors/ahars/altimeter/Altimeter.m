@@ -11,7 +11,7 @@ classdef Altimeter<Sensor
     %   setState(X)                - sets the current altitude and its derivative and resets
     %
     properties (Access=private)
-        alt; % last altitude
+        altAndAltDot; % altitude and its derivative
     end
     
     methods (Sealed)
@@ -29,53 +29,28 @@ classdef Altimeter<Sensor
     end
     
     methods
-        function estimatedAltitude = getMeasurement(obj,~)
+        function altAndAltDot = getMeasurement(obj,~)
             % returns noiseless altitude
-            estimatedAltitude = obj.alt;
+            altAndAltDot = obj.altAndAltDot;
         end
                          
         function obj=reset(obj)
             % does nothing            
         end
-        
-        function obj = setState(obj,X)
-            % sets the current altitude and its derivative and resets
-            % handy values
-            sph = sin(X(4)); cph = cos(X(4));
-            sth = sin(X(5)); cth = cos(X(5));
-            sps = sin(X(6)); cps = cos(X(6));
-            
-            dcm = [                (cth * cps),                   (cth * sps),      (-sth);
-                (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps), (sph * cth);
-                (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps), (cph * cth)];
-            
-            % velocity in global frame
-            gvel = (dcm')*X(7:9);
-            obj.alt = [-X(3);-gvel(3)];
-            
-            obj.reset();
-        end  
     end
     
     methods (Access=protected)
+        
         function obj=update(obj,X)
             % stores altitude
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            
-            % handy values
-            sph = sin(X(4)); cph = cos(X(4));
-            sth = sin(X(5)); cth = cos(X(5));
-            sps = sin(X(6)); cps = cos(X(6));
-            
-            dcm = [                (cth * cps),                   (cth * sps),      (-sth);
-                (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps), (sph * cth);
-                (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps), (cph * cth)];
-            
+                        
             % velocity in global frame
-            gvel = (dcm')*X(7:9);
-            obj.alt = [-X(3);-gvel(3)];
+            gvel = (dcm(X)')*X(7:9);
+            obj.altAndAltDot = [-X(3);-gvel(3)];
         end
+        
     end
 end
 

@@ -60,7 +60,7 @@ classdef TaskNoWindFixedSeed<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_no_turbulence';
-            taskparams.platforms(1).X = [0;0;0;0;0;0];
+            taskparams.platforms(1).X = [1;2;3;0;0;pi;0;0;0;0;0;0];
             
         end
         

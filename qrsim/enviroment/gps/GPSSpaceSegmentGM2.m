@@ -84,9 +84,7 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             
             state.environment.gpsspacesegment_.betas2 = (1/obj.PR_BETA2)*ones(state.environment.gpsspacesegment_.nsv,1);
             state.environment.gpsspacesegment_.betas1 = (1/obj.PR_BETA1)*ones(state.environment.gpsspacesegment_.nsv,1);
-            state.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment_.nsv,1);
-            
-            obj.reset();
+            state.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment_.nsv,1);        
         end
         
         function obj = reset(obj)
@@ -116,6 +114,12 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
                     exp(-state.environment.gpsspacesegment_.betas2*obj.dt)...
                     +state.environment.gpsspacesegment_.w.*randn(state.rStream,...
                     state.environment.gpsspacesegment_.nsv,1);
+            end            
+                        
+            for j = 1:state.environment.gpsspacesegment_.nsv,
+                %compute sv positions
+                state.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(state.environment.gpsspacesegment_.stdPe,...
+                    state.environment.gpsspacesegment_.svs(j),(obj.tStart+state.t));
             end
         end
     end
@@ -131,6 +135,8 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             %
             global state;
             
+            %disp('gps space seg update');
+            
             % update noise states
             state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
                 state.environment.gpsspacesegment_.betas1+state.environment.gpsspacesegment_.prns1;
@@ -141,6 +147,7 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
                 state.environment.gpsspacesegment_.nsv,1);
             
             state.environment.gpsspacesegment_.svspos=zeros(3,state.environment.gpsspacesegment_.nsv);
+            
             for j = 1:state.environment.gpsspacesegment_.nsv,
                 %compute sv positions
                 state.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(state.environment.gpsspacesegment_.stdPe,...

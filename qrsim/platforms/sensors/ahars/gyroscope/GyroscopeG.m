@@ -57,9 +57,8 @@ classdef GyroscopeG<Gyroscope
         
         function obj = setState(obj,X)
             % sets the current angular velocity and resets
-            obj.measurementAngularVelocity = X(10:12);
-            
-            obj.reset();
+            obj.reset();            
+            obj.update(X);
         end
     end
     

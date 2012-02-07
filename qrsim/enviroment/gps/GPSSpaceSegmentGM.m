@@ -75,8 +75,6 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
             
             state.environment.gpsspacesegment_.betas = (1/obj.PR_BETA)*ones(state.environment.gpsspacesegment_.nsv,1);
             state.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment_.nsv,1);
-            
-            obj.reset();
         end
         
         
@@ -103,6 +101,13 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
                     exp(-state.environment.gpsspacesegment_.betas*obj.dt)...
                     +state.environment.gpsspacesegment_.w.*randn(state.rStream,...
                     state.environment.gpsspacesegment_.nsv,1);
+            end
+            
+                                    
+            for j = 1:state.environment.gpsspacesegment_.nsv,
+                %compute sv positions
+                state.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(state.environment.gpsspacesegment_.stdPe,...
+                    state.environment.gpsspacesegment_.svs(j),(obj.tStart+state.t));
             end
         end
     end
