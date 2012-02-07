@@ -99,7 +99,7 @@ classdef PelicanGraphics<QuadrotorGraphics
             
             set(0,'CurrentFigure',state.display3d.figure)
             % body rotations translation
-            C = angle2dcm(obj.X(6),obj.X(5),obj.X(4));
+            C = dcm(obj.X);
             T = [obj.X(1),obj.X(2),obj.X(3)];
             
             TT = repmat(T,size(state.display3d.uavgraphicobject.b1,1),1);
@@ -162,7 +162,7 @@ classdef PelicanGraphics<QuadrotorGraphics
             set(0,'CurrentFigure',state.display3d.figure)
             
             % initial translation and orientation
-            C = angle2dcm(obj.X(6),obj.X(5),obj.X(4));
+            C = dcm(obj.X);
             T = [obj.X(1),obj.X(2),obj.X(3)];
             
             TT = repmat(T,size(state.display3d.uavgraphicobject.b1,1),1);
