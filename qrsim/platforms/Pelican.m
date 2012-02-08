@@ -55,17 +55,15 @@ classdef Pelican<Steppable & Platform
         meanWind;    % mean wind vector
         turbWind;    % turbulence vector
         a;           % linear accelerations in body coordinates [ax;ay;az]
-
-       
         collisionD;  % distance from any other object that defines a collision
         dynNoise;    % standard deviation of the noise dynamics
     end
     
     properties
-         stateLimits; % 13 by 2 vector of allowed values of the state
-        X;   % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
-        eX ; % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
-                valid;       % the state of the platform is invalid
+        stateLimits; % 13 by 2 vector of allowed values of the state
+        X;           % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
+        eX ;         % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
+        valid;       % the state of the platform is invalid
     end
     
     methods (Sealed)
@@ -178,7 +176,7 @@ classdef Pelican<Steppable & Platform
             
             assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
                 'setState() on a pelican object requires an input of length 6, 12 or 13 instead we have %d',size(X,1));
-            
+
             assert(obj.thisStateIsWithinLimits(X),'pelican:settingoobstate',...
                 'the state passed through setState() is not valid (i.e. out of limits)');
             
@@ -189,7 +187,7 @@ classdef Pelican<Steppable & Platform
             if(size(X,1)==12)
                 X = [X;abs(obj.MASS*obj.G)];
             end
-           
+            
             obj.X = X;
             
             % set things
@@ -203,12 +201,12 @@ classdef Pelican<Steppable & Platform
             obj.a  = zeros(3,1);
             
             % get measurements
-            estimatedAHA = obj.ahars.getMeasurement([obj.X;obj.a]);                   
+            estimatedAHA = obj.ahars.getMeasurement([obj.X;obj.a]);
             estimatedPosNED = obj.gpsreceiver.getMeasurement(obj.X);
-                    
+            
             obj.eX = [estimatedPosNED(1:3);estimatedAHA(1:3);zeros(3,1);...
-                        estimatedAHA(4:6);0;estimatedAHA(7:10);estimatedPosNED(4:5);estimatedAHA(11)];
-                   
+                estimatedAHA(4:6);0;estimatedAHA(7:10);estimatedPosNED(4:5);estimatedAHA(11)];
+            
             obj.valid = 1;
             
             % clean the trajectory plot if any
