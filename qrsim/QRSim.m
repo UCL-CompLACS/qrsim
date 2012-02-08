@@ -38,19 +38,6 @@ classdef QRSim<handle
             addpath(obj.paths);
         end
         
-        function delete(obj)
-            % destructor, cleans the path
-            % this is called automatically by Matlab when using clear on a QRSim object.
-            %
-            % Example:
-            %   qrsim = QRSim();
-            %   clear qrsim;
-            %
-            if(strfind(path,obj.paths))
-                rmpath(obj.paths);
-            end
-        end
-        
         function obj = init(obj,taskName)
             % Initializes the simulator state given a task.
             %
@@ -174,6 +161,21 @@ classdef QRSim<handle
             
             % update time
             state.t=state.t+state.DT;
+        end
+    end
+    
+    methods (Access=public)                
+        function delete(obj)
+            % destructor, cleans the path
+            % this is called automatically by Matlab when using clear on a QRSim object.
+            %
+            % Example:
+            %   qrsim = QRSim();
+            %   clear qrsim;
+            %
+            if(strfind(path,obj.paths))
+                rmpath(obj.paths);
+            end
         end
     end
     
