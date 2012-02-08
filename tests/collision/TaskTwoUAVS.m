@@ -17,7 +17,7 @@ classdef TaskTwoUAVS<Task
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
-            taskparams.environment.area.limits = [-10 20 -7 7 -20 0];
+            taskparams.environment.area.limits = [-110 110 -110 110 -110 110];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)

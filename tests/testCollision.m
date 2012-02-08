@@ -3,7 +3,7 @@ function [ e ] = testCollision()
 
 e = 0;
 
-clear all;
+%clear all;
 
 cd('collision');
 
