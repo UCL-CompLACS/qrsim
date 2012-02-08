@@ -74,7 +74,7 @@ When such a reset operation is meaningful (e.g. for the platforms) the class exp
 The global \texttt{state} structure stores also other important variables:
 \begin{itemize}
  \item the simulator time \texttt{state.t}, used to ensure synchronization between all the environment and platforms objects;
- \item the pseudo-random number generator stream \texttt{state.rStream}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
+ \item the pseudo-random number generator streams \texttt{state.rStreams}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
  \item the simulator time step \texttt{state.DT}, the time granularity with which the simulator time is incremented;
  \item the handle to the 3D graphics visualization \texttt{state.display3d}.
 \end{itemize}

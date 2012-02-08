@@ -1,7 +1,7 @@
 function [ e ] = testSeed()
 %test that two runs with the same seed produce identical outputs
 
-%clear all;
+clear all;
 
 cd('seed');
 

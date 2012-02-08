@@ -38,9 +38,10 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     end
     
     properties (Access=private)
-        w6  %velocity at 6m from ground in m/s
+        w6;                       %velocity at 6m from ground in m/s
         vgust_relwk = zeros(3,1); % aerodynamic turbulence in relative wind coords Knots
-        vgust = zeros(3,1); % aerodynamic turbulence in body coords m/s
+        vgust = zeros(3,1);       % aerodynamic turbulence in body coords m/s
+        prngId;                   %id of the prng stream used by this object
     end
     
     methods (Sealed)
@@ -54,12 +55,15 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %                objparams.on - 1 if the object is active
             %                objparams.W6 - velocity at 6m from ground in m/s
             %
+            global state;
+            
             obj=obj@AerodynamicTurbulence(objparams);
             assert(isfield(objparams,'W6'),'aerodynamicturbulencemilf8785:now6',...
                 'the platform config file must define a aerodynamicturbulence.W6 parameter');
             obj.w6=objparams.W6;
             
-            obj.reset();
+            state.numRStreams = state.numRStreams + 1;
+            obj.prngId = state.numRStreams;
         end
         
         function v = getLinear(obj,~)
@@ -145,7 +149,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
                 au=0;
             end
             % turbulence in relative wind coordinates
-            obj.vgust_relwk = (1-au*obj.dt)*obj.vgust_relwk+sqrt(2*au*obj.dt)*sigma.*randn(state.rStream,3,1);
+            obj.vgust_relwk = (1-au*obj.dt)*obj.vgust_relwk+sqrt(2*au*obj.dt)*sigma.*randn(state.rStreams{obj.prngId},3,1);
             
             %turbulence in body coordinates
             obj.vgust = knots2ms(Cwb*obj.vgust_relwk);

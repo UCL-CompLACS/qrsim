@@ -21,7 +21,9 @@ classdef AltimeterGM<Altimeter
         SIGMA                     % noise standard deviation
         estimatedAltAndAltDot     % measurement at valid timestep
         pastEstimatedAltitude     % altitude at past valid timestep
-        n                         % noise
+        n                         % noise        
+        nPrngId;                  % id of the prng stream used by the noise model
+        rPrngId;                  % id of the prng stream used to spin up the noise model
     end
     
     methods (Sealed)
@@ -36,7 +38,13 @@ classdef AltimeterGM<Altimeter
             %                objparams.BETA - noise time constant
             %                objparams.SIGMA - noise standard deviation
             %
+            global state;
+                        
             obj = obj@Altimeter(objparams);
+            
+            obj.nPrngId = state.numRStreams+1;
+            obj.rPrngId = state.numRStreams+2; 
+            state.numRStreams = state.numRStreams + 2;
             
             assert(isfield(objparams,'TAU'),'altimetergm:notau',...
                 'the platform config file a must define altimetergm.TAU parameter');
@@ -64,8 +72,8 @@ classdef AltimeterGM<Altimeter
             global state;
             obj.n = 0;
             
-            for i=1:randi(state.rStream,1000),
-                obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStream,1,1);
+            for i=1:randi(state.rStreams{obj.rPrngId},1000),
+                obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStreams{obj.nPrngId},1,1);
             end
         end       
                         
@@ -99,7 +107,7 @@ classdef AltimeterGM<Altimeter
                 obj.estimatedAltAndAltDot(1) = obj.n -X(3) + gvel(3)*obj.dt;
             end                
                         
-            obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStream,1,1);
+            obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStreams{obj.nPrngId},1,1);
             
             obj.pastEstimatedAltitude = obj.estimatedAltAndAltDot(1,1);
             obj.estimatedAltAndAltDot(1,1) = obj.n - X(3);  %altitude not Z

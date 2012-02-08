@@ -4,6 +4,8 @@ function [ e ] = testAssertions()
 
 addpath('assert');
 
+clear all;
+
 e = testNoGlobalState('missign global state declaration');
 
 e = e | loadBadlySpecifiedTask('TaskNoDT','qrsim:nodt','missing DT task parameter');
@@ -27,8 +29,8 @@ e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmentOrbitFileA','gpsspacesegmen
 e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmentOrbitFileB','gpsspacesegmentgm:noorbitfile','missing gpsspacesegment.orbitfile task parameter');
 e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttStartA','gpsspacesegmentgm2:notstart','missing gpsspacesegment.tStart task parameter');
 e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttStartB','gpsspacesegmentgm:notstart','missing gpsspacesegment.tStart task parameter'); 
-e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttSVSA','gpsspacesegmentgm2:nosvs','missing gpsspacesegment.svs task parameter');
-e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttSVSB','gpsspacesegmentgm:nosvs','missing gpsspacesegment.svs task parameter');
+e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttSVSA','gpsspacesegmentgm2:nosvs','missing gpsspacesegment.svs task parameter for GM');
+e = e | loadBadlySpecifiedTask('TaskNoGPSSpacesegmenttSVSB','gpsspacesegmentgm:nosvs','missing gpsspacesegment.svs task parameter for GM2');
 e = e | loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentBeta2','gpsspacesegmentgm2:nobeta2','missing gpsspacesegment.PR_BETA2 task parameter');
 e = e | loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentBeta1','gpsspacesegmentgm2:nobeta1','missing gpsspacesegment.PR_BETA1 task parameter');
 e = e | loadBadlySpecifiedTask('TaskNoGPSSpaceSegmentBeta','gpsspacesegmentgm:nobeta','missing gpsspacesegment.PR_BETA task parameter');

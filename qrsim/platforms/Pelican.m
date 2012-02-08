@@ -57,7 +57,8 @@ classdef Pelican<Steppable & Platform
         a;           % linear accelerations in body coordinates [ax;ay;az]
         collisionD;  % distance from any other object that defines a collision
         dynNoise;    % standard deviation of the noise dynamics
-        behaviourIfStateNotValid = 'warning'; % what to do when the state is not valid
+        behaviourIfStateNotValid = 'warning'; % what to do when the state is not valid        
+        prngId;                   %id of the prng stream used by this object
     end
     
     properties
@@ -86,9 +87,13 @@ classdef Pelican<Steppable & Platform
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
             %
+            global state;
             
             obj=obj@Platform(objparams);
             obj=obj@Steppable(objparams);
+            
+            state.numRStreams = state.numRStreams + 1;
+            obj.prngId = state.numRStreams; 
             
             assert(isfield(objparams,'stateLimits'),'pelican:nostatelimits',...
                 'the platform config file must define the stateLimits parameter');
@@ -307,7 +312,7 @@ classdef Pelican<Steppable & Platform
                 obj.aerodynamicTurbulence.step([obj.X;obj.meanWind]);
                 obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                 
-                accNoise = obj.dynNoise.*randn(state.rStream,6,1);
+                accNoise = obj.dynNoise.*randn(state.rStreams{obj.prngId},6,1);
                 
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;obj.meanWind + obj.turbWind; obj.MASS; accNoise], obj.dt);

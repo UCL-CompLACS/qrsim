@@ -23,17 +23,19 @@ classdef GPSReceiverG < GPSReceiver
     end
     
     properties (Access=private)
-        svidx                       % array with the ids of the visible satellite vehicles
-        nsv                         % number of satellite visible by this receiver
-        pastEstimatedPosNED         % past North East Down coordinate returned by the receiver
-        estimatedPosVelNED          % North East Down coordinate and velocities returned by the receiver
-        originUTMcoords             % coordinates of the local reference frame
-        R_SIGMA                     % receiver noise standard deviation
-        receivernoise               % current receiver noise sample
-        delayedPositionsNED         % array of past positions needed to simulate delay
-        delay                       % time delay 
-        minmaxnumsv                 % limits for visible number of satellites
-        totalnumsvs                 % total number of satellites in the space segment
+        svidx;                      % array with the ids of the visible satellite vehicles
+        nsv;                        % number of satellite visible by this receiver
+        pastEstimatedPosNED;        % past North East Down coordinate returned by the receiver
+        estimatedPosVelNED;         % North East Down coordinate and velocities returned by the receiver
+        originUTMcoords;            % coordinates of the local reference frame
+        R_SIGMA;                    % receiver noise standard deviation
+        receivernoise;              % current receiver noise sample
+        delayedPositionsNED;        % array of past positions needed to simulate delay
+        delay;                      % time delay
+        minmaxnumsv;                % limits for visible number of satellites
+        totalnumsvs;                % total number of satellites in the space segment
+        nPrngId;                    % id of the prng stream used by the noise model
+        sPrngId;                    % id of the prng stream used to select the visible satellites
     end
     
     methods
@@ -55,7 +57,11 @@ classdef GPSReceiverG < GPSReceiver
             %
             global state;
             obj=obj@GPSReceiver(objparams);
-
+            
+            obj.nPrngId = state.numRStreams+1;
+            obj.sPrngId = state.numRStreams+2;
+            state.numRStreams = state.numRStreams + 2;
+            
             obj.originUTMcoords = state.environment.area.params.originutmcoords;
             
             assert(isfield(objparams,'R_SIGMA'),'gpsreceiverg:nosigma','the platform config must define the gpsreceiver.R_SIGMA parameter');
@@ -87,46 +93,46 @@ classdef GPSReceiverG < GPSReceiver
         end
         
         function obj = reset(obj)
-           % re-init the ids of the visible satellites
-           %
-           % Example:
-           %
-           %   obj.reset()
-           %
-           global state;
-           
-           obj.nsv = obj.minmaxnumsv(1)+randi(state.rStream,obj.minmaxnumsv(2)-obj.minmaxnumsv(1));
+            % re-init the ids of the visible satellites
+            %
+            % Example:
+            %
+            %   obj.reset()
+            %
+            global state;
             
-           obj.svidx = zeros(1,obj.nsv);
-           r = randperm(state.rStream,obj.totalnumsvs);
-           obj.svidx = r(1:obj.nsv); 
-           
-           obj.receivernoise = obj.R_SIGMA*randn(state.rStream,obj.nsv,1);
+            obj.nsv = obj.minmaxnumsv(1)+randi(state.rStreams{obj.sPrngId},obj.minmaxnumsv(2)-obj.minmaxnumsv(1));
+            
+            obj.svidx = zeros(1,obj.nsv);
+            r = randperm(state.rStreams{obj.sPrngId},obj.totalnumsvs);
+            obj.svidx = r(1:obj.nsv);
+            
+            obj.receivernoise = obj.R_SIGMA*randn(state.rStreams{obj.nPrngId},obj.nsv,1);
         end
         
         function obj = setState(obj,X)
-           % re-initialise the state to a new value
-           %
-           % Example:
-           %
-           %   obj.setState(X)
-           %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
-           %
-           obj.reset();
-           obj.delayedPositionsNED = [];
-           obj.update(X);
+            % re-initialise the state to a new value
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
+            %
+            obj.reset();
+            obj.delayedPositionsNED = [];
+            obj.update(X);
         end
     end
     
     methods (Sealed, Access=protected)
         
         function estimatedPosNED = solveFromObservations(obj,posNED)
-                        
+            
             global state;
             
             truePosECEF = ned2ecef(posNED, obj.originUTMcoords);
             
-            obs = zeros(obj.nsv,1); 
+            obs = zeros(obj.nsv,1);
             for i = 1:obj.nsv,
                 % compute pseudorange
                 obs(i,1) = norm(truePosECEF-state.environment.gpsspacesegment_.svspos(:,obj.svidx(i)))...
@@ -148,7 +154,7 @@ classdef GPSReceiverG < GPSReceiver
                 p = p+x;
             end % iter
             
-            estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords); 
+            estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
         end
     end
     
@@ -168,7 +174,7 @@ classdef GPSReceiverG < GPSReceiver
             %
             
             global state;
-            obj.receivernoise = obj.R_SIGMA*randn(state.rStream,obj.nsv,1);
+            obj.receivernoise = obj.R_SIGMA*randn(state.rStreams{obj.nPrngId},obj.nsv,1);
             
             assert(isfield(state.environment.gpsspacesegment_,'svspos'), ...
                 'In order to run a GPSReceiver needs the corresponding space segment!');
@@ -198,7 +204,7 @@ classdef GPSReceiverG < GPSReceiver
             estimatedPosNED = obj.solveFromObservations(delayedPos);
             
             obj.pastEstimatedPosNED = obj.estimatedPosVelNED(1:3);
-            obj.estimatedPosVelNED(1:3) =  estimatedPosNED;           
+            obj.estimatedPosVelNED(1:3) =  estimatedPosNED;
             
             obj.estimatedPosVelNED(4:5) = (estimatedPosNED(1:2) - obj.pastEstimatedPosNED(1:2))/obj.dt;
         end

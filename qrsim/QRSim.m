@@ -49,6 +49,10 @@ classdef QRSim<handle
                 'Before initializing qrsim a global state variable must be decleared');
             
             global state;
+            
+            % counter for the number of independent random stream needed
+            state.numRStreams = 0;
+            
             % load the required configuration
             obj.task = feval(taskName);
             
@@ -83,11 +87,15 @@ classdef QRSim<handle
             
             obj.createObjects();
             
+            obj.resetSeed();
             obj.reset();
         end
         
         function obj=reset(obj)
-            % resets the simulator to the state specified in the task, any random parametr is reinitialised
+            % resets the simulator to the state specified in the task, any random parameter is reinitialised
+            %
+            % Note: this function does not reinitialize the prngs seeds, if
+            % this is required, you must call obj.resetSeed() BEFORE this function
             %
             % Example:
             %    obj.reset();
@@ -96,8 +104,6 @@ classdef QRSim<handle
             
             % simulation time
             state.t = 0;
-            
-            obj.resetSeed();
             
             state.environment.gpsspacesegment.reset();
             state.environment.wind.reset();
@@ -110,7 +116,9 @@ classdef QRSim<handle
         
         function obj = resetSeed(obj,varargin)
             % re-initialize the random number generator seed
-            % nothe: this does not call reset
+            % 
+            % Note: this does not call reset, often you want to call this
+            % function BEFORE a reset
             %
             % Examples:
             %   obj.resetSeed()  - reset to the fixed or rensom seed specified by the task
@@ -119,13 +127,17 @@ classdef QRSim<handle
             %
             global state;
             
+            % note:
+            % mrg32k3a has a period of 2^127 which shorter than the period of mt19937ar
+            % however it guarantees independence between streams, so we prefer it
+            %
             if(size(varargin)==1)
-                state.rStream = RandStream('mt19937ar','Seed',varargin{1});
+                state.rStreams = RandStream.create('mrg32k3a','seed',varargin{1},'NumStreams',state.numRStreams,'CellOutput',1);
             else
                 if(obj.par.seed~=0)
-                    state.rStream = RandStream('mt19937ar','Seed',obj.par.seed);
+                    state.rStreams = RandStream.create('mrg32k3a','seed',obj.par.seed,'NumStreams',state.numRStreams,'CellOutput',1);
                 else
-                    state.rStream = RandStream('mt19937ar','Seed',sum(100*clock));
+                    state.rStreams = RandStream.create('mrg32k3a','seed',sum(100*clock),'NumStreams',state.numRStreams,'CellOutput',1);
                 end
             end
         end

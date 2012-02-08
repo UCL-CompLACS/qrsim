@@ -2,7 +2,7 @@ function [ e ] = testLimits()
 %test the checks we are imposing on each of the state variables,
 % on the flight volume and on the control inputs
 
-%clear all;
+clear all;
 
 cd('limits');
 

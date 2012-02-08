@@ -1,7 +1,7 @@
 function e = testSetReset()
 % test the reset and setState methods of the pelican object
 
-%clear all;
+clear all;
 
 cd('setreset');
 
@@ -61,6 +61,7 @@ end
 X1 = state.platforms(1).X;
 eX1 = state.platforms(1).eX;
 
+qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
@@ -91,6 +92,7 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 qrsim.init('TaskNoWindRandomSeed');
 
+qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
@@ -98,6 +100,7 @@ end
 X1 = state.platforms(1).X;
 eX1 = state.platforms(1).eX;
 
+qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
@@ -128,6 +131,7 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 qrsim.init('TaskNoWindFixedSeed');
 
+qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
@@ -135,6 +139,7 @@ end
 X1 = state.platforms(1).X;
 eX1 = state.platforms(1).eX;
 
+qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
@@ -196,7 +201,7 @@ qrsim = QRSim();
 qrsim.init('TaskNoWindFixedSeed');
 
 state.t=0;
-state.rStream = RandStream('mt19937ar','Seed',12345);
+state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
 
 state.platforms(1).setState(setX);
@@ -205,7 +210,7 @@ X1 = state.platforms(1).X;
 eX1 = state.platforms(1).eX;
 
 state.t=0;
-state.rStream = RandStream('mt19937ar','Seed',12345);
+state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
 
 state.platforms(1).setState(setX);
@@ -277,7 +282,7 @@ qrsim.init('TaskNoWindFixedSeed');
 
 
 state.t=0;
-state.rStream = RandStream('mt19937ar','Seed',12345);
+state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
 state.platforms(1).setState(setX);
 
@@ -289,7 +294,7 @@ X1 = state.platforms(1).X;
 eX1 = state.platforms(1).eX;
 
 state.t=0;
-state.rStream = RandStream('mt19937ar','Seed',12345);
+state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
 state.platforms(1).setState(setX);
 

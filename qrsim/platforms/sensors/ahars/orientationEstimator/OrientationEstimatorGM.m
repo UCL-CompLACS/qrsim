@@ -17,10 +17,12 @@ classdef OrientationEstimatorGM<OrientationEstimator
     %   setState(X)                       - sets the current orientation and resets
     %
     properties (Access = private)
-        BETA                              % noise time constant
-        SIGMA                             % noise standard deviation
+        BETA;                             % noise time constant
+        SIGMA;                            % noise standard deviation
         n = zeros(3,1);                   % noise sample at current timestep
-        estimatedOrientation = zeros(3,1);% measurement at last valid timestep
+        estimatedOrientation = zeros(3,1);% measurement at last valid timestep        
+        nPrngId;                          %id of the prng stream used by the noise model
+        rPrngId;                          %id of the prng stream used to spin up the noise model
     end
     
     methods (Sealed)
@@ -35,7 +37,14 @@ classdef OrientationEstimatorGM<OrientationEstimator
             %                objparams.BETA - noise time constant
             %                objparams.SIGMA - noise standard deviation
             %
-            obj=obj@OrientationEstimator(objparams);
+            global state;
+            
+            obj=obj@OrientationEstimator(objparams);                       
+
+            obj.nPrngId = state.numRStreams+1;
+            obj.rPrngId = state.numRStreams+2; 
+            state.numRStreams = state.numRStreams + 2;
+            
             assert(isfield(objparams,'BETA'),'orientationestimatorgm:nobeta',...
                 'the platform config file a must define orientationEstimator.BETA parameter');
             obj.BETA = objparams.BETA;    % noise time constant
@@ -62,8 +71,8 @@ classdef OrientationEstimatorGM<OrientationEstimator
             global state;
             
             obj.n = 0;
-            for i=1:randi(state.rStream,1000)
-                obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*randn(state.rStream,3,1);
+            for i=1:randi(state.rStreams{obj.rPrngId},1000)
+                obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*randn(state.rStreams{obj.nPrngId},3,1);
             end
         end
     end
@@ -74,7 +83,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
             global state;
-            obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*randn(state.rStream,3,1);
+            obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*randn(state.rStreams{obj.nPrngId},3,1);
             obj.estimatedOrientation = obj.n + X(4:6);
         end
     end
