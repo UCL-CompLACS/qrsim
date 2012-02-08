@@ -8,19 +8,20 @@ classdef QRSim<handle
     %   task   - task
     %
     % QRSim methods:
-    %   init(taskName)  - initialises the simulator given a task
-    %   reset()         - resets the simulator to the state specified in the task
-    %   delete()        - destructor
-    %   step(obj,U)     - increments time and steps forward in sequence all the enviroment
-    %                     objects and platforms.
-    %    
+    %   init(taskName)      - initialises the simulator given a task
+    %   reset()             - resets the simulator to the state specified in the task
+    %   delete()            - destructor
+    %   step(obj,U)         - increments time and steps forward in sequence all the enviroment
+    %                         objects and platforms.
+    %   resetSeed(varargin) - re-initialize the random number generator seed
+    %
     properties (Access=public)
         par % parameters from task
         paths =[];  %paths
         task   % task
     end
     
-    methods (Access=public)
+    methods (Sealed,Access=public)
         function obj = QRSim()
             % constructs object and sets up the paths
             %
@@ -56,7 +57,7 @@ classdef QRSim<handle
             % Example:
             %    obj.init('task_name');
             %       task_name - class name of the task
-            %                       
+            %
             assert(~isempty(whos('global','state')),'qrsim:noglobalstate',...
                 'Before initializing qrsim a global state variable must be decleared');
             
@@ -65,7 +66,7 @@ classdef QRSim<handle
             obj.task = feval(taskName);
             
             obj.par = obj.task.init();
-
+            
             
             % simulation timestep
             assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
@@ -105,15 +106,11 @@ classdef QRSim<handle
             %    obj.reset();
             %
             global state;
-                        
+            
             % simulation time
             state.t = 0;
             
-            if(obj.par.seed~=0)
-                state.rStream = RandStream('mt19937ar','Seed',obj.par.seed);
-            else
-                state.rStream = RandStream('mt19937ar','Seed',sum(100*clock));
-            end
+            obj.resetSeed();
             
             state.environment.gpsspacesegment.reset();
             state.environment.wind.reset();
@@ -121,9 +118,29 @@ classdef QRSim<handle
             
             for i=1:length(state.platforms)
                 state.platforms(i).setState(obj.par.platforms(i).X);
-            end           
+            end
         end
         
+        function obj = resetSeed(obj,varargin)
+            % re-initialize the random number generator seed
+            %
+            % Examples:
+            %   obj.resetSeed()  - reset to the fixed or rensom seed specified by the task
+            %   
+            %   obj.resetSeed(s) - reset to the seed s passed as argument
+            %
+            global state;
+            
+            if(size(varargin)==1)
+                state.rStream = RandStream('mt19937ar','Seed',varargin{1});
+            else
+                if(obj.par.seed~=0)
+                    state.rStream = RandStream('mt19937ar','Seed',obj.par.seed);
+                else
+                    state.rStream = RandStream('mt19937ar','Seed',sum(100*clock));
+                end
+            end
+        end
         
         function obj=step(obj,U)
             %increments time and steps forward in sequence all the enviroment object and platforms.
@@ -143,7 +160,7 @@ classdef QRSim<handle
             state.environment.wind.step([]);
             
             %%% step all the platforms given U
-            assert(size(state.platforms,1)==size(U,2),'qrsim:wronginputsize',...
+            assert(size(state.platforms,2)==size(U,2),'qrsim:wronginputsize',...
                 'the number of colum of the control input matrix has to be equal to the number of platforms');
             
             for i=1:length(state.platforms)
@@ -205,8 +222,8 @@ classdef QRSim<handle
                 p.graphics.on = obj.par.display3d.on;
                 
                 assert(isfield(p,'aerodynamicturbulence')&&isfield(p.aerodynamicturbulence,'on'),'qrsim:noaerodynamicturbulence',...
-                  'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
-              
+                    'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
+                
                 assert(isfield(p,'type'),'qrsim:noplatformtype','the platform config file must define a platform type');
                 state.platforms(i)=feval(p.type,p);
             end
