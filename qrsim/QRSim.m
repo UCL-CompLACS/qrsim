@@ -110,6 +110,7 @@ classdef QRSim<handle
         
         function obj = resetSeed(obj,varargin)
             % re-initialize the random number generator seed
+            % nothe: this does not call reset
             %
             % Examples:
             %   obj.resetSeed()  - reset to the fixed or rensom seed specified by the task
