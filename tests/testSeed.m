@@ -1,11 +1,11 @@
 function [ e ] = testSeed()
 %test that two runs with the same seed produce identical outputs
 
-clear all;
+%clear all;
 
 cd('seed');
 
-N = 2;
+N = 100;
 e = 0;
 
 % run it once with fix seed
@@ -24,20 +24,20 @@ end
 
 e = e || r;
 
-% % run it again with random initial seed
-% [X1,eX1] = runSim('TaskRandomSeed',N);
-% 
-% % run it again with another with random initial seed
-% [X2,eX2] = runSim('TaskRandomSeed',N);
-% 
-% r = ~all(all(X1==X2)) || all(all(eX1==eX2));
-% 
-% if(r)
-%     fprintf('Test comparison of runs with random seed [FAILED]\n');
-% else
-%     fprintf('Test comparison of runs with random seed [PASSED]\n');
-% end
-% e = e || r;
+% run it again with random initial seed
+[X1,eX1] = runSim('TaskRandomSeed',N);
+
+% run it again with another with random initial seed
+[X2,eX2] = runSim('TaskRandomSeed',N);
+
+r = ~all(all(X1==X2)) || all(all(eX1==eX2));
+
+if(r)
+    fprintf('Test comparison of runs with random seed [FAILED]\n');
+else
+    fprintf('Test comparison of runs with random seed [PASSED]\n');
+end
+e = e || r;
 
 cd('..');
 
