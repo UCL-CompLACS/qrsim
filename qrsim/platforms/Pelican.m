@@ -57,6 +57,7 @@ classdef Pelican<Steppable & Platform
         a;           % linear accelerations in body coordinates [ax;ay;az]
         collisionD;  % distance from any other object that defines a collision
         dynNoise;    % standard deviation of the noise dynamics
+        behaviourIfStateNotValid = 'warning'; % what to do when the state is not valid
     end
     
     properties
@@ -100,6 +101,10 @@ classdef Pelican<Steppable & Platform
             assert(isfield(objparams,'dynNoise'),'pelican:nodynnoise',...
                 'the platform config file must define the dynNoise parameter');
             obj.dynNoise = objparams.dynNoise;
+            
+            if(isfield(objparams,'behaviourIfStateNotValid'))
+                obj.behaviourIfStateNotValid = objparams.behaviourIfStateNotValid;
+            end
             
             %instantiation of sensor and wind objects, with some "manual" type checking
             
@@ -176,7 +181,7 @@ classdef Pelican<Steppable & Platform
             
             assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
                 'setState() on a pelican object requires an input of length 6, 12 or 13 instead we have %d',size(X,1));
-
+            
             assert(obj.thisStateIsWithinLimits(X),'pelican:settingoobstate',...
                 'the state passed through setState() is not valid (i.e. out of limits)');
             
@@ -303,7 +308,7 @@ classdef Pelican<Steppable & Platform
                 obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                 
                 accNoise = obj.dynNoise.*randn(state.rStream,6,1);
-                
+
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;obj.meanWind + obj.turbWind; obj.MASS; accNoise], obj.dt);
                 
@@ -331,6 +336,24 @@ classdef Pelican<Steppable & Platform
                 else
                     obj.eX = nan(20,1);
                     obj.valid=0;
+                    
+                    if(strcmp(obj.behaviourIfStateNotValid,'continue'))
+                        
+                    else
+                        if(strcmp(obj.behaviourIfStateNotValid,'error'))
+                            if(obj.inCollision())
+                            error('platform state not valid, in collision!\n');
+                            else
+                            error('platform state not valid, values out of bounds!\n');    
+                            end
+                        else
+                            if(obj.inCollision())
+                            fprintf('warning: platform state not valid, in collision! to stop this message use the task parameter behaviourIfStateNotValid\n');                           
+                            else
+                            fprintf('warning: platform state not valid, values out of bounds! to stop this message use the task parameter behaviourIfStateNotValid\n');                           
+                            end
+                        end
+                    end
                 end
                 
             end
