@@ -52,14 +52,14 @@ classdef TaskRandomSeed<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 1;
+            taskparams.environment.wind.on = 0;
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
             taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_everything_on';
+            taskparams.platforms(1).configfile = 'pelican_config_no_dyn_noise_no_turbulence';
             taskparams.platforms(1).X = [0;0;-20;0;0;0];
             
         end

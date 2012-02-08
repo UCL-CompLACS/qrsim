@@ -5,33 +5,48 @@ clear all;
 
 cd('seed');
 
-N = 1000;
+N = 2;
+e = 0;
 
 % run it once with fix seed
-eX1 = runSim('TaskFixSeed',N);
+[X1,eX1] = runSim('TaskFixSeed',N);
 
 % run it again with the same initial seed
-eX2 = runSim('TaskFixSeed',N);
+[X2,eX2] = runSim('TaskFixSeed',N);
 
+r = ~all(all(X1==X2)) || ~all(all(eX1==eX2));
 
-e = ~all(all(eX1==eX2));
+if(r)
+    fprintf('Test comparison of runs with fix seed [FAILED]\n');
+else
+    fprintf('Test comparison of runs with fix seed [PASSED]\n');
+end
 
-% run it again with random initial seed
-eX1 = runSim('TaskRandomSeed',N);
+e = e || r;
 
-% run it again with another with random initial seed
-eX2 = runSim('TaskRandomSeed',N);
-
-
-e = e || all(all(eX1==eX2));
+% % run it again with random initial seed
+% [X1,eX1] = runSim('TaskRandomSeed',N);
+% 
+% % run it again with another with random initial seed
+% [X2,eX2] = runSim('TaskRandomSeed',N);
+% 
+% r = ~all(all(X1==X2)) || all(all(eX1==eX2));
+% 
+% if(r)
+%     fprintf('Test comparison of runs with random seed [FAILED]\n');
+% else
+%     fprintf('Test comparison of runs with random seed [PASSED]\n');
+% end
+% e = e || r;
 
 cd('..');
 
 end
 
-function eX = runSim(task,N)
+function [X,eX] = runSim(task,N)
 
 eX=zeros(23,N);
+X=zeros(13,N);
 
 % a control that in absence of noise gives perfect hover
 U = [0;0;0.59004353928;0;11];
@@ -51,11 +66,12 @@ for i=1:N
     qrsim.step(U);
           
     eX(1:20,i) = state.platforms(1).eX;
+    eX(21:23,i) = state.platforms(1).a;
+    X(:,i) = state.platforms(1).X;
     
     if(mod(i,1000)==0)
         fprintf('.');
     end
-    eX(21:23,i) = state.platforms(1).a;
 end
 
 % clear the state
