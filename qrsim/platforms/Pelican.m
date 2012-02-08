@@ -308,7 +308,7 @@ classdef Pelican<Steppable & Platform
                 obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                 
                 accNoise = obj.dynNoise.*randn(state.rStream,6,1);
-
+                
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;obj.meanWind + obj.turbWind; obj.MASS; accNoise], obj.dt);
                 
@@ -342,15 +342,15 @@ classdef Pelican<Steppable & Platform
                     else
                         if(strcmp(obj.behaviourIfStateNotValid,'error'))
                             if(obj.inCollision())
-                            error('platform state not valid, in collision!\n');
+                                error('platform state not valid, in collision!\n');
                             else
-                            error('platform state not valid, values out of bounds!\n');    
+                                error('platform state not valid, values out of bounds!\n');
                             end
                         else
                             if(obj.inCollision())
-                            fprintf('warning: platform state not valid, in collision! to stop this message use the task parameter behaviourIfStateNotValid\n');                           
+                                fprintf('warning: platform state not valid, in collision! to stop this message use the task parameter behaviourIfStateNotValid\n');
                             else
-                            fprintf('warning: platform state not valid, values out of bounds! to stop this message use the task parameter behaviourIfStateNotValid\n');                           
+                                fprintf('warning: platform state not valid, values out of bounds! to stop this message use the task parameter behaviourIfStateNotValid\n');
                             end
                         end
                     end
