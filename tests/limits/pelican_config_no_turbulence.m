@@ -18,6 +18,7 @@ end
 c.dt = 0.02;
 c.on = 1;
 c.type = 'Pelican';
+c.behaviourIfStateNotValid = 'continue';
 
 % max and min limits for each of the state variables, exceeding this limits
 % makes the state invalid (i.e. 19x1 nan)

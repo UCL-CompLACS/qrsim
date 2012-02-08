@@ -18,6 +18,7 @@ end
 c.dt = 0.02;
 c.on = 1;
 c.type = 'Pelican';
+c.behaviourIfStateNotValid = 'continue';
 
 % max and min limits for each of the state variables, exceeding this limits
 % makes the state invalid (i.e. 19x1 nan)
@@ -65,7 +66,5 @@ c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
-c.aerodynamicturbulence.on = 1;
-c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
-c.aerodynamicturbulence.W6 = 0.01;
+c.aerodynamicturbulence.on = 0;
 
