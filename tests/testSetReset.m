@@ -56,8 +56,8 @@ qrsim = QRSim();
 qrsim.init('TaskNoWindFixedSeed');
 
 for i=1:50
-     qrsim.step(U);
- end
+    qrsim.step(U);
+end
 X1 = state.platforms(1).X;
 eX1 = state.platforms(1).eX;
 
@@ -129,14 +129,14 @@ qrsim = QRSim();
 qrsim.init('TaskNoWindFixedSeed');
 
 qrsim.reset();
-for i=1:1
+for i=1:50
     qrsim.step(U);
 end
 X1 = state.platforms(1).X;
 eX1 = state.platforms(1).eX;
 
 qrsim.reset();
-for i=1:1
+for i=1:50
     qrsim.step(U);
 end
 X2 = state.platforms(1).X;
