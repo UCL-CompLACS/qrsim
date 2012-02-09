@@ -58,16 +58,16 @@ qrsim.init('TaskNoWindFixedSeed');
 for i=1:50
     qrsim.step(U);
 end
-X1 = state.platforms(1).X;
-eX1 = state.platforms(1).eX;
+X1 = state.platforms(1).getX();
+eX1 = state.platforms(1).getEX();
 
 qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
 end
-X2 = state.platforms(1).X;
-eX2 = state.platforms(1).eX;
+X2 = state.platforms(1).getX();
+eX2 = state.platforms(1).getEX();
 
 e = e || ~all(X1==X2) || ~all(eX1==eX2);
 
@@ -97,16 +97,16 @@ qrsim.reset();
 for i=1:50
     qrsim.step(U);
 end
-X1 = state.platforms(1).X;
-eX1 = state.platforms(1).eX;
+X1 = state.platforms(1).getX();
+eX1 = state.platforms(1).getEX();
 
 qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
 end
-X2 = state.platforms(1).X;
-eX2 = state.platforms(1).eX;
+X2 = state.platforms(1).getX();
+eX2 = state.platforms(1).getEX();
 
 e = e || ~all(X1==X2) || all(eX1==eX2);
 
@@ -136,16 +136,16 @@ qrsim.reset();
 for i=1:50
     qrsim.step(U);
 end
-X1 = state.platforms(1).X;
-eX1 = state.platforms(1).eX;
+X1 = state.platforms(1).getX();
+eX1 = state.platforms(1).getEX();
 
 qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
     qrsim.step(U);
 end
-X2 = state.platforms(1).X;
-eX2 = state.platforms(1).eX;
+X2 = state.platforms(1).getX();
+eX2 = state.platforms(1).getEX();
 
 e = e || ~all(X1==X2) || ~all(eX1==eX2);
 
@@ -170,13 +170,13 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 qrsim.init('TaskNoWindRandomSeed');
 
-X1 = state.platforms(1).X;
-eX1 = state.platforms(1).eX;
+X1 = state.platforms(1).getX();
+eX1 = state.platforms(1).getEX();
 
-state.platforms(1).setState(setX);
+state.platforms(1).setX(setX);
 
-X2 = state.platforms(1).X;
-eX2 = state.platforms(1).eX;
+X2 = state.platforms(1).getX();
+eX2 = state.platforms(1).getEX();
 
 e = e || ~all(X1==X2) || all(eX1==eX2);
 
@@ -204,19 +204,19 @@ state.t=0;
 state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
 
-state.platforms(1).setState(setX);
+state.platforms(1).setX(setX);
 
-X1 = state.platforms(1).X;
-eX1 = state.platforms(1).eX;
+X1 = state.platforms(1).getX();
+eX1 = state.platforms(1).getEX();
 
 state.t=0;
 state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
 
-state.platforms(1).setState(setX);
+state.platforms(1).setX(setX);
 
-X2 = state.platforms(1).X;
-eX2 = state.platforms(1).eX;
+X2 = state.platforms(1).getX();
+eX2 = state.platforms(1).getEX();
 
 e = e || ~all(X1==X2) || ~all(eX1==eX2);
 
@@ -244,17 +244,17 @@ for i=1:50
     qrsim.step(U);
 end
 
-X1 = state.platforms(1).X;
-eX1 = state.platforms(1).eX;
+X1 = state.platforms(1).getX();
+eX1 = state.platforms(1).getEX();
 
-state.platforms(1).setState(setX);
+state.platforms(1).setX(setX);
 
 for i=1:50
     qrsim.step(U);
 end
 
-X2 = state.platforms(1).X;
-eX2 = state.platforms(1).eX;
+X2 = state.platforms(1).getX();
+eX2 = state.platforms(1).getEX();
 
 e = e || ~all(X1==X2) || all(eX1==eX2);
 
@@ -284,26 +284,26 @@ qrsim.init('TaskNoWindFixedSeed');
 state.t=0;
 state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
-state.platforms(1).setState(setX);
+state.platforms(1).setX(setX);
 
 for i=1:50
     qrsim.step(U);
 end
 
-X1 = state.platforms(1).X;
-eX1 = state.platforms(1).eX;
+X1 = state.platforms(1).getX();
+eX1 = state.platforms(1).getEX();
 
 state.t=0;
 state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
-state.platforms(1).setState(setX);
+state.platforms(1).setX(setX);
 
 for i=1:50
     qrsim.step(U);
 end
 
-X2 = state.platforms(1).X;
-eX2 = state.platforms(1).eX;
+X2 = state.platforms(1).getX();
+eX2 = state.platforms(1).getEX();
 
 e = e || ~all(X1==X2) || ~all(eX1==eX2);
 
@@ -341,7 +341,7 @@ wrongX = [1;2;3;4;5;6;7;8];
 e = e | loudTest('failingState','state size wrong 2',wrongX,'pelican:wrongsetstate');
 
 
-limits = state.platforms(1).stateLimits;
+limits = state.platforms(1).getStateLimits();
 
 oobX = [limits(1,2)*1.1;0;0];
 e = e | loudTest('failingState','posx value out of bounds',oobX,'pelican:wrongsetstate');
@@ -372,7 +372,7 @@ global state;
 e = 0;
 
 try
-    state.platforms(1).setState(X);
+    state.platforms(1).setX(X);
     e = 1;
 catch exception
     if(~strcmp(exception.identifier,id))
@@ -384,26 +384,28 @@ end
 end
 
 
-function e = validSetState(X)
+function e = validSetState(x)
 
 global state;
 e = 0;
 
 try
-    state.platforms(1).setState(X);
+    state.platforms(1).setX(x);
 catch exception
     e = 1;
     fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
 end
 
-if(length(X)==6)
-    e = e | ~all(state.platforms(1).X(1:12)==[X;zeros(6,1)]);
+X = state.platforms(1).getX();
+if(length(x)==6)
+    
+    e = e | ~all(X(1:12)==[x;zeros(6,1)]);
 else
-    if (length(X)==12)
-        e = e | ~all(state.platforms(1).X(1:12)==X);
+    if (length(x)==12)
+        e = e | ~all(X(1:12)==x);
     else
-        if (length(X)==13)
-            e = e | ~all(state.platforms(1).X==X);
+        if (length(x)==13)
+            e = e | ~all(X==x);
         end
     end
 end

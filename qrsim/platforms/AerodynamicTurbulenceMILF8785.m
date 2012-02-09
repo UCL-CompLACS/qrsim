@@ -44,7 +44,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         prngId;                   %id of the prng stream used by this object
     end
     
-    methods (Sealed)
+    methods  (Sealed,Access=public)
         function obj = AerodynamicTurbulenceMILF8785(objparams)
             % constructs the object and sets its main fields
             %

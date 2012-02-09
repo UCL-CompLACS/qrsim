@@ -41,18 +41,18 @@ for i=1:N
     % step simulator
     qrsim.step(U);
           
-    eX(:,i)=state.platforms(1).eX;
-    X(:,i)=state.platforms(1).X;
+    eX(:,i)=state.platforms(1).getEX();
+    X(:,i)=state.platforms(1).getX();
     
     if(mod(i,1000)==0)
         fprintf('.');
     end
-    a(:,i)=state.platforms(1).a;
+    a(:,i)=state.platforms(1).getA();
 end
 fprintf('\n');
 
 % compute the Allan variance to compare it with the ground thruth
-dt = state.environment.gpsspacesegment.params.dt;
+dt = state.environment.gpsspacesegment.getDt();
 K = dt/state.DT;
 ep = eX(1:3,1:K:end)-X(1:3,1:K:end);
 

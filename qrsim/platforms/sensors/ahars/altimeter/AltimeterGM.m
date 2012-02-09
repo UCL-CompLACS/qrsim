@@ -17,16 +17,15 @@ classdef AltimeterGM<Altimeter
     %   setState(X)                - sets the current altitude and its derivative and resets
     %
     properties (Access = private)
-        TAU                       % noise time constant
-        SIGMA                     % noise standard deviation
-        estimatedAltAndAltDot     % measurement at valid timestep
-        pastEstimatedAltitude     % altitude at past valid timestep
-        n                         % noise        
+        TAU;                      % noise time constant
+        SIGMA;                    % noise standard deviation
+        pastEstimatedAltitude;    % altitude at past valid timestep
+        n;                        % noise        
         nPrngId;                  % id of the prng stream used by the noise model
         rPrngId;                  % id of the prng stream used to spin up the noise model
     end
     
-    methods (Sealed)
+    methods (Sealed,Access=public)
         function obj = AltimeterGM(objparams)
             % constructs the object
             %

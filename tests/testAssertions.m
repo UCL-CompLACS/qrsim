@@ -51,7 +51,7 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformCollisionDistance','pelican:nocoll
 e = e | loadBadlySpecifiedTask('TaskNoPlatformDynNoise','pelican:nodynnoise','missing platform dynamic noise');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGPSReceiver','pelican:nogpsreceiver','missing platform gps receiver');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformGPSReceiverOff','state.platforms(1).gpsreceiver','GPSReceiver','gpsreceiver off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformGPSReceiverOff','state.platforms(1).getGPSReceiver()','GPSReceiver','gpsreceiver off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverType','pelican:nogpsreceivertype','missing platform gps receiver type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverSigma','gpsreceiverg:nosigma','missing gps receiver sigma');
@@ -62,32 +62,32 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformAHARSType','pelican:noaharstype','
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulence','qrsim:noaerodynamicturbulence','missing aerodynamic turbulence');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformAerodynamicTurbulenceOff','state.platforms(1).aerodynamicTurbulence','AerodynamicTurbulence','aerodynamic turbulence off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformAerodynamicTurbulenceOff','state.platforms(1).getAerodynamicTurbulence()','AerodynamicTurbulence','aerodynamic turbulence off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6 parameter');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms(1).ahars.accelerometer','Accelerometer','accelerometer off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms(1).getAHARS().getAccelerometer()','Accelerometer','accelerometer off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAccelerometer','ahahrspelican:noaccelerometer','missing accelerometer');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAccelerometerType','ahahrspelican:noaccelerometertype','missing accelerometer type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAccelerometerSigma','accelerometerg:sigma','missing accelerometer sigma');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformGyroscopeOff','state.platforms(1).ahars.gyroscope','Gyroscope','gyroscope off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformGyroscopeOff','state.platforms(1).getAHARS().getGyroscope()','Gyroscope','gyroscope off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGyroscope','ahahrspelican:nogyroscope','missing gyroscope');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGyroscopeType','ahahrspelican:nogyroscopetype','missing gyroscope type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGyroscopeSigma','gyroscopeg:nosigma','missing gyroscope sigma');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformAltimeterOff','state.platforms(1).ahars.altimeter','Altimeter','altimeter off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformAltimeterOff','state.platforms(1).getAHARS().getAltimeter()','Altimeter','altimeter off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeter','ahahrspelican:noaltimeter','missing altimeter');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeterType','ahahrspelican:noaltimetertype','missing altimeter type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeterTau','altimetergm:notau','missing altimeter tau');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeterSigma','altimetergm:nosigma','missing altimeter sigma');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms(1).ahars.orientationEstimator','OrientationEstimator','orientation estimator off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms(1).getAHARS().getOrientationEstimator()','OrientationEstimator','orientation estimator off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimator','ahahrspelican:noorientationestimator','missing orientation estimator');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorType','ahahrspelican:noorientationestimatortype','missing orientation estimator type');
@@ -117,9 +117,9 @@ U = [0;0;0.59004353928;0;11];
 try
     qrsim.init(task);
     
-    e = e || (state.environment.area.params.graphics.on ~= 0);
+    e = e || state.environment.area.isGraphicsOn();
     e = e || (~ischar('state.environment.area.graphics'));
-    e = e || (strcmp(class(state.platforms(1).graphics),'QuadrotorGraphics')~=1);
+    e = e || (strcmp(class(state.platforms(1).getGraphics()),'QuadrotorGraphics')~=1);
 
     % do a few steps to make sure things actually work
     for i=1:10

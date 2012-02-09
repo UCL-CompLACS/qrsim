@@ -10,8 +10,8 @@ classdef Altimeter<Sensor
     %   reset()                    - does nothing
     %   setState(X)                - sets the current altitude and its derivative and resets
     %
-    properties (Access=private)
-        altAndAltDot; % altitude and its derivative
+    properties (Access=protected)
+        estimatedAltAndAltDot;     % measurement at valid timestep
     end
     
     methods (Sealed)
@@ -28,10 +28,10 @@ classdef Altimeter<Sensor
         end
     end
     
-    methods
+    methods (Access=public)
         function altAndAltDot = getMeasurement(obj,~)
             % returns noiseless altitude
-            altAndAltDot = obj.altAndAltDot;
+            altAndAltDot = obj.estimatedAltAndAltDot;
         end
                          
         function obj=reset(obj)
@@ -48,7 +48,7 @@ classdef Altimeter<Sensor
                         
             % velocity in global frame
             gvel = (dcm(X)')*X(7:9);
-            obj.altAndAltDot = [-X(3);-gvel(3)];
+            obj.estimatedAltAndAltDot = [-X(3);-gvel(3)];
         end
         
     end

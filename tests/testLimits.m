@@ -3,7 +3,7 @@ function [ e ] = testLimits()
 % on the flight volume and on the control inputs
 
 clear all;
-
+tic
 cd('limits');
 
 e = 0;
@@ -23,7 +23,7 @@ e = e | testFlyingOutOfBounds('helicopter flying out of the test area');
 
 % test control input limits
 e = e | testControlsOutOfBounds('control inputs out of bounds');
-
+toc
 cd('..');
 
 end
@@ -142,16 +142,16 @@ for j = 1:size(wps,1)
     for i=1:N,
         
         % compute controls
-        U=quadrotorPID(state.platforms(1).eX,wps(j,:));
+        U=quadrotorPID(state.platforms(1).getEX(),wps(j,:));
         
         % step simulator
         qrsim.step(U);
         
-        if(~state.platforms(1).valid)
+        if(~state.platforms(1).isValid())
             break;
         end
     end
-    e = e || state.platforms(1).valid;
+    e = e || state.platforms(1).isValid();
     
     qrsim.reset();    
 end
@@ -179,7 +179,7 @@ qrsim = QRSim();
 
 qrsim.init('TaskNoWind');
 
-limits = state.platforms(1).stateLimits;
+limits = state.platforms(1).getStateLimits();
 
 for i=1:size(limits,1),
     
@@ -188,7 +188,7 @@ for i=1:size(limits,1),
         l(i) = limits(i,j)*1.01; % out of limits (this relies on the max and min limits being one positive the other negative)
         
         try
-            state.platforms(1).setState(l);
+            state.platforms(1).setX(l);
             e = e || 1;
         catch exception
             if(~strcmp(exception.identifier,'pelican:settingoobstate'))

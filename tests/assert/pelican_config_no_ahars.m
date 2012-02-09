@@ -17,7 +17,7 @@ end
 % platforms %
 c.dt = 0.02;
 c.on = 1;
-c.type = 'Pelican';
+c.type = 'PelicanForTesting';
 
 % max and min limits for each of the state variables, exceeding this limits
 % makes the state invalid (i.e. 19x1 nan)

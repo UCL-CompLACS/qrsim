@@ -17,7 +17,7 @@ end
 % platforms %
 c.dt = 0.02;
 c.on = 1;
-c.type = 'Pelican';
+c.type = 'PelicanForTesting';
 c.behaviourIfStateNotValid = 'continue';
 
 % max and min limits for each of the state variables, exceeding this limits

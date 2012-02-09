@@ -19,7 +19,7 @@ end
 
 global state;
 
-if(sum(pid.wp~=wp))
+if(~all(pid.wp==wp))
     wpChange=1;
     pid.wp = wp;
 else

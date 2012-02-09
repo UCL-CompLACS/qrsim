@@ -34,20 +34,22 @@ classdef Pelican<Steppable & Platform
     % Pelican Methods:
     %    Pelican(objparams) - constructs object
     %    reset()            - resets all the platform subcomponents
-    %    setState(state)    - reinitialise the current state and noise
+    %    setX(X)            - reinitialise the current state and noise
+    %    isValid()          - true if the state is valid
+    %    getX()             - returns the state (noiseless)
+    %    getEX()            - returns the estimated state (noisy)
     %
     properties (Constant)
         CONTROL_LIMITS = [-0.89,0.89; -0.89,0.89; 0,1; -4.4,4.4; 9,12]; %limits of the control inputs
         SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversuion factors
-        BATTERY_RANGE = [9,12]; % range of valid battery values volts
-        
+        BATTERY_RANGE = [9,12]; % range of valid battery values volts        
         % The parameters of the system dynamics are defined in the
         % pelicanODE function
         G = 9.81;    %  gravity m/s^2
         MASS = 1.68; %  mass of the platform Kg
     end
     
-    properties (Access = public)
+    properties (Access = protected)
         gpsreceiver; % handle to the gps receiver
         aerodynamicTurbulence;  % handle to the aerodynamic turbulence
         ahars ;      % handle to the attitude heading altitude reference system
@@ -58,10 +60,7 @@ classdef Pelican<Steppable & Platform
         collisionD;  % distance from any other object that defines a collision
         dynNoise;    % standard deviation of the noise dynamics
         behaviourIfStateNotValid = 'warning'; % what to do when the state is not valid        
-        prngId;                   %id of the prng stream used by this object
-    end
-    
-    properties
+        prngId;      %id of the prng stream used by this object 
         stateLimits; % 13 by 2 vector of allowed values of the state
         X;           % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
         eX ;         % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
@@ -88,8 +87,7 @@ classdef Pelican<Steppable & Platform
             %                objparams.dynNoise -  standard deviation of the noise dynamics
             %
             global state;
-            
-            obj=obj@Platform(objparams);
+
             obj=obj@Steppable(objparams);
             
             state.numRStreams = state.numRStreams + 1;
@@ -173,7 +171,42 @@ classdef Pelican<Steppable & Platform
             end
         end
         
-        function obj = setState(obj,X)
+        function X = getX(obj,varargin)
+            % returns the state (noiseless)
+            % X = [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
+            %
+            % Examples
+            %    allX = obj.getX(); returns the whole state vector
+            %  shortX = obj.getX(1:3); returns only the first three elements of teh state vector
+            %
+            if(isempty(varargin))
+                X = obj.X;
+            else
+                X = obj.X(varargin{1});    
+            end
+        end
+        
+        function eX = getEX(obj,varargin)
+            % returns the estimated state (noisy)
+            % eX = [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
+            %
+            % Examples
+            %    allX = obj.getEX(); returns the whole estimated state vector
+            %  shortX = obj.getEX(1:3); returns only the first three elements of the estimated state vector
+            %
+            if(isempty(varargin))
+                eX = obj.eX;
+            else
+                eX = obj.eX(varargin{1});    
+            end
+        end
+        
+        function iv = isValid(obj)
+            % true if the state is valid
+            iv = obj.valid;
+        end
+        
+        function obj = setX(obj,X)
             % reinitialise the current state and noise
             %
             % Example:
@@ -234,6 +267,11 @@ classdef Pelican<Steppable & Platform
             obj.ahars.reset();
             obj.graphics.reset();
         end
+        
+        function d = getCollisionDistance(obj)
+           % returns collision distance
+           d = obj.collisionD;
+        end
     end
     
     methods (Sealed,Access=private)
@@ -277,8 +315,7 @@ classdef Pelican<Steppable & Platform
                     end
                 end
             end
-        end
-        
+        end        
     end
     
     methods (Sealed,Access=protected)

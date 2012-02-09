@@ -9,11 +9,11 @@ classdef GPSReceiver<Sensor
     %    reset()                    - does nothing
     %    setState(X)                - re-initialise the state to a new value
     %
-    properties (Access=private)
-        posVelNED; 
+    properties (Access=protected)
+        estimatedPosVelNED; 
     end
     
-    methods
+    methods (Access=public)
         function obj = GPSReceiver(objparams)
             % constructs the object
             %
@@ -25,13 +25,11 @@ classdef GPSReceiver<Sensor
             global state;
             
             if(objparams.on)
-                assert((state.environment.gpsspacesegment.params.on==1),...
+                assert(~strcmp(class(state.environment.gpsspacesegment),'GPSSPaceSegment'),...
                     'When a GPS receiver is active also a corresponding gpsspacesegment object must be active');                
             end
             
-            assert(isfield(state.environment.gpsspacesegment.params,'dt'),...
-                    'GPS space segment must always define a dt parameter even when not active');               
-            objparams.dt = state.environment.gpsspacesegment.params.dt;
+            objparams.dt = state.environment.gpsspacesegment.getDt();
             
             obj = obj@Sensor(objparams);
         end
@@ -48,7 +46,7 @@ classdef GPSReceiver<Sensor
             %       pydot         [m/s]   noiseless y velocity (NED coordinates)
             %
 
-            posVelNED = obj.posVelNED;
+            posVelNED = obj.estimatedPosVelNED;
         end
         
         function obj = reset(obj)
@@ -66,7 +64,7 @@ classdef GPSReceiver<Sensor
                         
             % velocity in global frame
             gvel = (dcm(X)')*X(7:9);
-            obj.posVelNED = [X(1:3);gvel(1:2)];
+            obj.estimatedPosVelNED = [X(1:3);gvel(1:2)];
         end
     end
 end

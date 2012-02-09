@@ -4,27 +4,20 @@ classdef EnvironmentObject<handle
     % allow for runtime type checking.
     %
     % EnvironmentObject Methods:
-    %    EnvironmentObject(objparams) -  constructs the object, to be called only from
+    %    EnvironmentObject(~) -  constructs the object, to be called only from
     %                                    derived subclasses.
-    %
-    properties
-        params   % object initial paramters
-    end
-    
+    %   
     methods (Sealed,Access=protected)
-        function obj=EnvironmentObject(params)
+        function obj=EnvironmentObject(~)
             % constructs the object
             %
             % Example:
             %
-            %   obj=EnvironmentObject(objparams)
-            %                objparams - object parameters
+            %   obj=EnvironmentObject()
             %
             % Note:
             % this is an abstract class so this contructor is meant to be
             % called by the subclass
-            %
-            obj.params = params;
         end
     end
 end

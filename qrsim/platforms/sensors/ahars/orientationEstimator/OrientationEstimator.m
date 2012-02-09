@@ -9,8 +9,8 @@ classdef OrientationEstimator<Sensor
     %   setState(X)                       - sets the current orientation and resets
     %
     
-    properties (Access=private)
-        orientation; % last orientation
+    properties (Access=protected)
+       estimatedOrientation = zeros(3,1);% measurement at last valid timestep    
     end
     
     methods (Sealed)
@@ -27,7 +27,7 @@ classdef OrientationEstimator<Sensor
         end
     end
     
-    methods
+    methods (Access=public)
         function estimatedOrientation = getMeasurement(obj,~)
             % returns a noiseless orientation measurement
             %
@@ -37,7 +37,7 @@ classdef OrientationEstimator<Sensor
             %        mo - 3 by 1 "noiseless" orientation in global frame,
             %             Euler angles ZYX [phi;theta;psi] rad
             %
-            estimatedOrientation = obj.orientation;
+            estimatedOrientation = obj.estimatedOrientation;
         end
         
         function obj=reset(obj)
@@ -50,7 +50,7 @@ classdef OrientationEstimator<Sensor
             % stores the orientation
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            obj.orientation = X(4:6);
+            obj.estimatedOrientation = X(4:6);
         end
     end
 end

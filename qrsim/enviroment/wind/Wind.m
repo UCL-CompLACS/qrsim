@@ -9,7 +9,7 @@ classdef Wind<Steppable
     %    reset()                    - no action
     %
     
-    methods
+    methods (Sealed,Access=public)
         function obj = Wind(objparams)
             % constructs the object
             % This object is created when wind is not active
@@ -25,7 +25,9 @@ classdef Wind<Steppable
             
             obj=obj@Steppable(objparams);
         end
-        
+    end
+    
+    methods (Access=public)
         function v = getLinear(~,~)
             % returns always zero.
             %

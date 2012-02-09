@@ -4,40 +4,40 @@ classdef Orbits < handle
     % Orbits Properties:
     %   INTERVAL                   - time interval of one set of coefficients [seconds](Constant)
     %   POLYORDER                  - number of coefficients in polynoms (Constant)
-    %   FITINT                     - interval used to fit the data [seconds](Constant) 
+    %   FITINT                     - interval used to fit the data [seconds](Constant)
     %
     % Orbits methods:
     %   Orbits()                    - contructs the orbit object
-    %   parseTime(varargin)         - performs conversions to gpstime from various other 
+    %   parseTime(varargin)         - performs conversions to gpstime from various other
     %                                 date formats
-    %   getSatCoord(prn, t)         - computes satellite's coordinates and clock correction 
+    %   getSatCoord(prn, t)         - computes satellite's coordinates and clock correction
     %   readSP3(sp3FileName)        - reads sp3 file containing precise ephemeris
     %   findEn(vt, t)               - finds index number of epoch t in the vector vt (Static)
-    %   findInt(t, tb, interval, b) - finds vector interval that corresponds to the fit 
+    %   findInt(t, tb, interval, b) - finds vector interval that corresponds to the fit
     %                                 interval (Static)
-    %   tValidLimits()              - returns begin and end time within which the interpolation 
+    %   tValidLimits()              - returns begin and end time within which the interpolation
     %                                 of the sp3 is valid
-    %   
+    %
     % Note:
-    % This class implement the interpolation algorithm described in  
-    % M. Horemuz,J.V. Andersson "Polynomial interpolation of GPS satellite coordinates"  
-    % GPS Solutions, Volume 10, Number 1, February 2006, pages 67-72 
+    % This class implement the interpolation algorithm described in
+    % M. Horemuz,J.V. Andersson "Polynomial interpolation of GPS satellite coordinates"
+    % GPS Solutions, Volume 10, Number 1, February 2006, pages 67-72
     %
     properties (Constant)
         INTERVAL = 2*3600;         % time interval of one set of coefficients [seconds]
-        FITINT = 4*3600;           % interval used to fit the data; FitInt >= INTERVAL [seconds] 
+        FITINT = 4*3600;           % interval used to fit the data; FitInt >= INTERVAL [seconds]
         POLYORDER = 16;            % number of coefficients in polynoms
     end
     
     properties (Access=private)
-        X=[];                      % satellite X coords [m] 
-        Y=[];                      % satellite Y coords [m] 
-        Z=[];                      % satellite Z coords [m] 
+        X=[];                      % satellite X coords [m]
+        Y=[];                      % satellite Y coords [m]
+        Z=[];                      % satellite Z coords [m]
         tBeg = [];                 % time of beginning [seconds]
-        tEnd = [];                 % time of end [seconds]       
+        tEnd = [];                 % time of end [seconds]
         XCoef = [];                % matrix of coefficients for X coordinate
         YCoef = [];                % matrix of coefficients for Y coordinate
-        ZCoef = [];                % matrix of coefficients for Z coordinate     
+        ZCoef = [];                % matrix of coefficients for Z coordinate
         timeSet = [];              % vector containing time of start of interval [seconds]
         Xmu = zeros(1,1,2);        % mean and std of the points used in the X fitting
         Ymu = zeros(1,1,2);        % mean and std of the points used in the Y fitting
@@ -49,8 +49,7 @@ classdef Orbits < handle
         time=0;                    % vector of epochs [seconds]
     end
     
-    methods
-        
+    methods (Sealed,Access=public)
         function obj=Orbits()
             % contructs the orbit object
             %
@@ -67,7 +66,7 @@ classdef Orbits < handle
             % reads in the sp3 file containing the precise ephemeris
             % The SP3 format [1] is currently the only supported.
             % Example:
-            % 
+            %
             %   obj.readSP3(sp3FileName)
             %       sp3FileName - path to the sp3 file
             %
@@ -136,16 +135,16 @@ classdef Orbits < handle
             fclose(fid);
         end
         
-        function obj = compute(obj)            
+        function obj = compute(obj)
             % computes polynomial coefficients
             % Goes through the precise ephemeris file and for all satellites available
             % computes the polynomial coefficients of the orbits.
             %
             % Example:
-            % 
+            %
             %   obj.compute();
             %
-            % Note: This is genrally called only once after reading in the SP3 file 
+            % Note: This is genrally called only once after reading in the SP3 file
             %
             ne = length(obj.time);     %number of epochs
             tb = obj.time(1);          %first epoch, for which the coordinates are given
@@ -170,7 +169,7 @@ classdef Orbits < handle
                         obj.ZCoef(j,i,:) =  coef;
                         continue;
                     end
-                    [coef, ~, mu] = polyfit(tt, obj.X(j,m:n), obj.POLYORDER);                    
+                    [coef, ~, mu] = polyfit(tt, obj.X(j,m:n), obj.POLYORDER);
                     obj.XCoef(j,i,:) =  coef;
                     obj.Xmu(j,i,:) =  mu';
                     
@@ -185,7 +184,7 @@ classdef Orbits < handle
             end
             %interval, for which the obj. orbit is valid
             obj.tBeg = obj.timeSet(1); %begin
-            obj.tEnd = obj.timeSet(end) + obj.INTERVAL;  %end           
+            obj.tEnd = obj.timeSet(end) + obj.INTERVAL;  %end
         end
         
         function pos = getSatCoord(obj, prn, t)
@@ -196,7 +195,7 @@ classdef Orbits < handle
             %         prn - satellite number
             %         t - epoch
             %         pos - satellite position in ECEF coords [m]
-            %            
+            %
             if (t - obj.tBeg) < 0  || (t - obj.tEnd) > 0
                 obj.tBeg
                 obj.tEnd
@@ -227,32 +226,30 @@ classdef Orbits < handle
             ret.z = polyval(coefZ, tt, [], zmu);
             
             pos=[ret.x;ret.y;ret.z];
-        end  
+        end
         
-               
         function [b, e] = tValidLimits(obj)
             % return begin and end time within which the interpolation of the sp3 is valid
             %
             % Example:
-            % 
+            %
             %   [b,e] = obj.tValidLimits();
-            %           b - time of beginning 
+            %           b - time of beginning
             %           e - time of end
             %
             b = obj.tBeg;
             e = obj.tEnd;
-        end    
+        end
     end
     
-    methods (Static)
-        
-        function  en = findEn(vt, t)            
+    methods (Static,Access=private)
+        function  en = findEn(vt, t)
             % finds index number of epoch t in the vector vt
             %
             % Example:
             %
             %   en = findEn(vt, t);
-            %        vt - vector of epochs 
+            %        vt - vector of epochs
             %        t - given epoch
             %        en - index of vt, where t falls
             %
@@ -273,21 +270,21 @@ classdef Orbits < handle
             end
             
         end
-                    
-        function [m, n] = findInt(t, tb, interval, b)            
+        
+        function [m, n] = findInt(t, tb, interval, b)
             % find vector interval (indexes m,n) that corresponds to the fit interval
             %
             % Example:
-            % 
+            %
             %   [m,n] = findInt(t, tb, interval, mb);
-            %           t - vector of epochs 
+            %           t - vector of epochs
             %           tb - time of beginning
-            %           interval - duration of the interval 
+            %           interval - duration of the interval
             %           b - index of vector t from wich the search starts
             %           m - index of vector t that corresponds to just before the beginning
             %               of the interval
-            %           n - index of vector t that corresponds to right after the end of 
-            %               the interval           
+            %           n - index of vector t that corresponds to right after the end of
+            %               the interval
             %
             n = -1;
             te = tb + interval;  % time of end of interval
@@ -303,6 +300,9 @@ classdef Orbits < handle
                 end
             end
         end
+    end
+    
+    methods (Static,Access=public)
         
         function t = parseTime(varargin)
             % performs conversions to gpstime from various other date format
@@ -315,14 +315,14 @@ classdef Orbits < handle
             %       day - conventional Julian calendar month
             %       hour - conventional hour
             %       min - conventional min
-            %       sec - conventional sec      
+            %       sec - conventional sec
             %
             %   t = parseTime(gw, ws)
             %       gs - GPS week
             %       ws - seconds of GPS week
             %
             %   t = parseTime(t)
-            %       t - gpstime         
+            %       t - gpstime
             %
             na = length(varargin);
             switch na

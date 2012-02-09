@@ -65,9 +65,9 @@ for i=1:N
     % step simulator
     qrsim.step(U);
           
-    eX(1:20,i) = state.platforms(1).eX;
-    eX(21:23,i) = state.platforms(1).a;
-    X(:,i) = state.platforms(1).X;
+    eX(1:20,i) = state.platforms(1).getEX();
+    eX(21:23,i) = state.platforms(1).getA();
+    X(:,i) = state.platforms(1).getX();
     
     if(mod(i,1000)==0)
         fprintf('.');

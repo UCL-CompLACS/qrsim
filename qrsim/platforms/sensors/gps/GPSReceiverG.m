@@ -26,7 +26,6 @@ classdef GPSReceiverG < GPSReceiver
         svidx;                      % array with the ids of the visible satellite vehicles
         nsv;                        % number of satellite visible by this receiver
         pastEstimatedPosNED;        % past North East Down coordinate returned by the receiver
-        estimatedPosVelNED;         % North East Down coordinate and velocities returned by the receiver
         originUTMcoords;            % coordinates of the local reference frame
         R_SIGMA;                    % receiver noise standard deviation
         receivernoise;              % current receiver noise sample
@@ -38,7 +37,7 @@ classdef GPSReceiverG < GPSReceiver
         sPrngId;                    % id of the prng stream used to select the visible satellites
     end
     
-    methods
+    methods (Sealed,Access=public)
         function obj=GPSReceiverG(objparams)
             % constructs the object.
             % Selects the satellite vehicles visible to this receiver among the ones in
@@ -62,7 +61,7 @@ classdef GPSReceiverG < GPSReceiver
             obj.sPrngId = state.numRStreams+2;
             state.numRStreams = state.numRStreams + 2;
             
-            obj.originUTMcoords = state.environment.area.params.originutmcoords;
+            obj.originUTMcoords = state.environment.area.getOriginUTMCoords();
             
             assert(isfield(objparams,'R_SIGMA'),'gpsreceiverg:nosigma','the platform config must define the gpsreceiver.R_SIGMA parameter');
             obj.R_SIGMA = objparams.R_SIGMA;
@@ -72,9 +71,8 @@ classdef GPSReceiverG < GPSReceiver
             % pick randomly the satellites visible for this receiver
             assert(isfield(objparams,'minmaxnumsv'),'gpsreceiverg:nonumsvs','the platform config must define the gpsreceiver.minmaxnumsv parameter');
             obj.minmaxnumsv = objparams.minmaxnumsv;
-            obj.totalnumsvs = length(state.environment.gpsspacesegment.params.svs);
-        end
-        
+            obj.totalnumsvs = state.environment.gpsspacesegment.getTotalNumSVS();
+        end        
         
         function estimatedPosVelNED = getMeasurement(obj,~)
             % returns a GPS estimate given the current noise free position
@@ -88,8 +86,7 @@ classdef GPSReceiverG < GPSReceiver
             %       ~pydot           [m/s]   y velocity from GPS (NED coordinates)
             %
             
-            estimatedPosVelNED = obj.estimatedPosVelNED;
-            
+            estimatedPosVelNED = obj.estimatedPosVelNED;            
         end
         
         function obj = reset(obj)
@@ -158,7 +155,7 @@ classdef GPSReceiverG < GPSReceiver
         end
     end
     
-    methods (Access=protected)
+    methods (Sealed,Access=protected)
         
         function obj=update(obj,X)
             % generates a new noise sample and computes a position estimate

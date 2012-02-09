@@ -17,8 +17,8 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
     % GPSSpaceSegmentGM Methods:
     %    GPSSpaceSegmentGM(objparams)- constructor
     %    update([])                  - propagates the noise state forward in time
+    %    getTotalNumSVS(~)           - returns number of satellite vehicles
     %
-    
     properties (Access=private)
         PR_BETA;                % process time constant (from [2])
         PR_SIGMA;               % process standard deviation (from [2])
@@ -28,8 +28,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
         sPrngId;                % id of the prng stream used to select the start time
     end
     
-    methods
-        
+    methods (Sealed,Access=public)        
         function obj=GPSSpaceSegmentGM(objparams)
             % constructs the object.
             % Loads and interpoates the satellites orbits and creates and initialises a
@@ -82,8 +81,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
             state.environment.gpsspacesegment_.betas = (1/obj.PR_BETA)*ones(state.environment.gpsspacesegment_.nsv,1);
             state.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment_.nsv,1);
         end
-        
-        
+                
         function obj = reset(obj)
             % reinitialize the noise model
             global state;
@@ -108,8 +106,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
                         exp(-state.environment.gpsspacesegment_.betas(j)*obj.dt)...
                         +state.environment.gpsspacesegment_.w(j)*randn(state.rStreams{obj.prPrngIds(j)},1);
                 end
-            end
-            
+            end            
             
             for j = 1:state.environment.gpsspacesegment_.nsv,
                 %compute sv positions
@@ -117,10 +114,15 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
                     state.environment.gpsspacesegment_.svs(j),(obj.tStart+state.t));
             end
         end
+                        
+        function n = getTotalNumSVS(~)
+            % returns number of satellite vehicles
+            global state;
+            n = state.environment.gpsspacesegment_.nsv;
+        end
     end
     
-    methods (Access=protected)
-        
+    methods (Sealed,Access=protected)        
         function obj=update(obj,~)
             % propagates the noise state forward in time
             %
@@ -128,8 +130,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-            global state;
-            
+            global state;            
             
             % update noise states
             for j=1:state.environment.gpsspacesegment_.nsv

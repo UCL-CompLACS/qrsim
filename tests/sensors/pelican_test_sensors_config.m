@@ -17,7 +17,7 @@ end
 % platforms %
 c.dt = 0.02;
 c.on = 1;
-c.type = 'Pelican';
+c.type = 'PelicanForTesting';
 
 % max and min limits for each of the state variables, exceeding this limits
 % makes the state invalid (i.e. 19x1 nan)
@@ -36,26 +36,26 @@ c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
 % AHARS attitude-heading-altitude reference system (a.k.a. imu + altimeter)
 % dt defined by the minimum dt of the sensors
 c.sensors.ahars.on = 1;  % setting it to 0 is equivalent to disabling all the ones below
-c.sensors.ahars.type = 'AHARSPelican';
+c.sensors.ahars.type = 'AHARSPelicanForTesting';
 
 c.sensors.ahars.accelerometer.on = 1;  % if off the accelerometer returns the noiseless acceleration
-c.sensors.ahars.accelerometer.type = 'AccelerometerG';
+c.sensors.ahars.accelerometer.type = 'AccelerometerGForTesting';
 c.sensors.ahars.accelerometer.dt = 0.02;
 c.sensors.ahars.accelerometer.SIGMA = [0.0025;0.0025;0.0025]; % noise standard deviation
 
 c.sensors.ahars.gyroscope.on = 1; % if off the gyroscope returns the noiseless rotational velocity
-c.sensors.ahars.gyroscope.type = 'GyroscopeG';
+c.sensors.ahars.gyroscope.type = 'GyroscopeGForTesting';
 c.sensors.ahars.gyroscope.dt = 0.02;
 c.sensors.ahars.gyroscope.SIGMA = [0.0002;0.0002;0.0002]; % noise standard deviation
 
 c.sensors.ahars.orientationEstimator.on = 1; % if off the estimator returns the noiseless orientation
-c.sensors.ahars.orientationEstimator.type = 'OrientationEstimatorGM';
+c.sensors.ahars.orientationEstimator.type = 'OrientationEstimatorGMForTesting';
 c.sensors.ahars.orientationEstimator.dt = 0.02;
 c.sensors.ahars.orientationEstimator.BETA = [1/80;1/80;1/80];       % noise time constant
 c.sensors.ahars.orientationEstimator.SIGMA = [0.003536;0.003536;0.003536];   % noise standard deviation
    
 c.sensors.ahars.altimeter.on = 1; % if off the altimeter returns the noiseless altitude
-c.sensors.ahars.altimeter.type = 'AltimeterGM';
+c.sensors.ahars.altimeter.type = 'AltimeterGMForTesting';
 c.sensors.ahars.altimeter.dt = 0.02;
 c.sensors.ahars.altimeter.TAU = 1/300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation

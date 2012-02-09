@@ -9,7 +9,7 @@ classdef AerodynamicTurbulence<Steppable
     %   reset()                          - no action
     %   setState()                       - no action
     %
-    methods
+    methods (Sealed,Access=public)
         function obj = AerodynamicTurbulence(objparams)
             % constructs the object and calls the SteppablePRNG constructor
             %
@@ -22,7 +22,7 @@ classdef AerodynamicTurbulence<Steppable
         end
     end
     
-    methods
+    methods (Access=public)
         function v = getLinear(~,~)
             % returns the linear component of the disturbance (always zero)
             %

@@ -19,13 +19,12 @@ classdef OrientationEstimatorGM<OrientationEstimator
     properties (Access = private)
         BETA;                             % noise time constant
         SIGMA;                            % noise standard deviation
-        n = zeros(3,1);                   % noise sample at current timestep
-        estimatedOrientation = zeros(3,1);% measurement at last valid timestep        
+        n = zeros(3,1);                   % noise sample at current timestep    
         nPrngId;                          %id of the prng stream used by the noise model
         rPrngId;                          %id of the prng stream used to spin up the noise model
     end
     
-    methods (Sealed)
+    methods (Sealed,Access=public)
         function obj = OrientationEstimatorGM(objparams)
             % constructs the object
             %

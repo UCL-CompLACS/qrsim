@@ -15,10 +15,9 @@ classdef QRSim<handle
     %                         objects and platforms.
     %   resetSeed(varargin) - re-initialize the random number generator seed
     %
-    properties (Access=public)
-        par % parameters from task
-        paths =[];  %paths
-        task   % task
+    properties (Access=private)
+        par         % parameters from task
+        paths =[];  % paths
     end
     
     methods (Sealed,Access=public)
@@ -54,11 +53,10 @@ classdef QRSim<handle
             state.numRStreams = 0;
             
             % load the required configuration
-            obj.task = feval(taskName);
+            task = feval(taskName);
             
-            obj.par = obj.task.init();
-            
-            
+            obj.par = task.init();
+                        
             % simulation timestep
             assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
             state.DT = obj.par.DT;
@@ -110,7 +108,7 @@ classdef QRSim<handle
             state.environment.area.reset();
             
             for i=1:length(state.platforms)
-                state.platforms(i).setState(obj.par.platforms(i).X);
+                state.platforms(i).setX(obj.par.platforms(i).X);
             end
         end
         

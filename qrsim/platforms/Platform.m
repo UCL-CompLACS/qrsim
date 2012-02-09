@@ -6,31 +6,10 @@ classdef Platform<handle
     % Platform Methods:
     %    Platform(objparams)      - constructs the object, to be called only from derived
     %                             subclasses.
-    %    setState(state)          - sets the platform state to the value passed
-    %
-    properties
-        params   % object initial paramters
-    end
-    
-    methods (Sealed,Access=protected)
-        % constructs the object
-        %
-        % Example:
-        %
-        %   obj=Platform(objparams)
-        %                objparams - object parameters
-        %
-        % Note:
-        % this is an abstract class so this contructor is meant to be
-        % called by the subclass
-        %
-        function obj=Platform(params)
-            obj.params = params;
-        end
-    end
-    
+    %    setX(X)                  - sets the platform state to the value passed
+    %    
     methods (Abstract)        
-        setState(obj,state);
+        setX(obj,X);
         % sets the platform state to the value passed             
     end
 end

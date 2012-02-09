@@ -12,7 +12,7 @@ classdef Steppable<handle
     %   step(args)           - if active==1, propagates the state of the object forward in time
     %   update(args)*        - updates the object state using args as input (Abstract)
     %   reset()*             - reset the object state (if any)
-    %
+    %   getDt()              - returns the timestep of this object
     %                        *hyperlink broken because the method is abstract
     %
     properties (Constant)
@@ -20,10 +20,10 @@ classdef Steppable<handle
     end
     
     properties (Access=protected)
-        dt            % timestep of this object
+        dt;          % timestep of this object
     end
     
-    methods (Sealed)
+    methods (Sealed,Access=public)
         function obj=Steppable(objparams)
             % constructs and set the timestep of this object
             % The methods uses objparams.dt to set the object timestep (must be a multiple
@@ -60,9 +60,7 @@ classdef Steppable<handle
                 error('dt must be a multiple of the simulation timestep %fs',objparams.DT);
             end
         end
-    end
-    
-    methods (Sealed)
+        
         function obj=step(obj,args)
             % if active==1 propagates the state of the object forward in time.
             % If DT time has elapsed since the last state update this methods propagates
@@ -77,11 +75,13 @@ classdef Steppable<handle
             
             r = rem(state.t,obj.dt);
             if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)) && (obj.dt~=0))
-                %                    fprintf(' stepping\n')
                 obj=obj.update(args);
-            else
-                %                    fprintf(' not a timestep\n')
             end
+        end
+        
+        function dt = getDt(obj)
+            % returns the timestep of the object
+            dt=obj.dt;
         end
     end
     
@@ -99,7 +99,7 @@ classdef Steppable<handle
         %
     end
     
-    methods (Abstract)
+    methods (Abstract,Access=public)
         obj=reset(obj)
         % reset the object state (if any)
         %

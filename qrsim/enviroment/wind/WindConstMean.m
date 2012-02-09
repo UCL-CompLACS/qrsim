@@ -20,11 +20,11 @@ classdef WindConstMean<Wind
     end
     
     properties (Access=private)
-        direction         %mean wind direction
-        w6                %velocity at 6m from ground in m/s
+        direction;         %mean wind direction
+        w6;                %velocity at 6m from ground in m/s
     end
     
-    methods (Sealed)
+    methods (Sealed,Access=public)
         function obj = WindConstMean(objparams)
             % constructs the object and sets its main fields
             %

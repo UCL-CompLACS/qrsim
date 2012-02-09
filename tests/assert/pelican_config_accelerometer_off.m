@@ -17,7 +17,7 @@ end
 % platforms %
 c.dt = 0.02;
 c.on = 1;
-c.type = 'Pelican';
+c.type = 'PelicanForTesting';
 
 % max and min limits for each of the state variables, exceeding this limits
 % makes the state invalid (i.e. 19x1 nan)
@@ -40,7 +40,7 @@ c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 % AHARS attitude-heading-altitude reference system (a.k.a. imu + altimeter)
 % dt defined by the minimum dt of the sensors
 c.sensors.ahars.on = 1;  % setting it to 0 is equivalent to disabling all the ones below
-c.sensors.ahars.type = 'AHARSPelican';
+c.sensors.ahars.type = 'AHARSPelicanForTesting';
 
 c.sensors.ahars.accelerometer.on = 0;  % if off the accelerometer returns the noiseless acceleration
 c.sensors.ahars.accelerometer.dt = 0.02;

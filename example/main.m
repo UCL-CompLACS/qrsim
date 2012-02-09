@@ -1,5 +1,5 @@
 % bare bones example of use of the simulator object
-%clear all
+clear all
 close all
 global state;
 
@@ -27,24 +27,25 @@ ylabel('h [m]');
 idx=1;
 
 % desired px,py,pz and desired platform heading
-wp =[0,0,-20,pi/2];
+wp =[0,0,-10,pi/2];
 
 for i=1:N,
     tloop=tic;
-    
+
     if(i>200)
-        wp = [15,15,-10,-pi/2];
+        wp = [8,8,-10,-pi/2];
     end
     
     if(i>1500)
-        wp = [0,0,-30,0];
+        wp = [0,0,-15,0];
     end
     
     if(i>2500)
-        wp = [0,0,-20,-pi/2];
+        wp = [0,0,-10,-pi/2];
     end
     % compute controls
-    U=quadrotorPID(state.platforms(1).eX,wp);%state.platforms(1).params.X(1:3));
+    eX = state.platforms(1).getEX();
+    U=quadrotorPID(eX,wp);%state.platforms(1).params.X(1:3));
     
     % step simulator
     qrsim.step(U);
@@ -57,19 +58,18 @@ for i=1:N,
     pause(wait);
     
     if(mod(i,20)==0)
-        XX1(:,idx)=state.platforms(1).eX(18:19);
+        XX1(:,idx)=state.platforms(1).getEX(18:19);        
         
-        
-        sph = sin(state.platforms(1).X(4)); cph = cos(state.platforms(1).X(4));
-        sth = sin(state.platforms(1).X(5)); cth = cos(state.platforms(1).X(5));
-        sps = sin(state.platforms(1).X(6)); cps = cos(state.platforms(1).X(6));
+        sph = sin(state.platforms(1).getX(4)); cph = cos(state.platforms(1).getX(4));
+        sth = sin(state.platforms(1).getX(5)); cth = cos(state.platforms(1).getX(5));
+        sps = sin(state.platforms(1).getX(6)); cps = cos(state.platforms(1).getX(6));
         
         dcm = [                (cth * cps),                   (cth * sps),     (-sth);
             (-cph * sps + sph * sth * cps), (cph * cps + sph * sth * sps),(sph * cth);
             (sph * sps + cph * sth * cps),(-sph * cps + cph * sth * sps),(cph * cth)];
         
         % velocity in global frame
-        gvel = (dcm')*state.platforms(1).X(7:9);
+        gvel = (dcm')*state.platforms(1).getX(7:9);
         
         XX2(:,idx)=gvel(1:2);
         

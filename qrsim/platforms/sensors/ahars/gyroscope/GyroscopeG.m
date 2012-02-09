@@ -17,13 +17,11 @@ classdef GyroscopeG<Gyroscope
     %
     properties (Access = private)
         SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
-        measurementAngularVelocity = zeros(3,1); % measurement at last valid timestep
         n = zeros(3,1);                 % noise sample at current timestep
         prngId;                         % id of the prng stream used by this object
     end
     
-    methods (Sealed)
-        
+    methods (Sealed,Access=public)        
         function obj = GyroscopeG(objparams)
             % constructs the object
             %

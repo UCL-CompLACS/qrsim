@@ -5,8 +5,8 @@ classdef GPSSpaceSegment < Steppable & EnvironmentObject
     %    GPSSpaceSegment(objparams)   - constructor
     %    update([])                   - does nothing
     %    reset()                      - does nothing 
-    
-    methods        
+    %
+    methods (Sealed,Access=public)        
         function obj=GPSSpaceSegment(objparams)
             % constructs an empty the object.
             % This is used in place of a GPS segment when the object is not
@@ -20,14 +20,15 @@ classdef GPSSpaceSegment < Steppable & EnvironmentObject
             obj=obj@Steppable(objparams);
             obj=obj@EnvironmentObject(objparams);
         end
-        
+    end
+    
+    methods  (Access=public)   
         function obj = reset(obj)
            % does nothing 
         end
     end
     
-    methods (Access=protected)
-        
+    methods (Access=protected)        
         function obj=update(obj,~)
             % does nothing because this ia not active space segment
             %

@@ -40,7 +40,7 @@ classdef KeepSpot<Task
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
-            taskparams.environment.area.limits = [-10 20 -7 7 -20 0];
+            taskparams.environment.area.limits = [-10 20 -10 10 -20 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -88,7 +88,7 @@ classdef KeepSpot<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config';
-            taskparams.platforms(1).X = [0;0;-20;0;0;0];
+            taskparams.platforms(1).X = [0;0;-10;0;0;0];
             
         end
         

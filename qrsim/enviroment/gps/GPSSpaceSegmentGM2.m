@@ -21,7 +21,8 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
     %    GPSSpaceSegmentGM2(objparams)- constructor
     %    update([])                   - propagates the noise state forward in time
     %    reset()                      - reinitialize the noise model
-    
+    %    getTotalNumSVS(~)           - returns number of satellite vehicles
+    %
     properties (Access=private)
         tStart;                 % simulation start GPS time
         PR_BETA2;               % process time constant
@@ -32,8 +33,7 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
         sPrngId;                % id of the prng stream used to select the start time
     end
     
-    methods
-        
+    methods  (Sealed,Access=public)              
         function obj=GPSSpaceSegmentGM2(objparams)
             % constructs the object.
             % Loads and interpoates the satellites orbits and creates and initialises a
@@ -129,10 +129,15 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
                     state.environment.gpsspacesegment_.svs(j),(obj.tStart+state.t));
             end
         end
+        
+        function n = getTotalNumSVS(~)
+            % returns number of satellite vehicles
+            global state;
+            n = state.environment.gpsspacesegment_.nsv;
+        end
     end
     
-    methods (Access=protected)
-        
+    methods (Sealed,Access=protected)        
         function obj=update(obj,~)
             % propagates the noise state forward in time
             %
