@@ -40,6 +40,7 @@ classdef KeepSpot<Task
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
+            % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-10 20 -10 10 -20 0];
             taskparams.environment.area.type = 'BoxArea';
             

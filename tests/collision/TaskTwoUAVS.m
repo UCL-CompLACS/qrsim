@@ -17,6 +17,7 @@ classdef TaskTwoUAVS<Task
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
+            % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-110 110 -110 110 -110 110];
             taskparams.environment.area.type = 'BoxArea';
             
