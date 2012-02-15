@@ -63,7 +63,7 @@ classdef TaskNoPlatformGyroscope<Task
             % this is common to all helicopters
             taskparams.environment.wind.on = 0;
             taskparams.environment.wind.type = 'WindConstMean';
-            taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
+            taskparams.environment.wind.direction = 0; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
             taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%

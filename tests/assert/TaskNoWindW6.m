@@ -63,7 +63,7 @@ classdef TaskNoWindW6<Task
             % this is common to all helicopters
             taskparams.environment.wind.on = 1;
             taskparams.environment.wind.type = 'WindConstMean';
-            taskparams.environment.wind.direction = [1;0;0]; %mean wind direction, set to 0 to initilise randomly
+            taskparams.environment.wind.direction = 0; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
 
         end
         

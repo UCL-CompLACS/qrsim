@@ -219,6 +219,10 @@ classdef QRSim<handle
             if(obj.par.environment.wind.on)
                 assert(isfield(obj.par.environment.wind,'type'),...
                     'qrsim:nowindtype','the task must define environment.wind.type');
+
+                limits = state.environment.area.getLimits();
+                obj.par.environment.wind.zOrigin = limits(6);
+                
                 state.environment.wind =feval(obj.par.environment.wind.type, obj.par.environment.wind);
             else
                 state.environment.wind = feval('Wind', obj.par.environment.wind);

@@ -41,7 +41,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         w6;                       %velocity at 6m from ground in m/s
         vgust_relwk = zeros(3,1); % aerodynamic turbulence in relative wind coords Knots
         vgust = zeros(3,1);       % aerodynamic turbulence in body coords m/s
-        prngId;                   %id of the prng stream used by this object
+        prngIds;                  % ids of the prng stream used by this object
+        hOrigin;                  % origin reference altitude
     end
     
     methods  (Sealed,Access=public)
@@ -54,7 +55,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %                objparams.dt - timestep of this object
             %                objparams.on - 1 if the object is active
             %                objparams.W6 - velocity at 6m from ground in m/s
-            %
+            %                objparams.zOrigin - origin reference Z coord
             global state;
             
             obj=obj@AerodynamicTurbulence(objparams);
@@ -62,8 +63,10 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
                 'the platform config file must define a aerodynamicturbulence.W6 parameter');
             obj.w6=objparams.W6;
             
-            state.numRStreams = state.numRStreams + 1;
-            obj.prngId = state.numRStreams;
+            obj.hOrigin = -objparams.zOrigin;
+            
+            obj.prngIds = [1,2,3]+state.numRStreams;
+            state.numRStreams = state.numRStreams + 3;
         end
         
         function v = getLinear(obj,~)
@@ -129,30 +132,25 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             cb = cos(beta);  sb = sin(beta);
             ca = cos(alpha); sa = sin(alpha);
             Cwb = [ ca*cb   -ca*sb -sa;
-                sb       cb     0 ;
-                sa*cb   -sa*sb  ca ];
+                    sb       cb     0 ;
+                    sa*cb   -sa*sb  ca];
             
-            z = m2ft(-X(3)); %height of the platform from ground
-            w20 = ms2knots(obj.w6);
+            hft = m2ft(obj.hOrigin-X(3)); % height of the platform from origin altitude
+            w20ft = m2ft(obj.w6);         % baseline airspeed ft/s
+            Vfts = m2ft(V);
             
-            sigma_v = 0.1*w20;
-            Lv = abs(z);
+            sigma = [1/(0.177+0.000823*hft)^0.4;1/(0.177+0.000823*hft)^0.4;1].*0.1.*w20ft;
+
+            L = [1/(0.177+0.000823*hft)^1.2;1/(0.177+0.000823*hft)^1.2;1]*hft;
+                        
+            % noise samples
+            eta = [randn(state.rStreams{obj.prngIds(1)},1,1);randn(state.rStreams{obj.prngIds(2)},1,1);randn(state.rStreams{obj.prngIds(3)},1,1)];
             
-            Lu = Lv/((0.177 + 0.000823*z)^1.2);
-            sigma_u = sigma_v/((0.177 + 0.000823*z)^1.2);
-            
-            sigma = [sigma_u;sigma_v;sigma_v];
-            
-            if(V>0)
-                au=V/Lu;
-            else
-                au=0;
-            end
-            % turbulence in relative wind coordinates
-            obj.vgust_relwk = (1-au*obj.dt)*obj.vgust_relwk+sqrt(2*au*obj.dt)*sigma.*randn(state.rStreams{obj.prngId},3,1);
+            % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)         
+            obj.vgust_relwk =  (1-(Vfts*obj.dt)./L).*obj.vgust_relwk+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
             
             %turbulence in body coordinates
-            obj.vgust = knots2ms(Cwb*obj.vgust_relwk);
+            obj.vgust = ft2m(Cwb*obj.vgust_relwk);
         end
     end
 end

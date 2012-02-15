@@ -20,8 +20,11 @@ classdef WindConstMean<Wind
     end
     
     properties (Access=private)
-        direction;         %mean wind direction
-        w6;                %velocity at 6m from ground in m/s
+        direction;         % mean wind direction rad clockwise from north
+        w6;                % velocity at 6m from ground in m/s
+        hOrigin;           % origin reference altitude  
+        prngId;            % id of the prng stream used by this object
+        randDir;           % 1 if the wind direction is generated randomly
     end
     
     methods (Sealed,Access=public)
@@ -33,7 +36,8 @@ classdef WindConstMean<Wind
             %   obj=WindConstMean(objparams)
             %                objparams.on - 1 if the object is active
             %                objparams.W6 - velocity at 6m from ground in m/s
-            %                objparams.direction - mean wind direction 3 by 1 vector
+            %                objparams.direction - mean wind direction rad clockwise from north
+            %                objparams.zOrigin - origin reference Z coord
             %
             global state;
             
@@ -43,19 +47,34 @@ classdef WindConstMean<Wind
                                                             
             assert(isfield(objparams,'W6'),'windconstmean:now6','the task must define wind.W6');            
             obj.w6 = objparams.W6;
+                                    
+            obj.hOrigin = -objparams.zOrigin;
             
             assert(isfield(objparams,'direction'),'windconstmean:nodirection','the task must define wind.direction');  
-            if(objparams.direction==0)
-                alpha = 2*pi*rand(state.rSteam,1,1);
-                obj.direction=[sin(alpha),cos(alpha),0];
+           
+            if(~isempty(objparams.direction))
+                obj.randDir = 0;
+                obj.direction = objparams.direction;
             else
-                obj.direction=objparams.direction;
+                obj.randDir = 1;
+                obj.direction = 0;
+            end
+            state.numRStreams = state.numRStreams+1;
+            obj.prngId = state.numRStreams;
+        end
+        
+        function obj = reset(obj)
+            % reset wind direction if random;
+            global state;
+            
+            if(obj.randDir)
+                obj.direction = 2*pi*randn(state.rStreams{obj.prngId},1,1);
             end
         end
         
         function v = getLinear(obj,X)
             % returns the linear component of the wind field.
-            % Given the current altitude of the platform the wind share effect is uded to
+            % Given the current altitude of the platform the wind share effect is used to
             % compute the magnitude and direction of the linear component of a constant
             % wind field.
             %
@@ -66,18 +85,18 @@ classdef WindConstMean<Wind
             %           v - 3 by 1 wind velocity vector in body coordinates
             %
             
-            z = m2ft(-X(3)); %height of the platform from ground
-            w20 = ms2knots(obj.w6);
+            z = m2ft(obj.hOrigin-X(3)); %height of the platform from ground
+            w20 = m2ft(obj.w6);
             
             % wind shear
             if(z>0.05)
-                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0))*obj.direction;
+                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0)).*[sin(obj.direction);cos(obj.direction);0];
             else
                 vmean = zeros(3,1);
             end
             
             vmeanbody = dcm(X)*vmean;
-            v = knots2ms(vmeanbody);
+            v = ft2m(vmeanbody);
         end
         
         function v = getRotational(~,~)

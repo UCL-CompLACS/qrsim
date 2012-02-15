@@ -3,7 +3,7 @@ function [ e ] = testLimits()
 % on the flight volume and on the control inputs
 
 clear all;
-tic
+
 cd('limits');
 
 e = 0;
@@ -23,7 +23,7 @@ e = e | testFlyingOutOfBounds('helicopter flying out of the test area');
 
 % test control input limits
 e = e | testControlsOutOfBounds('control inputs out of bounds');
-toc
+
 cd('..');
 
 end

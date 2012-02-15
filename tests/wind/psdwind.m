@@ -3,15 +3,12 @@ close all;
 
 N=100000;
 
-%W6ms = 1;
-W20ft = 1;%m2ft(W6ms);
+
+W20ft = 1;
 T = 0.01;
 fs=1/T;
-%Vms = 0.3;
-Vfts = 1;%m2ft(Vms);
-%hm = 1;
-hft=5;%m2ft(hm);
-
+Vfts = 1;
+hft=5;
 
 sigmaw = 0.1*W20ft;
 sigmau = sigmaw/(0.177+0.000823*hft)^0.4;
@@ -22,15 +19,6 @@ Lw = hft;
 Lu = hft/(0.177+0.000823*hft)^1.2;
 Lv = Lu;
 
-% Vfts = 10;
-% 
-% sigmau = 10;
-% sigmav = 10;
-% sigmaw = 10;
-% 
-% Lv = 1000;
-% Lu = 1000;
-% Lw = 1000;
 
 %%% time domain
 uvwg=zeros(3,1);
@@ -51,18 +39,18 @@ end
 
 %%% theoretical
 w = 2*pi*f;
-puu = zeros(1,length(w));
-pvv = zeros(1,length(w));
-pww = zeros(1,length(w));
+puu = zeros(length(w),1);
+pvv = zeros(length(w),1);
+pww = zeros(length(w),1);
 
 for i=1:length(w)
-    puu(1,i) = ((2*(sigmau^2)*Lu)/(pi*Vfts))*(1/(1+(Lu*(w(i)/Vfts))^2));
-    pvv(1,i) = (((sigmav^2)*Lv)/(pi*Vfts))*((1+3*(Lv*w(i)/Vfts)^2)/(1+(Lv*(w(i)/Vfts))^2)^2);
-    pww(1,i) = (((sigmaw^2)*Lw)/(pi*Vfts))*((1+3*(Lw*w(i)/Vfts)^2)/(1+(Lw*(w(i)/Vfts))^2)^2);
+    puu(i,1) = ((2*(sigmau^2)*Lu)/(pi*Vfts))*(1/(1+(Lu*(w(i)/Vfts))^2));
+    pvv(i,1) = (((sigmav^2)*Lv)/(pi*Vfts))*((1+3*(Lv*w(i)/Vfts)^2)/(1+(Lv*(w(i)/Vfts))^2)^2);
+    pww(i,1) = (((sigmaw^2)*Lw)/(pi*Vfts))*((1+3*(Lw*w(i)/Vfts)^2)/(1+(Lw*(w(i)/Vfts))^2)^2);
 end
 
 %%% simulink
-data = load('wind_test.mat');
+data = load('windlog_1V5h1w20_0p0t0p.mat');
 
 
 [Pduu,tmp]=pwelch(data.ans(2,:),rectwin(2^14),0, 2^14,fs);
@@ -127,5 +115,38 @@ grid on;
 axis([0.01 100 -80 20]);
 
 
-%figure;
-%plot(xcorr(data.ans(2,:),'biased'))
+figure(3);
+subplot(1,3,1);
+semilogx(f,10*log10((Puu*0.25))-10*log10(puu));
+hold on;
+semilogx(f,10*log10((Pduu*0.25))-10*log10(puu),'r');
+semilogx(f,10*log10((Pmuu*0.25))-10*log10(puu),'m');
+grid on;
+
+subplot(1,3,2);
+semilogx(f,10*log10((Pvv*0.25))-10*log10(pvv));
+hold on;
+semilogx(f,10*log10((Pdvv*0.25))-10*log10(pvv),'r');
+semilogx(f,10*log10((Pmvv*0.25))-10*log10(pvv),'m');
+grid on;
+
+subplot(1,3,3);
+semilogx(f,10*log10((Pww*0.25))-10*log10(pww));
+hold on;
+semilogx(f,10*log10((Pdww*0.25))-10*log10(pww),'r');
+semilogx(f,10*log10((Pmww*0.25))-10*log10(pww),'m');
+grid on;
+
+TOL = 2;
+
+muu =  mean(abs(10*log10((Pmuu*0.25))-10*log10(puu)));
+mvv =  mean(abs(10*log10((Pmvv*0.25))-10*log10(pvv)));
+mww =  mean(abs(10*log10((Pmww*0.25))-10*log10(pww)));
+
+if(all([muu,mvv,mww] < [TOL,TOL,TOL]))
+   disp('passed'); 
+else
+    disp('failed');
+end    
+
+ 

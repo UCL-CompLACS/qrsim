@@ -118,6 +118,10 @@ classdef Pelican<Steppable & Platform
                 
                 assert(isfield(objparams.aerodynamicturbulence,'type'),'pelican:noaerodynamicturbulencetype',...
                     'the platform config file must define an aerodynamicturbulence.type ');
+                                            
+                limits = state.environment.area.getLimits();
+                objparams.zOrigin = limits(6);
+                
                 tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
                 if(isa(tmp,'AerodynamicTurbulence'))
                     obj.aerodynamicTurbulence = tmp;
