@@ -18,7 +18,7 @@ classdef AccelerometerG<Accelerometer
     properties (Access = private)
         SIGMA;                           % noise standard deviation
         n = zeros(3,1);                  % noise sample at current timestep
-        prngId;                          %id of the prng stream used by the noise model
+        prngIds;                         %ids of the prng stream used by the noise model
     end
     
     methods (Sealed,Access=public)
@@ -34,8 +34,8 @@ classdef AccelerometerG<Accelerometer
             %
             global state;
             obj = obj@Accelerometer(objparams);
-            state.numRStreams = state.numRStreams +1;
-            obj.prngId = state.numRStreams;
+            obj.prngIds = [1;2;3]+state.numRStreams;
+            state.numRStreams = state.numRStreams + 3;
             
             assert(isfield(objparams,'SIGMA'),'accelerometerg:sigma',...
                 'the platform configuration must define accelerometer.SIGMA');
@@ -71,7 +71,9 @@ classdef AccelerometerG<Accelerometer
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
             global state;
-            obj.n = obj.SIGMA.*randn(state.rStreams{obj.prngId},3,1);
+            obj.n = obj.SIGMA.*[randn(state.rStreams{obj.prngIds(1)},1,1);
+                                randn(state.rStreams{obj.prngIds(2)},1,1);
+                                randn(state.rStreams{obj.prngIds(3)},1,1)];
             obj.measurementAcceleration = obj.n + a(1:3);
         end
         

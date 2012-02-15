@@ -60,7 +60,7 @@ classdef Pelican<Steppable & Platform
         collisionD;  % distance from any other object that defines a collision
         dynNoise;    % standard deviation of the noise dynamics
         behaviourIfStateNotValid = 'warning'; % what to do when the state is not valid        
-        prngId;      %id of the prng stream used by this object 
+        prngIds;     %ids of the prng stream used by this object 
         stateLimits; % 13 by 2 vector of allowed values of the state
         X;           % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
         eX ;         % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
@@ -90,8 +90,8 @@ classdef Pelican<Steppable & Platform
 
             obj=obj@Steppable(objparams);
             
-            state.numRStreams = state.numRStreams + 1;
-            obj.prngId = state.numRStreams; 
+            obj.prngIds = [1;2;3;4;5;6] + state.numRStreams; 
+            state.numRStreams = state.numRStreams + 6;
             
             assert(isfield(objparams,'stateLimits'),'pelican:nostatelimits',...
                 'the platform config file must define the stateLimits parameter');
@@ -353,8 +353,13 @@ classdef Pelican<Steppable & Platform
                 obj.aerodynamicTurbulence.step([obj.X;obj.meanWind]);
                 obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                 
-                accNoise = obj.dynNoise.*randn(state.rStreams{obj.prngId},6,1);
-                
+                accNoise = obj.dynNoise.*[randn(state.rStreams{obj.prngIds(1)},1,1);
+                                          randn(state.rStreams{obj.prngIds(2)},1,1);
+                                          randn(state.rStreams{obj.prngIds(3)},1,1);
+                                          randn(state.rStreams{obj.prngIds(4)},1,1);
+                                          randn(state.rStreams{obj.prngIds(5)},1,1);
+                                          randn(state.rStreams{obj.prngIds(6)},1,1)];
+            
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;obj.meanWind + obj.turbWind; obj.MASS; accNoise], obj.dt);
                 

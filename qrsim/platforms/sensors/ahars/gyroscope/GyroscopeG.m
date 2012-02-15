@@ -18,7 +18,7 @@ classdef GyroscopeG<Gyroscope
     properties (Access = private)
         SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
         n = zeros(3,1);                 % noise sample at current timestep
-        prngId;                         % id of the prng stream used by this object
+        prngIds;                        % ids of the prng stream used by this object
     end
     
     methods (Sealed,Access=public)        
@@ -35,8 +35,8 @@ classdef GyroscopeG<Gyroscope
             global state;
             obj=obj@Gyroscope(objparams);
             
-            state.numRStreams = state.numRStreams+1;
-            obj.prngId = state.numRStreams;
+            obj.prngIds = [1,2,3]+state.numRStreams;
+            state.numRStreams = state.numRStreams+3;
             
             assert(isfield(objparams,'SIGMA'),'gyroscopeg:nosigma',...
                 'the platform config file a must define gyroscope.SIGMA parameter');
@@ -72,7 +72,9 @@ classdef GyroscopeG<Gyroscope
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
             global state;
-            obj.n = obj.SIGMA.*randn(state.rStreams{obj.prngId},3,1);
+            obj.n = obj.SIGMA.*[randn(state.rStreams{obj.prngIds(1)},1,1);
+                                randn(state.rStreams{obj.prngIds(2)},1,1);
+                                randn(state.rStreams{obj.prngIds(3)},1,1)];
             obj.measurementAngularVelocity = obj.n + X(10:12);
         end
     end
