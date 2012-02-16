@@ -124,6 +124,8 @@ gb = dcm*[0;0;G];
 %plane i.e. in the  -Z body direction
 ra = [0;0;-(Fth+xdot(13)*dt)]/mass + gb;
 
+% wind influence added as in Simulink example "Lightweight Airplane Design"
+% asbSkyHogg/VehicleSystemModel/Vehicle/Aerodynamics/DerivedConditions
 xdot(7) = -q*w + r*v + ra(1) + kuv*(u-wind(1));
 xdot(8) = -r*u + p*w + ra(2) + kuv*(v-wind(2));
 xdot(9) = -p*v + q*u + ra(3) + kw*(w-wind(3));

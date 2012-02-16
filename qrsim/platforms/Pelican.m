@@ -347,10 +347,11 @@ classdef Pelican<Steppable & Platform
                     error('a 5 element column vector [-2048..2048;-2048..2048;0..4096;-2048..2048;9..12] is expected as input ');
                 end
                 
-                %turbulence
+                %wind and turbulence this closely mimic the Simulink example "Lightweight Airplane Design"
+                % asbSkyHogg/Environment/WindModels
                 obj.meanWind = state.environment.wind.getLinear(obj.X);
                 
-                obj.aerodynamicTurbulence.step([obj.X;obj.meanWind]);
+                obj.aerodynamicTurbulence.step(obj.X);
                 obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                 
                 accNoise = obj.dynNoise.*[randn(state.rStreams{obj.prngIds(1)},1,1);

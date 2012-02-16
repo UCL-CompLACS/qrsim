@@ -1,7 +1,7 @@
 classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     % Linear Turbulence model according to U.S. military specification MIL-F-8785C
     %
-    % According to references[1, 2], turbulence can be modelled as a stochastic process
+    % According to references[1,2,3,4], turbulence can be modelled as a stochastic process
     % defined by velocity spectra. The turbulence field is assumed to be "frozen" in time
     % and space (i.e.: time variations are statistically equivalent to distance variations
     % in traversing the turbulence field). This assumption implies that the turbulence-induced
@@ -23,7 +23,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     %    getLinear(state)           - returns the linear component of the turbulence
     %    getRotational(state)       - always returns zero since this model does not have
     %                                 a rotational wind component
-    %    update(XandWind)           - updates the GM turbulence model
+    %    update(X)                  - updates the GM turbulence model
     %
     %
     % [1] "Military Specification, “Flying Qualities of Piloted Airplanes" Tech. Rep.
@@ -32,17 +32,21 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     %      Stacey Gage
     % [3] "Wind Disturbance Estimation and Rejection for Quadrotor Position Control"
     %     Steven L. Waslander, Carlos Wang
-    
+    % [4] Jessie C. Yeager, "Implementation and Testing Turbulence Models for the F18-HARV
+    %     Simulation"  NASA CR-1998-206937, Lockheed Martin Engineering & Sciences
+    %
     properties (Constant)
         Z0 = 0.15; % feet
     end
     
     properties (Access=private)
         w6;                       %velocity at 6m from ground in m/s
-        vgust_relwk = zeros(3,1); % aerodynamic turbulence in relative wind coords Knots
-        vgust = zeros(3,1);       % aerodynamic turbulence in body coords m/s
+        vgust_windframe;          % aerodynamic turbulence in relative wind coords Knots
+        vgust;                    % aerodynamic turbulence in body coords m/s
         prngIds;                  % ids of the prng stream used by this object
         hOrigin;                  % origin reference altitude
+        direction;                % main turbulence direction
+        X;                        % state
     end
     
     methods  (Sealed,Access=public)
@@ -56,12 +60,18 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %                objparams.on - 1 if the object is active
             %                objparams.W6 - velocity at 6m from ground in m/s
             %                objparams.zOrigin - origin reference Z coord
+            %                objparams.direction - main turbulence direction
+            %
             global state;
             
             obj=obj@AerodynamicTurbulence(objparams);
             assert(isfield(objparams,'W6'),'aerodynamicturbulencemilf8785:now6',...
                 'the platform config file must define a aerodynamicturbulence.W6 parameter');
             obj.w6=objparams.W6;
+            
+            assert(isfield(objparams,'direction'),'aerodynamicturbulencemilf8785:nodirection',...
+                'the platform config file must define a aerodynamicturbulence.direction6 parameter');
+            obj.direction=objparams.direction;
             
             obj.hOrigin = -objparams.zOrigin;
             
@@ -95,19 +105,38 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             v=zeros(3,1);
         end
         
-        function obj = reset(obj)
-            % nothing to be done
-            % TODO
+        function obj = reset(obj)            
+            % resets the state of the model
+            
+            global state;
+            % airspeed along the flight path, governs the lengthscale,
+            Vfts = m2ft(norm(obj.X(7:9)));
+            
+            hft = m2ft(obj.hOrigin-obj.X(3)); % height of the platform from origin altitude
+            w20ft = m2ft(obj.w6);         % baseline airspeed ft/s
+            
+            sigma = [1/(0.177+0.000823*hft)^0.4;1/(0.177+0.000823*hft)^0.4;1].*0.1.*w20ft;
+            
+            L = [1/(0.177+0.000823*hft)^1.2;1/(0.177+0.000823*hft)^1.2;1]*hft;
+            
+            obj.vgust_windframe = zeros(3,1);
+            for i=0:1000
+                % noise samples
+                eta = [randn(state.rStreams{obj.prngIds(1)},1,1);randn(state.rStreams{obj.prngIds(2)},1,1);randn(state.rStreams{obj.prngIds(3)},1,1)];
+                
+                % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)
+                obj.vgust_windframe =  (1-(Vfts*obj.dt)./L).*obj.vgust_windframe+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
+            end
         end
         
-        function obj = setState(obj,~)
+        function obj = setState(obj,X)
             % nothing to be done
-            % TODO
+            obj.X = X;
         end
     end
     
     methods  (Sealed, Access=protected)
-        function obj = update(obj, XandWind)
+        function obj = update(obj, X)
             % updates the GM turbulence model
             %
             % Note:
@@ -116,41 +145,29 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %
             global state;
             
-            X = XandWind(1:13);
-            meanWind = XandWind(14:end); % in body coords
-            
             % airspeed along the flight path, governs the lengthscale,
-            % we can simply subtract velocity and mean wind since both are
-            % in body coordinates
-            relativeWind = X(7:9)-meanWind;
-            
-            V = norm(relativeWind);%m/s
-            
-            alpha = atan2(relativeWind(3),relativeWind(1)); % angle of attack
-            beta = asin(relativeWind(2)/V); % sideslip angle
-            
-            cb = cos(beta);  sb = sin(beta);
-            ca = cos(alpha); sa = sin(alpha);
-            Cwb = [ ca*cb   -ca*sb -sa;
-                    sb       cb     0 ;
-                    sa*cb   -sa*sb  ca];
+            Vfts = m2ft(norm(X(7:9)));
             
             hft = m2ft(obj.hOrigin-X(3)); % height of the platform from origin altitude
             w20ft = m2ft(obj.w6);         % baseline airspeed ft/s
-            Vfts = m2ft(V);
             
             sigma = [1/(0.177+0.000823*hft)^0.4;1/(0.177+0.000823*hft)^0.4;1].*0.1.*w20ft;
-
+            
             L = [1/(0.177+0.000823*hft)^1.2;1/(0.177+0.000823*hft)^1.2;1]*hft;
-                        
+            
             % noise samples
             eta = [randn(state.rStreams{obj.prngIds(1)},1,1);randn(state.rStreams{obj.prngIds(2)},1,1);randn(state.rStreams{obj.prngIds(3)},1,1)];
             
-            % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)         
-            obj.vgust_relwk =  (1-(Vfts*obj.dt)./L).*obj.vgust_relwk+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
+            % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)
+            obj.vgust_windframe =  (1-(Vfts*obj.dt)./L).*obj.vgust_windframe+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
             
-            %turbulence in body coordinates
-            obj.vgust = ft2m(Cwb*obj.vgust_relwk);
+            % by definition the turbulence is aligned with the main turbulence direction,
+            % we transform it to body coordinates
+            Cte = [cos(obj.direction) sin(obj.direction) 0;
+                  -sin(obj.direction) cos(obj.direction) 0;
+                                    0                  0 1];
+            
+            obj.vgust = dcm(X)*Cte*ft2m(obj.vgust_windframe);
         end
     end
 end
