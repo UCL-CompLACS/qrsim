@@ -1,5 +1,6 @@
 function m = dcm( X )
-%DCM compute the direct cosin rotation matrix 
+%DCM compute the direct cosin rotation matrix that transfor from the ref
+%frame to the body frame.
 % simply calls the more general angle2dcm using a state as input and 
 % the rotation order defined for our platform 
 
