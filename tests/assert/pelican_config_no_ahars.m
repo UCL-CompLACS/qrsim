@@ -41,7 +41,7 @@ c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;
-c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
+
 
 
 

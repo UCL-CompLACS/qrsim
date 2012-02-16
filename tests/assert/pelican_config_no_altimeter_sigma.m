@@ -66,7 +66,7 @@ c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;
-c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
+
 
 
 

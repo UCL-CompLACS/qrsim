@@ -65,8 +65,8 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulence','qrsim:noae
 e = e | loadWorkingTaskWithObjectOff('TaskPlatformAerodynamicTurbulenceOff','state.platforms(1).getAerodynamicTurbulence()','AerodynamicTurbulence','aerodynamic turbulence off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
-
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6 parameter');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceDirection','aerodynamicturbulencemilf8785:nodirection','missing aerodynamic turbulence direction parameter');
 
 e = e | loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms(1).getAHARS().getAccelerometer()','Accelerometer','accelerometer off');
 

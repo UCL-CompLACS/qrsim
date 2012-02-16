@@ -66,8 +66,9 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 1;
-c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785'; % time varying stochastic wind drafts, different for each of the helicopters
-            
+c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785';
+c.aerodynamicturbulence.direction = 0; % mean wind direction, (rad clockwise from north set to [] to initialise randomly)
+
 % Graphics
 c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory

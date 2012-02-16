@@ -31,9 +31,9 @@ c.collisionDistance = 2; % two platforms colser than this distance are deemed in
 c.dynNoise = [0.1;0.1;0.1;0.1;0.1;0.1];
 
 % GPS Receiver
-c.sensors.gpsreceiver.on = 1; % if off the gps returns the noiseless position
+c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
 c.sensors.gpsreceiver.type = 'GPSReceiverG';
-
+c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
 c.sensors.gpsreceiver.R_SIGMA = 0.002;             % receiver noise standard deviation 
 c.sensors.gpsreceiver.delay = 1;  % receiver delay in multiples of receiver's dt
 
@@ -65,13 +65,11 @@ c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
-c.aerodynamicturbulence.on = 0;
-
-
-
+c.aerodynamicturbulence.on = 1;
+c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785';
+c.aerodynamicturbulence.W6 = 0.1; % wind magnitude at 6m from ground
 
 % Graphics
- 
 c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m
