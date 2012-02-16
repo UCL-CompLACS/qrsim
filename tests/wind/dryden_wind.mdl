@@ -1,12 +1,12 @@
 Model {
-  Name			  "untitled"
+  Name			  "dryden_wind"
   Version		  7.6
   MdlSubVersion		  0
   GraphicalInterface {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.9"
+    ComputedModelVersion    "1.12"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -26,9 +26,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "rdenardi"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Mon Feb 13 20:03:36 2012"
-  RTWModifiedTimeStamp	  251054985
-  ModelVersionFormat	  "1.%<AutoIncrement:9>"
+  LastModifiedDate	  "Thu Feb 16 21:01:54 2012"
+  RTWModifiedTimeStamp	  251316125
+  ModelVersionFormat	  "1.%<AutoIncrement:12>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -632,6 +632,14 @@ Model {
       PreserveConstantTs      off
     }
     Block {
+      BlockType		      Mux
+      Inputs		      "4"
+      DisplayOption	      "none"
+      UseBusObject	      off
+      BusObject		      "BusObject"
+      NonVirtualBus	      off
+    }
+    Block {
       BlockType		      Scope
       ModelBased	      off
       TickLabels	      "OneTimeTick"
@@ -661,8 +669,8 @@ Model {
     }
   }
   System {
-    Name		    "untitled"
-    Location		    [1705, 213, 2505, 756]
+    Name		    "dryden_wind"
+    Location		    [1704, 88, 2504, 631]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -676,34 +684,13 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "26"
-    Block {
-      BlockType		      Constant
-      Name		      "Constant"
-      SID		      "5"
-      Position		      [45, 240, 75, 270]
-      Value		      "[0;0;0]"
-      VectorParams1D	      off
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "Constant1"
-      SID		      "6"
-      Position		      [110, 60, 140, 90]
-      Value		      "5"
-    }
-    Block {
-      BlockType		      Constant
-      Name		      "Constant2"
-      SID		      "7"
-      Position		      [45, 155, 75, 185]
-    }
+    SIDHighWatermark	    "30"
     Block {
       BlockType		      Reference
       Name		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
       SID		      "1"
       Ports		      [3, 2]
-      Position		      [320, 131, 500, 209]
+      Position		      [320, 121, 500, 219]
       LibraryVersion	      "1.321"
       SourceBlock	      "aerolibwind2/Dryden Wind Turbulence Model \n(Continuous (+q -r))"
       SourceType	      "Wind Turbulence Model"
@@ -719,8 +706,8 @@ Model {
       units		      "English (Velocity in ft/s)"
       spec		      "MIL-F-8785C"
       model		      "Discrete Dryden (+q +r)"
-      W20		      "1"
-      Wdeg		      "0"
+      W20		      "10"
+      Wdeg		      "337"
       TurbProb		      "10^-3 - Moderate"
       L_high		      "1000"
       Wingspan		      "0.5"
@@ -729,11 +716,22 @@ Model {
       T_on		      on
     }
     Block {
+      BlockType		      Mux
+      Name		      "Mux"
+      SID		      "30"
+      Ports		      [3, 1]
+      Position		      [86, 255, 124, 260]
+      BlockRotation	      270
+      ShowName		      off
+      Inputs		      "3"
+      DisplayOption	      "bar"
+    }
+    Block {
       BlockType		      Reference
       Name		      "Rotation Angles to\nDirection Cosine Matrix"
       SID		      "4"
       Ports		      [1, 1]
-      Position		      [165, 234, 265, 276]
+      Position		      [160, 204, 260, 246]
       AttributesFormatString  "Rotation Order: %<rotationOrder>"
       LibraryVersion	      "1.267"
       SourceBlock	      "aerolibtransform2/Rotation Angles to\nDirection Cosine Matrix"
@@ -754,7 +752,7 @@ Model {
       Name		      "Scope"
       SID		      "2"
       Ports		      [1]
-      Position		      [790, 14, 820, 46]
+      Position		      [565, 54, 595, 86]
       Floating		      off
       Location		      [1906, 274, 2555, 784]
       Open		      off
@@ -770,21 +768,59 @@ Model {
       BlockType		      Terminator
       Name		      "Terminator"
       SID		      "3"
-      Position		      [535, 180, 555, 200]
+      Position		      [565, 231, 585, 249]
     }
     Block {
       BlockType		      ToFile
       Name		      "To File"
       SID		      "25"
-      Position		      [675, 135, 735, 165]
-      Filename		      "wind_test.mat"
+      Position		      [565, 127, 780, 163]
+      Filename		      "windlog_20V20h10w20_0p45t0p_337dir.mat"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "Vft"
+      SID		      "7"
+      Position		      [65, 155, 95, 185]
+      Value		      "20"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "hft"
+      SID		      "6"
+      Position		      [65, 95, 95, 125]
+      Value		      "20"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "phi"
+      SID		      "27"
+      Position		      [52, 345, 98, 375]
+      BlockRotation	      270
+      Value		      "0"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "psi"
+      SID		      "29"
+      Position		      [195, 345, 225, 375]
+      BlockRotation	      270
+      Value		      "0"
+    }
+    Block {
+      BlockType		      Constant
+      Name		      "theta"
+      SID		      "28"
+      Position		      [125, 345, 155, 375]
+      BlockRotation	      270
+      Value		      "pi/4"
     }
     Line {
       SrcBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
       SrcPort		      1
       Points		      [40, 0]
       Branch {
-	Points			[0, -120]
+	Points			[0, -75]
 	DstBlock		"Scope"
 	DstPort			1
       }
@@ -796,34 +832,59 @@ Model {
     Line {
       SrcBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
       SrcPort		      2
+      Points		      [40, 0; 0, 45]
       DstBlock		      "Terminator"
       DstPort		      1
     }
     Line {
       SrcBlock		      "Rotation Angles to\nDirection Cosine Matrix"
       SrcPort		      1
-      Points		      [0, -60]
+      Points		      [25, 0; 0, -25]
       DstBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
       DstPort		      3
     }
     Line {
-      SrcBlock		      "Constant"
+      Labels		      [2, 0]
+      SrcBlock		      "hft"
       SrcPort		      1
-      DstBlock		      "Rotation Angles to\nDirection Cosine Matrix"
-      DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Constant1"
-      SrcPort		      1
-      Points		      [55, 0; 0, 70]
+      Points		      [190, 0; 0, 30]
       DstBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Constant2"
+      SrcBlock		      "Vft"
       SrcPort		      1
       DstBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
       DstPort		      2
+    }
+    Line {
+      SrcBlock		      "psi"
+      SrcPort		      1
+      Points		      [0, -25; -115, 0]
+      DstBlock		      "Mux"
+      DstPort		      1
+    }
+    Line {
+      SrcBlock		      "theta"
+      SrcPort		      1
+      Points		      [0, -35; -35, 0]
+      DstBlock		      "Mux"
+      DstPort		      2
+    }
+    Line {
+      Labels		      [2, 0]
+      SrcBlock		      "phi"
+      SrcPort		      1
+      Points		      [0, -50; 40, 0]
+      DstBlock		      "Mux"
+      DstPort		      3
+    }
+    Line {
+      SrcBlock		      "Mux"
+      SrcPort		      1
+      Points		      [0, -25]
+      DstBlock		      "Rotation Angles to\nDirection Cosine Matrix"
+      DstPort		      1
     }
   }
 }

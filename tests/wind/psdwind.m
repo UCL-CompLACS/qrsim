@@ -1,4 +1,4 @@
-clear all;
+%clear all;
 close all;
 
 N=100000;
@@ -7,8 +7,8 @@ N=100000;
 W20ft = 1;
 T = 0.01;
 fs=1/T;
-Vfts = 1;
-hft=5;
+Vfts = 100;
+hft=50;
 
 sigmaw = 0.1*W20ft;
 sigmau = sigmaw/(0.177+0.000823*hft)^0.4;
@@ -62,23 +62,36 @@ data = load('windlog_1V5h1w20_0p0t0p.mat');
 global state;
 
 state.t = 0;
-
 state.numRStreams = 0;
+
 objparams.DT = T;
 objparams.dt = T;
 objparams.on = 1;
-objparams.W6 = ft2m(W20ft);
+objparams.W6 = ft2m(W20ft/(log(hft/0.15)/log(20/0.15)));
+objparams.direction = 0;
+objparams.zOrigin = 0;
 
-turbModel = AerodynamicTurbulenceMILF8785(objparams);
+phi = 0;
+theta = 0;
+psi = 0;
+D = angle2dcm(psi,theta,phi);
+
+
+% need to get body velocities from airspeed and plug it in below
+X = [0;0;-ft2m(hft);0;0;0;0;ft2m(Vfts)+objparams.W6;0;0;0;0;0];
+state.windModel = WindConstMean(objparams);
+
+objparams.W6 = ft2m(W20ft);
+state.turbModel = AerodynamicTurbulenceMILF8785(objparams);
 state.rStreams = RandStream.create('mrg32k3a','seed',sum(100*clock),'NumStreams',state.numRStreams,'CellOutput',1);
 
-turbModel.reset();
+state.windModel.reset();
+state.turbModel.reset();
 uvwm = zeros(3,N);
-XandWind = [0;0;ft2m(hft);0;0;0;0;0;0;0;0;0;0;ft2m(Vfts);0;0];
 
 for i=1:N
-turbModel.step(XandWind);
-uvwm(:,i) = turbModel.getLinear([]);
+    state.turbModel.step(X);
+    uvwm(:,i) = m2ft(state.turbModel.getLinear([]));
 end
 
 [Pmuu,tmp]=pwelch(uvwm(1,:),rectwin(2^14),0, 2^14,fs);
