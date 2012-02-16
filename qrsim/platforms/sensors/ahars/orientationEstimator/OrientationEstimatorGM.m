@@ -19,7 +19,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
     properties (Access = private)
         BETA;                             % noise time constant
         SIGMA;                            % noise standard deviation
-        n = zeros(3,1);                   % noise sample at current timestep    
+        n;                                % noise sample at current timestep    
         nPrngIds;                         %ids of the prng stream used by the noise model
         rPrngId;                          %id of the prng stream used to spin up the noise model
     end
@@ -69,7 +69,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
             % reinitializes the noise state
             global state;
             
-            obj.n = 0;
+            obj.n = zeros(3,1);
             for i=1:randi(state.rStreams{obj.rPrngId},1000)
                 eta = [randn(state.rStreams{obj.nPrngIds(1)},1,1);
                        randn(state.rStreams{obj.nPrngIds(2)},1,1);
