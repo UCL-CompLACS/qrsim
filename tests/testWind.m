@@ -1,132 +1,143 @@
 function e = testWind()
 
+% note that this test requires both simulink and the aerospace blockset
+
 clear all;
 close all;
 
 e = 0;
-N = 100000;
-T = 0.01;
-TOL = 5;
-plots = 1;
+
+plots = 0;
 
 cd('wind');
 
-%%% model parameters
-runSim();
 
-% Vfts = 1; hft = 5; W20ft = 1; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 10; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 10; hft = 5; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 10; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 30; hft = 100; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 10; hft = 500; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 10; hft = 10; W20ft = 1; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 10; hft = 10; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 10; hft = 10; W20ft = 100; phi = 0; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('theoretical',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% %% wind direction
-% 
-% Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi/4;
-% e = e | runAndCompare('windlog_20V20h10w20_0p45t0p_45dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi/2;
-% e = e | runAndCompare('windlog_20V20h10w20_0p45t0p_90dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=3*pi/4;
-% e = e | runAndCompare('windlog_20V20h10w20_0p45t0p_135dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi;
-% e = e | runAndCompare('windlog_20V20h10w20_0p45t0p_180dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=9*pi/8;
-% e = e | runAndCompare('windlog_20V20h10w20_0p45t0p_202dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=7*pi/4;
-% e = e | runAndCompare('windlog_20V20h10w20_0p45t0p_315dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=15*pi/8;
-% e = e | runAndCompare('windlog_20V20h10w20_0p45t0p_337dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% % orientations
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/8; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p0t22p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/4; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p0t45p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 3*pi/8; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p0t67p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/2; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p0t90p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/8; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p22t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p45t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 3*pi/8; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p67t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/2; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p90t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = pi/8; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_22p0t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = pi/4; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_67p0t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 3*pi/8; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_67p0t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = pi/2; theta = 0; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_90p0t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = pi/4; theta = 0; psi = 3*pi/8; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_45p0t67p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = pi/8; theta =  pi/4; psi = 0; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_22p45t0p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/4; psi = pi/4; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_0p45t45p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
-% 
-% Vfts = 100; hft = 50; W20ft = 10; phi = 3*pi/8; theta = pi/4; psi = pi/8; dir=0;
-% e = e | runAndCompare('windlog_100V50h10w20_67p45t22p_0dir.mat',T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots);
+%%% model parameters
+
+Vfts = 1; hft = 5; W20ft = 1; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 10; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 10; hft = 5; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 10; hft = 100; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 30; hft = 100; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 20; hft = 500; W20ft = 20; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 10; hft = 10; W20ft = 1; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 10; hft = 10; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 10; hft = 10; W20ft = 100; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+%%% wind direction
+
+Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi/4;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi/2;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=3*pi/4;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=9*pi/8;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=7*pi/4;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=15*pi/8;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+%%% orientations
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/8; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/4; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 3*pi/8; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/2; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/8; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 3*pi/8; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/2; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+
+Vfts = 100; hft = 50; W20ft = 10; phi = pi/8; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = pi/4; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 3*pi/8; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = pi/2; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+
+Vfts = 100; hft = 50; W20ft = 10; phi = pi/4; theta = 0; psi = 3*pi/8; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = pi/8; theta =  pi/4; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/4; psi = pi/4; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+Vfts = 100; hft = 50; W20ft = 10; phi = 3*pi/8; theta = pi/4; psi = pi/8; dir=0;
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+
+
+%%% full qrsim tests with wind shear and direction changes 
+e = e | runQRSimAndCompare('TaskCompareWindWithSimulinkW2D0','comparison with simulink w20=2fts direction=0',plots);
+
+e = e | runQRSimAndCompare('TaskCompareWindWithSimulinkW2D30','comparison with simulink w20=2fts direction=30',plots);
+
+e = e | runQRSimAndCompare('TaskCompareWindWithSimulinkW2D90','comparison with simulink w20=2fts direction=90',plots);
+
 
 cd('..');
 
 end
 
-function e = runSim()
+function e = runQRSimAndCompare(task,msg,plots)
 
 N = 10000;
+TOL1 = 1e-10;
+TOL2 = 6;
 
 e = 0;
 
@@ -138,50 +149,163 @@ global state;
 
 state.i =0;
 
-% only needed if using the pid controller
-clear global pid;
 
 state.simin=zeros(N,6);
+state.meanwindfts=zeros(N,3);
+state.turbwindfts=zeros(N,3);
 
 % create simulator object
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskCompareWindWithSimulink');
+qrsim.init(task);
 
-wps=[   0,   0,  -10, 0;
-        0,   0,  -35, 0;
-       35,   0,  -10, 0;
-      -35,   0,  -10, 0;
-        0,  35,  -10, 0;
-        0, -35,  -10, 0];
-    
+fs = 1/state.DT;
+
+wps=[   0,   0,   -5, 0;
+    0,   0,  -35, 0;
+    35,   0,  -30, 0;
+    -35,   0,  -30, 0;
+    0,  35,   -5, 0;
+    0, -35,   -5, 0];
+
 j =1;
-for i=1:N, 
-
+for i=1:N,
+    %tloop=tic;
     % compute controls
-    U=quadrotorPID(state.platforms(1).getX(),wps(j,:));
-   
+    U=quadrotorPIDForWindTesting(state.platforms(1).getX(),wps(j,:));
+    
     % step simulator
-    qrsim.step(U);   
+    qrsim.step(U);
     
-    if(norm(state.platforms(1).getX(1:3)-wps(j,1:3)')<0.5)
-       disp('switching'); 
-       j=j+1;
+    % wait so to run in real time
+    %wait = max(0,state.DT-toc(tloop));
+    %pause(wait);
+    
+    d=norm(state.platforms(1).getX(1:3)-wps(j,1:3)');
+    
+    if(d<1.5)
+        j=j+1;
+        if(j>6), j=1; end
+        %disp(['switching to:',num2str(wps(j,1:3))]);
     end
-    
-    if(j>6), j=1; end
 end
 
 evalin('base','simin=state.simin;');
-
+load_system('wind_and_turb_comparison');
+set_param('wind_and_turb_comparison','StopTime',num2str((N-1)*state.DT));
+set_param('wind_and_turb_comparison/shear_model','W_20',num2str(m2ft(state.environment.wind.getW6())));
+set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(rad2deg(state.environment.wind.getDirection())));
+set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(m2ft(state.platforms(1).getAerodynamicTurbulence().getW6())));
+set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(rad2deg(state.platforms(1).getAerodynamicTurbulence().getDirection())));
 simOut = sim('wind_and_turb_comparison','SaveState','off');
-        
-yout = simOut.get('yout');       
+
+yout = simOut.get('yout');
+t = yout(:,1);
+ymeanwindfts = yout(:,2:4);
+yturbwindfts = yout(:,5:7);
+
+
+if(~all(mean((state.meanwindfts - ymeanwindfts).^2)<TOL1))
+    e = e | 1;
+end
+
+[Puu_y,f]=pwelch(yturbwindfts(:,1),rectwin(2^12),0, 2^12,fs);
+Pvv_y=pwelch(yturbwindfts(:,2),rectwin(2^12),0, 2^12,fs);
+Pww_y=pwelch(yturbwindfts(:,3),rectwin(2^12),0, 2^12,fs);
+Puu_y = Puu_y.*0.25;
+Pvv_y = Pvv_y.*0.25;
+Pww_y = Pww_y.*0.25;
+
+Puu_s=pwelch(state.turbwindfts(:,1),rectwin(2^12),0, 2^12,fs);
+Pvv_s=pwelch(state.turbwindfts(:,2),rectwin(2^12),0, 2^12,fs);
+Pww_s=pwelch(state.turbwindfts(:,3),rectwin(2^12),0, 2^12,fs);
+Puu_s = Puu_s.*0.25;
+Pvv_s = Pvv_s.*0.25;
+Pww_s = Pww_s.*0.25;
+
+
+meuu =  mean(abs(10*log10(Puu_s)-10*log10(Puu_y)));
+mevv =  mean(abs(10*log10(Pvv_s)-10*log10(Pvv_y)));
+meww =  mean(abs(10*log10(Pww_s)-10*log10(Pww_y)));
+
+if(~all([meuu,mevv,meww] < [TOL2,TOL2,TOL2]))
+    e = e | 1;
+end
+
+if(plots)
+    figure();
+    subplot(3,1,1);
+    plot(t,state.meanwindfts(:,1));
+    hold on;
+    plot(t,ymeanwindfts(:,1),'r');
+    
+    subplot(3,1,2);
+    plot(t,state.meanwindfts(:,2));
+    hold on;
+    plot(t,ymeanwindfts(:,2),'r');
+    
+    subplot(3,1,3);
+    plot(t,state.meanwindfts(:,3));
+    hold on;
+    plot(t,ymeanwindfts(:,3),'r');
+    
+    
+    figure();
+    subplot(3,1,1);
+    plot(t,state.turbwindfts(:,1));
+    hold on;
+    plot(t,yturbwindfts(:,1),'r');
+    
+    subplot(3,1,2);
+    plot(t,state.turbwindfts(:,2));
+    hold on;
+    plot(t,yturbwindfts(:,2),'r');
+    
+    subplot(3,1,3);
+    plot(t,state.turbwindfts(:,3));
+    hold on;
+    plot(t,yturbwindfts(:,3),'r');
+    
+    figure;
+    subplot(1,3,1);
+    semilogx(f,10*log10(Puu_s));
+    hold on;
+    semilogx(f,10*log10(Puu_y),'r');
+    grid on;
+    axis([0.01 100 -80 20]);
+    
+    subplot(1,3,2);
+    semilogx(f,10*log10(Pvv_s));
+    hold on;
+    semilogx(f,10*log10(Pvv_y),'r');
+    grid on;
+    axis([0.01 100 -80 20]);
+    
+    subplot(1,3,3);
+    semilogx(f,10*log10(Pww_s));
+    hold on;
+    semilogx(f,10*log10(Pww_y),'r');
+    grid on;
+    axis([0.01 100 -80 20]);
+end
+
+if(~e)
+    fprintf(['Test ',msg,' [PASSED]\n']);
+else
+    fprintf(['Test ', msg,' [FAILED]\n']);
+end
+
+clear global state;
+clear global pid;
 
 end
 
-function e = runAndCompare(reference,T,W20ft,Vfts,dir,hft,phi,theta,psi,N,TOL,plots)
+function e = runTurbulenceAndCompare(reference,W20ft,Vfts,dir,hft,phi,theta,psi,plots)
+
+TOL = 6;
+N = 20000;
+T = 0.01;
 
 msg = [' V=',num2str(Vfts),' h=',num2str(hft),' ori=[',num2str([phi,theta,psi]),'] dir=',num2str(dir)];
 
@@ -199,8 +323,11 @@ Lv = Lu;
 
 %%% turbulence model
 global state;
+% trick to pass stuff to simulink, surely there mut be a better way
+evalin('base','global state;');
 
 state.t = 0;
+state.DT = T;
 state.numRStreams = 0;
 
 objparams.DT = T;
@@ -225,11 +352,9 @@ for i=1:N
     uvwm(:,i) = m2ft(state.turbModel.getLinear([]));
 end
 
-clear global state;
-
-[Pmuu,f]=pwelch(uvwm(1,:),rectwin(2^14),0, 2^14,fs);
-Pmvv=pwelch(uvwm(2,:),rectwin(2^14),0, 2^14,fs);
-Pmww=pwelch(uvwm(3,:),rectwin(2^14),0, 2^14,fs);
+[Pmuu,f]=pwelch(uvwm(1,:),rectwin(2^12),0, 2^12,fs);
+Pmvv=pwelch(uvwm(2,:),rectwin(2^12),0, 2^12,fs);
+Pmww=pwelch(uvwm(3,:),rectwin(2^12),0, 2^12,fs);
 Pmuu = Pmuu.*0.25;
 Pmvv = Pmvv.*0.25;
 Pmww = Pmww.*0.25;
@@ -246,10 +371,22 @@ if(strcmp(reference,'theoretical'))
         Pww(i,1) = (((sigmaw^2)*Lw)/(pi*Vfts))*((1+3*(Lw*w(i)/Vfts)^2)/(1+(Lw*(w(i)/Vfts))^2)^2);
     end
 else
-    data = load(reference);
-    Puu=pwelch(data.ans(2,:),rectwin(2^14),0, 2^14,fs);
-    Pvv=pwelch(data.ans(3,:),rectwin(2^14),0, 2^14,fs);
-    Pww=pwelch(data.ans(4,:),rectwin(2^14),0, 2^14,fs);
+    state.simin = [((0:(N-1))*state.DT)',repmat([hft,Vfts,phi,theta,psi],N,1)];
+    evalin('base','simin=state.simin;');
+    load_system('wind_and_turb_comparison');
+    set_param('wind_and_turb_comparison','StopTime',num2str((N-1)*state.DT));
+    set_param('wind_and_turb_comparison/shear_model','W_20',num2str(W20ft));
+    set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(rad2deg(dir)));
+    set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(W20ft));
+    set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(rad2deg(dir)));
+    simOut = sim('wind_and_turb_comparison','SaveState','off');
+
+    yout = simOut.get('yout');
+    yturbwindfts = yout(:,5:7);
+
+    Puu=pwelch(yturbwindfts(:,1),rectwin(2^12),0, 2^12,fs);
+    Pvv=pwelch(yturbwindfts(:,2),rectwin(2^12),0, 2^12,fs);
+    Pww=pwelch(yturbwindfts(:,3),rectwin(2^12),0, 2^12,fs);
     Puu = Puu.*0.25;
     Pvv = Pvv.*0.25;
     Pww = Pww.*0.25;
@@ -278,19 +415,6 @@ if(plots)
     grid on;
     axis([0.01 100 -80 20]);
     
-    %     figure;
-    %     subplot(1,3,1);
-    %     semilogx(f,10*log10((Pmuu))-10*log10(Puu),'r');
-    %     grid on;
-    %
-    %     subplot(1,3,2);
-    %     semilogx(f,10*log10((Pmvv))-10*log10(Pvv),'r');
-    %     grid on;
-    %
-    %     subplot(1,3,3);
-    %     semilogx(f,10*log10((Pmww))-10*log10(Pww),'r');
-    %     grid on;
-    
 end
 
 meuu =  mean(abs(10*log10((Pmuu))-10*log10(Puu)));
@@ -304,5 +428,7 @@ else
     fprintf(['Test ', msg,' [FAILED]\n']);
     e = 1;
 end
+
+clear global state;
 
 end
