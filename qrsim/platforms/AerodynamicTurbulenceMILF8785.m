@@ -130,8 +130,9 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         end
         
         function obj = setState(obj,X)
-            % nothing to be done
+            % setting the object state           
             obj.X = X;
+            obj.reset();
         end
     end
     
