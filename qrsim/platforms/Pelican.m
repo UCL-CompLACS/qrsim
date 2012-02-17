@@ -42,7 +42,7 @@ classdef Pelican<Steppable & Platform
     properties (Constant)
         CONTROL_LIMITS = [-0.89,0.89; -0.89,0.89; 0,1; -4.4,4.4; 9,12]; %limits of the control inputs
         SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversuion factors
-        BATTERY_RANGE = [9,12]; % range of valid battery values volts        
+        BATTERY_RANGE = [9,12]; % range of valid battery values volts
         % The parameters of the system dynamics are defined in the
         % pelicanODE function
         G = 9.81;    %  gravity m/s^2
@@ -54,20 +54,18 @@ classdef Pelican<Steppable & Platform
         aerodynamicTurbulence;  % handle to the aerodynamic turbulence
         ahars ;      % handle to the attitude heading altitude reference system
         graphics;    % handle to the quadrotor graphics
-        meanWind;    % mean wind vector
-        turbWind;    % turbulence vector
         a;           % linear accelerations in body coordinates [ax;ay;az]
         collisionD;  % distance from any other object that defines a collision
         dynNoise;    % standard deviation of the noise dynamics
-        behaviourIfStateNotValid = 'warning'; % what to do when the state is not valid        
-        prngIds;     %ids of the prng stream used by this object 
+        behaviourIfStateNotValid = 'warning'; % what to do when the state is not valid
+        prngIds;     %ids of the prng stream used by this object
         stateLimits; % 13 by 2 vector of allowed values of the state
         X;           % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
         eX ;         % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
         valid;       % the state of the platform is invalid
     end
     
-    methods (Sealed)
+    methods (Access = public)
         function obj = Pelican(objparams)
             % constructs the platform object and initialises its subcomponent
             % The configuration of the type and parameters of the subcomponents are read
@@ -87,10 +85,10 @@ classdef Pelican<Steppable & Platform
             %                objparams.dynNoise -  standard deviation of the noise dynamics
             %
             global state;
-
+            
             obj=obj@Steppable(objparams);
             
-            obj.prngIds = [1;2;3;4;5;6] + state.numRStreams; 
+            obj.prngIds = [1;2;3;4;5;6] + state.numRStreams;
             state.numRStreams = state.numRStreams + 6;
             
             assert(isfield(objparams,'stateLimits'),'pelican:nostatelimits',...
@@ -118,9 +116,9 @@ classdef Pelican<Steppable & Platform
                 
                 assert(isfield(objparams.aerodynamicturbulence,'type'),'pelican:noaerodynamicturbulencetype',...
                     'the platform config file must define an aerodynamicturbulence.type ');
-                                            
+                
                 limits = state.environment.area.getLimits();
-                objparams.zOrigin = limits(6);
+                objparams.aerodynamicturbulence.zOrigin = limits(6);
                 
                 tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
                 if(isa(tmp,'AerodynamicTurbulence'))
@@ -186,7 +184,7 @@ classdef Pelican<Steppable & Platform
             if(isempty(varargin))
                 X = obj.X;
             else
-                X = obj.X(varargin{1});    
+                X = obj.X(varargin{1});
             end
         end
         
@@ -201,7 +199,7 @@ classdef Pelican<Steppable & Platform
             if(isempty(varargin))
                 eX = obj.eX;
             else
-                eX = obj.eX(varargin{1});    
+                eX = obj.eX(varargin{1});
             end
         end
         
@@ -219,7 +217,6 @@ classdef Pelican<Steppable & Platform
             %       X - platform new state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
             %           if the length of the X vector is 12, thrust is initialized automatically
             %           if the length of the X vector is 6, all the velocities are set to zero
-            global state;
             
             assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
                 'setState() on a pelican object requires an input of length 6, 12 or 13 instead we have %d',size(X,1));
@@ -241,9 +238,7 @@ classdef Pelican<Steppable & Platform
             obj.gpsreceiver.setState(X);
             obj.ahars.setState(X);
             
-            obj.meanWind = state.environment.wind.getLinear(obj.X);
-            obj.aerodynamicTurbulence.setState([obj.X;obj.meanWind]);
-            obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
+            obj.aerodynamicTurbulence.setState(obj.X);
             
             obj.a  = zeros(3,1);
             
@@ -273,12 +268,12 @@ classdef Pelican<Steppable & Platform
         end
         
         function d = getCollisionDistance(obj)
-           % returns collision distance
-           d = obj.collisionD;
+            % returns collision distance
+            d = obj.collisionD;
         end
     end
     
-    methods (Sealed,Access=private)
+    methods (Sealed,Access=protected)
         
         function US = scaleControls(obj,U)
             % scales the controls from SI units to what required by the ODE model
@@ -306,6 +301,7 @@ classdef Pelican<Steppable & Platform
             to = min(size(X,1),size(obj.stateLimits,1));
             
             valid = all(X(1:to)>=obj.stateLimits(1:to,1)) && all(X(1:to)<=obj.stateLimits(1:to,2));
+
         end
         
         function coll = inCollision(obj)
@@ -319,10 +315,33 @@ classdef Pelican<Steppable & Platform
                     end
                 end
             end
-        end        
+        end
+        
+        function obj = printStateNotValidError(obj)
+            % display state error info
+            if(strcmp(obj.behaviourIfStateNotValid,'continue'))
+                
+            else
+                if(strcmp(obj.behaviourIfStateNotValid,'error'))
+                    if(obj.inCollision())
+                        error('platform state not valid, in collision!\n');
+                    else
+                        error('platform state not valid, values out of bounds!\n');
+                    end
+                else
+                    if(obj.inCollision())
+                        fprintf(['warning: platform state not valid, in collision!\n Normally this should not happen; ',...
+                            'however if you think this is fine and you want to stop this warning use the task parameter behaviourIfStateNotValid\n']);
+                    else
+                        fprintf(['warning: platform state not valid, values out of bounds!\n',num2str(obj.X'),'\nNormally this should not happen; ',...
+                            'however if you think this is fine and you want to stop this warning use the task parameter behaviourIfStateNotValid\n']);
+                    end
+                end
+            end
+        end
     end
     
-    methods (Sealed,Access=protected)
+    methods (Access=protected)
         function obj = update(obj,U)
             % updates the state of the platform and of its components
             % In turns this
@@ -349,10 +368,10 @@ classdef Pelican<Steppable & Platform
                 
                 %wind and turbulence this closely mimic the Simulink example "Lightweight Airplane Design"
                 % asbSkyHogg/Environment/WindModels
-                obj.meanWind = state.environment.wind.getLinear(obj.X);
+                meanWind = state.environment.wind.getLinear(obj.X);
                 
                 obj.aerodynamicTurbulence.step(obj.X);
-                obj.turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
+                turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                 
                 accNoise = obj.dynNoise.*[randn(state.rStreams{obj.prngIds(1)},1,1);
                                           randn(state.rStreams{obj.prngIds(2)},1,1);
@@ -360,9 +379,9 @@ classdef Pelican<Steppable & Platform
                                           randn(state.rStreams{obj.prngIds(4)},1,1);
                                           randn(state.rStreams{obj.prngIds(5)},1,1);
                                           randn(state.rStreams{obj.prngIds(6)},1,1)];
-            
+                
                 % dynamics
-                [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;obj.meanWind + obj.turbWind; obj.MASS; accNoise], obj.dt);
+                [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;meanWind + turbWind; obj.MASS; accNoise], obj.dt);
                 
                 
                 if(obj.thisStateIsWithinLimits(obj.X) && ~obj.inCollision())
@@ -389,28 +408,10 @@ classdef Pelican<Steppable & Platform
                     obj.eX = nan(20,1);
                     obj.valid=0;
                     
-                    if(strcmp(obj.behaviourIfStateNotValid,'continue'))
-                        
-                    else
-                        if(strcmp(obj.behaviourIfStateNotValid,'error'))
-                            if(obj.inCollision())
-                                error('platform state not valid, in collision!\n');
-                            else
-                                error('platform state not valid, values out of bounds!\n');
-                            end
-                        else
-                            if(obj.inCollision())
-                                fprintf('warning: platform state not valid, in collision! to stop this message use the task parameter behaviourIfStateNotValid\n');
-                            else
-                                fprintf('warning: platform state not valid, values out of bounds! to stop this message use the task parameter behaviourIfStateNotValid\n');
-                            end
-                        end
-                    end
-                end
-                
+                    obj.printStateNotValidError();
+                end                
             end
-        end
-        
+        end        
     end
 end
 
