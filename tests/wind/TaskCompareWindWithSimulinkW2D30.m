@@ -1,4 +1,4 @@
-classdef TaskCompareWindWithSimulink<Task
+classdef TaskCompareWindWithSimulinkW2D30<Task
     % Simple task in which a qudrotor has to keep its starting position despite the wind.
     % Single platform task which requires to maintain the quadrotor hovering at the 
     % position it has when the task starts; the solution requires non constant control 
@@ -34,7 +34,7 @@ classdef TaskCompareWindWithSimulink<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 1;
+            taskparams.display3d.on = 0;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;    
             
@@ -62,8 +62,8 @@ classdef TaskCompareWindWithSimulink<Task
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
             % simulation start in GPS time, this needs to agree with the sp3 file above, 
             % alternatively it can be set to 0 to have a random initialization
-            %taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0); 
-            taskparams.environment.gpsspacesegment.tStart = 0;             
+            taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0); 
+            %taskparams.environment.gpsspacesegment.tStart = 0;             
             % id number of visible satellites, the one below are from a typical flight day at RVC
             % these need to match the contents of gpsspacesegment.orbitfile
             taskparams.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
@@ -81,14 +81,14 @@ classdef TaskCompareWindWithSimulink<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 0;
-            taskparams.environment.wind.type = 'WindConstMean';
-            taskparams.environment.wind.direction = 0; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
-            taskparams.environment.wind.W6 = 0.1;  % velocity at 6m from ground in m/s
+            taskparams.environment.wind.on = 1;
+            taskparams.environment.wind.type = 'WindConstMeanForTesting';
+            taskparams.environment.wind.direction = deg2rad(0); %mean wind direction, rad clockwise from north set to [] to initialise it randomly
+            taskparams.environment.wind.W6 = ft2m(2);  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config_compare_wind_with_simulink';
+            taskparams.platforms(1).configfile = 'pelican_config_compare_wind_with_simulink_w2_d30';
             taskparams.platforms(1).X = [0;0;-10;0;0;0];
             
         end

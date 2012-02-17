@@ -41,7 +41,7 @@ Model {
       Name		      "uvw_t"
     }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.19"
+    ComputedModelVersion    "1.25"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -61,9 +61,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "rdenardi"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Feb 17 15:48:11 2012"
-  RTWModifiedTimeStamp	  251379674
-  ModelVersionFormat	  "1.%<AutoIncrement:19>"
+  LastModifiedDate	  "Fri Feb 17 18:49:14 2012"
+  RTWModifiedTimeStamp	  251399076
+  ModelVersionFormat	  "1.%<AutoIncrement:25>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -146,7 +146,7 @@ Model {
 	  $ObjectID		  2
 	  Version		  "1.10.0"
 	  StartTime		  "0.0"
-	  StopTime		  "100"
+	  StopTime		  "49.99"
 	  AbsTol		  "auto"
 	  FixedStep		  "0.01"
 	  InitialStep		  "auto"
@@ -612,8 +612,8 @@ Model {
 	PropName		"Components"
       }
       Name		      "Configuration"
-      CurrentDlgPage	      "Data Import//Export"
-      ConfigPrmDlgPosition    " [ 1598, 24, 2703, 1020 ] "
+      CurrentDlgPage	      "Solver"
+      ConfigPrmDlgPosition    " [ 1951, 175, 2928, 875 ] "
     }
     PropName		    "ConfigurationSets"
   }
@@ -705,7 +705,7 @@ Model {
   }
   System {
     Name		    "wind_and_turb_comparison"
-    Location		    [2099, 149, 2886, 504]
+    Location		    [1612, 124, 2399, 479]
     Open		    on
     ModelBrowserVisibility  off
     ModelBrowserWidth	    200
@@ -719,7 +719,7 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "48"
+    SIDHighWatermark	    "51"
     Block {
       BlockType		      Inport
       Name		      "hft"
@@ -772,36 +772,6 @@ Model {
       Decimation	      "10"
     }
     Block {
-      BlockType		      Reference
-      Name		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
-      SID		      "1"
-      Ports		      [3, 2]
-      Position		      [455, 136, 635, 234]
-      LibraryVersion	      "1.321"
-      SourceBlock	      "aerolibwind2/Dryden Wind Turbulence Model \n(Continuous (+q -r))"
-      SourceType	      "Wind Turbulence Model"
-      ShowPortLabels	      "FromPortIcon"
-      SystemSampleTime	      "-1"
-      FunctionWithSeparateData off
-      RTWMemSecFuncInitTerm   "Inherit from model"
-      RTWMemSecFuncExecute    "Inherit from model"
-      RTWMemSecDataConstants  "Inherit from model"
-      RTWMemSecDataInternal   "Inherit from model"
-      RTWMemSecDataParameters "Inherit from model"
-      GeneratePreprocessorConditionals off
-      units		      "English (Velocity in ft/s)"
-      spec		      "MIL-F-8785C"
-      model		      "Discrete Dryden (+q +r)"
-      W20		      "10"
-      Wdeg		      "0"
-      TurbProb		      "10^-3 - Moderate"
-      L_high		      "1000"
-      Wingspan		      "0.5"
-      ts		      "0.01"
-      Seed		      "[23341 23342 23343 23344]"
-      T_on		      on
-    }
-    Block {
       BlockType		      Mux
       Name		      "Mux"
       SID		      "30"
@@ -814,9 +784,9 @@ Model {
     Block {
       BlockType		      Reference
       Name		      "Rotation Angles to\nDirection Cosine Matrix"
-      SID		      "4"
+      SID		      "50"
       Ports		      [1, 1]
-      Position		      [245, 194, 345, 236]
+      Position		      [255, 194, 355, 236]
       AttributesFormatString  "Rotation Order: %<rotationOrder>"
       LibraryVersion	      "1.267"
       SourceBlock	      "aerolibtransform2/Rotation Angles to\nDirection Cosine Matrix"
@@ -840,7 +810,37 @@ Model {
     }
     Block {
       BlockType		      Reference
-      Name		      "Wind Shear Model"
+      Name		      "dryden_turb_model"
+      SID		      "1"
+      Ports		      [3, 2]
+      Position		      [455, 136, 635, 234]
+      LibraryVersion	      "1.321"
+      SourceBlock	      "aerolibwind2/Dryden Wind Turbulence Model \n(Continuous (+q -r))"
+      SourceType	      "Wind Turbulence Model"
+      ShowPortLabels	      "FromPortIcon"
+      SystemSampleTime	      "-1"
+      FunctionWithSeparateData off
+      RTWMemSecFuncInitTerm   "Inherit from model"
+      RTWMemSecFuncExecute    "Inherit from model"
+      RTWMemSecDataConstants  "Inherit from model"
+      RTWMemSecDataInternal   "Inherit from model"
+      RTWMemSecDataParameters "Inherit from model"
+      GeneratePreprocessorConditionals off
+      units		      "English (Velocity in ft/s)"
+      spec		      "MIL-F-8785C"
+      model		      "Discrete Dryden (+q +r)"
+      W20		      "20"
+      Wdeg		      "30"
+      TurbProb		      "10^-3 - Moderate"
+      L_high		      "1000"
+      Wingspan		      "0.5"
+      ts		      "0.01"
+      Seed		      "[23341 23342 23343 23344]"
+      T_on		      on
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "shear_model"
       SID		      "33"
       Ports		      [2, 1]
       Position		      [455, 29, 635, 111]
@@ -885,24 +885,10 @@ Model {
       IconDisplay	      "Port number"
     }
     Line {
-      SrcBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
+      SrcBlock		      "dryden_turb_model"
       SrcPort		      2
       DstBlock		      "Terminator"
       DstPort		      1
-    }
-    Line {
-      SrcBlock		      "Rotation Angles to\nDirection Cosine Matrix"
-      SrcPort		      1
-      Points		      [40, 0]
-      Branch {
-	DstBlock		"Dryden Wind Turbulence Model \n(Discrete (+q +r))"
-	DstPort			3
-      }
-      Branch {
-	Points			[0, -125]
-	DstBlock		"Wind Shear Model"
-	DstPort			2
-      }
     }
     Line {
       SrcBlock		      "Mux"
@@ -911,13 +897,13 @@ Model {
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
+      SrcBlock		      "dryden_turb_model"
       SrcPort		      1
       DstBlock		      "uvw_t"
       DstPort		      1
     }
     Line {
-      SrcBlock		      "Wind Shear Model"
+      SrcBlock		      "shear_model"
       SrcPort		      1
       DstBlock		      "uvw_s"
       DstPort		      1
@@ -927,12 +913,12 @@ Model {
       SrcPort		      1
       Points		      [320, 0]
       Branch {
-	DstBlock		"Wind Shear Model"
+	DstBlock		"shear_model"
 	DstPort			1
       }
       Branch {
 	Points			[0, 105]
-	DstBlock		"Dryden Wind Turbulence Model \n(Discrete (+q +r))"
+	DstBlock		"dryden_turb_model"
 	DstPort			1
       }
     }
@@ -940,7 +926,7 @@ Model {
       SrcBlock		      "Vfts"
       SrcPort		      1
       Points		      [275, 0; 0, 100]
-      DstBlock		      "Dryden Wind Turbulence Model \n(Discrete (+q +r))"
+      DstBlock		      "dryden_turb_model"
       DstPort		      2
     }
     Line {
@@ -968,6 +954,20 @@ Model {
       SrcPort		      1
       DstBlock		      "t"
       DstPort		      1
+    }
+    Line {
+      SrcBlock		      "Rotation Angles to\nDirection Cosine Matrix"
+      SrcPort		      1
+      Points		      [25, 0]
+      Branch {
+	DstBlock		"dryden_turb_model"
+	DstPort			3
+      }
+      Branch {
+	Points			[0, -125]
+	DstBlock		"shear_model"
+	DstPort			2
+      }
     }
   }
 }
