@@ -39,7 +39,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         Z0 = 0.15; % feet
     end
     
-    properties (Access=private)
+    properties (Access=protected)
         w6;                       %velocity at 6m from ground in m/s
         vgust_windframe;          % aerodynamic turbulence in relative wind coords Knots
         vgust;                    % aerodynamic turbulence in body coords m/s
@@ -168,7 +168,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
                   -sin(obj.direction) cos(obj.direction) 0;
                                     0                  0 1];
             
-            obj.vgust = dcm(X)*Cte*ft2m(obj.vgust_windframe);
+            obj.vgust = dcm(X)*Cte*ft2m(-obj.vgust_windframe);
         end
     end
 end

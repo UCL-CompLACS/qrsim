@@ -19,7 +19,7 @@ classdef WindConstMean<Wind
         Z0 = 0.15; % feet
     end
     
-    properties (Access=private)
+    properties (Access=public)
         direction;         % mean wind direction rad clockwise from north
         w6;                % velocity at 6m from ground in m/s
         hOrigin;           % origin reference altitude  
@@ -90,7 +90,7 @@ classdef WindConstMean<Wind
             
             % wind shear
             if(z>0.05)
-                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0)).*[sin(obj.direction);cos(obj.direction);0];
+                vmean = w20*(log(z/obj.Z0)/log(20/obj.Z0)).*[-cos(obj.direction);-sin(obj.direction);0];
             else
                 vmean = zeros(3,1);
             end

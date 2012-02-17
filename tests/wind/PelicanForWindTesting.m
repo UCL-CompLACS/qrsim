@@ -29,12 +29,15 @@ classdef PelicanForWindTesting<Pelican
     %       ya  [-4.4,4.4]     [rad/s] commanded yaw velocity
     %       bat [9..12]        [Volts] battery voltage
     %
-    
     methods (Access = public)
         function obj = PelicanForWindTesting(objparams)
             % simply calls the Pelican constructor
             %
             obj=obj@Pelican(objparams);            
+        end
+        
+        function aerodynamicTurbulence = getAerodynamicTurbulence(obj)
+            aerodynamicTurbulence = obj.aerodynamicTurbulence;
         end
     end
         
@@ -70,10 +73,12 @@ classdef PelicanForWindTesting<Pelican
                 state.i=state.i+1;
                 state.simin(state.i,:)=[state.t,m2ft(-obj.X(3)),m2ft(norm(obj.X(7:9))),obj.X(4),obj.X(5),obj.X(6)];
                 
-                meanWind = state.environment.wind.getLinear(obj.X);
+                meanWind = state.environment.wind.getLinear(obj.X);                
+                state.meanwindfts(state.i,:)=m2ft(meanWind');
                 
                 obj.aerodynamicTurbulence.step(obj.X);
-                turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
+                turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);                               
+                state.turbwindfts(state.i,:)=m2ft(turbWind');
                 
                 accNoise = obj.dynNoise.*[randn(state.rStreams{obj.prngIds(1)},1,1);
                                           randn(state.rStreams{obj.prngIds(2)},1,1);
