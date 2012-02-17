@@ -58,7 +58,7 @@ sph = sin(phi); cph = cos(phi);
 sth = sin(theta); cth = cos(theta); tth = sth/cth;
 sps = sin(psi); cps = cos(psi);
 
-dcm = [                   (cth * cps),                    (cth * sps),      (-sth);
+D = [                   (cth * cps),                    (cth * sps),      (-sth);
     (-cph * sps + sph * sth * cps),  (cph * cps + sph * sth * sps), (sph * cth);
     (sph * sps + cph * sth * cps), (-sph * cps + cph * sth * sps), (cph * cth)];
 
@@ -90,7 +90,7 @@ end
 xdot(12) = r0*ya + r1*r;
 
 % position
-xdot(1:3)= dcm'*[u;v;w];
+xdot(1:3)= D'*[u;v;w];
 
 %linear velocities (body frame)
 
@@ -117,7 +117,7 @@ else
 end
 
 % acceleration in body frame
-gb = dcm*[0;0;G];
+gb = D*[0;0;G];
 
 %resultant acceleration in body frame
 %note: thrust force always orthogonal to the rotor
