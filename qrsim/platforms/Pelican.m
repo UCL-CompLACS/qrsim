@@ -41,7 +41,7 @@ classdef Pelican<Steppable & Platform
     %
     properties (Constant)
         CONTROL_LIMITS = [-0.89,0.89; -0.89,0.89; 0,1; -4.4,4.4; 9,12]; %limits of the control inputs
-        SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversuion factors
+        SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversion factors
         BATTERY_RANGE = [9,12]; % range of valid battery values volts
         % The parameters of the system dynamics are defined in the
         % pelicanODE function
@@ -61,7 +61,7 @@ classdef Pelican<Steppable & Platform
         prngIds;     %ids of the prng stream used by this object
         stateLimits; % 13 by 2 vector of allowed values of the state
         X;           % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
-        eX ;         % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
+        eX;          % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
         valid;       % the state of the platform is invalid
     end
     
@@ -148,6 +148,10 @@ classdef Pelican<Steppable & Platform
                 'the platform config file must define a gps receiver if not needed set gpsreceiver.on = 0');
             objparams.sensors.gpsreceiver.DT = objparams.DT;
             if(objparams.sensors.gpsreceiver.on)
+                
+                assert(~strcmp(class(state.environment.gpsspacesegment),'GPSSpaceSegment'),...
+                    'pelican:nogpsspacesegment','the task config file must define a gpsspacesegment if a gps receiver is in use');
+                
                 assert(isfield(objparams.sensors.gpsreceiver,'type'),'pelican:nogpsreceivertype',...
                     'the platform config file must define a gpsreceiver.type');
                 tmp = feval(objparams.sensors.gpsreceiver.type,objparams.sensors.gpsreceiver);
