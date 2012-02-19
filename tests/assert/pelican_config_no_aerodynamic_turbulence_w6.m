@@ -23,7 +23,7 @@ c.type = 'PelicanForTesting';
 % makes the state invalid (i.e. 19x1 nan)
 c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limits(3:4);...
     params.environment.area.limits(5:6);... % position limits defined by the area
-    -pi,pi;-pi,pi;-pi,pi;... % attitude limits
+    -pi,pi;-pi,pi;-10*pi,10*pi;... % attitude limits
     -15,15;-15,15;-15,15;... % linear velocity limits
     -2,2;-2,2;-2,2]; %rotational velocity limits
     
