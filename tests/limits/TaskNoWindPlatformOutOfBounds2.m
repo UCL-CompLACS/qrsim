@@ -13,7 +13,9 @@ classdef TaskNoWindPlatformOutOfBounds2<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;           
+            taskparams.display3d.on = 0;  
+            taskparams.display3d.width = 1000;
+            taskparams.display3d.height = 600;   
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
@@ -28,7 +30,8 @@ classdef TaskNoWindPlatformOutOfBounds2<Task
             taskparams.environment.area.originutmcoords.E = E;
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
-            taskparams.environment.area.originutmcoords.zone = zone;
+            taskparams.environment.area.originutmcoords.zone = zone;            
+            taskparams.environment.area.graphics.type = 'AreaGraphics';
             
             % GPS
             % The space segment of the gps system
@@ -58,7 +61,7 @@ classdef TaskNoWindPlatformOutOfBounds2<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_no_turbulence';
-            taskparams.platforms(1).X = [0;0;0;0;0;30];
+            taskparams.platforms(1).X = [0;0;30;0;0;0];
             
         end
         

@@ -122,7 +122,7 @@ global state;
 e = 0;
 
 % number of steps we run the simulation for
-N = 500;
+N = 600;
 
 % create simulator object
 qrsim = QRSim();
