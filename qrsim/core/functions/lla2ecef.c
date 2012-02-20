@@ -43,7 +43,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         
         double sinphi = sin(phi);
         double cosphi = cos(phi);
-        double N  = a / sqrt(1 - e2 * sinphi* sinphi);
+        double N  = ((double)a) / sqrt(1 - e2 * sinphi* sinphi);
         
         ecef[i*3]= (N + h) * cosphi * cos(lambda);
         ecef[1+i*3] = (N + h) * cosphi * sin(lambda);

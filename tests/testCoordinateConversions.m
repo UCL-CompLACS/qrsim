@@ -17,9 +17,9 @@ rehash();
 e = 0;
 
 tollla = [1e-11;1e-11;1e-7];
-tolecef = [2e-7;2e-7;2e-7];
+tolecef =[5e-7;5e-7;5e-7];
 tolutm = [1e-4;1e-4;1e-15;1e-15;1e-15];
-tolned = [1e-7;1e-7;1e-7];
+tolned = [5e-7;5e-7;5e-7];
 
 %%% lla to ecef
 
