@@ -28,7 +28,7 @@ classdef TaskCompareWindWithSimulinkW2D30<Task
             %
             
             % Simulator step time in second this should not be changed...
-            taskparams.DT = 0.01;
+            taskparams.DT = 0.02;
             
             taskparams.seed = 0; %set to zero to have a seed that depends on the system time
             

@@ -19,7 +19,7 @@ if(~exist('params','var'))
 end
 
 % platforms %
-c.dt = 0.01;
+c.dt = 0.02;
 c.on = 1;
 c.type = 'PelicanForWindTesting';
 
