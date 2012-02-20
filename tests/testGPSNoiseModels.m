@@ -2,25 +2,18 @@ function [e]=testGPSNoiseModels()
 
 addpath('gps');
 
-%clear all;
+clear all;
 close all;
-clc;
-e = 1;
 
-TOLFACTOR = 0.1;
-MEANTOL = 1e-2;
+TOL = 0.1;
+plots = 1;
 
-%retvals = [];
-
-%for j=1:3
+%%% run a reasonable simulation
 
 global state;
 
+N = 7000; % this give as much data as in the log
 
-
-N = 10000;
-
-% some buffuers
 eX=zeros(20,N);
 X=zeros(13,N);
 a=zeros(3,N);
@@ -40,7 +33,7 @@ for i=1:N
     
     % step simulator
     qrsim.step(U);
-          
+    
     eX(:,i)=state.platforms(1).getEX();
     X(:,i)=state.platforms(1).getX();
     
@@ -51,72 +44,71 @@ for i=1:N
 end
 fprintf('\n');
 
-% compute the Allan variance to compare it with the ground thruth
+% compute the Allan variance 
 dt = state.environment.gpsspacesegment.getDt();
 K = dt/state.DT;
 ep = eX(1:3,1:K:end)-X(1:3,1:K:end);
 
-t=(1:N/K)*state.DT;
-
-% figure();
-% plot(t,ep(1,:));
-% xlabel('time[s]');
-% ylabel('altitude [m]');
-% 
-% 
-% figure();
-% plot(ep(1,:),ep(2,:));
-% xlabel('e_{px}[m]');
-% ylabel('e_{py}[m]');
+if(plots)   
+    figure();
+    plot(ep(1,:),ep(2,:));
+    xlabel('e_{px}[m]');
+    ylabel('e_{py}[m]');
+    hold on;
+end
 
 datas.rate = 1/dt;
 datas.freq = ep(1,:);
 
 tts = [2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*dt;
-[retvals, s, errorb] = allan(datas,tts,'e_{px}');
+[retvals, ~,~] = allan(datas,tts,'e_{px}',0);
 
-%retvals = [retval;retvals]; %#ok<AGROW>
+clear global state;
 
-%clear global state;
 
-%end
+%%%  compute the Allan variance from a log file
 
 tts = tts(1:length(retvals));
 
-%avg = sum(retvals)./j;
-
-
-fname = 'arTest2Video-8_3_111-14_27_53_gps.csv';
-d  = csvread(['/home/rdenardi/complacs/qrsim/tests/gt/gps/fromar2/',fname]);
+d  = csvread('arTest2Video-8_3_111-14_27_53_gps.csv');
 d = d(1:350,:);
-    
-t = d(:,1)'-d(1,1);
+
 lat = d(:,4)'./1e7;
 lon = d(:,5)'./1e7;
 h = d(:,6)'./1000;
 
-[E,N,zone,h] = lla2utm([lat;lon;h]);
+[E,N,~,~] = lla2utm([lat;lon;h]);
 E = E-E(1);
 N = N-N(1);
 
-
-figure;
-plot(E,N);
+if (plots)
+    plot(E,N,'r');
+end
 
 dt = 0.4;
 datat.rate = 1/dt;
 datat.freq = E;
 
 ttt = [2^0 2^1 2^2 2^3 2^4 2^5 2^6 2^7 2^8 2^9 2^10 2^11]*dt;
-[retvalt, s, errorb] = allan(datat,ttt,'x acc');
+[retvalt,~,~] = allan(datat,ttt,'x acc',0);
 
 ttt = ttt(1:length(retvalt));
 
-figure;
-loglog(tts,retvals,'-o');
-hold on;
-loglog(ttt,retvalt,'-or');
-grid on;
+e = ~all(abs(retvalt-retvals(2:end))<TOL);
+
+if(plots)    
+    figure;
+    loglog(tts,retvals,'-o');
+    hold on;
+    loglog(ttt,retvalt,'-or');
+    grid on;    
+end
+
+if(e)
+    fprintf('Test GPS noise [FAILED]\n');
+else
+    fprintf('Test GPS noise [PASSED]\n');
+end
 
 rmpath('gps');
 

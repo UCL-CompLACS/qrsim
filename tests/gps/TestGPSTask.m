@@ -19,7 +19,7 @@ classdef TestGPSTask<Task
             % Simulator step time in second this should not be changed...
             taskparams.DT = 0.02;
             
-            taskparams.seed = 0; %set to zero to have a seed that depends on the system time
+            taskparams.seed = 125; %set to zero to have a seed that depends on the system time
             
             %%%%% visualization %%%%%
             % 3D display parameters

@@ -1,4 +1,4 @@
-function [retval, s, errorb] = allan(data,tau,name)
+function [retval, s, errorb] = allan(data,tau,name,plots)
 % [RETVAL, S, ERRORB] = ALLAN(DATA,TAU,NAME)
 % Compute the Allan deviation for a set of time-domain frequency data
 % DATA should be a struct and have the following fields:
@@ -23,7 +23,7 @@ function [retval, s, errorb] = allan(data,tau,name)
 %
 % To compute the Allan deviation for the data in the variable "lt":
 % >> lt
-% lt = 
+% lt =
 %     freq: [1x86400 double]
 %     rate: 0.50
 %
@@ -35,7 +35,7 @@ function [retval, s, errorb] = allan(data,tau,name)
 %  1-sigma confidence intervals will be indicated by vertical lines.
 %
 % Notes:
-%  No pre-processing of the data is performed. 
+%  No pre-processing of the data is performed.
 %  For rate-based data, AD is computed only for tau values greater than the
 %   minimum time between samples and less than the half the total time. For
 %   time-stamped data, only tau values greater than the maximum gap between
@@ -99,9 +99,9 @@ versionstr = 'allan v1.61';
 if nargin < 3, name=''; end
 if nargin < 2, tau=[1 10]; end
 
-fprintf(1,'allan: %s\n\n',versionstr);
+%fprintf(1,'allan: %s\n\n',versionstr);
 
-%% Basic statistical tests on the data set
+%%% Basic statistical tests on the data set
 s.numpoints=length(data.freq);
 s.max=max(data.freq);
 s.min=min(data.freq);
@@ -130,15 +130,15 @@ MAD = median(abs(dfreq-s.median)/0.6745);
 %%%%
 % Two cases - regular or irregular data
 
-%% Regular - Is there a regular interval between measurements?
+%%% Regular - Is there a regular interval between measurements?
 if isfield(data,'rate') && data.rate > 0 % if there is a regular interval
-    fprintf(1, 'allan: regular data (rate = %g Hz)\n',data.rate);
+    %fprintf(1, 'allan: regular data (rate = %g Hz)\n',data.rate);
     
     tmstep = 1/data.rate;
     
     if isfield(data,'time')
         % adjust time to remove any starting gap
-        dtime=data.time-data.time(1)+mean(diff(data.time));        
+        dtime=data.time-data.time(1)+mean(diff(data.time));
         if (data.rate - 1/mean(diff(dtime))) > 1e-6
             fprintf(1,'allan: WARNING: data.rate (%f Hz) does not match recorded data rate (%f Hz)\n',data.rate,1/mean(diff(dtime)));
         end
@@ -148,19 +148,19 @@ if isfield(data,'rate') && data.rate > 0 % if there is a regular interval
     else
         halftime = fix(tmstep*length(data.freq)/2);
     end
-    fprintf(1, 'allan: max. tau value: %g sec. (time/2)\n',halftime);
-
+    %fprintf(1, 'allan: max. tau value: %g sec. (time/2)\n',halftime);
+    
     % time axis data
     dtime=[tmstep:tmstep:length(dfreq)*tmstep];
     
     
     % truncate tau to appropriate values
-    tau = tau(find(tau >= tmstep & tau <= halftime));
+    tau = tau(tau >= tmstep & tau <= halftime);
     % size(tau)
     fac = round(tau/tmstep);
     
-    fprintf(1,'allan: calculating Allan deviation...\n');    
-
+    %fprintf(1,'allan: calculating Allan deviation...\n');
+    
     % calculate the Allan deviation for each value of tau
     k=0; tic;
     for i = tau
@@ -182,23 +182,23 @@ if isfield(data,'rate') && data.rate > 0 % if there is a regular interval
         % calculate Allan deviation for this tau
         m=length(fa);
         sm(k)=sqrt(0.5/(m-1)*(sum(fd.^2)));
-
+        
         % estimate error bars
         sme(k)=sm(k)/sqrt(m);
         
-        fprintf(1,'%d ',i);
+        %fprintf(1,'%d ',i);
         
     end
-    fprintf(1,'\n'); toc
+    %fprintf(1,'\n'); toc
     % plot the frequency results
     %figure
     %plot(dtime,mfreq,'.b');
-
+    
     % string for plot title
     name=[name ' (' num2str(data.rate) ' Hz)'];
-        
     
-%% Irregular data, no fixed interval    
+    
+    %%% Irregular data, no fixed interval
 elseif isfield(data,'time')
     % the interval between measurements is irregular
     %  so we must group the data by time
@@ -213,7 +213,7 @@ elseif isfield(data,'time')
     fprintf(1, '       Average rate: %g Hz (%g sec/measurement); Max. gap: %g sec at position %d\n',...
         1/mean(diff(dtime)),mean(diff(dtime)),max(diff(dtime)),find(diff(dtime)==max(diff(dtime))));
     
-
+    
     % truncate tau to appropriate values
     % find halfway point
     halftime = fix((dtime(end)-dtime(1))/2);
@@ -221,11 +221,12 @@ elseif isfield(data,'time')
     if isempty(tau)
         error('allan: ERROR: no appropriate tau values (> %g s, < %g s)\n',max(diff(dtime)),fix(dtime(end)/2));
     end
-        
+    
     
     fprintf(1,'allan: calculating Allan deviation...');
-
-    k=0; tic;
+    
+    k=0; 
+    %tic;
     for i = tau
         fprintf(1,'\n%d ',i);
         
@@ -239,11 +240,11 @@ elseif isfield(data,'time')
         % break up the data into groups of tau length
         while i*km < time(end)
             km=km+1;
-                        
+            
             % progress bar
             if rem(km,100)==0, fprintf(1,'.'); end
             if rem(km,1000)==0, fprintf(1,'%g/%g\n',km,round(time(end)/i)); end
-
+            
             f = freq(find(i*(km-1) < time & time <= i*km));
             if ~isnan(any(f)) && any(f) ~= 0
                 fa(km)=mean(f);
@@ -260,106 +261,109 @@ elseif isfield(data,'time')
             fval{k}=fa;
             
         end
-
+        
         % first finite difference of the averaged results
         fd=diff(fa);
         % calculate Allan deviation for this tau
         m=length(fa);
         sm(k)=sqrt(0.5/(m-1)*(sum(fd.^2)));
-
+        
         % estimate error bars
         sme(k)=sm(k)/sqrt(m);
         
-
+        
     end
-    fprintf(1,'\n'); toc
+    %fprintf(1,'\n'); toc
     
     % string for plot title
     name=[name ' (timestamp)'];
-
-%     % plot the frequency results
-%     if ~isempty(time) && ~isempty(freq)
-%         figure
-%         plot(dtime,mfreq,'.b');
-%         name=['(time) ' name];
-%     else
-%         fprintf(1,'allan: ERROR: no appropriate tau values (> %g s)\n',max(diff(data.time)));
-%     end
-
+    
+    %     % plot the frequency results
+    %     if ~isempty(time) && ~isempty(freq)
+    %         figure
+    %         plot(dtime,mfreq,'.b');
+    %         name=['(time) ' name];
+    %     else
+    %         fprintf(1,'allan: ERROR: no appropriate tau values (> %g s)\n',max(diff(data.time)));
+    %     end
+    
 else
     error('allan: WARNING: no DATA.rate or DATA.time! Type "help allan" for more information. [err2]');
 end
 
-
-%%%%%%%%
-%% plotting
-
-% plot the frequency data, centered on median
-figure
-plot(dtime,mfreq,'.b');
-hold on;
-
-
-    %% Optional plot    TAUBIN
-%     % plot the time divisions
-%     [rfs,cfs]=size(fs);
-%     colororder=get(gca,'ColorOrder');
-%     axis tight; ap=axis; kc=2;
-%     for j=1:rfs
-%         kc=kc+1; if rem(kc,length(colororder))==1, kc=2; end
-%         % plot the tau division boundaries
-%         for b=1:max(find(fs(j,:)));
-%             plot([fs(j,b) fs(j,b)],[ap(3)*1.1 ap(4)*1.1],'-','Color',colororder(kc,:));
-%             if b == 1
-%                 plot([dtime(1) fs(j,b)],[fval{j}(b)-s.median fval{j}(b)-s.median],'-','Color',colororder(kc,:),'LineWidth',4);
-%             else
-%                 plot([fs(j,b-1) fs(j,b)],[fval{j}(b)-s.median fval{j}(b)-s.median],'-','Color',colororder(kc,:),'LineWidth',4);
-%             end
-%         end
-%     end
-%     axis auto
-    %% End optional plot
+if(plots)
+    %%%%%%%%
+    %%% plotting
     
-
-fx = xlim;
-% plot([fx(1) fx(2)],[s.median s.median],'-k');
-plot([fx(1) fx(2)],[0 0],':k');
-% plot([fx(1) fx(2)],[s.mean+s.std s.mean+s.std],'-r');
-% plot([fx(1) fx(2)],[s.mean-s.std s.mean-s.std],'-r');
-% plot([fx(1) fx(2)],[3*MAD 3*MAD],'--r');
-% plot([fx(1) fx(2)],[-3*MAD -3*MAD],'--r');
-plot([fx(1) fx(2)],[5*MAD 5*MAD],'-r');
-plot([fx(1) fx(2)],[-5*MAD -5*MAD],'-r');
-title(['Data: ' name],'FontSize',16,'FontName','Arial');
-%set(get(gca,'Title'),'Interpreter','none');
-xlabel('time (sec)','FontSize',14,'FontName','Arial');
-ylabel('Data - Median [frequency]','FontSize',14,'FontName','Arial');
-set(gca,'FontSize',14,'FontName','Arial');
-
-if length(sm) > 0
+    % plot the frequency data, centered on median
     figure
-    % plot with x log scale
-    plotlinewidth=2;
-    loglog(tau,sm,'.-b','LineWidth',plotlinewidth,'MarkerSize',24);
-    % in R14SP3, there is a bug that screws up the error bars on a semilog plot.
-    %  When this is fixed, uncomment below to get errorbars
-    %errorbar(tau,sm,sme,'.-b'); set(gca,'XScale','log');
-    % this is a hack to approximate the error bars
-    hold on; plot([tau; tau],[sm+sme; sm-sme],'-k','LineWidth',max(plotlinewidth-1,2));
-    grid on;
-    title(['Allan Deviation: ' name],'FontSize',16,'FontName','Arial');
+    plot(dtime,mfreq,'.b');
+    hold on;
+    
+    
+    %%% Optional plot    TAUBIN
+    %     % plot the time divisions
+    %     [rfs,cfs]=size(fs);
+    %     colororder=get(gca,'ColorOrder');
+    %     axis tight; ap=axis; kc=2;
+    %     for j=1:rfs
+    %         kc=kc+1; if rem(kc,length(colororder))==1, kc=2; end
+    %         % plot the tau division boundaries
+    %         for b=1:max(find(fs(j,:)));
+    %             plot([fs(j,b) fs(j,b)],[ap(3)*1.1 ap(4)*1.1],'-','Color',colororder(kc,:));
+    %             if b == 1
+    %                 plot([dtime(1) fs(j,b)],[fval{j}(b)-s.median fval{j}(b)-s.median],'-','Color',colororder(kc,:),'LineWidth',4);
+    %             else
+    %                 plot([fs(j,b-1) fs(j,b)],[fval{j}(b)-s.median fval{j}(b)-s.median],'-','Color',colororder(kc,:),'LineWidth',4);
+    %             end
+    %         end
+    %     end
+    %     axis auto
+    %%% End optional plot
+    
+    
+    fx = xlim;
+    % plot([fx(1) fx(2)],[s.median s.median],'-k');
+    plot([fx(1) fx(2)],[0 0],':k');
+    % plot([fx(1) fx(2)],[s.mean+s.std s.mean+s.std],'-r');
+    % plot([fx(1) fx(2)],[s.mean-s.std s.mean-s.std],'-r');
+    % plot([fx(1) fx(2)],[3*MAD 3*MAD],'--r');
+    % plot([fx(1) fx(2)],[-3*MAD -3*MAD],'--r');
+    plot([fx(1) fx(2)],[5*MAD 5*MAD],'-r');
+    plot([fx(1) fx(2)],[-5*MAD -5*MAD],'-r');
+    title(['Data: ' name],'FontSize',16,'FontName','Arial');
     %set(get(gca,'Title'),'Interpreter','none');
-    xlabel('\tau (sec)','FontSize',14,'FontName','Arial');
-    ylabel('\sigma_y(\tau) (Hz)','FontSize',14,'FontName','Arial');
+    xlabel('time (sec)','FontSize',14,'FontName','Arial');
+    ylabel('Data - Median [frequency]','FontSize',14,'FontName','Arial');
     set(gca,'FontSize',14,'FontName','Arial');
-    % expand the x axis a little bit so that the errors bars look nice
-    adax = axis;
-    axis([adax(1)*0.9 adax(2)*1.1 adax(3) adax(4)]);
-else
-    fprintf(1,'allan: WARNING: no values calculated. Check that TAU > 1/DATA.rate\n');
-    fprintf(1,'Type "help allan" for more information.\n\n');
+    
+    if length(sm) > 0
+        figure
+        % plot with x log scale
+        plotlinewidth=2;
+        loglog(tau,sm,'.-b','LineWidth',plotlinewidth,'MarkerSize',24);
+        % in R14SP3, there is a bug that screws up the error bars on a semilog plot.
+        %  When this is fixed, uncomment below to get errorbars
+        %errorbar(tau,sm,sme,'.-b'); set(gca,'XScale','log');
+        % this is a hack to approximate the error bars
+        hold on; plot([tau; tau],[sm+sme; sm-sme],'-k','LineWidth',max(plotlinewidth-1,2));
+        grid on;
+        title(['Allan Deviation: ' name],'FontSize',16,'FontName','Arial');
+        %set(get(gca,'Title'),'Interpreter','none');
+        xlabel('\tau (sec)','FontSize',14,'FontName','Arial');
+        ylabel('\sigma_y(\tau) (Hz)','FontSize',14,'FontName','Arial');
+        set(gca,'FontSize',14,'FontName','Arial');
+        % expand the x axis a little bit so that the errors bars look nice
+        adax = axis;
+        axis([adax(1)*0.9 adax(2)*1.1 adax(3) adax(4)]);
+    else
+        fprintf(1,'allan: WARNING: no values calculated. Check that TAU > 1/DATA.rate\n');
+        fprintf(1,'Type "help allan" for more information.\n\n');
+    end
+    
+    
 end
-        
+
 retval = sm;
 errorb = sme;
 
