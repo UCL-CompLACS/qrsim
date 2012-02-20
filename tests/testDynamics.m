@@ -12,7 +12,7 @@ plots = 1;
 
 e = 0;
 
-%e = e | compareThrustToLogs(plots);
+e = e | compareThrustToLogs(plots);
 % run the sim using logged inputs and comparing outputs with logged data
 e = e | compareRatationToLogs(plots);
 
@@ -26,7 +26,7 @@ function e = compareThrustToLogs(plots)
 
 UAVCTRL_2_SI = [-deg2rad(0.025),-deg2rad(0.025),1/4097,-deg2rad(254.760/2047)]; % conversion factors
 
-data = csvread('thrustTestSquareVariable_Batt1_2011-08-23-17-08-26.csv');  % flight data file
+data = csvread('thrustTestSquareVariable_Batt1_2011-08-23-17-08-26_50Hz.csv');  % flight data file
 
 N = length(data);
 data = data(1:N,:);
@@ -61,7 +61,7 @@ end
 % Generate new time axis
 t = (0:state.DT:(N-1)*state.DT)';
 
-e = ~(mean((X-Z).^2)<0.01);
+e = ~(mean((X-Z).^2)<1);
 
 if (plots)
     figure();
@@ -69,6 +69,16 @@ if (plots)
     hold on;
     plot(t,Z(:,1),'r');
 end
+
+% clear the state
+clear global state;
+
+if(e)
+    fprintf('Test comparison of thrust with logged flight data [FAILED]\n');
+else
+    fprintf('Test comparison of thrust with logged flight data [PASSED]\n');
+end
+
 
 end
 
