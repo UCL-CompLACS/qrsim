@@ -70,9 +70,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /* Create a matrix for the return argument */
     plhs[0] = mxCreateDoubleMatrix(1, cols, mxREAL);
     plhs[1] = mxCreateDoubleMatrix(1, cols, mxREAL);
-    int dims[2]={rows, 1};
+    int dims[2]={3, cols};
     plhs[2] = mxCreateCharArray(2, dims);
     plhs[3] = mxCreateDoubleMatrix(1, cols, mxREAL);
+    
     double* E = mxGetPr(plhs[0]);
     double* N = mxGetPr(plhs[1]);
     mxChar* utmzone = mxGetChars(plhs[2]);
