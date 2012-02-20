@@ -12,9 +12,14 @@ fprintf('during the test you might see warnings from the mex compiler,\n these a
 addpath(pwd());
 cd(['..',filesep,'qrsim',filesep,'core',filesep,'functions']);
 
+rehash();
+
 e = 0;
 
 tollla = [1e-11;1e-11;1e-7];
+tolecef = [2e-7;2e-7;2e-7];
+tolutm = [1e-4;1e-4;1e-15;1e-15;1e-15];
+tolned = [1e-7;1e-7;1e-7];
 
 %%% lla to ecef
 
@@ -29,11 +34,11 @@ if(existsecef2lla)
     delete(['ecef2lla.',mexext]);
 end
 
-cd('..');
-cd('functions');
+clear('lla2ecef');
+clear('ecef2lla');
+rehash();
 
 % testing lla to ecef MATLAB against known data
-tolecef = [1e-8;1e-8;1e-8];
 wt = 1;
 
 f = fopen(['..',filesep,'..',filesep,'..',filesep,'tests',filesep,'conversions',filesep,'ECEFTESTcoords.csv'],'r');
@@ -73,10 +78,12 @@ e = e || ~wt;
 fprintf('\ntest of MATLAB lla2ecef and ecef2lla [%s]\n',wtToFailPass(wt));
 
 % compile and cross test ecef2lla
+clear('lla2ecef');
+clear('ecef2lla');
+
 mex ecef2lla.c
 
-cd('..');
-cd('functions');
+rehash();
 
 wt = 1;
 
@@ -99,11 +106,13 @@ fprintf('\ntest of MEX ecef2lla [%s]\n',wtToFailPass(wt));
 
 
 % compile and cross test lla2ecef
+clear('lla2ecef');
+clear('ecef2lla');
+
 delete(['ecef2lla.',mexext]);
 mex lla2ecef.c
 
-cd('..');
-cd('functions');
+rehash();
 
 wt = 1;
 
@@ -133,6 +142,8 @@ if(~existslla2ecef)
     delete([ 'lla2ecef.',mexext]);
 end
 
+clear('lla2ecef');
+clear('ecef2lla');
 
 %%% lla to utm
 
@@ -147,11 +158,11 @@ if(existsutm2lla)
     delete(['utm2lla.',mexext]);
 end
 
-cd('..');
-cd('functions');
+clear('lla2utm');
+clear('utm2lla');
+rehash();
 
 % testing lla to utm MATLAB  gainst known data
-tolutm = [1e-4;1e-4;1e-15;1e-15;1e-15];
 wt = 1;
 
 f = fopen(['..',filesep,'..',filesep,'..',filesep,'tests',filesep,'conversions',filesep,'UTMTESTcoords.csv'],'r');
@@ -192,10 +203,11 @@ e = e || ~wt;
 fprintf('\ntest of MATLAB lla2utm and utm2lla [%s]\n',wtToFailPass(wt));
 
 % compile and cross test lla2utm
+clear('lla2utm');
+clear('utm2lla');
 mex lla2utm.c
 
-cd('..');
-cd('functions');
+rehash();
 
 wt = 1;
 
@@ -217,11 +229,12 @@ e = e || ~wt;
 fprintf('\ntest of MEX lla2utm [%s]\n',wtToFailPass(wt));
 
 % compile and cross test utm2lla
+clear('lla2utm');
+clear('utm2lla');
 delete(['lla2utm.',mexext]);
 mex utm2lla.c
 
-cd('..');
-cd('functions');
+rehash();
 
 wt = 1;
 
@@ -250,8 +263,9 @@ if(existslla2utm)
     mex 'lla2utm.c'
 end
 
+clear('lla2utm');
+clear('utm2lla');
 
-tolned = [1e-7;1e-7;1e-7];
 
 %%% ned to ecef
 
@@ -266,13 +280,11 @@ end
 if(existsecef2ned)
     delete(['ecef2ned.',mexext]);
 end
-
-
-cd('..');
-cd('functions');
+clear('ned2ecef');
+clear('ecef2ned');
+rehash();
 
 % testing lla to utm MATLAB  conversions
-
 wt = 1;
 
 for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
@@ -304,10 +316,11 @@ e = e || ~wt;
 fprintf('\ntest of MATLAB ned2ecef and ecef2ned [%s]\n',wtToFailPass(wt));
 
 % compile and cross test ned2ecef
+clear('ned2ecef');
+clear('ecef2ned');
 mex ned2ecef.c
 
-cd('..');
-cd('functions');
+rehash();
 
 wt = 1;
 
@@ -340,10 +353,11 @@ e = e || ~wt;
 fprintf('\ntest of MEX ned2ecef [%s]\n',wtToFailPass(wt));
 
 % compile and cross test ecef2ned
+clear('ned2ecef');
+clear('ecef2ned');
 delete(['ned2ecef.',mexext]);
 
-cd('..');
-cd('functions');
+rehash();
 
 mex ecef2ned.c
 
@@ -385,10 +399,12 @@ if(existsned2ecef)
     mex ecef2ned.c
 end
 
+clear('ned2ecef');
+clear('ecef2ned');
+
 cd(['..',filesep,'..',filesep,'..',filesep,'tests']);
 
-
-rmpath('conversions');
+%rmpath('conversions');
 
 end
 
@@ -401,3 +417,14 @@ else
 end
 
 end
+
+
+ function [f] = isWithinTolerance(a,b,tol)
+ % ISWITHINTOLERANCE Checks if the elements of two matrices are within tolerance
+ %  
+ %  ISWITHINTOLERANCE(A,B,TOL)
+ %
+    t = (abs(a-b)<tol);
+    
+    f = all(t);
+ end

@@ -9,8 +9,7 @@ fprintf('during the test you might see warnings from the mex compiler,\n these a
 
 addpath(pwd());
 
-cd('../qrsim/core/functions');
-
+cd(['..',filesep,'qrsim',filesep,'core',filesep,'functions']);
 
 tol =  1e-20;
 
@@ -22,10 +21,12 @@ yc = zeros(I*J,1);
 
 rStream = RandStream('mt19937ar','Seed',1234);
 
-existspolyval = exist(['lla2ecef.',mexext],'file');
+existspolyval = exist(['polyval.',mexext],'file');
 if(existspolyval)
     delete(['polyval.',mexext]);
 end
+
+rehash();
 
 for i=1:I,
     
@@ -38,6 +39,7 @@ for i=1:I,
 end
 
 mex polyval.c
+rehash();
 
 rStream = RandStream('mt19937ar','Seed',1234);
 
@@ -63,5 +65,18 @@ if(~existspolyval)
     delete(['polyval.',mexext]);
 end
 
+cd(['..',filesep,'..',filesep,'..',filesep,'tests']);
 
-cd('../../../tests');
+
+end
+
+
+function [f] = isWithinTolerance(a,b,tol)
+% ISWITHINTOLERANCE Checks if the elements of two matrices are within tolerance
+%
+%  ISWITHINTOLERANCE(A,B,TOL)
+%
+t = (abs(a-b)<tol);
+
+f = all(t);
+end
