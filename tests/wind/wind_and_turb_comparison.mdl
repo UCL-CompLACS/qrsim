@@ -41,7 +41,7 @@ Model {
       Name		      "uvw_t"
     }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.25"
+    ComputedModelVersion    "1.26"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -61,9 +61,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "rdenardi"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Feb 17 18:49:14 2012"
-  RTWModifiedTimeStamp	  251399076
-  ModelVersionFormat	  "1.%<AutoIncrement:25>"
+  LastModifiedDate	  "Mon Feb 20 12:35:40 2012"
+  RTWModifiedTimeStamp	  251642131
+  ModelVersionFormat	  "1.%<AutoIncrement:26>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -146,9 +146,9 @@ Model {
 	  $ObjectID		  2
 	  Version		  "1.10.0"
 	  StartTime		  "0.0"
-	  StopTime		  "49.99"
+	  StopTime		  "199.98"
 	  AbsTol		  "auto"
-	  FixedStep		  "0.01"
+	  FixedStep		  "0.02"
 	  InitialStep		  "auto"
 	  MaxNumMinSteps	  "-1"
 	  MaxOrder		  5
@@ -829,12 +829,12 @@ Model {
       units		      "English (Velocity in ft/s)"
       spec		      "MIL-F-8785C"
       model		      "Discrete Dryden (+q +r)"
-      W20		      "20"
-      Wdeg		      "30"
+      W20		      "2"
+      Wdeg		      "0"
       TurbProb		      "10^-3 - Moderate"
       L_high		      "1000"
       Wingspan		      "0.5"
-      ts		      "0.01"
+      ts		      "0.06"
       Seed		      "[23341 23342 23343 23344]"
       T_on		      on
     }
@@ -858,7 +858,7 @@ Model {
       GeneratePreprocessorConditionals off
       units		      "English (Velocity in ft/s)"
       phase		      "Category C - Terminal Flight Phase"
-      W_20		      "10"
+      W_20		      "2"
       Wdeg		      "0"
     }
     Block {
