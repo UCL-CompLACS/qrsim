@@ -1,3 +1,4 @@
+function mexify(varargin)
 % MEXIFY compile mex functions present in the simulator project
 %
 % Example:
@@ -6,26 +7,45 @@
 
 curdir = pwd();
 
+if(isempty(varargin))
+    fprintf('option parameter missing\n');
+    fprintf('  Usage:\n\tmexify(''compile'')   - to compile mex sources\n');
+    fprintf('\tmexify(''clean'')   - to remove compiled mex\n');
+    return;
+elseif (~strcmp(varargin{1},'compile')&&~strcmp(varargin{1},'clean'))
+    fprintf('option not defined\n');
+    fprintf('  Usage:\n\tmexify(''compile'')   - to compile mex sources\n');
+    fprintf('\tmexify(''clean'')   - to remove compiled mex\n');
+    return;
+end
+
+
 sources = {'ecef2lla','ecef2ned','lla2ecef','lla2utm','ned2ecef','polyval','utm2lla','pelicanODE'};
 
-disp('Compiling the mex functions part of the simulator;');
+disp('Hadling the mex functions part of the simulator;');
 disp('You might need to run mex -setup if this is the first time you use the mex compiler.');
 
 for i=1:length(sources),
     
-    fprintf('compiling %s\n',sources{i});
     p = which(sources{i});
     
     if(isempty(p))
-        error('run init to initialize the path');
+        error('qrsim needs to be in the path to compile the mex sources');
     end
     
     idx = strfind(p,filesep);
     cd(p(1:idx(end)));
     
-    mex([sources{i},'.c']);
-    
+    if (strcmp(varargin{1},'compile'))
+        fprintf('compiling %s\n',sources{i});
+        mex([sources{i},'.c']);
+    else
+        if(exist([sources{i},'.',mexext],'file'))
+            delete([sources{i},'.',mexext]);
+            fprintf('removing %s.%s\n',sources{i},mexext);
+        end
+    end
     %%% back to base
     cd(curdir);
-    
 end
+fprintf('Done!');
