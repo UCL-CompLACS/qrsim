@@ -24,7 +24,7 @@ tau1   = 46.8004;
 
 % linear drag params
 kuv = -4.97391e-01;
-kw =  -1.16341;
+kw =  -1.35341;
 
 % not vectorized in any way since
 % we have a MEX for it

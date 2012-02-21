@@ -23,7 +23,7 @@
 
 /* linear drag params*/
 #define kuv  -4.97391e-01
-#define kw   -1.16341
+#define kw   -1.35341
 
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[] ) {
