@@ -16,7 +16,7 @@ classdef AltimeterGM<Altimeter
     %   reset()                    - does nothing
     %   setState(X)                - sets the current altitude and its derivative and resets
     %
-    properties (Access = private)
+    properties (Access = protected)
         TAU;                      % noise time constant
         SIGMA;                    % noise standard deviation
         pastEstimatedAltitude;    % altitude at past valid timestep

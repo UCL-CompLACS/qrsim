@@ -15,7 +15,7 @@ classdef GyroscopeG<Gyroscope
     %   reset()                          - does nothing
     %   setState(X)                      - sets the current angular velocity and resets
     %
-    properties (Access = private)
+    properties (Access = protected)
         SIGMA = [0.0005;0.0005;0.0005]; % noise standard deviation
         n = zeros(3,1);                 % noise sample at current timestep
         prngIds;                        % ids of the prng stream used by this object

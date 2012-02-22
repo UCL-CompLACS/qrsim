@@ -15,7 +15,7 @@ classdef AccelerometerG<Accelerometer
     %   reset()                          - reinitialize noise terms
     %   setState(a)                      - sets the current acceleration and resets
     %  
-    properties (Access = private)
+    properties (Access = protected)
         SIGMA;                           % noise standard deviation
         n = zeros(3,1);                  % noise sample at current timestep
         prngIds;                         %ids of the prng stream used by the noise model

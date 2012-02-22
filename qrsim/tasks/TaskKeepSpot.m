@@ -34,7 +34,7 @@ classdef TaskKeepSpot<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;
+            taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;            
             

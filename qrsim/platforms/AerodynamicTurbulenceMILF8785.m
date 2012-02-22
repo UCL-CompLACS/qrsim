@@ -37,7 +37,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     %
     properties (Constant)
         Z0 = 0.15; % feet
-        Vof = 2; % velocity offset
+        Vof = 0.5; % velocity offset
     end
     
     properties (Access=protected)

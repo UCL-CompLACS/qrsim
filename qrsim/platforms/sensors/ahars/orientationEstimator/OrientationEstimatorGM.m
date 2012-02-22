@@ -16,7 +16,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
     %   reset()                           - reinitializes the noise state         
     %   setState(X)                       - sets the current orientation and resets
     %
-    properties (Access = private)
+    properties (Access = protected)
         BETA;                             % noise time constant
         SIGMA;                            % noise standard deviation
         n;                                % noise sample at current timestep    

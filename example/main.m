@@ -15,7 +15,7 @@ qrsim = QRSim();
 qrsim.init('TaskKeepSpot');
 
 % number of steps we run the simulation for
-N = 3000;
+N = 30000;
 
 wp = [state.platforms(1).getX(1:3)',0];
 tstart = tic;
@@ -32,7 +32,9 @@ for i=1:N,
     % qrsim.reward();
 
     % wait so to run in real time
-    %wait = max(0,state.DT-toc(tloop));   
-    %pause(wait);    
+    % wait = max(0,state.DT-toc(tloop));   
+    % pause(wait);    
 end
-toc(tstart);
+elapsed = toc(tstart);
+
+fprintf('running %d times real time\n',(N*state.DT)/elapsed);
