@@ -1,14 +1,14 @@
 classdef AHARSPelican<AHARS
-    % Simulates the attitude-heading-altitude reference system present on an AscTec Pelican Quadrtor.
+    % Simulates the attitude-heading-altitude reference system present on an AscTec Pelican Quadrotor.
     % This class allows to compute estimated (noisy) measurements of orientation, altitude,
     % accelerations and angular velocity of a platform given its noise free state vector.
     % The types of sensors are instantiated according to the configuration parameters
     % passed to the constructor
     %
     % AHARSPelican Methods:
-    %   obj=AHARSPelican(objparams) - constructs the object
-    %   reset()            - resets all sensors
-    %   setState(state)    - reinitialise the current state and noise
+    %   AHARSPelican(objparams) - constructs the object
+    %   reset()                 - resets all sensors
+    %   setState(X)             - reinitialises the current state and noise
     %
     properties (Access=protected)
         accelerometer;              % accelerometer sensor
@@ -149,7 +149,7 @@ classdef AHARSPelican<AHARS
         end
         
         function obj = setState(obj,X)
-            % reinitialise the current state and noise
+            % reinitialises the current state and noise
             %
             % Example:
             %

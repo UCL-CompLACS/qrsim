@@ -1,16 +1,16 @@
 classdef Steppable<handle
     % Abstract base class for any objects that is propagated forward during simulation.
     %
-    % The class implements checking and interfaces for for anything that has a state
-    % and gets updated over time.
+    % The class implements checking and interfaces for anything that has a state and that
+    % gets updated over time.
     %
     % Steppable Properties:
     %   TOL                  - tolerance used when comparing float times (Constant)
     %
     % Steppable Methods:
     %   Steppable(objparams) - constructs the object, sets the timestep and the active flag
-    %   step(args)           - if active==1, propagates the state of the object forward in time
-    %   update(args)*        - updates the object state using args as input (Abstract)
+    %   step(args)           - calls update if the sim time is a multiple of the object timestep
+    %   update(args)*        - called by step to update the state (Abstract)
     %   reset()*             - reset the object state (if any)
     %   getDt()              - returns the timestep of this object
     %                        *hyperlink broken because the method is abstract
@@ -62,8 +62,8 @@ classdef Steppable<handle
         end
         
         function obj=step(obj,args)
-            % if active==1 propagates the state of the object forward in time.
-            % If DT time has elapsed since the last state update this methods propagates
+            % calls update if the sim time is a multiple of the object timestep.
+            % If dt time has elapsed since the last state update this methods propagates
             % the state forward calling obj.update(args). It does not change the state otherwise.
             %
             % Example:

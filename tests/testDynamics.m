@@ -2,12 +2,12 @@ function [ e ] = testDynamics()
 %test that the response of the dynamic model to the control input matches
 %the flight data
 
-%clear all;
+clear all;
 close all;
 
 cd('dynamics');
 
-plots = 1;
+plots = 0;
 
 
 e = 0;

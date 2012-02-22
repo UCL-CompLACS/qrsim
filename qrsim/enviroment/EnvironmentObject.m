@@ -5,7 +5,7 @@ classdef EnvironmentObject<handle
     %
     % EnvironmentObject Methods:
     %    EnvironmentObject(~) -  constructs the object, to be called only from
-    %                                    derived subclasses.
+    %                            derived subclasses.
     %   
     methods (Sealed,Access=protected)
         function obj=EnvironmentObject(~)

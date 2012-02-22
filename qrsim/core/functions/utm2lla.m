@@ -1,13 +1,14 @@
 function  lla = utm2lla(E,N,utmzone,h)
-%  UTM2LLA Converts UTM coordinates to geodetic coordinates .
-%   LLA = UTM2LLA(E,N,UTMZONE,H) converts 4 1-by-N arrays of UTM coordinates to a 3-by-N
-%   array of geodetic coordinates (latitude, longitude and altitude), LLA.
-%   LLA is in [degrees degrees meters].  E is in meters, N is in meters, H is in meters,
-%   UTMZONE is a 3char string.
-%   Straight implementation of http:%%www.lantmateriet.se/upload/filer/kartor/
-%   geodesi_gps_och_detaljmatning/geodesi/Formelsamling/Gauss_Conformal_Projection.pdf
+% UTM2LLA Converts UTM coordinates to geodetic coordinates .
+% 
+% LLA = UTM2LLA(E,N,UTMZONE,H) converts 4 1-by-N arrays of UTM coordinates to a 3-by-N
+% array of geodetic coordinates (latitude, longitude and altitude), LLA.
+% LLA is in [degrees degrees meters].  E is in meters, N is in meters, H is in meters,
+% UTMZONE is a 3char string.
+% Straight implementation of http://www.lantmateriet.se/upload/filer/kartor/
+% geodesi_gps_och_detaljmatning/geodesi/Formelsamling/Gauss_Conformal_Projection.pdf
 %
-%   Examples:
+% Examples:
 %
 %      lla = utm2lla( 6.927085783032901e+05, 5.732679017252645e+06,'30U',0)
 %

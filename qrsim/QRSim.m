@@ -16,13 +16,13 @@ classdef QRSim<handle
     %   resetSeed(varargin) - re-initialize the random number generator seed
     %
     properties (Access=private)
-        par         % parameters from task
+        par         % task parameters 
         paths =[];  % paths
     end
     
     methods (Sealed,Access=public)
         function obj = QRSim()
-            % constructs object and sets up the paths
+            % Constructs object and sets up the paths
             %
             % Example:
             %  obj = QRSim();
@@ -38,7 +38,7 @@ classdef QRSim<handle
         end
         
         function obj = init(obj,taskName)
-            % Initializes the simulator state given a task.
+            % Initializes the simulator given a task.
             %
             % Example:
             %    obj.init('task_name');

@@ -1,7 +1,7 @@
 function [x a]= ruku2(state_eq, x, uaug, dt)
 % RUKU2 Integrates the platform differential equation using the Runge-Kutta 2nd order method
 %
-%   Examples:
+%   Example:
 %
 %      [newState,accelerations] = ruku2('pelicanODE',state,augmented_controls,timestep)
 %

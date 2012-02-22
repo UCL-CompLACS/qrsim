@@ -1,10 +1,10 @@
-classdef Wind<Steppable
+classdef Wind<Steppable & EnvironmentObject
     % Class for an inactive wind field.
     %
     % Wind Methods:
     %    Wind(objparams)            - constructs the object an sets its main fields
-    %    getLinear(state)           - always returns zero
-    %    getRotational(state)       - always returns zero
+    %    getLinear(X)               - always returns zero
+    %    getRotational(X)           - always returns zero
     %    update([])                 - no computation
     %    reset()                    - no action
     %
@@ -24,6 +24,7 @@ classdef Wind<Steppable
             objparams.dt = intmax*objparams.DT; % since this wind is constant
             
             obj=obj@Steppable(objparams);
+            obj=obj@EnvironmentObject(objparams);
         end
     end
     
@@ -33,8 +34,8 @@ classdef Wind<Steppable
             %
             % Example:
             %
-            %   v = obj.getLinear(state)
-            %           state - 13 by 1 vector platform state
+            %   v = obj.getLinear(X)
+            %           X - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
             v = zeros(3,1);
@@ -45,8 +46,8 @@ classdef Wind<Steppable
             %
             % Example:
             %
-            %   v = obj.getRotational(state)
-            %           state - 13 by 1 vector platform state
+            %   v = obj.getRotational(X)
+            %           X - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
             v=zeros(3,1);

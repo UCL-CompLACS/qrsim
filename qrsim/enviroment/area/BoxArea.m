@@ -1,5 +1,5 @@
 classdef BoxArea<EnvironmentObject
-    % defines an empty area in which the platforms can fly
+    % Defines a simple box shaped empty area in which the platforms can fly
     %
     % BoxArea Methods:
     %    BoxArea(objparams)   - constructs the object
@@ -21,7 +21,10 @@ classdef BoxArea<EnvironmentObject
             % Example:
             %
             %   obj=BoxArea(objparams)
-            %                objparams - object parameters
+            %               objparams.limits - x,y,z limits of the area 
+            %               objparams.originutmcoords - structure containing the origin in utm coord
+            %               objparams.graphics.type - class type for thegraphics object 
+            %                                         (only needed if the 3D displayis active)
             %
             obj=obj@EnvironmentObject(objparams);
             

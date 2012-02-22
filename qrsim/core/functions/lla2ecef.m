@@ -1,12 +1,13 @@
 function ecef = lla2ecef(lla)
-%  LLA2ECEF Convert geodetic coordinates to Earth-centered Earth-fixed (ECEF)  coordinates.
-%   P = LLA2ECEF( LLA ) converts an 3-by-N array of geodetic coordinates (latitude, 
-%   longitude and altitude), LLA, to an 3-by-N array of ECEF coordinates, P.  
-%   LLA is in [degrees degrees meters].  P is in meters. The ellipsoid planet is WGS84. 
+% LLA2ECEF Converts geodetic coordinates to Earth-centered Earth-fixed (ECEF) coordinates.
 %
-%   Examples:
+% P = LLA2ECEF( LLA ) converts an 3-by-N array of geodetic coordinates (latitude, 
+% longitude and altitude), LLA, to an 3-by-N array of ECEF coordinates, P.  
+% LLA is in [degrees; degrees; meters].  P is in meters. The ellipsoid planet is WGS84. 
 %
-%      ecef = lla2ecef( [51.71190;-0.21052;0] )
+% Examples:
+%
+%   ecef = lla2ecef( [51.71190;-0.21052;0] )
 %
 
 if (size(lla, 1) ~= 3)

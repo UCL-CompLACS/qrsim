@@ -1,5 +1,5 @@
 classdef GPSSpaceSegment < Steppable & EnvironmentObject
-    % Genric class for GPS space segments that is not active
+    % Generic class for GPS space segments that is not active
     %
     % GPSSpaceSegment Methods:
     %    GPSSpaceSegment(objparams)   - constructor
@@ -24,13 +24,13 @@ classdef GPSSpaceSegment < Steppable & EnvironmentObject
     
     methods  (Access=public)   
         function obj = reset(obj)
-           % does nothing 
+           % does nothing because this is not an active space segment 
         end
     end
     
     methods (Access=protected)        
         function obj=update(obj,~)
-            % does nothing because this ia not active space segment
+            % does nothing because this is not an active space segment
             %
             % Note:
             %  this method is called automatically by the step() of the Steppable parent

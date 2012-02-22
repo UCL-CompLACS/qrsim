@@ -7,7 +7,7 @@ classdef Orbits < handle
     %   FITINT                     - interval used to fit the data [seconds](Constant)
     %
     % Orbits methods:
-    %   Orbits()                    - contructs the orbit object
+    %   Orbits()                    - constructs the orbit object
     %   parseTime(varargin)         - performs conversions to gpstime from various other
     %                                 date formats
     %   getSatCoord(prn, t)         - computes satellite's coordinates and clock correction
@@ -51,7 +51,7 @@ classdef Orbits < handle
     
     methods (Sealed,Access=public)
         function obj=Orbits()
-            % contructs the orbit object
+            % constructs the orbit object
             %
             % Example:
             %

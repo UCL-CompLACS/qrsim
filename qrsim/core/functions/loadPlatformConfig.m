@@ -1,5 +1,6 @@
 function conf = loadPlatformConfig( fname , params )
 % LOADPLATFORMCONFIG loads the platform configuration data from a script
+%
 % Evaluates the script passed as fname and returns the structure c defined
 % by the script.
 %

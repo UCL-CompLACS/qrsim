@@ -1,8 +1,9 @@
 function mexify(varargin)
-% MEXIFY compile mex functions present in the simulator project
+% MEXIFY compile/clean mex functions present in the simulator project
 %
-% Example:
-%   mexify()
+% Examples:
+%   mexify('compile') - to compile mex sources
+%   mexify('clean')   - to remove compiled mex
 %
 
 curdir = pwd();
@@ -20,7 +21,7 @@ elseif (~strcmp(varargin{1},'compile')&&~strcmp(varargin{1},'clean'))
 end
 
 
-sources = {'ecef2lla','ecef2ned','lla2ecef','lla2utm','ned2ecef','polyval','utm2lla','pelicanODE'};
+sources = {'ecef2lla','ecef2ned','lla2ecef','lla2utm','ned2ecef','polyval','utm2lla','dcm','pelicanODE'};
 
 disp('Hadling the mex functions part of the simulator;');
 disp('You might need to run mex -setup if this is the first time you use the mex compiler.');

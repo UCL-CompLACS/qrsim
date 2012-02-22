@@ -4,8 +4,8 @@ classdef AerodynamicTurbulence<Steppable
     %
     % AerodynamicTurbulence Methods:
     %   AerodynamicTurbulence(objparams) - constructs the object
-    %   getLinear(state)                 - returns the linear component (always zero)
-    %   getRotational(state)             - returns the rotational component   (always zero)
+    %   getLinear(X)                     - returns the linear component (always zero)
+    %   getRotational(X)                 - returns the rotational component   (always zero)
     %   reset()                          - no action
     %   setState()                       - no action
     %
@@ -28,9 +28,9 @@ classdef AerodynamicTurbulence<Steppable
             %
             % Example:
             %
-            %   v = obj.getLinear(state);
-            %           state - 13 by 1 vector platform state
-            %            v - zeros 3 by 1 vector
+            %   v = obj.getLinear(X);
+            %           X - 13 by 1 vector platform state
+            %           v - zeros 3 by 1 vector
             %
             v = zeros(3,1);
         end
@@ -41,8 +41,8 @@ classdef AerodynamicTurbulence<Steppable
             %
             % Example:
             %
-            %   v = obj.getRotational(state);
-            %           state - 13 by 1 vector platform state
+            %   v = obj.getRotational(X);
+            %           X - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
             %

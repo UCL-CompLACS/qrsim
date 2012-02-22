@@ -1,4 +1,6 @@
-% bare bones example of use of the simulator object
+% bare bones example of use of the QRSim() simulator object with one
+% helicopter
+
 clear all
 close all
 global state;
@@ -10,7 +12,7 @@ clear global pid;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('KeepSpot');
+qrsim.init('TaskKeepSpot');
 
 % number of steps we run the simulation for
 N = 3000;

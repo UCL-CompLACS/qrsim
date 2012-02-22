@@ -2,9 +2,8 @@ classdef GPSReceiver<Sensor
     % Class for a noiseless generic GPS receiver.
     %
     % GPSReceiver Methods:
-    %    GPSReceiver(objparams) - constructs the object
-    %    getMeasurement(X)          - computes and returns a noise free GPS estimate given the input
-    %                                 noise free NED position
+    %    GPSReceiver(objparams)     - constructs the object
+    %    getMeasurement(X)          - returns the noiseless NED position and velocities
     %    update(X)                  - stores current state
     %    reset()                    - does nothing
     %    setState(X)                - re-initialise the state to a new value
@@ -35,7 +34,7 @@ classdef GPSReceiver<Sensor
         end
         
         function posVelNED = getMeasurement(obj,~)
-            % returns a noise free GPS estimate given the current noise free position
+            % returns the noiseless NED position and velocities
             %
             % Example:
             %

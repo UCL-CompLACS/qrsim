@@ -221,7 +221,7 @@ classdef Pelican<Steppable & Platform
             %       X - platform new state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
             %           if the length of the X vector is 12, thrust is initialized automatically
             %           if the length of the X vector is 6, all the velocities are set to zero
-            
+            %
             assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
                 'setState() on a pelican object requires an input of length 6, 12 or 13 instead we have %d',size(X,1));
             
@@ -353,12 +353,13 @@ classdef Pelican<Steppable & Platform
     methods (Access=protected)
         function obj = update(obj,U)
             % updates the state of the platform and of its components
-            % In turns this
-            % updates turbulence model
-            % updates the state of the platform applying controls
-            % updates local part of gps model
-            % updates ahars noise model
-            % updates the graphics
+            %
+            % In turns this:
+            %  updates turbulence model
+            %  updates the state of the platform applying controls
+            %  updates local part of gps model
+            %  updates ahars noise model
+            %  updates the graphics
             %
             % Note:
             %  this method is called automatically by the step() of the Steppable parent

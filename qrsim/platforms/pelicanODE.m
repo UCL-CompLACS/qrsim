@@ -1,6 +1,5 @@
 function [xdot,a] = pelicanODE(X,U,dt)
-%PELICANODE Summary of this function goes here
-%   Detailed explanation goes here
+%PELICANODE set of ODE that represent the platform dynamic
 
 LOW_THROTTLE_LIMIT = 300;
 MAX_ANGVEL=deg2rad(150);

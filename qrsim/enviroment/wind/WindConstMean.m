@@ -2,16 +2,16 @@ classdef WindConstMean<Wind
     % Class that simulates a constant wind field.
     % Given the current altitude of the platform the wind shear effect is used to compute
     % the magnitude and direction of the linear component of a constant wind field.
-    % The running assumprion is that the wind varies on a time scale somewhat larger
+    % The running assumprion is that the mean wind varies on a time scale somewhat larger
     % than the scale of vehicle flight time.
     %
     % WindConstMean Properties:
     %    Z0                         - reference height (constant)
     %
     % WindConstMean Methods:
-    %    WindConstMean(objparams)   - constructs the object an sets its main fields
-    %    getLinear(state)           - returns the linear component of the wind field
-    %    getRotational(state)       - always returns zero since this model does not have
+    %    WindConstMean(objparams)   - constructs the object an sets its fields
+    %    getLinear(X)               - returns the linear component of the wind field
+    %    getRotational(X)           - always returns zero since this model does not have
     %                                 a rotational wind component
     %    update([])                 - no computation, since the wind field is constant
     %
@@ -19,7 +19,7 @@ classdef WindConstMean<Wind
         Z0 = 0.15; % feet
     end
     
-    properties (Access=public)
+    properties (Access=private)
         direction;         % mean wind direction rad clockwise from north
         w6;                % velocity at 6m from ground in m/s
         hOrigin;           % origin reference altitude  
@@ -80,8 +80,8 @@ classdef WindConstMean<Wind
             %
             % Example:
             %
-            %   v = obj.getLinear(state)
-            %           state - 13 by 1 vector platform state
+            %   v = obj.getLinear(X)
+            %           X - 13 by 1 vector platform state
             %           v - 3 by 1 wind velocity vector in body coordinates
             %
             
@@ -105,8 +105,8 @@ classdef WindConstMean<Wind
             %
             % Example:
             %
-            %   v = obj.getRotational(state)
-            %           state - 13 by 1 vector platform state
+            %   v = obj.getRotational(X)
+            %           X - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
             %

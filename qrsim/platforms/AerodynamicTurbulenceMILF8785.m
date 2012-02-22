@@ -20,8 +20,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     % AerodynamicTurbulenceMILF8785 Methods:
     %    AerodynamicTurbulenceMILF8785(objparams)   - constructs the object an sets its
     %                                                 main fields
-    %    getLinear(state)           - returns the linear component of the turbulence
-    %    getRotational(state)       - always returns zero since this model does not have
+    %    getLinear(X)               - returns the linear component of the turbulence
+    %    getRotational(X)           - always returns zero since this model does not have
     %                                 a rotational wind component
     %    update(X)                  - updates the GM turbulence model
     %
@@ -84,8 +84,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %
             % Example:
             %
-            %   v = obj.getLinear(state)
-            %           state - 13 by 1 vector platform state
+            %   v = obj.getLinear(X)
+            %           X - 13 by 1 vector platform state
             %           v - linear component of the component gust in body coordinates
             %           3 by 1 vector
             %
@@ -98,8 +98,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %
             % Example:
             %
-            %   v = obj.getRotational(state)
-            %           state - 13 by 1 vector platform state
+            %   v = obj.getRotational(X)
+            %           X - 13 by 1 vector platform state
             %           v - zeros 3 by 1 vector
             %
             v=zeros(3,1);

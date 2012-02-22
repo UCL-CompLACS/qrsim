@@ -6,9 +6,9 @@ classdef Sensor<Steppable
     % Sensor Methods:
     %    Sensor(objparams)      - constructs the object, to be called only from derived
     %                             subclasses.
-    %    getMeasurement(state)* - given a current state of the system returns a measurement
+    %    getMeasurement(X)*     - given a current state of the system returns a measurement
     %                             or an estimate
-    %    setState(state)        - re-initialise the state to a new value
+    %    setState(X)            - re-initialise the state to a new value
     %
     %                           *hyperlink broken because the method is abstract
     methods
@@ -42,7 +42,7 @@ classdef Sensor<Steppable
     end
     
     methods (Abstract)
-        meas=getMeasurement(obj,state);
+        meas=getMeasurement(obj,X);
         % given a current state of the system returns a measurement or an estimate 
     end
     

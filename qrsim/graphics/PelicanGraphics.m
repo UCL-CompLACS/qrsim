@@ -5,7 +5,7 @@ classdef PelicanGraphics<QuadrotorGraphics
     %
     % PelicanGraphics Methods:
     %   PelicanGraphics(initX,params)  - constructs the object
-    %   update()                         - updates the visualization according to the current state
+    %   update()                       - updates the visualization according to the current state
     %
     
     properties (Access = private)
@@ -36,15 +36,15 @@ classdef PelicanGraphics<QuadrotorGraphics
             %          initX - initial state [px;py;pz;phi;theta;psi]
             %                  px,py,pz      [m]   position (NED coordinates)
             %                  phi,theta,psi [rad] attitude in Euler angles ZYX convention
-            %          objparams.AL - arm length m
-            %          objparams.AT - arm width m
-            %          objparams.AW - arm thickness m
-            %          objparams.BW - body width m
-            %          objparams.BT - body thickness m
-            %          objparams.R - rotor radius m
-            %          objparams.DFT - distance from truss m
-            %          objparams.on - 1 if graphics is active
-            %          objparams.trajectory - 1 if plotting of trajectory is active
+            %          params.AL - arm length m
+            %          params.AT - arm width m
+            %          params.AW - arm thickness m
+            %          params.BW - body width m
+            %          params.BT - body thickness m
+            %          params.R - rotor radius m
+            %          params.DFT - distance from truss m
+            %          params.on - 1 if graphics is active
+            %          params.trajectory - 1 if plotting of trajectory is active
             
             obj=obj@QuadrotorGraphics(objparams,initX);
             
