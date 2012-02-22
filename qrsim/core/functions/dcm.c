@@ -17,11 +17,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
     int rows = mxGetM(prhs[0]);
     int cols = mxGetN(prhs[0]);
 
-    if (rows != 1) {
+    if (cols != 1) {
         mexErrMsgTxt("Input has wrong dimensions.");
     }
 
-    if (cols < 6) {
+    if (rows < 6) {
         mexErrMsgTxt("Input has wrong dimensions.");
     }    
     

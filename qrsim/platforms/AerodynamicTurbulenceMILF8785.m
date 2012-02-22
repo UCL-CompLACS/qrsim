@@ -37,6 +37,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     %
     properties (Constant)
         Z0 = 0.15; % feet
+        Vof = 2; % velocity offset
     end
     
     properties (Access=protected)
@@ -47,6 +48,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         hOrigin;                  % origin reference altitude
         direction;                % main turbulence direction
         X;                        % state
+        randDir;                  % one if the turbulence direction is initialised randomly
     end
     
     methods  (Sealed,Access=public)
@@ -71,12 +73,19 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             
             assert(isfield(objparams,'direction'),'aerodynamicturbulencemilf8785:nodirection',...
                 'the platform config file must define a aerodynamicturbulence.direction6 parameter');
-            obj.direction=objparams.direction;
+            
+            if(~isempty(objparams.direction))
+                obj.randDir = 0;
+                obj.direction = objparams.direction;
+            else
+                obj.randDir = 1;
+                obj.direction = 0;
+            end
             
             obj.hOrigin = -objparams.zOrigin;
             
-            obj.prngIds = [1,2,3]+state.numRStreams;
-            state.numRStreams = state.numRStreams + 3;
+            obj.prngIds = [1,2,3,4]+state.numRStreams;
+            state.numRStreams = state.numRStreams + 4;
         end
         
         function v = getLinear(obj,~)
@@ -107,13 +116,17 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         
         function obj = reset(obj)            
             % resets the state of the model
-            
             global state;
+                        
+            if(obj.randDir)
+                obj.direction = 2*pi*randn(state.rStreams{obj.prngIds(4)},1,1);
+            end
+            
             % airspeed along the flight path, governs the lengthscale,
-            Vfts = m2ft(norm(obj.X(7:9)));
+            Vfts = m2ft(obj.Vof+norm(obj.X(7:9)));
             
             hft = m2ft(obj.hOrigin-obj.X(3)); % height of the platform from origin altitude
-            w20ft = m2ft(obj.w6);         % baseline airspeed ft/s
+            w20ft = m2ft(obj.w6);             % baseline airspeed ft/s
             
             sigma = [1/(0.177+0.000823*hft)^0.4;1/(0.177+0.000823*hft)^0.4;1].*0.1.*w20ft;
             
@@ -147,7 +160,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             global state;
             
             % airspeed along the flight path, governs the lengthscale,
-            Vfts = m2ft(norm(X(7:9)));
+            Vfts = m2ft(obj.Vof+norm(X(7:9)));
             
             hft = m2ft(obj.hOrigin-X(3)); % height of the platform from origin altitude
             w20ft = m2ft(obj.w6);         % baseline airspeed ft/s

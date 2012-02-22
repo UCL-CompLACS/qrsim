@@ -49,4 +49,4 @@ for i=1:length(sources),
     %%% back to base
     cd(curdir);
 end
-fprintf('Done!');
+fprintf('Done!\n\n');

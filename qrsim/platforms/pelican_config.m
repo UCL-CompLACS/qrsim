@@ -32,10 +32,10 @@ c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limi
     -2,2;-2,2;-2,2]; %rotational velocity limits
     
 c.collisionDistance = 2; % two platforms colser than this distance are deemed in collision 
-c.dynNoise = [0.1;0.1;0.1;0.1;0.1;0.1];
+c.dynNoise = [0.2;0.2;0.2;0.2;0.2;0.2];
 
 % GPS Receiver
-c.sensors.gpsreceiver.on = 0; % if off the gps returns the noiseless position
+c.sensors.gpsreceiver.on = 1; % if off the gps returns the noiseless position
 c.sensors.gpsreceiver.type = 'GPSReceiverG';
 c.sensors.gpsreceiver.minmaxnumsv=[10,13];        % max and min number of satellites 
 c.sensors.gpsreceiver.R_SIGMA = 0.002;             % receiver noise standard deviation 
@@ -69,10 +69,10 @@ c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
-c.aerodynamicturbulence.on = 0;
+c.aerodynamicturbulence.on = 1;
 c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785';
-c.aerodynamicturbulence.direction = 0; % mean wind direction, (rad clockwise from north set to [] to initialise randomly)
-c.aerodynamicturbulence.W6 = 0.1;  % velocity at 6m from ground in m/s
+c.aerodynamicturbulence.direction = []; % mean wind direction, (rad clockwise from north set to [] to initialise randomly)
+c.aerodynamicturbulence.W6 = 2;  % velocity at 6m from ground in m/s
             
 % Graphics
 c.graphics.type = 'PelicanGraphics';

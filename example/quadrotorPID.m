@@ -76,7 +76,7 @@ pid.iz = pid.iz + ez *state.DT;
 if(~wpChange)
     de = (ez - pid.ez)/state.DT;
 else
-    disp('wp change');
+    %disp('wp change');
     de =  0;
 end
 pid.ez = ez;

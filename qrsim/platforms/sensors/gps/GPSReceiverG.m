@@ -139,7 +139,7 @@ classdef GPSReceiverG < GPSReceiver
             
             % ordinary lest square solution initialised at the previous solution
             p = [obj.pastEstimatedPosNED;0];
-            for iter = 1:4 % even 3 iterations should do since we prime it
+            for iter = 1:3 % even 3 iterations should do since we prime it
                 A = zeros(obj.nsv,4);
                 omc = zeros(obj.nsv,1); % observed minus computed observation
                 for i = 1:obj.nsv,

@@ -74,8 +74,8 @@ classdef Steppable<handle
             global state;
             
             r = rem(state.t,obj.dt);
-            if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)) && (obj.dt~=0))
-                obj=obj.update(args);
+            if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)))
+                obj.update(args);
             end
         end
         
