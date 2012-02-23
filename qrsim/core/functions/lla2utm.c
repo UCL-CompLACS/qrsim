@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include "mex.h"
 
@@ -19,6 +20,16 @@
 
 #if !defined(MAX)
 #define    MAX(A, B)    ((A) > (B) ? (A) : (B))
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+double atanh(double z){
+   return 0.5*log((1+z)/(1-z));
+}
+
+double asinh(double z){
+    return log(z+sqrt(z*z+1));
+}
 #endif
 
 char getLetter(double la){
@@ -104,8 +115,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexErrMsgTxt("Four output argument required.");
     }
     
-    rows = mxGetM(prhs[0]);
-    cols = mxGetN(prhs[0]);
+    rows = (int)mxGetM(prhs[0]);
+    cols = (int)mxGetN(prhs[0]);
     
     if (rows != 3) {
         mexErrMsgTxt("Input has wrong dimensions.");
