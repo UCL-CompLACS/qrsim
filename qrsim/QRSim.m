@@ -253,14 +253,14 @@ classdef QRSim<handle
             % build a list of subpaths path recursively removing versioning subdirs
             ps = genpath(p);
             
-            cps = textscan(ps,'%s','Delimiter',':');
+            cps = textscan(ps,'%s','Delimiter',pathsep);
             cps = cps{1};
             paths = [];
             
             for i=1:length(cps)
                 cp = cps{i};
                 if(isempty(strfind(cp,'.svn'))&&isempty(strfind(cp,'.git')))
-                    paths = [paths,cp,':']; %#ok<AGROW>
+                    paths = [paths,cp,pathsep]; %#ok<AGROW>
                 end
             end
         end
