@@ -51,8 +51,72 @@ char getLetter(double la){
 }
 
 void mexFunction( int nlhs, mxArray *plhs[],
-        int nrhs, const mxArray *prhs[] ) {
-    
+    int nrhs, const mxArray *prhs[] ) {
+
+    int rows;
+    int cols;
+    double* ecef;
+    int E_field_num;
+    double* utmoriginE;
+    int N_field_num;
+    double* utmoriginN;
+    int h_field_num;
+    double* utmoriginH;
+    int zone_field_num;
+    mxChar* utmoriginZONE;
+    double* NED;    
+    double alp[7] = {0, alp1, alp2, alp3, alp4, alp5, alp6};    
+    int i;
+    double x;
+    double y;
+    double z;
+    double lambda;
+    double rho;
+    double beta;
+    double sbeta;
+    double cbeta;
+    double phi;
+    double cphi;
+    double sphi;
+    double betaNew;
+    int count;
+    double N;
+    double h;        
+    double lat;
+    double lon;        
+    int zone;
+    int lon0;
+    int latsign;
+    int lonsign;
+    int backside;
+    double lam;
+    double xip;
+    double etap;
+    double c;
+    double tau;
+    double secphi;
+    double sig;
+    double taup;
+    double c0;
+    double ch0;
+    double s0;
+    double sh0;
+    double ar;
+    double ai;        
+    int n;
+    double xi0;
+    double eta0;
+    double xi1;
+    double eta1;
+    double yr0;
+    double yi0;
+    double yr1;
+    double yi1;        
+    double xi;
+    double eta;        
+    double yy;
+    double xx;
+
     /* Check for proper number and size of arguments */
     if (nrhs != 2) {
         mexErrMsgTxt("Two input arguments required.");
@@ -62,57 +126,55 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexErrMsgTxt("Too many output arguments.");
     }
     
-    int rows = mxGetM(prhs[0]);
-    int cols = mxGetN(prhs[0]);
+    rows = mxGetM(prhs[0]);
+    cols = mxGetN(prhs[0]);
     
     if (rows != 3) {
         mexErrMsgTxt("Input has wrong dimensions.");
     }
     
     /* get pointers */
-    double* ecef = mxGetPr(prhs[0]);
+    ecef = mxGetPr(prhs[0]);
     
     
-    int E_field_num = mxGetFieldNumber(prhs[1], "E");
-    double* utmoriginE = mxGetPr(mxGetFieldByNumber(prhs[1], 0, E_field_num));
-    int N_field_num = mxGetFieldNumber(prhs[1], "N");
-    double* utmoriginN = mxGetPr(mxGetFieldByNumber(prhs[1], 0, N_field_num));
-    int h_field_num = mxGetFieldNumber(prhs[1], "h");
-    double* utmoriginH = mxGetPr(mxGetFieldByNumber(prhs[1], 0, h_field_num));
-    int zone_field_num = mxGetFieldNumber(prhs[1], "zone");
-    mxChar* utmoriginZONE = mxGetChars(mxGetFieldByNumber(prhs[1], 0, zone_field_num));
+    E_field_num = mxGetFieldNumber(prhs[1], "E");
+    utmoriginE = mxGetPr(mxGetFieldByNumber(prhs[1], 0, E_field_num));
+    N_field_num = mxGetFieldNumber(prhs[1], "N");
+    utmoriginN = mxGetPr(mxGetFieldByNumber(prhs[1], 0, N_field_num));
+    h_field_num = mxGetFieldNumber(prhs[1], "h");
+    utmoriginH = mxGetPr(mxGetFieldByNumber(prhs[1], 0, h_field_num));
+    zone_field_num = mxGetFieldNumber(prhs[1], "zone");
+    utmoriginZONE = mxGetChars(mxGetFieldByNumber(prhs[1], 0, zone_field_num));
     
     
     /* Create a matrix for the return argument */
     plhs[0] = mxCreateDoubleMatrix(3, cols, mxREAL);
-    double* NED = mxGetPr(plhs[0]);
-    
-    double alp[7] = {0, alp1, alp2, alp3, alp4, alp5, alp6};
-    
-    int i;
+    NED = mxGetPr(plhs[0]);
     
     for(i=0; i<cols; i++){
-        double x = ecef[i*3];
-        double y = ecef[i*3+1];
-        double z = ecef[i*3+2];
+        x = ecef[i*3];
+        y = ecef[i*3+1];
+        z = ecef[i*3+2];
         
         /* Longitude*/
-        double lambda = atan2(y, x);
+        lambda = atan2(y, x);
         
         /* Distance from Z-axis*/
-        double rho = sqrt(x*x+y*y);
+        rho = sqrt(x*x+y*y);
         
         /* Bowring's formula for initial parametric (beta) and geodetic (phi) latitudes*/
-        double beta = atan2(z, (1 - f) * rho);
-        double sbeta = sin(beta); double cbeta = cos(beta);
+        beta = atan2(z, (1 - f) * rho);
+        sbeta = sin(beta); 
+        cbeta = cos(beta);
         
-        double phi = atan2(z+b*ep2*sbeta*sbeta*sbeta, rho-aa*e2*cbeta*cbeta*cbeta);
-        double sphi = sin(phi); double cphi = cos(phi);
+        phi = atan2(z+b*ep2*sbeta*sbeta*sbeta, rho-aa*e2*cbeta*cbeta*cbeta);
+        sphi = sin(phi); 
+        cphi = cos(phi);
         
         /* Fixed-point iteration with Bowring's formula*/
         /* (typically converges within two or three iterations)*/
-        double betaNew = atan2((1 - f)*sin(phi), cos(phi));
-        int count = 0;
+        betaNew = atan2((1 - f)*sin(phi), cos(phi));
+        count = 0;
         while ((beta!=betaNew) && count < 5){
             beta = betaNew;
             sbeta = sin(beta); cbeta = cos(beta);
@@ -123,14 +185,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
         }
         
         /* Calculate ellipsoidal height from the final value for latitude*/
-        double N = aa / sqrt(1 - e2 * sphi* sphi);
-        double h = rho * cphi + (z + e2 * N* sphi) * sphi - N;
+        N = aa / sqrt(1 - e2 * sphi* sphi);
+        h = rho * cphi + (z + e2 * N* sphi) * sphi - N;
         
-        double lat = phi * 180/M_PI;
-        double lon = lambda * 180/M_PI;
+        lat = phi * 180/M_PI;
+        lon = lambda * 180/M_PI;
         
-        int zone = (int)((lon/6)+31);
-        int lon0 = ((zone*6) - 183);
+        zone = (int)((lon/6)+31);
+        lon0 = ((zone*6) - 183);
         
         /*Avoid losing a bit of accuracy in lon (assuming lon0 is an integer)*/
         if (lon - lon0 > 180){
@@ -144,13 +206,13 @@ void mexFunction( int nlhs, mxArray *plhs[],
         }
         /*Now lon in (-180, 180]*/
         /*Explicitly enforce the parity*/
-        int latsign = (lat < 0) ? -1 : 1;
-        int lonsign = (lon < 0) ? -1 : 1;
+        latsign = (lat < 0) ? -1 : 1;
+        lonsign = (lon < 0) ? -1 : 1;
         
         lon = lon*lonsign;
         lat = lat*latsign;
         
-        int backside = (lon > 90);
+        backside = (lon > 90);
         if (backside){
             if (lat == 0){
                 latsign = -1;
@@ -159,41 +221,38 @@ void mexFunction( int nlhs, mxArray *plhs[],
         }
         
         phi = lat * M_PI/180;
-        double lam = lon * M_PI/180;
-        
-        double xip;
-        double etap;
+        lam = lon * M_PI/180;
         
         if (lat != 90){
-            const double c = MAX(0, cos(lam)); /*cos(M_PI/2) might be negative*/
-            const double tau = tan(phi);
-            const double secphi = hypot(1, tau);
-            const double sig = sinh(e*atanh(e*tau / secphi));
-            const double taup = hypot(1, sig) * tau - sig * secphi;
+            c = MAX(0, cos(lam)); /*cos(M_PI/2) might be negative*/
+            tau = tan(phi);
+            secphi = hypot(1, tau);
+            sig = sinh(e*atanh(e*tau / secphi));
+            taup = hypot(1, sig) * tau - sig * secphi;
             xip = atan2(taup, c);
             etap =asinh(sin(lam) / hypot(taup, c));
         }else{
             xip = M_PI/2;
             etap = 0;
         }
-        const double c0 = cos(2 * xip);
-        const double ch0 = cosh(2 * etap);
-        const double s0 = sin(2 * xip);
-        const double sh0 = sinh(2 * etap);
-        double ar = 2 * c0 * ch0;
-        double ai = -2 * s0 * sh0; /*2 * cos(2*zeta')*/
+        c0 = cos(2 * xip);
+        ch0 = cosh(2 * etap);
+        s0 = sin(2 * xip);
+        sh0 = sinh(2 * etap);
+        ar = 2 * c0 * ch0;
+        ai = -2 * s0 * sh0; /*2 * cos(2*zeta')*/
         
-        int n = MAXPOW;
-        double xi0 = (n & 1 ? alp[n] : 0);
-        double eta0 = 0;
-        double xi1 = 0;
-        double eta1 = 0;
+        n = MAXPOW;
+        xi0 = (n & 1 ? alp[n] : 0);
+        eta0 = 0;
+        xi1 = 0;
+        eta1 = 0;
         
         /*Accumulators for dzeta/dzeta'*/
-        double yr0 = (n & 1 ? 2 * MAXPOW * alp[n--] : 0);
-        double yi0 = 0;
-        double yr1 = 0;
-        double yi1 = 0;
+        yr0 = (n & 1 ? 2 * MAXPOW * alp[n--] : 0);
+        yi0 = 0;
+        yr1 = 0;
+        yi1 = 0;
         
         while (n>0){
             xi1  = ar * xi0 - ai * eta0 - xi1 + alp[n];
@@ -211,11 +270,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
         ar = s0 * ch0;
         ai = c0 * sh0;
         
-        const double xi  = xip  + ar * xi0 - ai * eta0;
-        const double eta = etap + ai * xi0 + ar * eta0;
+        xi  = xip  + ar * xi0 - ai * eta0;
+        eta = etap + ai * xi0 + ar * eta0;
         
-        double yy = a1 * k0 * (backside ? M_PI - xi : xi) * latsign;
-        double xx = a1 * k0 * eta * lonsign;
+        yy = a1 * k0 * (backside ? M_PI - xi : xi) * latsign;
+        xx = a1 * k0 * eta * lonsign;
         
         xx = xx + FE;
         yy = (yy>0) ? yy : yy+FN;

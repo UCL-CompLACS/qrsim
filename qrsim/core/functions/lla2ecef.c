@@ -9,6 +9,18 @@
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[] ) {
     
+    int rows;
+    int cols;
+    double* lla;
+    double* ecef;
+    int i;
+    double phi;
+    double lambda;
+    double h;        
+    double sinphi;
+    double cosphi;
+    double N;
+
     /* Check for proper number and size of arguments */
     if (nrhs != 1) {
         mexErrMsgTxt("One input arguments required.");
@@ -18,32 +30,29 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexErrMsgTxt("Too many output arguments.");
     }
     
-    int rows = mxGetM(prhs[0]);
-    int cols = mxGetN(prhs[0]);
+    rows = mxGetM(prhs[0]);
+    cols = mxGetN(prhs[0]);
     
     if (rows != 3) {
         mexErrMsgTxt("Input has wrong dimensions.");
     }
     
     /* get pointers */
-    double* lla = mxGetPr(prhs[0]);
+    lla = mxGetPr(prhs[0]);
     
     /* Create a matrix for the return argument */
     plhs[0] = mxCreateDoubleMatrix(3,cols, mxREAL);
-    double* ecef = mxGetPr(plhs[0]);
-      
-    
-    int i;
+    ecef = mxGetPr(plhs[0]);
     
     for(i=0; i<cols; i++){        
         
-        double phi = deg2rad*lla[i*3];
-        double lambda = deg2rad*lla[1+i*3];
-        double h = lla[2+i*3];        
+        phi = deg2rad*lla[i*3];
+        lambda = deg2rad*lla[1+i*3];
+        h = lla[2+i*3];        
         
-        double sinphi = sin(phi);
-        double cosphi = cos(phi);
-        double N  = ((double)a) / sqrt(1 - e2 * sinphi* sinphi);
+        sinphi = sin(phi);
+        cosphi = cos(phi);
+        N  = ((double)a) / sqrt(1 - e2 * sinphi* sinphi);
         
         ecef[i*3]= (N + h) * cosphi * cos(lambda);
         ecef[1+i*3] = (N + h) * cosphi * sin(lambda);

@@ -46,8 +46,55 @@ char getLetter(double la){
 }
 
 void mexFunction( int nlhs, mxArray *plhs[],
-        int nrhs, const mxArray *prhs[] ) {
-    
+    int nrhs, const mxArray *prhs[] ) {
+
+    int rows;
+    int cols;
+    double* lla;
+    int dims[2];
+    double* E;
+    double* N;
+    mxChar* utmzone;
+    double* h;
+    double alp[7] = {0,alp1,alp2,alp3,alp4,alp5,alp6};    
+    int i;
+    double  lat;
+    double  lon;
+    char letter;
+    int zone;
+    int lon0;
+    int latsign;
+    int lonsign;
+    int backside;
+    double  phi;
+    double  lam;
+    double  xip;
+    double  etap;
+    double  c;
+    double  tau;
+    double  secphi;
+    double  sig;
+    double  taup;
+    double  c0;
+    double  ch0;
+    double  s0;
+    double  sh0;
+    double  ar;
+    double  ai;
+    int n;
+    double  xi0;
+    double  eta0;
+    double  xi1;
+    double  eta1;
+    double  yr0;
+    double  yi0;
+    double  yr1;
+    double  yi1;
+    double  xi;
+    double  eta;
+    double  y;
+    double  x;
+
     /* Check for proper number and size of arguments */
     if (nrhs != 1) {
         mexErrMsgTxt("One input argument required.");
@@ -57,38 +104,34 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexErrMsgTxt("Four output argument required.");
     }
     
-    int rows = mxGetM(prhs[0]);
-    int cols = mxGetN(prhs[0]);
+    rows = mxGetM(prhs[0]);
+    cols = mxGetN(prhs[0]);
     
     if (rows != 3) {
         mexErrMsgTxt("Input has wrong dimensions.");
     }
     
     /* get pointers */
-    double* lla = mxGetPr(prhs[0]);
+    lla = mxGetPr(prhs[0]);
     
     /* Create a matrix for the return argument */
     plhs[0] = mxCreateDoubleMatrix(1, cols, mxREAL);
     plhs[1] = mxCreateDoubleMatrix(1, cols, mxREAL);
-    int dims[2]={3, cols};
+    dims[0]= 3; dims[1]=cols;
     plhs[2] = mxCreateCharArray(2, dims);
     plhs[3] = mxCreateDoubleMatrix(1, cols, mxREAL);
     
-    double* E = mxGetPr(plhs[0]);
-    double* N = mxGetPr(plhs[1]);
-    mxChar* utmzone = mxGetChars(plhs[2]);
-    double* h = mxGetPr(plhs[3]);
-    
-    double alp[7] = {0,alp1,alp2,alp3,alp4,alp5,alp6};
-    
-    int i;
+    E = mxGetPr(plhs[0]);
+    N = mxGetPr(plhs[1]);
+    utmzone = mxGetChars(plhs[2]);
+    h = mxGetPr(plhs[3]);
     
     for(i=0; i<cols; i++){
         
-        double lat=lla[i*3];
-        double lon=lla[1+i*3];
+        lat=lla[i*3];
+        lon=lla[1+i*3];
         
-        char letter = getLetter(lat);
+         letter = getLetter(lat);
         
         if ((lat < -90)||(lat > 90)) {
             mexErrMsgTxt("Invalid WGS84 latitude. \n");
@@ -98,8 +141,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
             mexErrMsgTxt("Invalid WGS84 longitude.\n");
         }
         
-        int zone = (int)((lon/6)+31);
-        int lon0 = ((zone*6) - 183);
+        zone = (int)((lon/6)+31);
+        lon0 = ((zone*6) - 183);
         
         /*Avoid losing a bit of accuracy in lon (assuming lon0 is an integer)*/
         if (lon - lon0 > 180){
@@ -113,13 +156,13 @@ void mexFunction( int nlhs, mxArray *plhs[],
         }
         /*Now lon in (-180, 180]*/
         /*Explicitly enforce the parity*/
-        int latsign = (lat < 0) ? -1 : 1;
-        int lonsign = (lon < 0) ? -1 : 1;
+        latsign = (lat < 0) ? -1 : 1;
+        lonsign = (lon < 0) ? -1 : 1;
         
         lon = lon*lonsign;
         lat = lat*latsign;
         
-        int backside = (lon > 90);
+        backside = (lon > 90);
         if (backside){
             if (lat == 0){
                 latsign = -1;
@@ -127,42 +170,42 @@ void mexFunction( int nlhs, mxArray *plhs[],
             lon = 180 - lon;
         }
         
-        double phi = lat * M_PI/180;
-        double lam = lon * M_PI/180;
+        phi = lat * M_PI/180;
+        lam = lon * M_PI/180;
         
-        double xip;
-        double etap;
+        xip;
+        etap;
         
         if (lat != 90){
-            const double c = MAX(0, cos(lam)); /*cos(M_PI/2) might be negative*/
-            const double tau = tan(phi);
-            const double secphi = hypot(1, tau);
-            const double sig = sinh(e*atanh(e*tau / secphi));
-            const double taup = hypot(1, sig) * tau - sig * secphi;
+            c = MAX(0, cos(lam)); /*cos(M_PI/2) might be negative*/
+            tau = tan(phi);
+            secphi = hypot(1, tau);
+            sig = sinh(e*atanh(e*tau / secphi));
+            taup = hypot(1, sig) * tau - sig * secphi;
             xip = atan2(taup, c);
             etap =asinh(sin(lam) / hypot(taup, c));
         }else{
             xip = M_PI/2;
             etap = 0;
         }
-        const double c0 = cos(2 * xip);
-        const double ch0 = cosh(2 * etap);
-        const double s0 = sin(2 * xip);
-        const double sh0 = sinh(2 * etap);
-        double ar = 2 * c0 * ch0;
-        double ai = -2 * s0 * sh0; /*2 * cos(2*zeta')*/
+        c0 = cos(2 * xip);
+        ch0 = cosh(2 * etap);
+        s0 = sin(2 * xip);
+        sh0 = sinh(2 * etap);
+        ar = 2 * c0 * ch0;
+        ai = -2 * s0 * sh0; /*2 * cos(2*zeta')*/
         
-        int n = MAXPOW;
-        double xi0 = (n & 1 ? alp[n] : 0);
-        double eta0 = 0;
-        double xi1 = 0;
-        double eta1 = 0;
+        n = MAXPOW;
+        xi0 = (n & 1 ? alp[n] : 0);
+        eta0 = 0;
+        xi1 = 0;
+        eta1 = 0;
         
         /*Accumulators for dzeta/dzeta'*/
-        double yr0 = (n & 1 ? 2 * MAXPOW * alp[n--] : 0);
-        double yi0 = 0;
-        double yr1 = 0;
-        double yi1 = 0;
+        yr0 = (n & 1 ? 2 * MAXPOW * alp[n--] : 0);
+        yi0 = 0;
+        yr1 = 0;
+        yi1 = 0;
         
         while (n>0){
             xi1  = ar * xi0 - ai * eta0 - xi1 + alp[n];
@@ -180,11 +223,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
         ar = s0 * ch0;
         ai = c0 * sh0;
 
-        const double xi  = xip  + ar * xi0 - ai * eta0;
-        const double eta = etap + ai * xi0 + ar * eta0;
+        xi  = xip  + ar * xi0 - ai * eta0;
+        eta = etap + ai * xi0 + ar * eta0;
         
-        double y = a1 * k0 * (backside ? M_PI - xi : xi) * latsign;
-        double x = a1 * k0 * eta * lonsign;
+        y = a1 * k0 * (backside ? M_PI - xi : xi) * latsign;
+        x = a1 * k0 * eta * lonsign;
 
         x = x+ FE;
         y = (y>0) ? y : y+FN;
