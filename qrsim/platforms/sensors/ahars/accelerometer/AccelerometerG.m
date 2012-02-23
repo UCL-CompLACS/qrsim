@@ -51,12 +51,7 @@ classdef AccelerometerG<Accelerometer
             %       a  - 3 by 1 vector of "noisy" acceleration in body frame [~ax;~ay;~az] m/s^2
             %
             measurementAcceleration = obj.measurementAcceleration;
-        end        
-                
-        function obj=reset(obj)
-            % does nothing  
-            % since the noise model does not have state variables
-        end
+        end 
         
         function obj = setState(obj,a)
             % sets the current acceleration and resets

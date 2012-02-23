@@ -53,17 +53,6 @@ classdef GyroscopeG<Gyroscope
             %
             measurementAngularVelocity = obj.measurementAngularVelocity;
         end
-        
-        function obj=reset(obj)
-            % does nothing
-            % since the noise model does not have state variables
-        end
-        
-        function obj = setState(obj,X)
-            % sets the current angular velocity and resets
-            obj.reset();            
-            obj.update(X);
-        end
     end
     
     methods (Sealed,Access=protected)

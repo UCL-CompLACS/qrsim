@@ -42,12 +42,6 @@ classdef Gyroscope<Sensor
         function obj=reset(obj)
             % does nothing            
         end
-        
-        function obj = setState(obj,X)
-            % sets the current angular velocity and resets
-            obj.reset();            
-            obj.update(X);
-        end
     end
     
     methods (Access=protected)
