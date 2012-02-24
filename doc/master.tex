@@ -165,7 +165,7 @@ $ git checkout -b 1.0.RC1
 
 The same git repository is also available as a zip archive from \webrepo.
 
-To use the simulator is sufficient to add its root directory (i.e. \texttt{qrsim}) to the current Matlab path\footnote{Each time a \texttt{qrsim} object is instantiated any other directory needed will also be added to the current path; they will be removed from the path once  \texttt{qrsim} is cleared.}.
+To use the simulator is sufficient to add its simulation directory (i.e. \texttt{sim}) to the current Matlab path\footnote{Each time a \texttt{QRSim} object is instantiated any other directory needed will also be added to the current path; they will be removed from the path once  \texttt{QRSim} is cleared.}.
 
 At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify('compile')}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}; please refer to the Matlab documentation for more details.}.
 
