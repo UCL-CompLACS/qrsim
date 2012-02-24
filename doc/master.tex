@@ -299,10 +299,15 @@ Before anything else we are required to initialize the global structure \texttt{
 
 The main for loop (see line 17) drives the simulation forward by calling in sequence the PID controller and the \texttt{qrsim.step(U)} method; given the current state of the platform, the PID computes the new control action  \texttt{U} which is then used to step the dynamics forward in time.
 
+A quadrotor requires four control inputs U=[$u_{pt};u_{rl};u_{th};u_{ya}$] respectively pitch roll throttle and yaw.
+In hover condition pitch and roll are zero and the throttle is the amount required to counterbalance the gravity force\footnote{With our dynamic model and a mass of $1.68Kg$ the required throttle control is $0.59$} while yaw controls the direction in which the helicopter is pointing.  
+Any pitch or roll rotation away from the level attitude will produce a corresponding translational acceleration. To move forward is sufficient a small amount of pitch (negative pitch to be precise), and a roll motion allows to move left and right. 
+
+The PID controller computes the required pitch roll yaw and throttle command proportionally to the current distance between the helicopter and it selected waypoint.
+
 Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing (line 27) we show the call commented out since this is where normally the reward would be computed.
 
 Since the task defines to run the simulation with the 3D visualization, it makes sense to run it in real time, therefore line 30 introduces the necessary pause.  
-
 
 \begin{figure}
 \begin{center}
