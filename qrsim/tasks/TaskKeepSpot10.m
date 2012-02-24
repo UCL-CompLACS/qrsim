@@ -1,4 +1,4 @@
-classdef TaskKeepSpot<Task
+classdef TaskKeepSpot10<Task
     % Simple task in which a qudrotor has to keep its starting position despite the wind.
     % Single platform task which requires to maintain the quadrotor hovering at the 
     % position it has when the task starts; the solution requires non constant control 
@@ -41,7 +41,7 @@ classdef TaskKeepSpot<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-10 20 -10 10 -20 0];
+            taskparams.environment.area.limits = [-120 120 -10 10 -20 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -88,8 +88,10 @@ classdef TaskKeepSpot<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config';
-            taskparams.platforms(1).X = [0;0;-10;0;0;0];
+            for i=1:10,
+                taskparams.platforms(i).configfile = 'pelican_config';
+                taskparams.platforms(i).X = [-100+20*i;0;-10;0;0;0];
+            end
         end
         
         function r=reward(obj) 

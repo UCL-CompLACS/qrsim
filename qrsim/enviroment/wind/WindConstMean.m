@@ -112,8 +112,10 @@ classdef WindConstMean<Wind
             %
             v=zeros(3,1);
         end
-    end
     
+    end   
+     
+
     methods  (Sealed, Access=protected)
         function obj = update(obj, ~)
             % updates the mean wind vector.

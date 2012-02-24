@@ -148,6 +148,9 @@ classdef QRSim<handle
             %     U - 5 by m matrix of control inputs for each of the m platforms
             %
             global state;
+                                    
+            % update time
+            state.t=state.t+state.DT;
             
             %%% step all the common objects
             
@@ -169,9 +172,7 @@ classdef QRSim<handle
             if(obj.par.display3d.on == 1)
                 refresh(state.display3d.figure);
             end
-            
-            % update time
-            state.t=state.t+state.DT;
+
         end
     end
     

@@ -17,14 +17,20 @@ qrsim.init('TaskKeepSpot');
 % number of steps we run the simulation for
 N = 3000;
 
-wp = [state.platforms(1).getX(1:3)',0];
+wp = zeros(10,4);
 
+for i=1:10
+    wp(i,:) = [state.platforms(i).getX(1:3)',0];
+end
 tstart = tic;
 
+U = zeros(5,10);
 for i=1:N,
     tloop=tic;
-    % compute controls
-    U = quadrotorPID(state.platforms(1).getEX(),wp);
+    for j=1:10
+        % compute controls
+        U(:,j) = quadrotorPID(state.platforms(j).getEX(),wp(j,:));
+    end
     % step simulator
     qrsim.step(U);
     
