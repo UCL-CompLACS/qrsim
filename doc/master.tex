@@ -13,14 +13,15 @@
 
 \newcommand{\sname}{QRSim\xspace}
 \newcommand{\snamettt}{\texttt{QRSim}\xspace}
-\newcommand{\web}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-0.2.zip}\xspace}
+\newcommand{\curversion}{1.0.RC1}
+\newcommand{\webrepo}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-\curversion.zip}\xspace}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
 This document describes the multi-vehicle quadrotor simulator (\sname) developed at UCL to devise and test algorithms for our flock autonomous helicopters, one of the three application platforms of the {CompLACS} project.
-This report is divided into two parts, the first describes the logic and the structure of the simulator while the second presents an example of use. 
+This report is divided into two parts, the first describes the logic and the structure of the simulator while the second presents examples of use. 
 Technical details about the dynamic models used in the simulator and their implementation are reported in the appendix. 
 
 A companion to this report is the documentation that Matlab can automatically generate from the source code (i.e. using the command \texttt{doc}), the reader is referred to it for all the more specific API details.
@@ -65,28 +66,26 @@ To the extent allowed by Matlab we used object-oriented programming concepts in 
 At any point in time the state of the objects present in the simulator must be maintained; for reason of computational efficiency in Matlab we use a \texttt{global} structure to store such state. Rather obviously this data structure is called \texttt{state} and by being global it is accessible from any function or object method of the simulator.
 
 Consistently with the definition in section \ref{sec:platandenv} we use the fields \texttt{state.environment} and the array \texttt{state.platforms} to store the handles to all the environment and platforms objects respectively. 
-Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms(1).X} gives access to the state variables of the first platform, while \texttt{state.environment.wind.direction} returns the current mean wind direction. 
+Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms(1).getX()} gives access to the state variables of the first platform, while \texttt{state.environment.area.getLimits()} returns the size of the flying area. 
 
-It is worth noting that this direct access to the state variables should not be used to set the state.
-The top level \texttt{Platform} and \texttt{EnvironmentObject} classes impose derived classes to define methods to reset the state to its initial value defined by the task (see section \ref{sec:createtask}).
-When such a reset operation is meaningful (e.g. for the platforms) the class exposes it through a specific method (\texttt{setState(X)})\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set.}.
+When meaningful, the \texttt{Platform} and \texttt{EnvironmentObject} classes define methods to retrieve the object state (e.g. \texttt{getX()} in the case of a platform), to reset the state to its initial value defined by the task (see section \ref{sec:createtask}) and to set the object state (e.g. \texttt{setX(X)} in the case of a platform)\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set.}.
 
 The global \texttt{state} structure stores also other important variables:
 \begin{itemize}
  \item the simulator time \texttt{state.t}, used to ensure synchronization between all the environment and platforms objects;
- \item the pseudo-random number generator streams \texttt{state.rStreams}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
+ \item the independent pseudo-random number generator streams \texttt{state.rStreams}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
  \item the simulator time step \texttt{state.DT}, the time granularity with which the simulator time is incremented;
  \item the handle to the 3D graphics visualization \texttt{state.display3d}.
 \end{itemize}
 
 \subsection{Steppable}
 
-Since the platforms and environment that we are simulating are representation of physical objects, one natural way to think about their evolution in time is to consider time discretized into steps and to ``step forward'' the object's state at each time step. In the case of a quadrotor for instance, stepping forward is nothing more than integrating the ODE that describe its dynamics, for other object stepping forward might mean instead triggering an event associated with a specific time.
+Since the platforms and environment that we are simulating are representation of physical objects, one simple way to think about their evolution in time is to consider time discretized into steps and to ``step forward'' the object's state at each time step. In the case of a quadrotor for instance, stepping forward is nothing more than integrating the ODE that describe its dynamics, for other objects stepping forward might mean instead triggering an event associated with a specific time.
 In our implementation every object that evolves with time is derived from a common class (i.e. \texttt{Steppable}) which defines an abstract \texttt{update()} method and a time step property \texttt{dt}.
 
-The method \texttt{update()} propagates the object's state forward to the current time \texttt{state.t}, \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. 
+The method \texttt{update()} propagates the object's state forward to the current time \texttt{state.t}, the object's field \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. 
 
-As we will see in section \ref{sec:qrobj}, the \texttt{update()} method is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns only calls \texttt{update()} if a time equal to \texttt{dt} has passed since the last update\footnote{To simplify things the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{state.DT}); in practice this is not a very restrictive assumption.}.
+As we will see in section \ref{sec:qrobj}, the \texttt{update()} method is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns only calls \texttt{update()} if a time equal to \texttt{dt} has passed since the last update\footnote{To simplify the implementation the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{state.DT}); in practice this is not a very restrictive assumption.}.
 
 \subsection{Task}
 
@@ -126,10 +125,9 @@ The object \snamettt allows to initialize, set up and control the simulator as a
  \item \texttt{reset()}, resets the simulator to the initial state specified by the task. This is generally called after a learning episode in order to restore the state of the simulator. 
  \item \texttt{step(U)}, steps forward in time all the environment objects and all the platforms . This command accepts a matrix of control inputs \texttt{U} (i.e. one column array for each platform) and calls the \texttt{step()} method for each of the objects. Listing~\ref{lst:step} shows the implementation of the method.
 
-Very simply, first \texttt{state.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. at that point the new state can be accessed as described in section \ref{sec:state}.
+Very simply, first \texttt{state.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}.
  \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is simply a pass through call to the task \texttt{reward()} method and is meant to be called after stepping the simulator.
 \end{itemize}
-
 
 \begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,numbers=left,basicstyle=\small]
 function obj=step(obj,U)
@@ -157,67 +155,79 @@ end
 \chapter{Installation and Use}
 
 \section{Installation}
-The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result no installation as such is required, the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6)\footnote{The development and testing was carried out on R2010b for UNIX.}.
+The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result no installation as such is required, the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6)\footnote{The development and testing was carried out on R2010b running on Ubuntu 11.10.}.
 
-The user simply needs to download the simulator source code form \web and unpack into the directory of choice.
+The user simply needs to clone the git\footnote{The git version control tool is available for Linux (usually from the package manager), OSX (http://code.google.com/p/git-osx-installer/) and Windows (http://code.google.com/p/msysgit/)} source code repository\footnote{Please note that currently the git repository is read only.} into a directory of choice.
+\begin{verbatim}
+$ git clone http://complacs.cs.ucl.ac.uk/git/qrsim.git
+$ git checkout \curversion
+\end{verbatim}
+
+The same git repository is also available as a zip archive from \webrepo.
+
 To use the simulator is sufficient to add its root directory (i.e. \texttt{qrsim}) to the current Matlab path\footnote{Each time a \texttt{qrsim} object is instantiated any other directory needed will also be added to the current path; they will be removed from the path once  \texttt{qrsim} is cleared.}.
 
-At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify.m}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}; please refer to the Matlab documentation for more details.}.
-
+At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify('compile')}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}; please refer to the Matlab documentation for more details.}.
 
 \section{Creating a Task}  \label{sec:createtask}
 
-As a first example of use we look at a single platform task which requires to maintain the quadrotor hovering at the position it has when the task starts; the solution requires to adjust continuously controls since the helicopter is affected by time varying wind disturbances. We call this task KeepSpot. 
+As a first example of use we look at a single platform task which requires to maintain the quadrotor hovering at the position it has when the task starts; the solution requires to adjust continuously controls since the helicopter is affected by time varying wind disturbances. We call this task TaskKeepSpot. 
  
 To implement such a task, we start by creating a new class that extends the abstract class \texttt{Task} and implements the \texttt{init()} and \texttt{reward()} methods.
 
 The \texttt{init()} method (see listing \ref{lst:init}) 
-\begin{lstlisting}[float=ht!bp,caption=KeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left,basicstyle=\small]
-function taskparams=init(obj)
- 
- % Simulator step time in seconds
-  taskparams.DT = 0.02;
+\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left,basicstyle=\small]
+function taskparams=init(obj)  
+ taskparams.DT = 0.02; % Simulator step time in seconds            
+ taskparams.seed = 0; % if 0 the seed depends on the system time
             
-  % random nmber generator seed
-  taskparams.seed = 0; %if zero the seed depends on the system time         
+ %%%%% visualization %%%%%
+ % 3D display parameters
+ taskparams.display3d.on = 1;
+ taskparams.display3d.width = 1000;
+ taskparams.display3d.height = 600;            
             
-  %%%%% environment %%%%%
-  taskparams.environment.area.limits = [-10 20 -7 7 -20 0]; //meters
-  taskparams.environment.area.type = 'BoxArea';
-  [E N zone h] = lla2utm([51.71190;-0.21052;0]); //origin in GPS coords
-  taskparams.environment.area.originutmcoords.E = E;
-  taskparams.environment.area.originutmcoords.N = N;
-  taskparams.environment.area.originutmcoords.h = h;
-  taskparams.environment.area.originutmcoords.zone =  zone;
-  taskparams.environment.area.graphics.on = taskparams.display3d.on;
-  taskparams.environment.area.graphics.type = 'AreaGraphics';
+ %%%%% environment %%%%%
+ % these need to follow the conventions of axis(), they are in m, Z down
+ taskparams.environment.area.limits = [-10 20 -10 10 -20 0];
+ taskparams.environment.area.type = 'BoxArea';
             
-  % GPS
-  taskparams.environment.gpsspacesegment.on = 0; 
-  taskparams.environment.gpsspacesegment.dt = 0.2;
-  taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
-  taskparams.environment.gpsspacesegment.tStart= 0; %0 to initilise it randomly
-  taskparams.environment.gpsspacesegment.svs=[3,5,6,7,13,16,18,19,20,22,24,29,31];
-  taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM';
-  taskparams.environment.gpsspacesegment.PR_BETA = 2000; % process tau
-  taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746; % process std
+ % originutmcoords is the location of the RVC (our usual flying site)
+ % generally when this is changed gpsspacesegment.orbitfile and 
+ % gpsspacesegment.svs need to be changed
+ [E N zone h] = lla2utm([51.71190;-0.21052;0]);
+ taskparams.environment.area.originutmcoords.E = E;
+ taskparams.environment.area.originutmcoords.N = N;
+ taskparams.environment.area.originutmcoords.h = h;
+ taskparams.environment.area.originutmcoords.zone = zone;
+ taskparams.environment.area.graphics.type = 'AreaGraphics';
             
-  % Wind
-  taskparams.environment.wind.on = 0;
-  taskparams.environment.wind.type = 'WindConstMean';
-  taskparams.environment.wind.direction = 0; %0 to initilise it randomly
-  taskparams.environment.wind.W6 = 0.1;  %speed 6m from ground in m/s
-  taskparams.environment.wind.dt = 1;    %not in use
+ % GPS - the space segment of the gps system
+ taskparams.environment.gpsspacesegment.on = 1; % noiseless gps if 0
+ taskparams.environment.gpsspacesegment.dt = 0.2;
+ % real satellite orbits from NASA JPL
+ taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
+ % simulation start in GPS time, this needs to agree with the sp3 file above, 
+ % alternatively it can be set to 0 to have a random initialization 
+ taskparams.environment.gpsspacesegment.tStart = 0;             
+ % id number of visible satellites, to match the contents of orbitfile
+ taskparams.environment.gpsspacesegment.svs=[3,5,6,7,13,16,18,19,20,22,24,29,31];
+ % the following model was instead designed to match measurements of real data
+ taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
+ taskparams.environment.gpsspacesegment.PR_BETA2 = 4; % time constant
+ taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005; % time constant   
+ taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003; % standard deviation            
             
-  %%%%% platforms %%%%%
-  % Configuration and initial state for each of the platforms
-  taskparams.platforms(1).configfile = 'pelican_config';
-  taskparams.platforms(1).X = [0;0;-20;0;0;0]; % initial position
-
-  %%%%% visualization %%%%%
-  taskparams.display3d.on = 1;
-  taskparams.display3d.width = 1000;
-  taskparams.display3d.height = 600;            
+ % Wind - a steady omogeneous wind common to all helicopters
+ taskparams.environment.wind.on = 0;
+ taskparams.environment.wind.type = 'WindConstMean';
+ askparams.environment.wind.direction = deg2rad(45); %mean wind direction
+ taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
+            
+ %%%%% platforms %%%%%
+ % Configuration and initial state for each of the platforms
+ taskparams.platforms(1).configfile = 'pelican_config';
+ taskparams.platforms(1).X = [0;0;-10;0;0;0];       
 end
 \end{lstlisting}
 returns a data structure that contains general fields like the simulator time step \texttt{taskparams.DT} and the seed of the pseudo-random number generator (\texttt{taskparams.seed}), fields for each of the environment objects (\texttt{taskparams.environment}), and for each of the platforms (\texttt{taskparams.platforms}). The fields depend on the number and type of objects, but by convention we name:
@@ -227,14 +237,14 @@ returns a data structure that contains general fields like the simulator time st
 \item \texttt{type}, the class name of the object.
 \end{itemize}
 
-The number of sensors and parameters present in a platform would make defining several identical platforms quite cumbersome. For this reason all the platform parameters are specified in a single configuration file (see \texttt{'pelican\_config'}); in this way the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform using the parameter \texttt{taskparams.platforms(1).X} (see line 38).
+The number of sensors and parameters present in a platform would make defining several identical platforms quite cumbersome. For this reason all the platform parameters are specified in a single configuration file (see \texttt{'pelican\_config'}); in this way the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform using the parameter \texttt{taskparams.platforms(1).X} (see line 51).
 
 Lastly we see the \texttt{taskparams.display3d} parameters which allow to specify if the 3D visualization is active and the size of the window used for its rendering. 
 
-As already explained, a task must also define a reward function. For the KeepSpot task a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
+As already explained, a task must also define a reward function. For the TaskKeepSpot task a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
 Such a function gives higher rewards to a policy that maintain the quadrotor close to the starting point but also keeps it level (i.e. \texttt{X(4:6)=0}) and minimizes linear and rotational velocities (i.e. \texttt{X(7:12)=0}).
 
-\begin{lstlisting}[float=ht!bp,caption=KeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]
+\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]
 function r=reward(obj)
   global state;
 
@@ -243,10 +253,10 @@ function r=reward(obj)
   r = - e' * e; 
 end
 \end{lstlisting}
-The complete listing for this task can be found in the file \texttt{KeepSpot.m}.  
+The complete listing for this task can be found in the file \texttt{TaskKeepSpot.m}.  
 
 \section{Example Main}
-To clarify the use of the simulator through the \snamettt object, we shall present a simple example of use; namely we will use a manually designed PID controller to achieve the behavior required by the \texttt{KeepSpot} task\footnote{We want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very conservative controller and its performance are very much suboptimal. This said it might still be useful as a baseline for comparisons.}.
+To clarify the use of the simulator through the \snamettt object, we shall present a simple example of use\footnote{Source code in the directory \texttt{example}}; namely we will use a manually designed PID controller to achieve the behavior required by the \texttt{TaskKeepSpot} task\footnote{We want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very conservative controller and its performance are suboptimal. This said it might still be useful as a baseline for comparisons.}.
 
 Listing \ref{lst:main} shows the code of this bare bone example. 
 
@@ -257,35 +267,41 @@ global state;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('KeepSpot');
+qrsim.init('TaskKeepSpot');
 
 % number of steps we run the simulation for
 N = 3000;
 
+% initial position of the helicopter
+wp = [state.platforms(1).getX(1:3)',0];
+
+tstart = tic;
+
 for i=1:N,
-    tloop=tic;    
+    tloop=tic;
 
-    % compute controls
-    U=quadrotorPID(state.platforms(1).eX,state.platforms(1).params.X(1:3));
-    
-    % step simulator 
+    % compute controls based on the ESTIMATED state 
+    U = quadrotorPID(state.platforms(1).getEX(),wp);
+
+    % step simulator
     qrsim.step(U);
-
+    
     % get reward
     % qrsim.reward();
-
+    
     % wait so to run in real time
-    wait = max(0,state.DT-toc(tloop));   
-    pause(wait);    
+    wait = max(0,state.DT-toc(tloop));
+    pause(wait);
 end
+elapsed = toc(tstart);
 \end{lstlisting}
 Before anything else we are required to initialize the global structure \texttt{state} that will hold the simulator state and give access to the quadrotor state. Next, instantiating the \snamettt object will make sure that all the functions and classes of the simulator are reachable; is then possible to load all the task parameters by calling \texttt{qrsim.init()}. 
 
-The main for loop (see line 12) drives the simulation forward by calling in sequence the PID controller and the \texttt{qrsim.step(U)} method; given the current state of the platform, the PID computes the new control action  \texttt{U} which is then used to step the dynamics forward in time.
+The main for loop (see line 17) drives the simulation forward by calling in sequence the PID controller and the \texttt{qrsim.step(U)} method; given the current state of the platform, the PID computes the new control action  \texttt{U} which is then used to step the dynamics forward in time.
 
-Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing (line 22) we show the call commented out since this is where normally the reward would be computed.
+Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing (line 27) we show the call commented out since this is where normally the reward would be computed.
 
-Since the task defines to run the simulation with the 3D visualization, it makes sense to run it in real time, therefore line 25 introduces the necessary pause.  
+Since the task defines to run the simulation with the 3D visualization, it makes sense to run it in real time, therefore line 30 introduces the necessary pause.  
 
 
 \begin{figure}
@@ -300,6 +316,7 @@ Figure \ref{fig:3d} shows a snapshot from the 3D visualization of the simulator 
 
 There is obviously no need to define a specific main script like the one presented above, in certain application for instance it might make more sense to call the \snamettt directly from  a learning algorithm; this is perfectly fine as long as the calls are executed in the same sequence shown in listing \ref{lst:main}.
 
+An additional example called \texttt{main10.m} is also present in the example directory and shows how to generalize the \texttt{TaskKeepSpot} to a group of ten helicopters.
 
 \appendix
 \chapter{Implementation Details}
@@ -332,9 +349,9 @@ We also define first several of the variable that are used in the simulator:
    $\phi$ & roll attitude in Euler angles right-hand ZYX convention & $rad$\\
  $\theta$ & pitch attitude in Euler angles right-hand ZYX convention & $rad$\\
    $\psi$ & yaw attitude in Euler angles right-hand ZYX convention  & $rad$\\
-     $u$  & linear velocity along x body axis                      & $m/s$\\
-     $v$  & linear velocity along y body axis                      & $m/s$\\
-     $w$  & linear velocity along z body axis                      & $m/s$\\
+     $u$  & linear velocity along x body axis                       & $m/s$\\
+     $v$  & linear velocity along y body axis                       & $m/s$\\
+     $w$  & linear velocity along z body axis                       & $m/s$\\
      $p$  & rotational velocity around x body axis                  & $rad/s$\\ 
      $q$  & rotational velocity around y body axis                  & $rad/s$\\ 
      $r$  & rotational velocity around z body axis                  & $rad/s$\\ 
@@ -370,7 +387,7 @@ We also define first several of the variable that are used in the simulator:
 \begin{tabular}{lll}
     $u_{pt}$ & pitch command & $rad$\\
     $u_{rl}$ & roll command & $rad$\\
-    $u_{th}$ & throttle command & unit less \\
+    $u_{th}$ & throttle command & unitless \\
     $u_{ya}$ & yaw command & $rad/s$\\
     $V_b$  & battery voltage & V
 \end{tabular}
@@ -409,6 +426,8 @@ In the case of the yaw motion the control input to the pelican platform takes th
 \end{equation}
 Again the constants were obtained from flight data. 
 
+A Gaussian white noise component is added to each of the angular velocity derivatives in order to account for those effects that are not captured by the model. 
+
 \subsubsection{Translational Dynamics}
 
 In the case of the translational dynamics the first relationship to capture is the one between the throttle control input ($u_{th}$) and the thrust force ($F_{th}$) experienced by the quadrotor. 
@@ -436,9 +455,10 @@ Given $F_{th}$, the gravity force in body coordinates $g_b$ and the wind velocit
 Where $m$ is the mass of the quadrotor and the the terms $K_{uv}(u-u_w)$,$K_{uv}(v-v_w)$ and $K_w(w-w_w)$ are the effects of the aerodynamic drag. The first two terms on the right hand side of the equations are needed to take into account the fact that the linear velocities $u,v,w$ are expressed in a rotating frame. 
  
 Equations (\ref{eqn:p})-(\ref{eqn:r}) and (\ref{eqn:u})-(\ref{eqn:w}) provide the state update equations which are numerically integrated in order to simulate the time evolution of the state variables.
-The interested reader can find the implementation of the model presented in this section in the file \texttt{pelicanODE.m}.  
 
-%% noise?
+Similarly to the rotational dynamics even for the translational velocity derivatives we consider an additive Gaussian white noise component in order to account for those effects that are not captured by the model. 
+
+The interested reader can find the implementation of the model presented in this section in the file \texttt{pelicanODE.m}.  
 
 \section{Sensors}
 
