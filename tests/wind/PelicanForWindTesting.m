@@ -71,7 +71,7 @@ classdef PelicanForWindTesting<Pelican
                 %wind and turbulence this closely mimic the Simulink example "Lightweight Airplane Design"
                 % asbSkyHogg/Environment/WindModels
                 state.i=state.i+1;
-                state.simin(state.i,:)=[state.t,m2ft(-obj.X(3)),m2ft(norm(obj.X(7:9))),obj.X(4),obj.X(5),obj.X(6)];
+                state.simin(state.i,:)=[state.t-obj.dt,m2ft(-obj.X(3)),m2ft(norm(obj.X(7:9))),obj.X(4),obj.X(5),obj.X(6)];
                 
                 meanWind = state.environment.wind.getLinear(obj.X);                
                 state.meanwindfts(state.i,:)=m2ft(meanWind');
