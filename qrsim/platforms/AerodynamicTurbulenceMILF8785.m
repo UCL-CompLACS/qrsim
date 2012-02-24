@@ -37,10 +37,10 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
     %
     properties (Constant)
         Z0 = 0.15; % feet
-        Vof = 0.5; % velocity offset
     end
     
     properties (Access=protected)
+        Vof = 0.5;                % velocity offset
         w6;                       %velocity at 6m from ground in m/s
         vgust_windframe;          % aerodynamic turbulence in relative wind coords Knots
         vgust;                    % aerodynamic turbulence in body coords m/s

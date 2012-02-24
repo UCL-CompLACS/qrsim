@@ -19,7 +19,7 @@ classdef WindConstMean<Wind
         Z0 = 0.15; % feet
     end
     
-    properties (Access=private)
+    properties (Access=protected)
         direction;         % mean wind direction rad clockwise from north
         w6;                % velocity at 6m from ground in m/s
         hOrigin;           % origin reference altitude  

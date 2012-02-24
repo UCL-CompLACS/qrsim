@@ -16,6 +16,7 @@ classdef AerodynamicTurbulenceMILF8785ForTesting<AerodynamicTurbulenceMILF8785
             %
            
             obj=obj@AerodynamicTurbulenceMILF8785(objparams);
+            obj.Vof = 0;
         end
         
         

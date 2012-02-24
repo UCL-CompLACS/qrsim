@@ -7,7 +7,7 @@ close all;
 
 e = 0;
 
-plots = 1;
+plots = 0;
 
 cd('wind');
 
@@ -342,7 +342,7 @@ objparams.zOrigin = 0;
 X = [0;0;-ft2m(hft);phi;theta;psi;V;0;0;0;0;0];
 
 objparams.W6 = ft2m(W20ft);
-state.turbModel = AerodynamicTurbulenceMILF8785(objparams);
+state.turbModel = AerodynamicTurbulenceMILF8785ForTesting(objparams);
 state.rStreams = RandStream.create('mrg32k3a','seed',sum(100*clock),'NumStreams',state.numRStreams,'CellOutput',1);
 
 state.turbModel.setState(X);
