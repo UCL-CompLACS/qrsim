@@ -9,7 +9,7 @@ fprintf('during the test you might see warnings from the mex compiler,\n these a
 
 addpath(pwd());
 
-cd(['..',filesep,'qrsim',filesep,'core',filesep,'functions']);
+cd(['..',filesep,'sim',filesep,'core',filesep,'functions']);
 
 tol =  1e-20;
 

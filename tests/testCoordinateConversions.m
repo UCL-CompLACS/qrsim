@@ -10,7 +10,7 @@ fprintf('during the test you might see warnings from the mex compiler,\n these a
 % assumes to be running from the test directory
 
 addpath(pwd());
-cd(['..',filesep,'qrsim',filesep,'core',filesep,'functions']);
+cd(['..',filesep,'sim',filesep,'core',filesep,'functions']);
 
 rehash();
 
