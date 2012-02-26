@@ -28,6 +28,28 @@
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[] ) {
     
+    double* X;
+    double* U;
+    double dt;
+    double* Xdot;  
+    double* a;     
+    double pt,rl,th,ya,vb;    
+    double windx,windy,windz;
+    double mass;    
+    double phi,theta,psi;
+    double u,v,w;
+    double p,q,r;
+    double Fth;
+    double sph,cph;
+    double sth,cth,tth;
+    double sps,cps;        
+    double dcm[3][3];
+    double dFth;
+    double tau;
+    double gb[3];
+    double ra[3];    
+    int i;    
+    
     /* Check for proper number and size of arguments */
     if (nrhs != 3) {
         mexErrMsgTxt("Three input arguments required.");
@@ -48,44 +70,43 @@ void mexFunction( int nlhs, mxArray *plhs[],
     }
     
     /* get pointers */
-    double* X = mxGetPr(prhs[0]);
-    double* U = mxGetPr(prhs[1]);
-    double dt = *mxGetPr(prhs[2]);
+    X = mxGetPr(prhs[0]);
+    U = mxGetPr(prhs[1]);
+    dt = *mxGetPr(prhs[2]);
     
     /* Create a matrix for the return arguments */
     plhs[0] = mxCreateDoubleMatrix(13, 1, mxREAL);
-    double* Xdot = mxGetPr(plhs[0]);  
+    Xdot = mxGetPr(plhs[0]);  
     plhs[1] = mxCreateDoubleMatrix(3, 1, mxREAL);  
-    double* a = mxGetPr(plhs[1]); 
+    a = mxGetPr(plhs[1]); 
     
-    const double pt = U[0];
-    const double rl = U[1];
-    const double th = U[2];
-    const double ya = U[3];
-    const double vb = U[4];
+    pt = U[0];
+    rl = U[1];
+    th = U[2];
+    ya = U[3];
+    vb = U[4];
     
-    const double windx = U[5];
-    const double windy = U[6];    
-    const double windz = U[7];
-    const double mass = U[8];
+    windx = U[5];
+    windy = U[6];    
+    windz = U[7];
+    mass = U[8];
     
-    const double phi = X[3];
-    const double theta = X[4];
-    const double psi = X[5];
-    const double u = X[6];
-    const double v = X[7];
-    const double w = X[8];
-    const double p = X[9];
-    const double q = X[10];
-    const double r = X[11];
-    const double Fth = X[12];
+    phi = X[3];
+    theta = X[4];
+    psi = X[5];
+    u = X[6];
+    v = X[7];
+    w = X[8];
+    p = X[9];
+    q = X[10];
+    r = X[11];
+    Fth = X[12];
     
     /* handy values */
-    const double sph = sin(phi); const double cph = cos(phi);
-    const double sth = sin(theta); const double cth = cos(theta); const double tth = sth/cth;
-    const double sps = sin(psi); const double cps = cos(psi);
-        
-    double dcm[3][3];    
+    sph = sin(phi); cph = cos(phi);
+    sth = sin(theta); cth = cos(theta); tth = sth/cth;
+    sps = sin(psi); cps = cos(psi);
+           
     dcm[0][0] = cth*cps;
     dcm[0][1] = -cph*sps+sph*sth*cps;
     dcm[0][2] = sph*sps+cph*sth*cps;
@@ -124,9 +145,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /*linear velocities (body frame) */
     
     /* first we update the thrust force */
-    const double dFth = ((Cth0 + Cth1*th + Cth2*th*th)-Fth);
-    
-    double tau;
+    dFth = ((Cth0 + Cth1*th + Cth2*th*th)-Fth);
+        
     if (th<LOW_THROTTLE_LIMIT){
         Xdot[12] = tau0*dFth;
     } else {
@@ -148,12 +168,12 @@ void mexFunction( int nlhs, mxArray *plhs[],
     }
     
     /* gravity in body frame */
-    const double gb[3] = {dcm[2][0]*G, dcm[2][1]*G, dcm[2][2]*G};
+    gb[0] = dcm[2][0]*G; gb[1] = dcm[2][1]*G; gb[2] = dcm[2][2]*G;
     
     /*resultant acceleration in body frame */
     /*note: thrust force always orthogonal to the rotor */
     /*plane i.e. in the  -Z body direction */
-    const double ra[3] = {gb[0], gb[1], gb[2]-((Fth+Xdot[12]*dt)/mass)};
+    ra[0] = gb[0]; ra[1] = gb[1]; ra[2] = gb[2]-((Fth+Xdot[12]*dt)/mass);
     
     Xdot[6] = -q*w + r*v + ra[0] + kuv*(u-windx);
     Xdot[7] = -r*u + p*w + ra[1] + kuv*(v-windy);
@@ -163,7 +183,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     a[1]=Xdot[7]-gb[1];   
     a[2]=Xdot[8]-gb[2];    
     
-    int i;
     for(i=0; i<6; i++){
         Xdot[6+i]+=U[9+i];
     }

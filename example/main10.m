@@ -12,7 +12,7 @@ clear global pid;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskKeepSpot');
+qrsim.init('TaskKeepSpot10');
 
 % number of steps we run the simulation for
 N = 3000;

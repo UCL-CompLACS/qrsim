@@ -41,7 +41,7 @@ classdef TaskKeepSpot10<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-120 120 -10 10 -20 0];
+            taskparams.environment.area.limits = [-120 120 -10 10 -40 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
