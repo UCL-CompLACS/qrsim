@@ -14,7 +14,7 @@ function [mu,sigma,tau] = computeGMparameters(S,delta)
   b  = ( Sy - a*Sx ) / n;
   sd = sqrt( (n*Syy - Sy^2 - a*(n*Sxy - Sx*Sy) )/n/(n-2) );
  
-  tau = delta/(1-a);
+  tau = -log(a)/delta;
   mu     = b/(1-a);
   sigma  =  sd;
 end

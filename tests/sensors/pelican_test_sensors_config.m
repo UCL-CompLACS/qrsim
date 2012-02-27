@@ -27,7 +27,7 @@ c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limi
     -15,15;-15,15;-15,15;... % linear velocity limits
     -2,2;-2,2;-2,2]; %rotational velocity limits
     
-c.collisionDistance = 2; % two platforms colser than this distance are deemed in collision 
+c.collisionDistance = 2; % two platforms closer than this distance are deemed in collision 
 c.dynNoise = [0;0;0;0;0;0];
 
 % GPS Receiver
@@ -51,14 +51,14 @@ c.sensors.ahars.gyroscope.SIGMA = [0.0002;0.0002;0.0002]; % noise standard devia
 c.sensors.ahars.orientationEstimator.on = 1; % if off the estimator returns the noiseless orientation
 c.sensors.ahars.orientationEstimator.type = 'OrientationEstimatorGMForTesting';
 c.sensors.ahars.orientationEstimator.dt = 0.02;
-c.sensors.ahars.orientationEstimator.BETA = [1/80;1/80;1/80];       % noise time constant
-c.sensors.ahars.orientationEstimator.SIGMA = [0.003536;0.003536;0.003536];   % noise standard deviation
+c.sensors.ahars.orientationEstimator.BETA = [1/8;1/8;1/8];       % noise time constant
+c.sensors.ahars.orientationEstimator.SIGMA = [0.003;0.003;0.003];   % noise standard deviation
    
 c.sensors.ahars.altimeter.on = 1; % if off the altimeter returns the noiseless altitude
 c.sensors.ahars.altimeter.type = 'AltimeterGMForTesting';
 c.sensors.ahars.altimeter.dt = 0.02;
-c.sensors.ahars.altimeter.TAU = 1/300;      % noise time constant
-c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
+c.sensors.ahars.altimeter.TAU = 1/3;      % noise time constant
+c.sensors.ahars.altimeter.SIGMA = 0.003;       % noise standard deviation
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;

@@ -1,4 +1,4 @@
-function [e]=testSensorsNoiseModels()
+%function [e]=testSensorsNoiseModels()
 
 addpath('sensors');
 
@@ -7,11 +7,11 @@ close all;
 clc;
 e = 1;
 
-TOLFACTOR = 0.1;
+TOLFACTOR = 0.4;
 MEANTOL = 1e-2;
 global state;
 
-N = 1000000;
+N = 50000;
 
 % some buffuers
 eX=zeros(20,N);
@@ -37,8 +37,9 @@ for i=1:N
     eX(:,i)=state.platforms(1).getEX();
     X(:,i)=state.platforms(1).getX();
     
+    
     if(mod(i,1000)==0)
-        fprintf('.');
+        fprintf('%d\n',i);
     end
     a(:,i)=state.platforms(1).getA();
 end
@@ -107,7 +108,7 @@ end
 % work out altitude error
 eh = eX(17,:)+X(3,:);
 
-[mu,sigma,tau] = computeOUparameters(eh,state.platforms(1).getAHARS().getAltimeter().getDt());
+[mu,sigma,tau] = computeGMparameters(eh,state.platforms(1).getAHARS().getAltimeter().getDt());
 
 SIGMA = state.platforms(1).getAHARS().getAltimeter().getSigma();
 TAU = state.platforms(1).getAHARS().getAltimeter().getTau();
@@ -123,6 +124,6 @@ if((abs(mu) > MEANTOL) || ...
         e = e && 0; 
 end
 
-rmpath('sensors');
+%rmpath('sensors');
 
-end
+%end
