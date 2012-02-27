@@ -47,78 +47,78 @@ e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,p
 %%% wind direction
 
 Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi/4;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,11);
 
 Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi/2;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,12);
 
 Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=3*pi/4;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,13);
 
 Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=pi;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,14);
 
 Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=9*pi/8;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,15);
 
 Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=7*pi/4;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,16);
 
 Vfts = 20; hft = 20; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=15*pi/8;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,17);
 
 %%% orientations
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/8; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,18);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/4; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,19);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 3*pi/8; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,20);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = pi/2; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,21);
 
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/8; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,22);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/4; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,23);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 3*pi/8; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,24);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/2; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,25);
 
 
 Vfts = 100; hft = 50; W20ft = 10; phi = pi/8; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,26);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = pi/4; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,27);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 3*pi/8; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,28);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = pi/2; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,29);
 
 
 Vfts = 100; hft = 50; W20ft = 10; phi = pi/4; theta = 0; psi = 3*pi/8; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,30);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = pi/8; theta =  pi/4; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,31);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = pi/4; psi = pi/4; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,32);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 3*pi/8; theta = pi/4; psi = pi/8; dir=0;
-e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('simulink',W20ft,Vfts,dir,hft,phi,theta,psi,plots,33);
 
 
 %%% full qrsim tests with wind shear and direction changes 
