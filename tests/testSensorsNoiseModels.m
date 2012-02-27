@@ -39,7 +39,7 @@ for i=1:N
     
     
     if(mod(i,1000)==0)
-        fprintf('%d\n',i);
+        fprintf('.');
     end
     a(:,i)=state.platforms(1).getA();
 end
