@@ -15,34 +15,34 @@ cd('wind');
 %%% model parameters
 
 Vfts = 1; hft = 5; W20ft = 1; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,1);
 
-Vfts = 10; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+Vfts = 10; hft = 20; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,2);
 
 Vfts = 100; hft = 50; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,3);
 
 Vfts = 10; hft = 5; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,4);
 
 Vfts = 10; hft = 100; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,5);
 
 Vfts = 30; hft = 100; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,6);
 
 Vfts = 20; hft = 500; W20ft = 20; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,7);
 
 Vfts = 10; hft = 10; W20ft = 1; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,8);
 
 Vfts = 10; hft = 10; W20ft = 10; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,9);
 
 Vfts = 10; hft = 10; W20ft = 100; phi = 0; theta = 0; psi = 0; dir=0;
-e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots);
+e = e | runTurbulenceAndCompare('theoretical',W20ft,Vfts,dir,hft,phi,theta,psi,plots,10);
 
 %%% wind direction
 
@@ -303,7 +303,7 @@ clear global pid;
 
 end
 
-function e = runTurbulenceAndCompare(reference,W20ft,Vfts,dir,hft,phi,theta,psi,plots)
+function e = runTurbulenceAndCompare(reference,W20ft,Vfts,dir,hft,phi,theta,psi,plots,seed)
 
 TOL = 6;
 N = 20000;
@@ -343,7 +343,7 @@ X = [0;0;-ft2m(hft);phi;theta;psi;V;0;0;0;0;0];
 
 objparams.W6 = ft2m(W20ft);
 state.turbModel = AerodynamicTurbulenceMILF8785ForTesting(objparams);
-state.rStreams = RandStream.create('mrg32k3a','seed',sum(100*clock),'NumStreams',state.numRStreams,'CellOutput',1);
+state.rStreams = RandStream.create('mrg32k3a','seed',seed,'NumStreams',state.numRStreams,'CellOutput',1);
 
 state.turbModel.setState(X);
 state.turbModel.reset();

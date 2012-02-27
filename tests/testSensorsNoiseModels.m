@@ -1,4 +1,4 @@
-%function [e]=testSensorsNoiseModels()
+function [e]=testSensorsNoiseModels()
 
 addpath('sensors');
 
@@ -124,6 +124,6 @@ if((abs(mu) > MEANTOL) || ...
         e = e && 0; 
 end
 
-%rmpath('sensors');
+rmpath('sensors');
 
-%end
+end
