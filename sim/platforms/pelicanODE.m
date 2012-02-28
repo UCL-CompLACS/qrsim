@@ -2,7 +2,7 @@ function [xdot,a] = pelicanODE(X,U,dt)
 %PELICANODE set of ODE that represent the platform dynamic
 
 LOW_THROTTLE_LIMIT = 300;
-MAX_ANGVEL=deg2rad(150);
+MAX_ANGVEL=degsToRads(150);
 G = 9.81;
 
 % rotational params

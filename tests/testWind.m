@@ -196,9 +196,9 @@ load_system('wind_and_turb_comparison');
 set_param('wind_and_turb_comparison','StopTime',num2str((N-1)*state.DT));
 set_param('wind_and_turb_comparison','FixedStep',num2str(state.DT));
 set_param('wind_and_turb_comparison/shear_model','W_20',num2str(m2ft(state.environment.wind.getW6())));
-set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(rad2deg(state.environment.wind.getDirection())));
+set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(radsToDegs(state.environment.wind.getDirection())));
 set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(m2ft(state.platforms(1).getAerodynamicTurbulence().getW6())));
-set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(rad2deg(state.platforms(1).getAerodynamicTurbulence().getDirection())));
+set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(radsToDegs(state.platforms(1).getAerodynamicTurbulence().getDirection())));
 set_param('wind_and_turb_comparison/dryden_turb_model','ts',num2str(state.DT));
 simOut = sim('wind_and_turb_comparison','SaveState','off');
 
@@ -379,9 +379,9 @@ else
     set_param('wind_and_turb_comparison','StopTime',num2str((N-1)*state.DT));
     set_param('wind_and_turb_comparison','FixedStep',num2str(state.DT));
     set_param('wind_and_turb_comparison/shear_model','W_20',num2str(W20ft));
-    set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(rad2deg(dir)));
+    set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(radsToDegs(dir)));
     set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(W20ft));
-    set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(rad2deg(dir)));
+    set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(radsToDegs(dir)));
     set_param('wind_and_turb_comparison/dryden_turb_model','ts',num2str(state.DT));
     simOut = sim('wind_and_turb_comparison','SaveState','off');
 

@@ -20,8 +20,8 @@ f  = 1/298.257223563;
 % equatorial radius
 R =  6378137;
 
-phi = deg2rad(lla(1,:));
-lambda = deg2rad(lla(2,:));
+phi = degsToRads(lla(1,:));
+lambda = degsToRads(lla(2,:));
 h = lla(3,:);
 
 a  = R;

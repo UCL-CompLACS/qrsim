@@ -7,7 +7,7 @@
 #define e2  0.006694379990141     /*Square of first eccentricity*/
 #define ep2 0.006739496742276     /*Square of second eccentricity*/
 #define b   6356752.314245179     /*Semiminor axis*/
-#define rad2deg  57.295779513082323
+#define radsToDegs  57.295779513082323
 
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[] ) {
@@ -92,8 +92,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
         N = a / sqrt(1 - e2 * sphi* sphi);
         h = rho * cphi + (z + e2 * N* sphi) * sphi - N;
         
-        lla[i*3] = rad2deg*phi;
-        lla[i*3+1] = rad2deg*lambda;
+        lla[i*3] = radsToDegs*phi;
+        lla[i*3+1] = radsToDegs*lambda;
         lla[i*3+2] =h;
     }
     

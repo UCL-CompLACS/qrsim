@@ -4,7 +4,7 @@
 
 #define a   6378137               /*Semimajor axis*/
 #define e2  0.006694379990141     /*Square of first eccentricity*/
-#define deg2rad  0.017453292519943
+#define degsToRads  0.017453292519943
 
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[] ) {
@@ -46,8 +46,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     for(i=0; i<cols; i++){        
         
-        phi = deg2rad*lla[i*3];
-        lambda = deg2rad*lla[1+i*3];
+        phi = degsToRads*lla[i*3];
+        lambda = degsToRads*lla[1+i*3];
         h = lla[2+i*3];        
         
         sinphi = sin(phi);

@@ -41,7 +41,7 @@ classdef Pelican<Steppable & Platform
     %
     properties (Constant)
         CONTROL_LIMITS = [-0.9,0.9; -0.9,0.9; 0,1; -4.5,4.5; 9,12]; %limits of the control inputs
-        SI_2_UAVCTRL = [-1/deg2rad(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversion factors
+        SI_2_UAVCTRL = [-1/degsToRads(0.025);-1/deg2rad(0.025);4097;-1/deg2rad(254.760/2047);1]; % conversion factors
         BATTERY_RANGE = [9,12]; % range of valid battery values volts
         % The parameters of the system dynamics are defined in the
         % pelicanODE function

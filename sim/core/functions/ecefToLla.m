@@ -60,4 +60,4 @@ sinphi = sin(phi);
 N = a ./ sqrt(1 - e2 * sinphi.^2);
 h = rho .* cos(phi) + (z + e2 * N .* sinphi) .* sinphi - N;
 
-lla = [rad2deg(phi) rad2deg(lambda) h]';
+lla = [radsToDegs(phi) radsToDegs(lambda) h]';

@@ -1,4 +1,4 @@
-function deg = rad2deg(rad)
+function deg = radsToDegs(rad)
 % DEG2RAD Converts  angles from radians to degrees
 %   DEG = DEG2RAD(RAD)
 %  
