@@ -85,8 +85,8 @@ classdef WindConstMean<Wind
             %           v - 3 by 1 wind velocity vector in body coordinates
             %
             
-            z = m2ft(obj.hOrigin-X(3)); %height of the platform from ground
-            w20 = m2ft(obj.w6);
+            z = mToFt(obj.hOrigin-X(3)); %height of the platform from ground
+            w20 = mToFt(obj.w6);
             
             % wind shear
             if(z>0.05)
@@ -96,7 +96,7 @@ classdef WindConstMean<Wind
             end
             
             vmeanbody = dcm(X)*vmean;
-            v = ft2m(vmeanbody);
+            v = ftToM(vmeanbody);
         end
         
         function v = getRotational(~,~)

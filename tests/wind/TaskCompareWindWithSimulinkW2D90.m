@@ -84,7 +84,7 @@ classdef TaskCompareWindWithSimulinkW2D90<Task
             taskparams.environment.wind.on = 1;
             taskparams.environment.wind.type = 'WindConstMeanForTesting';
             taskparams.environment.wind.direction = degsToRads(90); %mean wind direction, rad clockwise from north set to [] to initialise it randomly
-            taskparams.environment.wind.W6 = ft2m(2);  % velocity at 6m from ground in m/s
+            taskparams.environment.wind.W6 = ftToM(2);  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms

@@ -1,4 +1,4 @@
-function m = ft2m( ft )
+function m = ftToM( ft )
 % FT2M Converts from feet to meters
 %   M = FT2M(FT)
 %  

@@ -195,9 +195,9 @@ evalin('base','simin=state.simin;');
 load_system('wind_and_turb_comparison');
 set_param('wind_and_turb_comparison','StopTime',num2str((N-1)*state.DT));
 set_param('wind_and_turb_comparison','FixedStep',num2str(state.DT));
-set_param('wind_and_turb_comparison/shear_model','W_20',num2str(m2ft(state.environment.wind.getW6())));
+set_param('wind_and_turb_comparison/shear_model','W_20',num2str(mToFt(state.environment.wind.getW6())));
 set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(radsToDegs(state.environment.wind.getDirection())));
-set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(m2ft(state.platforms(1).getAerodynamicTurbulence().getW6())));
+set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(mToFt(state.platforms(1).getAerodynamicTurbulence().getW6())));
 set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(radsToDegs(state.platforms(1).getAerodynamicTurbulence().getDirection())));
 set_param('wind_and_turb_comparison/dryden_turb_model','ts',num2str(state.DT));
 simOut = sim('wind_and_turb_comparison','SaveState','off');
@@ -312,7 +312,7 @@ T = 0.01;
 msg = [' V=',num2str(Vfts),' h=',num2str(hft),' ori=[',num2str([phi,theta,psi]),'] dir=',num2str(dir)];
 
 fs=1/T;
-V = ft2m(Vfts);
+V = ftToM(Vfts);
 
 sigmaw = 0.1*W20ft;
 sigmau = sigmaw/(0.177+0.000823*hft)^0.4;
@@ -335,13 +335,13 @@ state.numRStreams = 0;
 objparams.DT = T;
 objparams.dt = T;
 objparams.on = 1;
-objparams.W6 = ft2m(W20ft);
+objparams.W6 = ftToM(W20ft);
 objparams.direction = dir;
 objparams.zOrigin = 0;
 
-X = [0;0;-ft2m(hft);phi;theta;psi;V;0;0;0;0;0];
+X = [0;0;-ftToM(hft);phi;theta;psi;V;0;0;0;0;0];
 
-objparams.W6 = ft2m(W20ft);
+objparams.W6 = ftToM(W20ft);
 state.turbModel = AerodynamicTurbulenceMILF8785ForTesting(objparams);
 state.rStreams = RandStream.create('mrg32k3a','seed',seed,'NumStreams',state.numRStreams,'CellOutput',1);
 
@@ -351,7 +351,7 @@ uvwm = zeros(3,N);
 
 for i=1:N
     state.turbModel.step(X);
-    uvwm(:,i) = m2ft(state.turbModel.getLinear([]));
+    uvwm(:,i) = mToFt(state.turbModel.getLinear([]));
 end
 
 [Pmuu,f]=pwelch(uvwm(1,:),rectwin(2^12),0, 2^12,fs);

@@ -72,7 +72,7 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 c.aerodynamicturbulence.on = 1;
 c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785ForTesting';
 c.aerodynamicturbulence.direction = 0; % mean wind direction, (rad clockwise from north set to [] to initialise randomly)
-c.aerodynamicturbulence.W6 = ft2m(2);  % velocity at 6m from ground in m/s
+c.aerodynamicturbulence.W6 = ftToM(2);  % velocity at 6m from ground in m/s
 
 % Graphics
 c.graphics.type = 'PelicanGraphics';
