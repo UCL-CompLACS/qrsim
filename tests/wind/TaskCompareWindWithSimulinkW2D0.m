@@ -1,4 +1,4 @@
-classdef TaskCompareWindWithSimulinkW2D0<Task
+classdef TaskCompareWindWithSimulinkW2D0<BaseTask
     % Simple task in which a qudrotor has to keep its starting position despite the wind.
     % Single platform task which requires to maintain the quadrotor hovering at the 
     % position it has when the task starts; the solution requires non constant control 

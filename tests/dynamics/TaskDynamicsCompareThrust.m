@@ -1,4 +1,4 @@
-classdef TaskDynamicsCompareThrust<Task
+classdef TaskDynamicsCompareThrust<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

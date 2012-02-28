@@ -1,4 +1,4 @@
-classdef TaskNoPlatformGraphicsType<Task
+classdef TaskNoPlatformGraphicsType<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

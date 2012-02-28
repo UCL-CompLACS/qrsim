@@ -1,4 +1,4 @@
-classdef TaskTwoUAVS<Task
+classdef TaskTwoUAVS<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

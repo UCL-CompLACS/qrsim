@@ -1,4 +1,4 @@
-classdef TaskPlatformGPSReceiverOff<Task
+classdef TaskPlatformGPSReceiverOff<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

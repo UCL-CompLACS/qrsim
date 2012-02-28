@@ -1,4 +1,4 @@
-classdef TaskNoGPSSpacesegmenttSVSA<Task
+classdef TaskNoGPSSpacesegmenttSVSA<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

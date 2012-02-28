@@ -1,4 +1,4 @@
-classdef TaskNoSeed<Task
+classdef TaskNoSeed<BaseTask
     % Task used to test assertions on seed
     %
     methods (Sealed,Access=public)

@@ -1,4 +1,4 @@
-classdef TaskDisplay3DOff<Task
+classdef TaskDisplay3DOff<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

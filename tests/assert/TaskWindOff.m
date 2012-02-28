@@ -1,4 +1,4 @@
-classdef TaskWindOff<Task
+classdef TaskWindOff<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

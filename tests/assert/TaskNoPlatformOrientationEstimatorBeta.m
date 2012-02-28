@@ -1,4 +1,4 @@
-classdef TaskNoPlatformOrientationEstimatorBeta<Task
+classdef TaskNoPlatformOrientationEstimatorBeta<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

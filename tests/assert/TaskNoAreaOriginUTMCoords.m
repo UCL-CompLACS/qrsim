@@ -1,4 +1,4 @@
-classdef TaskNoAreaOriginUTMCoords<Task
+classdef TaskNoAreaOriginUTMCoords<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

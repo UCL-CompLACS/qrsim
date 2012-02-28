@@ -1,4 +1,4 @@
-classdef TaskPlatformGyroscopeOff<Task
+classdef TaskPlatformGyroscopeOff<BaseTask
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
