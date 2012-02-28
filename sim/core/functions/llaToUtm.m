@@ -1,7 +1,7 @@
-function  [E,N,utmzone,h] = lla2utm(lla)
-% LLA2UTM Converts geodetic coordinates to UTM coordinates.
+function  [E,N,utmzone,h] = llaToUtm(lla)
+% LLATOUTM Converts geodetic coordinates to UTM coordinates.
 %
-% [E,N,UTMZONE,H] = LLA2UTM( LLA ) converts an 3-by-N array of geodetic coordinates
+% [E,N,UTMZONE,H] = LLATOUTM( LLA ) converts an 3-by-N array of geodetic coordinates
 % (latitude, longitude and altitude), LLA, to 4 1-by-N arrays of UTM coordinates.
 % LLA is in [degrees degrees meters].  E is in meters, N is in meters, H is in meters,
 % UTMZONE is a 3char string.
@@ -10,7 +10,7 @@ function  [E,N,utmzone,h] = lla2utm(lla)
 %
 % Examples:
 %
-%      [E,N,utmzone,h] = lla2utm([51.71190;-0.21052;0])
+%      [E,N,utmzone,h] = llaToUtm([51.71190;-0.21052;0])
 %
 
 % Argument checking
@@ -67,7 +67,7 @@ for i=1:n2
     lon=lla(2,i);
     
     if((abs(lat)>90)||(abs(lon)>180))
-        error('lla2utm: invalid WGS84 coordinates');
+        error('llaToUtm: invalid WGS84 coordinates');
     end
     
     zone = fix( ( lon / 6 ) + 31);

@@ -26,7 +26,7 @@ classdef TaskNoGPSSpacesegmenttSVSA<Task
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and 
             % gpsspacesegment.svs need to be changed
-            [E N zone h] = lla2utm([51.71190;-0.21052;0]);
+            [E N zone h] = llaToUtm([51.71190;-0.21052;0]);
             taskparams.environment.area.originutmcoords.E = E;
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;

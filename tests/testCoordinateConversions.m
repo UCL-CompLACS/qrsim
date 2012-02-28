@@ -148,17 +148,17 @@ clear('ecef2lla');
 %%% lla to utm
 
 % get rid of mex
-existslla2utm = exist(['lla2utm.',mexext],'file');
+existsllaToUtm = exist(['lla2utm.',mexext],'file');
 existsutm2lla = exist(['utm2lla.',mexext],'file');
-if(existslla2utm)
-    delete(['lla2utm.',mexext]);
+if(existsllaToUtm)
+    delete(['llaToUtm.',mexext]);
 end
 
 if(existsutm2lla)
     delete(['utm2lla.',mexext]);
 end
 
-clear('lla2utm');
+clear('llaToUtm');
 clear('utm2lla');
 rehash();
 
@@ -172,7 +172,7 @@ fclose(f);
 for i=1:size(d,1),
     
     inlla = [d(1:2,i);0];
-    [E,N,utmzone,~] = lla2utm(inlla);
+    [E,N,utmzone,~] = llaToUtm(inlla);
     oututm = [E;N;double(utmzone(1));double(utmzone(2));double(utmzone(3))];
     testutm = d(3:7,i);
     
@@ -180,7 +180,7 @@ for i=1:size(d,1),
 end
 e = e || ~wt;
 
-fprintf('\ntest of MATLAB lla2utm against test data [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MATLAB llaToUtm against test data [%s]\n',wtToFailPass(wt));
 
 % testing lla to utm MATLAB  conversions
 wt = 1;
@@ -189,7 +189,7 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
     for lon = -177:6:177, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
-            [E,N,utmzone,H] = lla2utm(inlla);
+            [E,N,utmzone,H] = llaToUtm(inlla);
             outlla = utm2lla(E,N,utmzone,H);
             
             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
@@ -200,12 +200,12 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MATLAB lla2utm and utm2lla [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MATLAB llaToUtm and utm2lla [%s]\n',wtToFailPass(wt));
 
-% compile and cross test lla2utm
-clear('lla2utm');
+% compile and cross test llaToUtm
+clear('llaToUtm');
 clear('utm2lla');
-mex lla2utm.c
+mex llaToUtm.c
 
 rehash();
 
@@ -215,7 +215,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
     for lon = -177:6:177, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
-            [E,N,utmzone,H] = lla2utm(inlla);
+            [E,N,utmzone,H] = llaToUtm(inlla);
             outlla = utm2lla(E,N,utmzone,H);
             
             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
@@ -226,12 +226,12 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MEX lla2utm [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MEX llaToUtm [%s]\n',wtToFailPass(wt));
 
 % compile and cross test utm2lla
-clear('lla2utm');
+clear('llaToUtm');
 clear('utm2lla');
-delete(['lla2utm.',mexext]);
+delete(['llaToUtm.',mexext]);
 mex utm2lla.c
 
 rehash();
@@ -242,7 +242,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
     for lon = -177:6:177, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
-            [E,N,utmzone,H] = lla2utm(inlla);
+            [E,N,utmzone,H] = llaToUtm(inlla);
             outlla = utm2lla(E,N,utmzone,H);
             
             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
@@ -259,11 +259,11 @@ fprintf('\ntest of MEX utm2lla [%s]\n',wtToFailPass(wt));
 if(~existsutm2lla)
     delete(['utm2lla.',mexext]);
 end
-if(existslla2utm)
-    mex 'lla2utm.c'
+if(existsllaToUtm)
+    mex 'llaToUtm.c'
 end
 
-clear('lla2utm');
+clear('llaToUtm');
 clear('utm2lla');
 
 
@@ -291,7 +291,7 @@ for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
     for lon = 360*(rand(1,3)-0.5),
         for h = 0:10:100,
             
-            [E,N,zone,H] = lla2utm([lat;lon;h]);
+            [E,N,zone,H] = llaToUtm([lat;lon;h]);
             utmorigin.E = E;
             utmorigin.N = N;
             utmorigin.zone = zone;
@@ -328,7 +328,7 @@ for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
     for lon = 360*(rand(1,3)-0.5),
         for h = 0:10:100,
             
-            [E,N,zone,H] = lla2utm([lat;lon;h]);
+            [E,N,zone,H] = llaToUtm([lat;lon;h]);
             utmorigin.E = E;
             utmorigin.N = N;
             utmorigin.zone = zone;
@@ -367,7 +367,7 @@ for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
     for lon = 360*(rand(1,3)-0.5),
         for h = 0:10:100,
             
-            [E,N,zone,H] = lla2utm([lat;lon;h]);
+            [E,N,zone,H] = llaToUtm([lat;lon;h]);
             utmorigin.E = E;
             utmorigin.N = N;
             

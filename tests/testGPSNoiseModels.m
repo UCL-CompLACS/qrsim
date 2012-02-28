@@ -77,7 +77,7 @@ lat = d(:,4)'./1e7;
 lon = d(:,5)'./1e7;
 h = d(:,6)'./1000;
 
-[E,N,~,~] = lla2utm([lat;lon;h]);
+[E,N,~,~] = llaToUtm([lat;lon;h]);
 E = E-E(1);
 N = N-N(1);
 

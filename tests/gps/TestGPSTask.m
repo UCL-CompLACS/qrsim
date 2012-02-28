@@ -31,7 +31,7 @@ classdef TestGPSTask<Task
             taskparams.environment.area.limits = [-10 20 -7 7 -20 0];
             taskparams.environment.area.type = 'BoxArea';
             % location of our usual flying site
-            [E N zone h] = lla2utm([51.71190;-0.21052;0]);
+            [E N zone h] = llaToUtm([51.71190;-0.21052;0]);
             taskparams.environment.area.originutmcoords.E = E;
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
