@@ -1,4 +1,4 @@
-classdef TaskNoWindW6<BaseTask
+classdef TaskNoWindW6<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

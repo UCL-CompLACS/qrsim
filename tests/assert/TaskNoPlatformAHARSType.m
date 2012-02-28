@@ -1,4 +1,4 @@
-classdef TaskNoPlatformAHARSType<BaseTask
+classdef TaskNoPlatformAHARSType<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

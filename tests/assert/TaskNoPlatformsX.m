@@ -1,4 +1,4 @@
-classdef TaskNoPlatformsX<BaseTask
+classdef TaskNoPlatformsX<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

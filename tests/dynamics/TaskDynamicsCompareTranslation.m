@@ -1,4 +1,4 @@
-classdef TaskDynamicsCompareTranslation<BaseTask
+classdef TaskDynamicsCompareTranslation<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

@@ -1,4 +1,4 @@
-classdef TaskNoWindPlatformOutOfBounds3<BaseTask
+classdef TaskNoWindPlatformOutOfBounds3<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

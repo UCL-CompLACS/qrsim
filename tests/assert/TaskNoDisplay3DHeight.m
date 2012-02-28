@@ -1,4 +1,4 @@
-classdef TaskNoDisplay3DHeight<BaseTask
+classdef TaskNoDisplay3DHeight<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

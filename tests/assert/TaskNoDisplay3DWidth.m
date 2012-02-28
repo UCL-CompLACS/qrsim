@@ -1,4 +1,4 @@
-classdef TaskNoDisplay3DWidth<BaseTask
+classdef TaskNoDisplay3DWidth<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

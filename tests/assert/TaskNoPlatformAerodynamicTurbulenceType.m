@@ -1,4 +1,4 @@
-classdef TaskNoPlatformAerodynamicTurbulenceType<BaseTask
+classdef TaskNoPlatformAerodynamicTurbulenceType<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

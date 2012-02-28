@@ -1,4 +1,4 @@
-classdef BaseTask<handle
+classdef Task<handle
     % Abstract class for a generic task.
     % This is nothing more than an interface, its only purpouse is to force derived class 
     % to implement init and reward methods.

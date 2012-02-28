@@ -1,4 +1,4 @@
-classdef TaskNoPlatformAltimeterTau<BaseTask
+classdef TaskNoPlatformAltimeterTau<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

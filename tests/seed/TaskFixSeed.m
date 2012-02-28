@@ -1,4 +1,4 @@
-classdef TaskFixSeed<BaseTask
+classdef TaskFixSeed<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

@@ -1,4 +1,4 @@
-classdef TaskNoAreaType<BaseTask
+classdef TaskNoAreaType<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

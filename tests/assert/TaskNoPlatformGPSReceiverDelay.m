@@ -1,4 +1,4 @@
-classdef TaskNoPlatformGPSReceiverDelay<BaseTask
+classdef TaskNoPlatformGPSReceiverDelay<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

@@ -1,4 +1,4 @@
-classdef TaskNoPlatformAccelerometerType<BaseTask
+classdef TaskNoPlatformAccelerometerType<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

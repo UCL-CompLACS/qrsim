@@ -1,4 +1,4 @@
-classdef TaskNoPlatformCollisionDistance<BaseTask
+classdef TaskNoPlatformCollisionDistance<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)

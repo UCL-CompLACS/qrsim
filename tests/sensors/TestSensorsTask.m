@@ -1,4 +1,4 @@
-classdef TestSensorsTask<BaseTask
+classdef TestSensorsTask<Task
     % Simple task used to do sensor testing
     %
     % KeepSpot methods:
