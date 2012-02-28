@@ -1,13 +1,13 @@
-function lla = ecef2lla(p)
-%  ECEF2LLA Converts Earth-centered Earth-fixed (ECEF) coordinates to geodetic WGS84 coordinates. 
+function lla = ecefToLla(p)
+%  ECEFTOLLA Converts Earth-centered Earth-fixed (ECEF) coordinates to geodetic WGS84 coordinates. 
 %
-%  LLA = ECEF2LLA( P ) converts the 3-by-N array of ECEF coordinates, P, to an 3-by-N array
+%  LLA = ECEFTOLLA( P ) converts the 3-by-N array of ECEF coordinates, P, to an 3-by-N array
 %  of geodetic coordinates (latitude, longitude and altitude), LLA.
 %  LLA is in [degrees; degrees; meters].  P is in meters.  The ellipsoid planet is WGS84. 
 %
 %  Examples:
 %
-%   lla = ecef2lla( [ 4510731;4510731;0 ] )
+%   lla = ecefToLla( [ 4510731;4510731;0 ] )
 %
 
 if (size( p, 1) ~= 3)

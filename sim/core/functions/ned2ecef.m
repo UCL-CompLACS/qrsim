@@ -17,6 +17,6 @@ function [ ecef ] = ned2ecef( ned, utmorigin )
 %          utmorigin.h = 0;
 %
     lla = utmToLla(utmorigin.E+ned(2),utmorigin.N+ned(1),utmorigin.zone,utmorigin.h-ned(3));
-    ecef = lla2ecef(lla);
+    ecef = llaToEcef(lla);
 end
 

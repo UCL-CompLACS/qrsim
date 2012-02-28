@@ -24,18 +24,18 @@ tolned = [5e-7;5e-7;5e-7];
 %%% lla to ecef
 
 % get rid of mex files
-existslla2ecef = exist(['lla2ecef.',mexext],'file');
-existsecef2lla = exist(['ecef2lla.',mexext],'file');
-if(existslla2ecef)
-    delete(['lla2ecef.',mexext]);
+existsllaToEcef = exist(['lla2ecef.',mexext],'file');
+existsecefToLla = exist(['ecef2lla.',mexext],'file');
+if(existsllaToEcef)
+    delete(['llaToEcef.',mexext]);
 end
 
-if(existsecef2lla)
-    delete(['ecef2lla.',mexext]);
+if(existsecefToLla)
+    delete(['ecefToLla.',mexext]);
 end
 
-clear('lla2ecef');
-clear('ecef2lla');
+clear('llaToEcef');
+clear('ecefToLla');
 rehash();
 
 % testing lla to ecef MATLAB against known data
@@ -48,14 +48,14 @@ fclose(f);
 for i=1:size(d,1),
     
     inlla = [d(1:2,i);0];
-    outecef = lla2ecef(inlla);
+    outecef = llaToEcef(inlla);
     testecef = d(3:5,i);
     
     wt = wt &&  isWithinTolerance(outecef,testecef,tolecef);
 end
 e = e || ~wt;
 
-fprintf('\ntest of MATLAB lla2ecef against test data [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MATLAB llaToEcef against test data [%s]\n',wtToFailPass(wt));
 
 % testing lla to ecef MATLAB conversions
 wt = 1;
@@ -65,7 +65,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
             
-            outlla = ecef2lla(lla2ecef(inlla));
+            outlla = ecefToLla(llaToEcef(inlla));
             
             wt = wt && isWithinTolerance(inlla,outlla,tollla);
         end
@@ -75,13 +75,13 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MATLAB lla2ecef and ecef2lla [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MATLAB llaToEcef and ecefToLla [%s]\n',wtToFailPass(wt));
 
-% compile and cross test ecef2lla
-clear('lla2ecef');
-clear('ecef2lla');
+% compile and cross test ecefToLla
+clear('llaToEcef');
+clear('ecefToLla');
 
-mex ecef2lla.c
+mex ecefToLla.c
 
 rehash();
 
@@ -92,7 +92,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
             
-            outlla = ecef2lla(lla2ecef(inlla));
+            outlla = ecefToLla(llaToEcef(inlla));
             
             wt = wt && isWithinTolerance(inlla,outlla,tollla);
         end
@@ -102,15 +102,15 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MEX ecef2lla [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MEX ecefToLla [%s]\n',wtToFailPass(wt));
 
 
-% compile and cross test lla2ecef
-clear('lla2ecef');
-clear('ecef2lla');
+% compile and cross test llaToEcef
+clear('llaToEcef');
+clear('ecefToLla');
 
-delete(['ecef2lla.',mexext]);
-mex lla2ecef.c
+delete(['ecefToLla.',mexext]);
+mex llaToEcef.c
 
 rehash();
 
@@ -121,7 +121,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
             
-            outlla = ecef2lla(lla2ecef(inlla));
+            outlla = ecefToLla(llaToEcef(inlla));
             
             wt = wt && isWithinTolerance(inlla,outlla,tollla);
         end
@@ -131,19 +131,19 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MEX lla2ecef [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MEX llaToEcef [%s]\n',wtToFailPass(wt));
 
 % put back things as they were
-if(existsecef2lla)
-    mex ecef2lla.c
+if(existsecefToLla)
+    mex ecefToLla.c
 end
 
-if(~existslla2ecef)
-    delete([ 'lla2ecef.',mexext]);
+if(~existsllaToEcef)
+    delete([ 'llaToEcef.',mexext]);
 end
 
-clear('lla2ecef');
-clear('ecef2lla');
+clear('llaToEcef');
+clear('ecefToLla');
 
 %%% lla to utm
 

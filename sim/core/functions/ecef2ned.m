@@ -16,7 +16,7 @@ function ned = ecef2ned( ecef , utmorigin)
 %           utmorigin.zone = '30U';
 %           utmorigin.h = 0;
 %
-    lla = ecef2lla(ecef);
+    lla = ecefToLla(ecef);
     [E,N,zone,h] = llaToUtm(lla);
     
 %    if (zone~= utmorigin.zone)
