@@ -221,12 +221,12 @@ classdef PelicanGraphics<QuadrotorGraphics
                 
                 state.display3d.uavgraphicobject.b1 = cube.*repmat([aw,al,at],size(cube,1),1);
                 
-                state.display3d.uavgraphicobject.b2 = state.display3d.uavgraphicobject.b1*angle2dcm(0,0,pi/2,'XYZ');
+                state.display3d.uavgraphicobject.b2 = state.display3d.uavgraphicobject.b1*angleToDcm(0,0,pi/2,'XYZ');
                 
                 bw = obj.BW/2; % half body width
                 bt = obj.BT/2; % half body thickness
                 
-                state.display3d.uavgraphicobject.b3 =  (cube.*repmat([bw,bw,bt],size(cube,1),1))*angle2dcm(0,0,pi/4,'XYZ');
+                state.display3d.uavgraphicobject.b3 =  (cube.*repmat([bw,bw,bt],size(cube,1),1))*angleToDcm(0,0,pi/4,'XYZ');
                 
                 state.display3d.uavgraphicobject.bf = [1 2 3 4; 5 6 7 8; 4 3 7 8; 1 5 6 2; 1 4 8 5; 6 7 3 2];
                 
