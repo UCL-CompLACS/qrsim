@@ -119,7 +119,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             global state;
                         
             if(obj.randDir)
-                obj.direction = 2*pi*randn(state.rStreams{obj.prngIds(4)},1,1);
+                obj.direction = 2*pi*rand(state.rStreams{obj.prngIds(4)},1,1);
             end
             
             % airspeed along the flight path, governs the lengthscale,
@@ -182,6 +182,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
                                     0                  0 1];
             
             obj.vgust = dcm(X)*Cte*ftToM(-obj.vgust_windframe);
+            
+            a=1;
         end
     end
 end

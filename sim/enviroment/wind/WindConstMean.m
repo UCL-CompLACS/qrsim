@@ -68,7 +68,7 @@ classdef WindConstMean<Wind
             global state;
             
             if(obj.randDir)
-                obj.direction = 2*pi*randn(state.rStreams{obj.prngId},1,1);
+                obj.direction = 2*pi*rand(state.rStreams{obj.prngId},1,1);
             end
         end
         
