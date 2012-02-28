@@ -149,17 +149,17 @@ clear('ecef2lla');
 
 % get rid of mex
 existsllaToUtm = exist(['lla2utm.',mexext],'file');
-existsutm2lla = exist(['utm2lla.',mexext],'file');
+existsutmToLla = exist(['utm2lla.',mexext],'file');
 if(existsllaToUtm)
     delete(['llaToUtm.',mexext]);
 end
 
-if(existsutm2lla)
-    delete(['utm2lla.',mexext]);
+if(existsutmToLla)
+    delete(['utmToLla.',mexext]);
 end
 
 clear('llaToUtm');
-clear('utm2lla');
+clear('utmToLla');
 rehash();
 
 % testing lla to utm MATLAB  gainst known data
@@ -190,7 +190,7 @@ for lat = -86:8:86, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
             [E,N,utmzone,H] = llaToUtm(inlla);
-            outlla = utm2lla(E,N,utmzone,H);
+            outlla = utmToLla(E,N,utmzone,H);
             
             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
         end
@@ -200,11 +200,11 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MATLAB llaToUtm and utm2lla [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MATLAB llaToUtm and utmToLla [%s]\n',wtToFailPass(wt));
 
 % compile and cross test llaToUtm
 clear('llaToUtm');
-clear('utm2lla');
+clear('utmToLla');
 mex llaToUtm.c
 
 rehash();
@@ -216,7 +216,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
             [E,N,utmzone,H] = llaToUtm(inlla);
-            outlla = utm2lla(E,N,utmzone,H);
+            outlla = utmToLla(E,N,utmzone,H);
             
             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
         end
@@ -228,11 +228,11 @@ e = e || ~wt;
 
 fprintf('\ntest of MEX llaToUtm [%s]\n',wtToFailPass(wt));
 
-% compile and cross test utm2lla
+% compile and cross test utmToLla
 clear('llaToUtm');
-clear('utm2lla');
+clear('utmToLla');
 delete(['llaToUtm.',mexext]);
-mex utm2lla.c
+mex utmToLla.c
 
 rehash();
 
@@ -243,7 +243,7 @@ for lat = -78:8:78, %chosen to fall in the middle of a zone
         for h = 0:10:100,
             inlla = [lat;lon;h];
             [E,N,utmzone,H] = llaToUtm(inlla);
-            outlla = utm2lla(E,N,utmzone,H);
+            outlla = utmToLla(E,N,utmzone,H);
             
             wt = wt &&  isWithinTolerance(inlla,outlla,tollla);
         end
@@ -253,18 +253,18 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MEX utm2lla [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MEX utmToLla [%s]\n',wtToFailPass(wt));
 
 % put back things as they were
-if(~existsutm2lla)
-    delete(['utm2lla.',mexext]);
+if(~existsutmToLla)
+    delete(['utmToLla.',mexext]);
 end
 if(existsllaToUtm)
     mex 'llaToUtm.c'
 end
 
 clear('llaToUtm');
-clear('utm2lla');
+clear('utmToLla');
 
 
 %%% ned to ecef

@@ -21,7 +21,7 @@ elseif (~strcmp(varargin{1},'compile')&&~strcmp(varargin{1},'clean'))
 end
 
 
-sources = {'ecef2lla','ecef2ned','lla2ecef','llaToUtm','ned2ecef','polyval','utm2lla','dcm','pelicanODE'};
+sources = {'ecef2lla','ecef2ned','lla2ecef','llaToUtm','ned2ecef','polyval','utmToLla','dcm','pelicanODE'};
 
 disp('Hadling the mex functions part of the simulator;');
 disp('You might need to run mex -setup if this is the first time you use the mex compiler.');

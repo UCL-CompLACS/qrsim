@@ -118,7 +118,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     for(i=0; i<cols; i++){
         
         if (utmzone[2+3*i]>'X' || utmzone[2+3*i]<'C'){
-            mexPrintf("utm2lla: Warning utmzone should be a vector of strings like 30T, not 30t\n");
+            mexPrintf("utmToLla: Warning utmzone should be a vector of strings like 30T, not 30t\n");
         }
         
         x=E[i];

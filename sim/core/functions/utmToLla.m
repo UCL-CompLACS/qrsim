@@ -1,7 +1,7 @@
-function  lla = utm2lla(E,N,utmzone,h)
-% UTM2LLA Converts UTM coordinates to geodetic coordinates .
+function  lla = utmToLla(E,N,utmzone,h)
+% UTMTOLLA Converts UTM coordinates to geodetic coordinates .
 % 
-% LLA = UTM2LLA(E,N,UTMZONE,H) converts 4 1-by-N arrays of UTM coordinates to a 3-by-N
+% LLA = UTMTOLLA(E,N,UTMZONE,H) converts 4 1-by-N arrays of UTM coordinates to a 3-by-N
 % array of geodetic coordinates (latitude, longitude and altitude), LLA.
 % LLA is in [degrees degrees meters].  E is in meters, N is in meters, H is in meters,
 % UTMZONE is a 3char string.
@@ -10,7 +10,7 @@ function  lla = utm2lla(E,N,utmzone,h)
 %
 % Examples:
 %
-%      lla = utm2lla( 6.927085783032901e+05, 5.732679017252645e+06,'30U',0)
+%      lla = utmToLla( 6.927085783032901e+05, 5.732679017252645e+06,'30U',0)
 %
 
 n1=length(E);
@@ -68,7 +68,7 @@ lla=zeros(3,n1);
 for i=1:n1
     
     if (utmzone(3,i)>'X' || utmzone(3,i)<'C')
-        error('utm2lla: utmzone should be a vector of strings like "30T"\n');
+        error('utmToLla: utmzone should be a vector of strings like "30T"\n');
     end
     
     if (utmzone(3,i)>'M')
