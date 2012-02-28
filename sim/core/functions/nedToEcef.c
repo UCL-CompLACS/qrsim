@@ -128,7 +128,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     for(i=0; i<cols; i++){       
         
         if (utmoriginZONE[2]>'X' || utmoriginZONE[2]<'C'){
-            mexPrintf("ned2ecef: Warning utmzone should be a vector of strings like 30T, not %c%c%c\n",utmoriginZONE[0],utmoriginZONE[1],utmoriginZONE[2]);
+            mexPrintf("nedToEcef: Warning utmzone should be a vector of strings like 30T, not %c%c%c\n",utmoriginZONE[0],utmoriginZONE[1],utmoriginZONE[2]);
         }
         
         x = utmoriginE[0] + NED[1+3*i] -FE;

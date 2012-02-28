@@ -271,17 +271,17 @@ clear('utmToLla');
 
 
 % get rid of mex
-existsned2ecef = exist(['ned2ecef.',mexext],'file');
-existsecef2ned = exist(['ecef2ned.',mexext],'file');
-if(existsned2ecef)
-    delete(['ned2ecef.',mexext]);
+existsnedToEcef = exist(['ned2ecef.',mexext],'file');
+existsecefToNed = exist(['ecef2ned.',mexext],'file');
+if(existsnedToEcef)
+    delete(['nedToEcef.',mexext]);
 end
 
-if(existsecef2ned)
-    delete(['ecef2ned.',mexext]);
+if(existsecefToNed)
+    delete(['ecefToNed.',mexext]);
 end
-clear('ned2ecef');
-clear('ecef2ned');
+clear('nedToEcef');
+clear('ecefToNed');
 rehash();
 
 % testing lla to utm MATLAB  conversions
@@ -301,7 +301,7 @@ for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
                 for y = -100:10:100
                     
                     inned = [x;y;h];
-                    outned = ecef2ned(ned2ecef(inned,utmorigin),utmorigin);
+                    outned = ecefToNed(nedToEcef(inned,utmorigin),utmorigin);
                     
                     wt = wt &&  isWithinTolerance(inned,outned,tolned);
                 end
@@ -313,12 +313,12 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MATLAB ned2ecef and ecef2ned [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MATLAB nedToEcef and ecefToNed [%s]\n',wtToFailPass(wt));
 
-% compile and cross test ned2ecef
-clear('ned2ecef');
-clear('ecef2ned');
-mex ned2ecef.c
+% compile and cross test nedToEcef
+clear('nedToEcef');
+clear('ecefToNed');
+mex nedToEcef.c
 
 rehash();
 
@@ -338,7 +338,7 @@ for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
                 for y = -100:10:100
                     
                     inned = [x;y;h];
-                    outned = ecef2ned(ned2ecef(inned,utmorigin),utmorigin);
+                    outned = ecefToNed(nedToEcef(inned,utmorigin),utmorigin);
                     
                     wt = wt &&  isWithinTolerance(inned,outned,tolned);
                 end
@@ -350,16 +350,16 @@ end
 
 e = e || ~wt;
 
-fprintf('\ntest of MEX ned2ecef [%s]\n',wtToFailPass(wt));
+fprintf('\ntest of MEX nedToEcef [%s]\n',wtToFailPass(wt));
 
-% compile and cross test ecef2ned
-clear('ned2ecef');
-clear('ecef2ned');
-delete(['ned2ecef.',mexext]);
+% compile and cross test ecefToNed
+clear('nedToEcef');
+clear('ecefToNed');
+delete(['nedToEcef.',mexext]);
 
 rehash();
 
-mex ecef2ned.c
+mex ecefToNed.c
 
 wt = 1;
 
@@ -377,7 +377,7 @@ for lat = 180*(rand(1,3)-0.5), %we pick a few random locations
             for x = -100:10:100
                 for y = -100:10:100
                     inned = [x;y;h];
-                    outned = ecef2ned(ned2ecef(inned,utmorigin),utmorigin);
+                    outned = ecefToNed(nedToEcef(inned,utmorigin),utmorigin);
                     
                     wt = wt &&  isWithinTolerance(inned,outned,tolned);
                 end
@@ -389,18 +389,18 @@ end
 fprintf('\n');
 e = e || ~wt;
 
-fprintf('test of MEX ecef2ned [%s]\n',wtToFailPass(wt));
+fprintf('test of MEX ecefToNed [%s]\n',wtToFailPass(wt));
 
-if(~existsecef2ned)
-    delete(['ecef2ned.',mexext]);
+if(~existsecefToNed)
+    delete(['ecefToNed.',mexext]);
 end
 
-if(existsned2ecef)
-    mex ecef2ned.c
+if(existsnedToEcef)
+    mex ecefToNed.c
 end
 
-clear('ned2ecef');
-clear('ecef2ned');
+clear('nedToEcef');
+clear('ecefToNed');
 
 cd(['..',filesep,'..',filesep,'..',filesep,'tests']);
 

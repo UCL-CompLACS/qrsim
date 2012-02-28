@@ -1,7 +1,7 @@
-function [ ecef ] = ned2ecef( ned, utmorigin )
-% NED2ECEF local cartesian NED coordinates to Earth-centered Earth-fixed (ECEF) coordinates. 
+function [ ecef ] = nedToEcef( ned, utmorigin )
+% NEDTOECEF local cartesian NED coordinates to Earth-centered Earth-fixed (ECEF) coordinates. 
 %
-% P = NED2ECEF( NED,UTMORIGIN ) converts the 3-by-N array of cartesian coordinates (north,
+% P = NEDTOECEF( NED,UTMORIGIN ) converts the 3-by-N array of cartesian coordinates (north,
 % east, down) about the origin UTMORIGIN, to a 3-by-N array of ECEF coordinates P. 
 % To do so we pass through geodetic coordinates. The ellipsoid planet is WGS84. 
 % NED is in meters.  P is in meters. UTMORIGIN is a structure: UTMORIGIN.N = northing in
@@ -10,7 +10,7 @@ function [ ecef ] = ned2ecef( ned, utmorigin )
 %
 % Examples:
 %
-%   ecef = ned2ecef( [ 5;10;0 ],utmorigin )
+%   ecef = nedToEcef( [ 5;10;0 ],utmorigin )
 %          utmorigin.N = 6.927085783032901e+05;
 %          utmorigin.E = 5.732679017252645e+06;
 %          utmorigin.zone = '30U';

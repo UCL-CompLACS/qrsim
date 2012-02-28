@@ -127,7 +127,7 @@ classdef GPSReceiverG < GPSReceiver
             
             global state;
             
-            truePosECEF = ned2ecef(posNED, obj.originUTMcoords);
+            truePosECEF = nedToEcef(posNED, obj.originUTMcoords);
             
             obs = zeros(obj.nsv,1);
             for i = 1:obj.nsv,
@@ -151,7 +151,7 @@ classdef GPSReceiverG < GPSReceiver
                 p = p+x;
             end % iter
             
-            estimatedPosNED = ecef2ned(p(1:3), obj.originUTMcoords);
+            estimatedPosNED = ecefToNed(p(1:3), obj.originUTMcoords);
         end
     end
     
