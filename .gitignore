@@ -16,3 +16,12 @@
 /doc/master.tex.backup
 /doc/master.toc
 /qrsim/core/functions/dcm.mexa64
+/sim/core/functions/dcm.mexa64
+/sim/core/functions/ecefToLla.mexa64
+/sim/core/functions/ecefToNed.mexa64
+/sim/core/functions/llaToEcef.mexa64
+/sim/core/functions/llaToUtm.mexa64
+/sim/core/functions/nedToEcef.mexa64
+/sim/core/functions/polyval.mexa64
+/sim/core/functions/utmToLla.mexa64
+/sim/platforms/pelicanODE.mexa64

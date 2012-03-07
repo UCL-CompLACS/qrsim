@@ -154,7 +154,7 @@ end
 \chapter{Installation and Use}
 
 \section{Installation}
-The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result no installation as such is required, the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6)\footnote{The development and testing was carried out on R2010b running on Ubuntu 11.10 gcc version 4.6.1; the code was also tested on R2010a running on Windows XP.}.
+The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result no installation as such is required, the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6; see section \ref{sec:testedos})
 
 The user simply needs to clone the git\footnote{The git version control tool is available for Linux (usually from the package manager), OSX (http://code.google.com/p/git-osx-installer/) and Windows (http://code.google.com/p/msysgit/)} source code repository\footnote{Please note that currently the git repository is read only.} into a directory of choice.
 \begin{verbatim}
@@ -168,6 +168,16 @@ The same git repository is also available as a zip archive from \webrepo.
 To use the simulator is sufficient to add its simulation directory (i.e. \texttt{sim}) to the current Matlab path\footnote{Each time a \texttt{QRSim} object is instantiated any other directory needed will also be added to the current path; they will be removed from the path once  \texttt{QRSim} is cleared.}.
 
 At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify('compile')}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}; please refer to the Matlab documentation for more details.}.
+
+\subsection{Tested OS} \label{sec:testedos}
+
+The code was tested succesfully on the following setups :
+\begin{itemize}
+ \item Ubuntu 11.10 with Matlab R2010b and gcc version 4.6.1\footnote{With gcc 4.6.1 mex compilation warns the user that gcc 4.6.1 is not a supported compiler, in our experience this warning can be safely ignored.}.
+ \item Windows XP SP3 with Matlab 2010a.
+ \item Windows Server 2008 R2 with Matlab 2011a and Visual Studio 2008.
+ \item OSX 10.5 with Matlab 2010a and Xcode gcc version 4.2\footnote{We removed the option \texttt{-isysroot} from the \texttt{CFLAGS} and \texttt{CXXFLAGS} in the file \texttt{mexopts.sh}.}.
+\end{itemize}
 
 \section{Creating a Task}  \label{sec:createtask}
 
