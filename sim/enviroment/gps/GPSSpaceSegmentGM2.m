@@ -100,7 +100,7 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             [b,e] = state.environment.gpsspacesegment_.stdPe.tValidLimits();
             
             if(obj.randomTStart)
-                obj.tStart=b+rand(state.rStreams{obj.sPrngId},1,1)*(e-b);
+                obj.tStart=b+rand(state.rStreams{obj.sPrngId},1,1)*(e-b-obj.TBEFOREEND);
             end
             
             if((obj.tStart<b)||(obj.tStart>e))

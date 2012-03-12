@@ -6,6 +6,11 @@ classdef GPSSpaceSegment < Steppable & EnvironmentObject
     %    update([])                   - does nothing
     %    reset()                      - does nothing 
     %
+    properties (Constant)
+       TBEFOREEND = 1800; % in case of random start time, this is at least 1800 seconds before 
+                          % the end of the sp3 file  
+    end
+    
     methods (Sealed,Access=public)        
         function obj=GPSSpaceSegment(objparams)
             % constructs an empty the object.
