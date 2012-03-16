@@ -231,7 +231,7 @@ function taskparams=init(obj)
  % Wind - a steady omogeneous wind common to all helicopters
  taskparams.environment.wind.on = 0;
  taskparams.environment.wind.type = 'WindConstMean';
- askparams.environment.wind.direction = deg2rad(45); %mean wind direction
+ askparams.environment.wind.direction = degsToRads(45); %mean wind direction
  taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
             
  %%%%% platforms %%%%%

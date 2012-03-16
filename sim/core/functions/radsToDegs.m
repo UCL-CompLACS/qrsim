@@ -1,5 +1,5 @@
 function deg = radsToDegs(rad)
-% DEG2RAD Converts  angles from radians to degrees
-%   DEG = DEG2RAD(RAD)
+% RADSTODEGS Converts  angles from radians to degrees
+%   DEG = RADSTODEGS(RAD)
 %  
 deg = (180./pi) .* rad;

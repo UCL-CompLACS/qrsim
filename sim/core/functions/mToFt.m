@@ -1,6 +1,6 @@
 function [ ft ] = mToFt( m )
-% FT2M Converts from meters to feet
-%   F = M2FT(M)
+% MTOFT Converts from meters to feet
+%   F = MTOFT(M)
 %  
     ft=m./0.3048;
 end

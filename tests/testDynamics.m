@@ -27,7 +27,7 @@ end
 
 function e = compareTranslationToLogs(plots)
 
-UAVCTRL_2_SI = [-degsToRads(0.025),-deg2rad(0.025),1/4097,-deg2rad(254.760/2047),1]; % conversion factors
+UAVCTRL_2_SI = [-degsToRads(0.025),-degsToRads(0.025),1/4097,-degsToRads(254.760/2047),1]; % conversion factors
 
 data = csvread('outdoorRvc4modelling_2011-09-30-11-23-11synced4.csv');  % flight data file
 
@@ -115,7 +115,7 @@ end
 
 function e = compareThrustToLogs(plots)
 
-UAVCTRL_2_SI = [-degsToRads(0.025),-deg2rad(0.025),1/4097,-deg2rad(254.760/2047)]; % conversion factors
+UAVCTRL_2_SI = [-degsToRads(0.025),-degsToRads(0.025),1/4097,-degsToRads(254.760/2047)]; % conversion factors
 
 data = csvread('thrustTestSquareVariable_Batt1_2011-08-23-17-08-26_50Hz.csv');  % flight data file
 
@@ -176,7 +176,7 @@ end
 
 function e = compareRatationToLogs(plots)
 
-UAVCTRL_2_SI = [-degsToRads(0.025),-deg2rad(0.025),1/4097,-deg2rad(254.760/2047)]; % conversion factors
+UAVCTRL_2_SI = [-degsToRads(0.025),-degsToRads(0.025),1/4097,-degsToRads(254.760/2047)]; % conversion factors
 
 data = csvread('preliminaryRotation_allBalanced01_2011-09-02-20-47-53_synced-50Hz.csv');  % flight data file
 

@@ -4,7 +4,7 @@ addpath('sensors');
 
 clear all;
 close all;
-clc;
+
 e = 1;
 
 TOLFACTOR = 0.4;
