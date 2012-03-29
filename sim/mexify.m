@@ -23,7 +23,7 @@ end
 
 sources = {'ecefToLla','ecefToNed','llaToEcef','llaToUtm','nedToEcef','polyval','utmToLla','dcm','pelicanODE'};
 
-disp('Hadling the mex functions part of the simulator;');
+disp('Handling the mex functions part of the simulator;');
 disp('You might need to run mex -setup if this is the first time you use the mex compiler.');
 
 for i=1:length(sources),

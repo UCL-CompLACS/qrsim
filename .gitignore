@@ -25,3 +25,5 @@
 /sim/core/functions/polyval.mexa64
 /sim/core/functions/utmToLla.mexa64
 /sim/platforms/pelicanODE.mexa64
+/doc/master.tex~
+/doc/master.ps

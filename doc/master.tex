@@ -2,7 +2,7 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{fullpage}
 \usepackage[hyphens]{url}
-%\usepackage{hyperref} this messes up the line breaks of url
+%\usepackage{hyperref} %this messes up the line breaks of url
 \usepackage{xspace}
 \usepackage{listings}
 \usepackage{graphicx}
@@ -176,7 +176,7 @@ The code was tested succesfully on the following setups :
  \item Ubuntu 11.10 with Matlab R2010b and gcc version 4.6.1\footnote{With gcc 4.6.1 mex compilation warns the user that gcc 4.6.1 is not a supported compiler, in our experience this warning can be safely ignored.}.
  \item Windows XP SP3 with Matlab 2010a.
  \item Windows Server 2008 R2 with Matlab 2011a and Visual Studio 2008.
- \item OSX 10.5 with Matlab 2010a and Xcode gcc version 4.2\footnote{We removed the option \texttt{-isysroot} from the \texttt{CFLAGS} and \texttt{CXXFLAGS} in the file \texttt{mexopts.sh}.}.
+ \item OSX 10.5 with Matlab 2010a and Xcode gcc version 4.2\footnote{We removed the option \texttt{-isysroot} from the \texttt{CFLAGS} and \texttt{CXXFLAGS} in the file \texttt{mexopts.sh}. For newer versions of Xcode see \url{http://www.mathworks.co.uk/support/solutions/en/data/1-FR6LXJ/}}.
 \end{itemize}
 
 \section{Creating a Task}  \label{sec:createtask}

@@ -36,7 +36,7 @@ order=-1
 
 [item:master.tex]
 archive=true
-column=191
+column=222
 encoding=UTF-8
 highlight=LaTeX
 line=178
@@ -55,5 +55,5 @@ open=false
 order=-1
 
 [view-settings,view=0,item:master.tex]
-CursorColumn=191
+CursorColumn=222
 CursorLine=178
