@@ -13,7 +13,7 @@
 
 \newcommand{\sname}{QRSim\xspace}
 \newcommand{\snamettt}{\texttt{QRSim}\xspace}
-\newcommand{\webrepo}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-1.0.RC1.zip}\xspace}
+\newcommand{\webrepo}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-lastStable.zip}\xspace}
 
 \begin{document}
 \maketitle
@@ -154,24 +154,33 @@ end
 \chapter{Installation and Use}
 
 \section{Installation}
-The simulator is entirely written in Matlab and does not depend on any additional toolbox; as a result no installation as such is required, the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6; see section \ref{sec:testedos})
+The simulator is entirely written in Matlab and does not depend on any additional toolbox; the only requirement is a recent version of Matlab (i.e. version number greater  than 7.6; see section \ref{sec:testedos} for details on the configurations tested).
 
-The user simply needs to clone the git\footnote{The git version control tool is available for Linux (usually from the package manager), OSX (http://code.google.com/p/git-osx-installer/) and Windows (http://code.google.com/p/msysgit/)} source code repository\footnote{Please note that currently the git repository is read only.} into a directory of choice.
+To retrieve the software one can simply clone the git\footnote{The git version control software is available for Linux (usually from the package manager), OSX (http://code.google.com/p/git-osx-installer/) and Windows (http://code.google.com/p/msysgit/)} source code repository\footnote{Please note that currently the git repository is read only.} into a directory of choice:
 \begin{verbatim}
 $ git clone http://complacs.cs.ucl.ac.uk/git/qrsim.git
 $ cd qrsim
-$ git checkout -b 1.0.RC1
+$ git checkout -b lastStable
 \end{verbatim}
+Alternatively, the \texttt{lastStable} tag of the software repository is also available as a zip archive from \webrepo. In this case the archive needs to be downloaded and unpacked into a directory of choice.
 
-The same git repository is also available as a zip archive from \webrepo.
+Once we have the software in a local directory (let's assume it to be \texttt{\textasciitilde/qrsim}), in order to use it is necessary to add the absolute path to the \texttt{sim} directory to the current Matlab search path. 
+This can be done using the menu \textsf{File \textgreater ~Set Path} from the Matlab toolbar. Alternatively this can be done from the Matlab console: after navigating to the local simulator directory (\texttt{\textasciitilde/qrsim} in our example) one can issue the command\footnote{Note that this command depends on the location from which it is executed.} 
+\begin{verbatim}
+>> addpath([pwd,filesep,'sim']);
+\end{verbatim} 
 
-To use the simulator is sufficient to add its simulation directory (i.e. \texttt{sim}) to the current Matlab path\footnote{Each time a \texttt{QRSim} object is instantiated any other directory needed will also be added to the current path; they will be removed from the path once  \texttt{QRSim} is cleared.}.
+You now have all that is needed to run the basic exampls \texttt{main.m} and \texttt{main10.m}. 
+To do so navigate to the \texttt{example} directory (i.e. \texttt{\textasciitilde/qrsim/example}) and then simply run the \texttt{main.m} script.
+If \texttt{main.m} fails with the message 
+\begin{verbatim}??? Undefined function or variable 'QRSim'\end{verbatim}
+the path was not set correctly; use the toolbar menu \textsf{File \textgreater ~Set Path} to confirm that the absolute path of the directory \texttt{sim} was added correctly.
 
 At the aim of improving performance, some of the most computationally expensive functions in the simulator have been written also as MEX function, these can be easily compiled using the function \texttt{mexify('compile')}\footnote{Depending on your system setup you might need to configure the MEX compiler using \texttt{mex -setup}; please refer to the Matlab documentation for more details.}.
 
 \subsection{Tested OS} \label{sec:testedos}
 
-The code was tested succesfully on the following setups :
+The software was tested succesfully on the following setups :
 \begin{itemize}
  \item Ubuntu 11.10 with Matlab R2010b and gcc version 4.6.1\footnote{With gcc 4.6.1 mex compilation warns the user that gcc 4.6.1 is not a supported compiler, in our experience this warning can be safely ignored.}.
  \item Windows XP SP3 with Matlab 2010a.
