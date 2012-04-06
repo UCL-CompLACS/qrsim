@@ -77,6 +77,7 @@ classdef QRSim<handle
                 state.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
                     [20,20,obj.par.display3d.width,obj.par.display3d.height]);
                 set(state.display3d.figure,'DoubleBuffer','on');
+                set(state.display3d.figure, 'Renderer', 'OpenGL');
             end
             
             assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');

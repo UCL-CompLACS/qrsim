@@ -53,6 +53,7 @@ classdef TaskKeepSpot<Task
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
             taskparams.environment.area.graphics.type = 'AreaGraphics';
+            taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
             
             % GPS
             % The space segment of the gps system

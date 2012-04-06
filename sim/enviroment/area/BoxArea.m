@@ -38,7 +38,11 @@ classdef BoxArea<EnvironmentObject
                 ' this could be environment.area.graphics.on=0; if no graphics is needed']);
             if(objparams.graphics.on)
                 assert(isfield(objparams.graphics,'type'),'boxarea:nographicstype','Since the display3d is on the task must define environment.area.graphics.type');
-                obj.graphics=feval(objparams.graphics.type,objparams.limits);
+                tmp.limits = objparams.limits;
+                if(isfield(objparams,'graphics'))
+                    tmp.backgroundimage = objparams.graphics.backgroundimage;
+                end
+                obj.graphics=feval(objparams.graphics.type,tmp);
             end
         end
         

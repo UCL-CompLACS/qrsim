@@ -19,19 +19,78 @@ classdef AreaGraphics<handle
             
             set(0,'CurrentFigure',state.display3d.figure)
             
-            % ground patch
-            cx = [objparams(1) objparams(1);
-                objparams(1) objparams(2);
-                objparams(2) objparams(2)];
-            
-            cy = [objparams(3) objparams(4);
-                objparams(4) objparams(3);
-                objparams(3) objparams(4)];
-            
-            cz = zeros(3,2);
-            
-            state.display3d.ground = patch(cx,cy,cz,'FaceColor',[0.2,0.4,0.2],'EdgeColor','none');
-            
+            %ground patch
+            if(~isfield(objparams,'backgroundimage'))
+                
+                cx = [objparams.limits(1) objparams.limits(1);
+                    objparams.limits(1) objparams.limits(2);
+                    objparams.limits(2) objparams.limits(2)];
+                
+                cy = [objparams.limits(3) objparams.limits(4);
+                    objparams.limits(4) objparams.limits(3);
+                    objparams.limits(3) objparams.limits(4)];
+                
+                cz = zeros(3,2);
+                
+                state.display3d.ground = patch(cx,cy,cz,'FaceColor',[0.2,0.4,0.2],'EdgeColor','none');
+                
+            else
+                
+                texture = imread(objparams.backgroundimage);
+                texture = imrotate(texture,-90); %alingns the image coords to NED
+                
+                dotpos = strfind(objparams.backgroundimage,'.');
+                
+                assert(~isempty(dotpos),'areagraphics:badfilename',...
+                    'the backgroundimage parameter does not seem to be a valid image file name');
+                
+                csvdatafile = [objparams.backgroundimage(1:dotpos),'csv'];
+                
+                assert(exist(csvdatafile,'file')==2,'areagraphics:missingimagedata',...
+                    'the file specifying the parameters of the backgroundimage is not present');
+                
+                bbox = csvread(csvdatafile); % no need to rotate, osgb is aligned with NED                
+                tsize = abs([bbox(1,2)-bbox(2,2),bbox(2,1)-bbox(1,1)]);
+                
+                areasize = abs(objparams.limits*[1 0; -1 0; 0 1; 0 -1; 0 0; 0 0]);
+                
+                % get the relevant (i.e. scaled) chunk of the texture,
+                % if the simulated are is larger than the texture then all
+                % the texture is used but is not stretched.                
+                if areasize(1)<tsize(1) 
+                    nsx = floor((areasize(1)/tsize(1))*size(texture,2));
+                    minnsx = floor(size(texture,2)/2 - nsx/2);
+                    maxnsx = floor(size(texture,2)/2 + nsx/2);
+                    vx = objparams.limits(1):objparams.limits(2);
+                else
+                    minnsx = 1;
+                    maxnsx = size(texture,2);
+                    vx = -(tsize(1)/2):(tsize(1)/2);
+                end
+                
+                if areasize(2)<tsize(2) 
+                    nsy = floor((areasize(2)/tsize(2))*size(texture,1));
+                    minnsy = floor(size(texture,1)/2 - nsy/2);
+                    maxnsy = floor(size(texture,1)/2 + nsy/2);
+                    vy = objparams.limits(3):objparams.limits(4);
+                else
+                    minnsy = 1;
+                    maxnsy = size(texture,1);
+                    vy = -(tsize(2)/2):(tsize(2)/2);
+                end
+                               
+                texture = texture(minnsy:maxnsy,minnsx:maxnsx,:);      
+                
+               
+                [x,y] = meshgrid(vx,vy);
+                z = zeros(size(vy,2),size(vx,2));
+                state.display3d.ground = surface(x,y,z);
+                
+                set(state.display3d.ground,'facecolor','texturemap');
+                set(state.display3d.ground,'edgecolor','none');
+                set(state.display3d.ground,'cdata',texture);
+                
+            end
             
             %invert axis to be coherent with NED
             set(gca,'ZDir','rev');
@@ -44,10 +103,10 @@ classdef AreaGraphics<handle
             set(gca,'CameraViewAngleMode','Manual');
             
             % set up a correct size for the plot
-            axis(objparams);
-            arx = objparams(2)-objparams(1);
-            ary = objparams(4)-objparams(3);
-            arz = objparams(6)-objparams(5);
+            axis(objparams.limits);
+            arx = objparams.limits(2)-objparams.limits(1);
+            ary = objparams.limits(4)-objparams.limits(3);
+            arz = objparams.limits(6)-objparams.limits(5);
             set(gca,'PlotBoxAspectRatio',[arx ary arz])
             
             % give names to things
