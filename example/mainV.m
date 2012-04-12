@@ -1,5 +1,5 @@
 % bare bones example of use of the QRSim() simulator object with one
-% helicopter
+% helicopter in order to track a defined velocity profile
 
 clear all
 close all
@@ -13,12 +13,12 @@ global state;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskKeepSpot');
+qrsim.init('TaskKeepVel');
 
 % number of steps we run the simulation for
 N = 400;
 
-% target velocity
+% target velocity (in body coordinates)
 vt = [repmat([0.4;0;0],1,100),repmat([0;1;0],1,100),repmat([0;0;-1],1,100),repmat([-1;-1;0],1,100)];
 
 X = zeros(3,N);
