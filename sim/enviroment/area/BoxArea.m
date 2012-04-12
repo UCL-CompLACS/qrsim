@@ -42,6 +42,9 @@ classdef BoxArea<EnvironmentObject
                 if(isfield(objparams,'graphics'))
                     tmp.backgroundimage = objparams.graphics.backgroundimage;
                 end
+                if(isfield(objparams,'obstacles'))
+                    tmp.obstacles = objparams.obstacles;
+                end
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
         end

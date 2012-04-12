@@ -1,4 +1,4 @@
-classdef AreaGraphics<handle
+classdef AreaWithObstaclesGraphics<handle
     % Class that handles the 3D visualization of the working area of the simulator
     % This implementation is very basic but has the advantage of not depending on any
     % additional toolbox
@@ -8,7 +8,7 @@ classdef AreaGraphics<handle
     %
     methods (Sealed)
         
-        function obj = AreaGraphics(objparams)
+        function obj = AreaWithObstaclesGraphics(objparams)
             % constructs the object
             %
             % Example:
@@ -18,17 +18,19 @@ classdef AreaGraphics<handle
             global state;
             
             set(0,'CurrentFigure',state.display3d.figure)
+            hold on;
+            limits = objparams.limits;
             
             %ground patch
             if(~isfield(objparams,'backgroundimage'))
                 
-                cx = [objparams.limits(1) objparams.limits(1);
-                    objparams.limits(1) objparams.limits(2);
-                    objparams.limits(2) objparams.limits(2)];
+                cx = [limits(1) limits(1);
+                    limits(1) limits(2);
+                    limits(2) limits(2)];
                 
-                cy = [objparams.limits(3) objparams.limits(4);
-                    objparams.limits(4) objparams.limits(3);
-                    objparams.limits(3) objparams.limits(4)];
+                cy = [limits(3) limits(4);
+                    limits(4) limits(3);
+                    limits(3) limits(4)];
                 
                 cz = zeros(3,2);
                 
@@ -52,7 +54,7 @@ classdef AreaGraphics<handle
                 bbox = csvread(csvdatafile); % no need to rotate, osgb is aligned with NED                
                 tsize = abs([bbox(1,2)-bbox(2,2),bbox(2,1)-bbox(1,1)]);
                 
-                areasize = abs(objparams.limits*[1 0; -1 0; 0 1; 0 -1; 0 0; 0 0]);
+                areasize = abs(limits*[1 0; -1 0; 0 1; 0 -1; 0 0; 0 0]);
                 
                 % get the relevant (i.e. scaled) chunk of the texture,
                 % if the simulated are is larger than the texture then all
@@ -61,7 +63,7 @@ classdef AreaGraphics<handle
                     nsx = floor((areasize(1)/tsize(1))*size(texture,2));
                     minnsx = floor(size(texture,2)/2 - nsx/2);
                     maxnsx = floor(size(texture,2)/2 + nsx/2);
-                    vx = objparams.limits(1):objparams.limits(2);
+                    vx = limits(1):limits(2);
                 else
                     minnsx = 1;
                     maxnsx = size(texture,2);
@@ -72,7 +74,7 @@ classdef AreaGraphics<handle
                     nsy = floor((areasize(2)/tsize(2))*size(texture,1));
                     minnsy = floor(size(texture,1)/2 - nsy/2);
                     maxnsy = floor(size(texture,1)/2 + nsy/2);
-                    vy = objparams.limits(3):objparams.limits(4);
+                    vy = limits(3):limits(4);
                 else
                     minnsy = 1;
                     maxnsy = size(texture,1);
@@ -92,27 +94,32 @@ classdef AreaGraphics<handle
                 
             end
             
+            % plot obstacles as cylinders
+            for i = 1:size(objparams.obstacles,2),
+                [X,Y,Z] = cylinder(objparams.obstacles(4,i)-0.2,16);
+                
+                state.display3d.obstacle(i) = surface(X+objparams.obstacles(1,i), ...
+                     Y+objparams.obstacles(2,i), ...
+                     Z*abs(objparams.obstacles(3,i))+objparams.obstacles(3,i));
+                set(state.display3d.obstacle(i),'EdgeColor', [0.627 0.321 0.176],'FaceColor', [0.627 0.321 0.176]); 
+                set(state.display3d.obstacle(i),'FaceAlpha',0.7,'EdgeAlpha',1);
+            end
+            
             %invert axis to be coherent with NED
             set(gca,'ZDir','rev');
-            set(gca,'YDir','rev');             
+            set(gca,'YDir','rev');
             
-            %p = [70;20;-15];
-            %pp = [p,p-[5;5;0],p-[5;4;0],p-[4;5;0],p-[5;5;0]];
-            %state.display3d.wind = line(pp(1,:),pp(2,:),pp(3,:));
-            %set(state.display3d.wind,'color','r');
-            %set(state.display3d.wind,'LineWidth',2);            
-            %state.display3d.text = text(68,18,-18,'MEAN WIND','FontSize',15,'Color','r');
             
             % a reasonable starting view
-            view([-30,35]);
+            view([-30,25]);
             camzoom(1.8);
             set(gca,'CameraViewAngleMode','Manual');
             
             % set up a correct size for the plot
-            axis(objparams.limits);
-            arx = objparams.limits(2)-objparams.limits(1);
-            ary = objparams.limits(4)-objparams.limits(3);
-            arz = objparams.limits(6)-objparams.limits(5);
+            axis(limits);
+            arx = limits(2)-limits(1);
+            ary = limits(4)-limits(3);
+            arz = limits(6)-limits(5);
             set(gca,'PlotBoxAspectRatio',[arx ary arz])
             
             % give names to things
