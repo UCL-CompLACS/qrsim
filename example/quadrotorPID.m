@@ -36,7 +36,7 @@ psi = X(6);
 pxdot = X(18);
 pydot = X(19);
 
-Kxy =0.3;
+Kxy =0.5;
 Kv = 0.09;
 maxtilt = 0.34;
 
