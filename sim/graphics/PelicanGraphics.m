@@ -25,6 +25,14 @@ classdef PelicanGraphics<QuadrotorGraphics
         gHandle         % graphic handle
         plotTrj         % 1 to enable trajectory plotting
         X               % state
+        alphaValue;
+        superimposedRenderingInterval % if defined the quadrotor pose is rendered anew every
+        % interval steps and superimposed to the past poses
+        renderCnt = 0;
+        
+        lw;
+        
+        trjLength;
     end
     
     methods (Sealed)
@@ -65,6 +73,28 @@ classdef PelicanGraphics<QuadrotorGraphics
             assert(isfield(objparams,'trajectory'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter trajectory');
             
+            if(isfield(objparams,'superimposedrenderinginterval'))
+                obj.superimposedRenderingInterval = objparams.superimposedrenderinginterval;
+            end
+            
+            if (isfield(objparams,'trjLw'))
+                obj.lw = objparams.trjLw;
+            else
+                obj.lw = 2;
+            end
+            
+            if (isfield(objparams,'trjLength'))
+                obj.trjLength = objparams.trjLength;
+            else
+                obj.trjLength = 100;
+            end
+            
+            if (isfield(objparams,'alphaValue'))
+                obj.alphaValue = objparams.alphaValue;
+            else
+                obj.alphaValue = 1;
+            end
+            
             % arms
             obj.AL = objparams.AL;  % arm length m
             obj.AT = objparams.AT; % arm width m
@@ -98,65 +128,80 @@ classdef PelicanGraphics<QuadrotorGraphics
             obj.X = X(1:6);
             
             set(0,'CurrentFigure',state.display3d.figure)
-            % body rotations translation
+            
+            % rotations and translation
             C = dcm(obj.X);
             T = [obj.X(1),obj.X(2),obj.X(3)];
             
-            TT = repmat(T,size(state.display3d.uavgraphicobject.b1,1),1);
+            % body translation
+            TTB = repmat(T,size(state.display3d.uavgraphicobject.b{1},1),1);
+            % rotors translation
+            TTR = repmat(T,size(state.display3d.uavgraphicobject.rotor{1},1),1);
             
-            b1 = (state.display3d.uavgraphicobject.b1*C)+TT;
-            b2 = (state.display3d.uavgraphicobject.b2*C)+TT;
-            b3 = (state.display3d.uavgraphicobject.b3*C)+TT;
+            if(isempty(obj.superimposedRenderingInterval))
+                % update body
+                for i=1:size(state.display3d.uavgraphicobject.b,2),
+                    b = ((state.display3d.uavgraphicobject.b{i})*C)+TTB;
+                    set(obj.gHandle.b(i),'Vertices',b);
+                end
+                
+                % update rotors
+                for i=1:size(state.display3d.uavgraphicobject.rotor,2),
+                    r = ((state.display3d.uavgraphicobject.rotor{i})*C)+TTR;
+                    set(obj.gHandle.r(i),'XData',r(:,1));
+                    set(obj.gHandle.r(i),'YData',r(:,2));
+                    set(obj.gHandle.r(i),'ZData',r(:,3));
+                end
+                
+            else
+                if(mod(obj.renderCnt,obj.superimposedRenderingInterval)==0)
+                    for i=1:size(state.display3d.uavgraphicobject.b,2),
+                        b = ((state.display3d.uavgraphicobject.b{i})*C)+TTB;
+                        obj.gHandle.b(i) = patch('Vertices',b,'Faces',state.display3d.uavgraphicobject.bf);
+                        set(obj.gHandle.b(i) ,'FaceAlpha',obj.alphaValue,'EdgeAlpha',0);
+                    end
+                    
+                    for i=1:size(state.display3d.uavgraphicobject.rotor,2),
+                        r = ((state.display3d.uavgraphicobject.rotor{i})*C)+TTR;
+                        if (i==1)
+                            obj.gHandle.r(i)= patch(r(:,1),r(:,2),r(:,3),'r');
+                        else
+                            obj.gHandle.r(i) = patch(r(:,1),r(:,2),r(:,3),'b');
+                        end
+                        set(obj.gHandle.r(i) ,'FaceAlpha',obj.alphaValue,'EdgeAlpha',0);
+                    end
+                end
+            end
             
-            % update body
-            set(obj.gHandle.b1,'Vertices',b1);
-            set(obj.gHandle.b2,'Vertices',b2);
-            set(obj.gHandle.b3,'Vertices',b3);
-            
-            % rotors rotations translation
-            TT = repmat(T,size(state.display3d.uavgraphicobject.rotor1,1),1);
-            r1 = (state.display3d.uavgraphicobject.rotor1*C)+TT;
-            r2 = (state.display3d.uavgraphicobject.rotor2*C)+TT;
-            r3 = (state.display3d.uavgraphicobject.rotor3*C)+TT;
-            r4 = (state.display3d.uavgraphicobject.rotor4*C)+TT;
-            
-            % update rotors
-            set(obj.gHandle.r1,'XData',r1(:,1));
-            set(obj.gHandle.r1,'YData',r1(:,2));
-            set(obj.gHandle.r1,'ZData',r1(:,3));
-            
-            set(obj.gHandle.r2,'XData',r2(:,1));
-            set(obj.gHandle.r2,'YData',r2(:,2));
-            set(obj.gHandle.r2,'ZData',r2(:,3));
-            
-            set(obj.gHandle.r3,'XData',r3(:,1));
-            set(obj.gHandle.r3,'YData',r3(:,2));
-            set(obj.gHandle.r3,'ZData',r3(:,3));
-            
-            set(obj.gHandle.r4,'XData',r4(:,1));
-            set(obj.gHandle.r4,'YData',r4(:,2));
-            set(obj.gHandle.r4,'ZData',r4(:,3));
             
             if (obj.plotTrj)
-                s = max(0,length(obj.gHandle.trjData.x-100));
+                s = max(1,length(obj.gHandle.trjData.x)-obj.trjLength);
                 if(isempty(obj.gHandle.trjData.x))
                     obj.gHandle.trjData.x = obj.X(1);
                     obj.gHandle.trjData.y = obj.X(2);
                     obj.gHandle.trjData.z = obj.X(3);
+                    obj.gHandle.trjLine = line('XData',obj.gHandle.trjData.x,'YData',obj.gHandle.trjData.y,...
+                    'ZData',obj.gHandle.trjData.z,'LineWidth',obj.lw);
                 else
                     obj.gHandle.trjData.x = [obj.gHandle.trjData.x(s:end) obj.X(1)];
                     obj.gHandle.trjData.y = [obj.gHandle.trjData.y(s:end) obj.X(2)];
                     obj.gHandle.trjData.z = [obj.gHandle.trjData.z(s:end) obj.X(3)];
                 end
-                obj.gHandle.trjLine = line(obj.gHandle.trjData.x,obj.gHandle.trjData.y,...
-                    obj.gHandle.trjData.z,'LineWidth',2,'LineStyle','-');
+                set(obj.gHandle.trjLine,'XData',obj.gHandle.trjData.x);
+                set(obj.gHandle.trjLine,'YData',obj.gHandle.trjData.y);                
+                set(obj.gHandle.trjLine,'ZData',obj.gHandle.trjData.z);
             end
+            obj.renderCnt = obj.renderCnt + 1;
         end
         
         function obj = reset(obj)
             obj.gHandle.trjData.x = [];
             obj.gHandle.trjData.y = [];
             obj.gHandle.trjData.z = [];
+        end
+        
+        function obj = setTrjLw(obj,lw)
+            obj.lw = lw;
         end
     end
     
@@ -176,30 +221,28 @@ classdef PelicanGraphics<QuadrotorGraphics
             C = dcm(obj.X);
             T = [obj.X(1),obj.X(2),obj.X(3)];
             
-            TT = repmat(T,size(state.display3d.uavgraphicobject.b1,1),1);
+            TTB = repmat(T,size(state.display3d.uavgraphicobject.b{1},1),1);
+            for i=1:size(state.display3d.uavgraphicobject.b,2),
+                b = ((state.display3d.uavgraphicobject.b{i})*C)+TTB;
+                obj.gHandle.b(i) = patch('Vertices',b,'Faces',state.display3d.uavgraphicobject.bf);
+                set(obj.gHandle.b(i) ,'FaceAlpha',obj.alphaValue,'EdgeAlpha',0);
+            end
             
-            b1 = (state.display3d.uavgraphicobject.b1*C)+TT;
-            b2 = (state.display3d.uavgraphicobject.b2*C)+TT;
-            b3 = (state.display3d.uavgraphicobject.b3*C)+TT;
-            
-            obj.gHandle.b1 = patch('Vertices',b1,'Faces',state.display3d.uavgraphicobject.bf);
-            obj.gHandle.b2 = patch('Vertices',b2,'Faces',state.display3d.uavgraphicobject.bf);
-            obj.gHandle.b3 = patch('Vertices',b3,'Faces',state.display3d.uavgraphicobject.bf);
-            
-            TT = repmat(T,size(state.display3d.uavgraphicobject.rotor1,1),1);
-            r1 = (state.display3d.uavgraphicobject.rotor1*C)+TT;
-            r2 = (state.display3d.uavgraphicobject.rotor2*C)+TT;
-            r3 = (state.display3d.uavgraphicobject.rotor3*C)+TT;
-            r4 = (state.display3d.uavgraphicobject.rotor4*C)+TT;
-            
-            obj.gHandle.r1 = patch(r1(:,1),r1(:,2),r1(:,3),'r');
-            obj.gHandle.r2 = patch(r2(:,1),r2(:,2),r2(:,3),'b');
-            obj.gHandle.r3 = patch(r3(:,1),r3(:,2),r3(:,3),'b');
-            obj.gHandle.r4 = patch(r4(:,1),r4(:,2),r4(:,3),'b');
+            TTR = repmat(T,size(state.display3d.uavgraphicobject.rotor{1},1),1);
+            for i=1:size(state.display3d.uavgraphicobject.rotor,2),
+                r = ((state.display3d.uavgraphicobject.rotor{i})*C)+TTR;
+                if (i==1)
+                    obj.gHandle.r(i)= patch(r(:,1),r(:,2),r(:,3),'r');
+                else
+                    obj.gHandle.r(i) = patch(r(:,1),r(:,2),r(:,3),'b');
+                end
+                set(obj.gHandle.r(i) ,'FaceAlpha',obj.alphaValue,'EdgeAlpha',0);
+            end
             
             obj.gHandle.trjData.x = [];
             obj.gHandle.trjData.y = [];
             obj.gHandle.trjData.z = [];
+            
         end
         
         function obj = initGlobalGraphics(obj)
@@ -213,20 +256,25 @@ classdef PelicanGraphics<QuadrotorGraphics
             
             if(~exist('state.display3d.heliGexists','var'))
                 %%% body
-                al = obj.AL/2;  % half arm length
+                al = obj.AL/2; % half rotor to rotor length
                 at = obj.AT/2; % half arm width
                 aw = obj.AW/2; % half arm thickness
-                
-                cube = [-1, 1, 1;-1, 1,-1;-1,-1,-1;-1,-1, 1; 1, 1, 1; 1, 1,-1; 1,-1,-1;1,-1, 1];
-                
-                state.display3d.uavgraphicobject.b1 = cube.*repmat([aw,al,at],size(cube,1),1);
-                
-                state.display3d.uavgraphicobject.b2 = state.display3d.uavgraphicobject.b1*angleToDcm(0,0,pi/2,'XYZ');
-                
                 bw = obj.BW/2; % half body width
                 bt = obj.BT/2; % half body thickness
+                bd = obj.BW*sqrt(2); % body diagonal
+                almd = (obj.AL - 0.93*bd)/4; % half arm length
+                cube = [-1, 1, 1;-1, 1,-1;-1,-1,-1;-1,-1, 1; 1, 1, 1; 1, 1,-1; 1,-1,-1;1,-1, 1];
                 
-                state.display3d.uavgraphicobject.b3 =  (cube.*repmat([bw,bw,bt],size(cube,1),1))*angleToDcm(0,0,pi/4,'XYZ');
+                % arm 1
+                state.display3d.uavgraphicobject.b{1} = (cube.*repmat([aw,almd,at],size(cube,1),1))+repmat([0,0.5*bd*0.93+almd,0],size(cube,1),1);
+                state.display3d.uavgraphicobject.b{2} = (cube.*repmat([aw,almd,at],size(cube,1),1))-repmat([0,0.5*bd*0.93+almd,0],size(cube,1),1);
+                
+                % arm 2
+                state.display3d.uavgraphicobject.b{3} = (state.display3d.uavgraphicobject.b{1})*angleToDcm(0,0,pi/2,'XYZ');
+                state.display3d.uavgraphicobject.b{4} = (state.display3d.uavgraphicobject.b{2})*angleToDcm(0,0,pi/2,'XYZ');
+                
+                % body
+                state.display3d.uavgraphicobject.b{5} =  (cube.*repmat([bw,bw,bt],size(cube,1),1))*angleToDcm(0,0,pi/4,'XYZ');
                 
                 state.display3d.uavgraphicobject.bf = [1 2 3 4; 5 6 7 8; 4 3 7 8; 1 5 6 2; 1 4 8 5; 6 7 3 2];
                 
@@ -235,10 +283,10 @@ classdef PelicanGraphics<QuadrotorGraphics
                 sr = size(r,2);
                 disc = [sin(r).*obj.R;cos(r).*obj.R;-ones(1,sr).*obj.DFT]';
                 
-                state.display3d.uavgraphicobject.rotor1 = disc + repmat([al,0,0],sr,1);
-                state.display3d.uavgraphicobject.rotor2 = disc + repmat([0,al,0],sr,1);
-                state.display3d.uavgraphicobject.rotor3 = disc + repmat([0,-al,0],sr,1);
-                state.display3d.uavgraphicobject.rotor4 = disc + repmat([-al,0,0],sr,1);
+                state.display3d.uavgraphicobject.rotor{1} = disc + repmat([al,0,0],sr,1);
+                state.display3d.uavgraphicobject.rotor{2} = disc + repmat([0,al,0],sr,1);
+                state.display3d.uavgraphicobject.rotor{3} = disc + repmat([0,-al,0],sr,1);
+                state.display3d.uavgraphicobject.rotor{4} = disc + repmat([-al,0,0],sr,1);
                 state.display3d.uavgraphicobject.waypoint = (disc + repmat([-al,0,0],sr,1))*10;
                 
                 state.display3d.heliGexists=1;
