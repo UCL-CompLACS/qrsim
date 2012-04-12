@@ -47,6 +47,7 @@ classdef Pelican<Steppable & Platform
         % pelicanODE function
         G = 9.81;    %  gravity m/s^2
         MASS = 1.68; %  mass of the platform Kg
+        labels = {'px','py','pz','phi','theta','psi','u','v','w','p','q','r','thrust'};
     end
     
     properties (Access = protected)
@@ -337,7 +338,14 @@ classdef Pelican<Steppable & Platform
                         fprintf(['warning: platform state not valid, in collision!\n Normally this should not happen; ',...
                             'however if you think this is fine and you want to stop this warning use the task parameter behaviourIfStateNotValid\n']);
                     else
-                        fprintf(['warning: platform state not valid, values out of bounds!\n',num2str(obj.X'),'\nNormally this should not happen; ',...
+                        ids = (obj.X(1:12) < obj.stateLimits(:,1)) | (obj.X(1:12) > obj.stateLimits(:,2));
+                        problematics = '';
+                        for k=1:size(ids)
+                            if(ids(k))
+                                problematics = [problematics,',',obj.labels{k}]; %#ok<AGROW>
+                            end
+                        end
+                        fprintf(['warning: platform state not valid, values out of bounds (',problematics,')!\n',num2str(obj.X'),'\nNormally this should not happen; ',...
                             'however if you think this is fine and you want to stop this warning use the task parameter behaviourIfStateNotValid\n']);
                     end
                 end
