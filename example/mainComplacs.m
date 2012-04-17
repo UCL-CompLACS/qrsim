@@ -6,7 +6,6 @@ close all
 clc
 global state;
 
-video = 1;
 
 % only needed if using the pid controller
 clear global pid;
@@ -30,7 +29,9 @@ wps=[ 6  0  0 14 14  8  8 16 16 19 22 22 24 24 30 30 24 24 32 32 32 40 43 46 49 
 
 
 wpidx = 1;
-for i=1:N,    
+for i=1:N,  
+    
+    tloop = tic;
     ex = state.platforms(1).getEX();
     if((norm(ex(1:3)-wps(1:3,wpidx))<0.4) && (wpidx<size(wps,2)))
         wpidx = wpidx+1;
@@ -45,7 +46,7 @@ for i=1:N,
     % qrsim.reward();
     
     % wait so to run in real time
-    %wait = max(0,state.DT-toc(tloop));
-    pause(0.01);
+    wait = max(0,state.DT-toc(tloop));
+    pause(wait);
     
 end

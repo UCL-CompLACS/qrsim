@@ -197,10 +197,10 @@ try
     qrsim.init(task);
     e = 1;
 catch exception
-    if(~strcmp(exception.identifier,id))
-        e = 1;
-        fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
-    end
+   if(~strcmp(exception.identifier,id))
+       e = 1;
+       fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+   end
 end
 clear('global state');
 clear('qrsim');
