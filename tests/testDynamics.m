@@ -44,24 +44,21 @@ Z = [data(shift+(1:N),7:9),data(shift+(1:N),16:17),-data(shift+(1:N),18)];
 data(1:N,21) = data(1:N,21)+592;
 U = ([data(1:N,19:22),11*ones(N,1)].*repmat(UAVCTRL_2_SI,N,1))';
 
-% new state structure
-global state;
-
 % create simulator object
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskDynamicsCompareTranslation');
+state = qrsim.init('TaskDynamicsCompareTranslation');
 
-state.platforms(1).setX([0;0;-25;data(1,4:6)';0;0;0;data(1,10:12)']);
+state.platforms{1}.setX([0;0;-25;data(1,4:6)';0;0;0;data(1,10:12)']);
 
 for i=1:N
     % step simulator
     qrsim.step(U(:,i));
     
-    uvw = state.platforms(1).getX(7:9);
-    a = state.platforms(1).getA();
-    D = dcm(state.platforms(1).getX(1:6))';
+    uvw = state.platforms{1}.getX(7:9);
+    a = state.platforms{1}.getA();
+    D = dcm(state.platforms{1}.getX(1:6))';
     
     X(i,:) = [D*uvw;(D*a+[0;0;9.81])];
 end
@@ -102,7 +99,7 @@ if (plots)
 end
 
 % clear the state
-clear global state;
+clear state;
 
 if(e)
     fprintf('Test comparison of translation with logged flight data [FAILED]\n');
@@ -133,20 +130,17 @@ U = zeros(5,N);
 U(3,:) = (data(:,2).*UAVCTRL_2_SI(3))';
 U(5,:) = data(:,4)';
 
-% new state structure
-global state;
-
 % create simulator object
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskDynamicsCompareThrust');
+state = qrsim.init('TaskDynamicsCompareThrust');
 
 for i=1:N
     % step simulator
     qrsim.step(U(:,i));
     
-    X(i,1) = state.platforms(1).getX(13);
+    X(i,1) = state.platforms{1}.getX(13);
 end
 
 % Generate new time axis
@@ -162,7 +156,7 @@ if (plots)
 end
 
 % clear the state
-clear global state;
+clear state;
 
 if(e)
     fprintf('Test comparison of thrust with logged flight data [FAILED]\n');
@@ -194,20 +188,17 @@ Z = [data(:,3),data(:,2),data(:,4),data(:,6),data(:,5),data(:,7)];
 U = [data(:,8:end).*repmat(UAVCTRL_2_SI,N,1),11*ones(N,1)]';
 U(3,:) = 0.615*ones(1,N);
 
-% new state structure
-global state;
-
 % create simulator object
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskDynamicsCompareRotations');
+state = qrsim.init('TaskDynamicsCompareRotations');
 
 for i=1:N
     % step simulator
     qrsim.step(U(:,i));
     
-    X(i,:) = [state.platforms(1).getX(4:6);state.platforms(1).getX(10:12)]';
+    X(i,:) = [state.platforms{1}.getX(4:6);state.platforms{1}.getX(10:12)]';
     
 end
 
@@ -253,7 +244,7 @@ if (plots)
 end
 
 % clear the state
-clear global state;
+clear state;
 
 if(e)
     fprintf('Test comparison of rotation with logged flight data [FAILED]\n');
