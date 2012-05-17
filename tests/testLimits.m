@@ -31,18 +31,13 @@ end
 
 function e = testControlsOutOfBounds(msg)
 
-clear('global');
-
-% new state structure
-global state;
-
 e = 0;
 
 % create simulator object
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskNoWind');
+state = qrsim.init('TaskNoWind'); %#ok<NASGU>
 
 UwrongSize =[0.2,-0.2;
     0,   0;
@@ -114,11 +109,6 @@ end
 
 function e = testFlyingOutOfBounds(msg)
 
-clear('global');
-
-% new state structure
-global state;
-
 e = 0;
 
 % number of steps we run the simulation for
@@ -128,7 +118,7 @@ N = 600;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskNoWind');
+state = qrsim.init('TaskNoWind');
 
 wps=[   0,   0, 100, 0;
         0,   0,-100, 0;
@@ -142,16 +132,16 @@ for j = 1:size(wps,1)
     for i=1:N,
         
         % compute controls
-        U=quadrotorPID(state.platforms(1).getEX(),wps(j,:));
+        U=quadrotorPID(state.platforms{1}.getEX(),wps(j,:),state.DT);
         
         % step simulator
         qrsim.step(U);
         
-        if(~state.platforms(1).isValid())
+        if(~state.platforms{1}.isValid())
             break;
         end
     end
-    e = e || state.platforms(1).isValid();
+    e = e || state.platforms{1}.isValid();
     
     qrsim.reset();    
 end
@@ -169,17 +159,11 @@ function e = testSettingStateOutOfBounds(msg)
 
 e = 0;
 
-clear('global');
-
-% new state structure
-global state;
-
 qrsim = QRSim();
 
+state = qrsim.init('TaskNoWind');
 
-qrsim.init('TaskNoWind');
-
-limits = state.platforms(1).getStateLimits();
+limits = state.platforms{1}.getStateLimits();
 
 for i=1:size(limits,1),
     
@@ -188,7 +172,7 @@ for i=1:size(limits,1),
         l(i) = limits(i,j)*1.01; % out of limits (this relies on the max and min limits being one positive the other negative)
         
         try
-            state.platforms(1).setX(l);
+            state.platforms{1}.setX(l);
             e = e || 1;
         catch exception
             if(~strcmp(exception.identifier,'pelican:settingoobstate'))
@@ -198,9 +182,6 @@ for i=1:size(limits,1),
         end
     end
 end
-
-% clear the state
-clear global state;
 
 if(e)
     fprintf(['Test ',msg,' [FAILED]\n']);
@@ -214,15 +195,10 @@ function e = testConfigFileStateOutOfBounds(task,msg)
 
 e = 0;
 
-clear('global');
-
-% new state structure
-global state;
-
 qrsim = QRSim();
 
 try
-    qrsim.init(task);
+    state = qrsim.init(task); %#ok<NASGU>
     e = e || 1;
 catch exception
     if(~strcmp(exception.identifier,'pelican:settingoobstate'))
