@@ -49,6 +49,7 @@ classdef AHARSPelican<AHARS
             %if obj.active==0 we instantiate the sensor as their noiseless base class
             
             objparams.accelerometer.DT = objparams.DT;
+            objparams.accelerometer.state = objparams.state;
             assert(isfield(objparams,'accelerometer')&&isfield(objparams.accelerometer,'on'),'ahahrspelican:noaccelerometer',...
                 'the platform config file must define an accelrometer if not needed set accelrometer.on = 0');
             
@@ -67,6 +68,7 @@ classdef AHARSPelican<AHARS
             
             
             objparams.gyroscope.DT = objparams.DT;
+            objparams.gyroscope.state = objparams.state;
             assert(isfield(objparams,'gyroscope')&&isfield(objparams.gyroscope,'on'),'ahahrspelican:nogyroscope',...
                 'the platform config file must define an gyroscope if not needed set gyroscope.on = 0');
             
@@ -84,6 +86,7 @@ classdef AHARSPelican<AHARS
             end
             
             objparams.altimeter.DT = objparams.DT;
+            objparams.altimeter.state = objparams.state;
             assert(isfield(objparams,'altimeter')&&isfield(objparams.altimeter,'on'),'ahahrspelican:noaltimeter',...
                 'the platform config file must define an altimeter if not needed set altimeter.on = 0');
             
@@ -101,6 +104,7 @@ classdef AHARSPelican<AHARS
             end
             
             objparams.orientationEstimator.DT = objparams.DT;
+            objparams.orientationEstimator.state = objparams.state;
             assert(isfield(objparams,'orientationEstimator')&&isfield(objparams.orientationEstimator,'on'),'ahahrspelican:noorientationestimator',...
                 'the platform config file must define an orientationEstimator if not needed set orientationEstimator.on = 0');
             

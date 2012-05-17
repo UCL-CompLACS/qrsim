@@ -39,7 +39,6 @@ classdef WindConstMean<Wind
             %                objparams.direction - mean wind direction rad clockwise from north
             %                objparams.zOrigin - origin reference Z coord
             %
-            global state;
             
             objparams.dt = intmax*objparams.DT; % since this wind is constant
             
@@ -59,16 +58,15 @@ classdef WindConstMean<Wind
                 obj.randDir = 1;
                 obj.direction = 0;
             end
-            state.numRStreams = state.numRStreams+1;
-            obj.prngId = state.numRStreams;
+            obj.simState.numRStreams = obj.simState.numRStreams+1;
+            obj.prngId = obj.simState.numRStreams;
         end
         
         function obj = reset(obj)
             % reset wind direction if random;
-            global state;
             
             if(obj.randDir)
-                obj.direction = 2*pi*rand(state.rStreams{obj.prngId},1,1);
+                obj.direction = 2*pi*rand(obj.simState.rStreams{obj.prngId},1,1);
             end
         end
         

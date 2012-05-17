@@ -19,7 +19,11 @@ classdef TaskKeepSpot<Task
         
     methods (Sealed,Access=public)
         
-        function taskparams=init(obj)
+        function obj = TaskKeepSpot(state)
+           obj = obj@Task(state);             
+        end
+        
+        function taskparams=init(obj) %#ok<MANU>
             % loads and returns all the parameters for the various simulator objects
             %
             % Example:
@@ -34,7 +38,7 @@ classdef TaskKeepSpot<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 1;
+            taskparams.display3d.on = 0;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;            
             
@@ -57,7 +61,7 @@ classdef TaskKeepSpot<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 1; % if off the gps returns the noiseless position
+            taskparams.environment.gpsspacesegment.on = 0; % if off the gps returns the noiseless position
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
@@ -100,11 +104,10 @@ classdef TaskKeepSpot<Task
             %   r = obj.reward();
             %          r - the reward
             %
-            global state;
             
-            if(state.platforms(1).valid)
-                e = state.platforms(1).X(1:12);
-                e = e(1:3)-state.platforms(1).params.X(1:3);
+            if(simState.platforms{1}.isValid())
+                e = simState.platforms{1}.getX(1:12);
+                e = e(1:3)-simState.platforms{1}.params.getX(1:3);
                 r = - e' * e; 
             else
                 % returning a large penalty in case the state is not valid

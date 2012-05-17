@@ -16,7 +16,9 @@ classdef AerodynamicTurbulence<Steppable
             % Example:
             %
             %   obj=AerodynamicTurbulence(objparams)
-            %                objparams.on - 0 to have this type of object
+            %                objparams.dt    - timestep of this object
+            %                objparams.on    - 1 if the object is active
+            %                objparams.state - handle to the simulator state
             %
             obj = obj@Steppable(objparams);
         end
@@ -66,8 +68,5 @@ classdef AerodynamicTurbulence<Steppable
             % of this object dt, therefore it should not be called directly.
         end
     end
-    
-    
-    
 end
 

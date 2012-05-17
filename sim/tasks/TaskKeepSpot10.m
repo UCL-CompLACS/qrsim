@@ -18,8 +18,12 @@ classdef TaskKeepSpot10<Task
     end    
         
     methods (Sealed,Access=public)
+                        
+        function obj = TaskKeepSpot10(state)
+           obj = obj@Task(state);             
+        end
         
-        function taskparams=init(obj)
+        function taskparams=init(obj) %#ok<MANU>
             % loads and returns all the parameters for the various simulator objects
             %
             % Example:
@@ -102,12 +106,19 @@ classdef TaskKeepSpot10<Task
             %   r = obj.reward();
             %          r - the reward
             %
-            global state;
             
-            if(state.platforms(1).valid)
-                e = state.platforms(1).X(1:12);
-                e = e(1:3)-state.platforms(1).params.X(1:3);
-                r = - e' * e; 
+            valid = 1;
+            for i=1:length(obj.simState.platforms)
+               valid = valid &&  obj.simState.platforms{i}.isValid();
+            end    
+            
+            if(valid)
+                r = 0;
+                for i=1:length(obj.simState.platforms)
+                    e = obj.simState.platforms{i}.getX(1:12);
+                    e = e(1:3)-obj.simState.platforms{i}.params.getX(1:3);
+                    r = r - e' * e; 
+                end
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. the helicopter is out of the area, there was a

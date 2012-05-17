@@ -21,14 +21,13 @@ classdef GPSReceiver<Sensor
             %   obj=GPSReceiver(objparams)
             %                objparams.on - 0 to have this type of object
             %
-            global state;
             
             if(objparams.on)
-                assert(~strcmp(class(state.environment.gpsspacesegment),'GPSSPaceSegment'),...
+                assert(~strcmp(class(objparams.state.environment.gpsspacesegment),'GPSSPaceSegment'),...
                     'When a GPS receiver is active also a corresponding gpsspacesegment object must be active');                
             end
             
-            objparams.dt = state.environment.gpsspacesegment.getDt();
+            objparams.dt = objparams.state.environment.gpsspacesegment.getDt();
             
             obj = obj@Sensor(objparams);
         end

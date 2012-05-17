@@ -9,8 +9,12 @@ classdef Task<handle
     %
     %                           *hyperlink broken because the method is abstract
     %
-    methods (Abstract)
-        
+    
+    properties (Access=protected)
+       simState;      % handle to the simultor state
+    end
+    
+    methods (Abstract)        
         taskparams=init(obj);
         % initializes all the simulation parameter needed to define a task,
         % its content depends on the task neeeds
@@ -19,4 +23,10 @@ classdef Task<handle
         % returns a task reward given the current state, its content depends on the task
         % to be learned and on the learning algorithm used
     end
+    
+    methods (Access=public)
+        function obj = Task(state)
+           obj.simState = state; 
+        end
+    end    
 end

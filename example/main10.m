@@ -3,7 +3,6 @@
 
 clear all
 close all
-global state;
 
 % only needed if using the pid controller
 clear global pid;
@@ -12,7 +11,7 @@ clear global pid;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskKeepSpot10');
+state = qrsim.init('TaskKeepSpot10');
 
 % number of steps we run the simulation for
 N = 3000;
@@ -20,7 +19,7 @@ N = 3000;
 wp = zeros(10,4);
 
 for i=1:10
-    wp(i,:) = [state.platforms(i).getX(1:3)',0];
+    wp(i,:) = [state.platforms{i}.getX(1:3)',0];
 end
 tstart = tic;
 
@@ -29,7 +28,7 @@ for i=1:N,
     tloop=tic;
     for j=1:10
         % compute controls
-        U(:,j) = quadrotorPID(state.platforms(j).getEX(),wp(j,:));
+        U(:,j) = quadrotorPID(state.platforms{j}.getEX(),wp(j,:),state.DT);
     end
     % step simulator
     qrsim.step(U);

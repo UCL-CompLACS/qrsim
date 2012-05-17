@@ -21,6 +21,7 @@ classdef Steppable<handle
     
     properties (Access=protected)
         dt;          % timestep of this object
+        simState;    % handle to the simulator state
     end
     
     methods (Sealed,Access=public)
@@ -32,28 +33,25 @@ classdef Steppable<handle
             % Example:
             %
             %   obj=Steppable(objparams)
-            %                objparams.dt - timestep of this object
-            %                objparams.DT - global simulation timestep
-            %                objparams.on - 1 if the object is active
-            %
+            %                objparams.dt   - timestep of this object
+            %                objparams.on   - 1 if the object is active
+            %                objparam.state - handle to the simulator state
             %
             % Note:
             % this is an abstract class so this contructor is meant to be called by any
             % subclass.
             %
-            
             assert(isfield(objparams,'on'),'The task must define the parameter on for the object %s',class(obj));
             
+            obj.simState = objparams.state;
+                        
             if(objparams.on)
                 assert(isfield(objparams,'dt'),'steppable:nodt','The task must define the parameter dt for the object %s',class(obj));
-                assert(isfield(objparams,'DT'),'steppable:nodt','The task must define the parameter DT for the object %s',class(obj));
             else
                 assert(isfield(objparams,'dt'),'steppable:nodt',['Although the object %s is not ON, the task must define its parameter dt\n',...
                     'this is needed to define the update rate of the noiseless version of %s'],class(obj),class(obj));
-                assert(isfield(objparams,'DT'),'steppable:nodt',['Although the object %s is not ON, the task must define its parameter DT\n',...
-                    'this is needed to define the update rate of the noiseless version of %s'],class(obj),class(obj));
             end
-            r = rem(objparams.dt,objparams.DT);
+            r = rem(objparams.dt,obj.simState.DT);
             if(((r<obj.TOL)||((objparams.dt-r)<obj.TOL)) && (objparams.dt~=0))
                 obj.dt = objparams.dt;
             else
@@ -70,10 +68,8 @@ classdef Steppable<handle
             %
             %   obj.step(args);
             %       args - passed directly to update, see the update method
-            %
-            global state;
-            
-            r = rem(state.t,obj.dt);
+            %            
+            r = rem(obj.simState.t,obj.dt);
             if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)))
                 obj.update(args);
             end

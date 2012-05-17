@@ -7,9 +7,16 @@ classdef Platform<handle
     %    Platform(objparams)      - constructs the object, to be called only from derived
     %                             subclasses.
     %    setX(X)                  - sets the platform state to the value passed
-    %    
+    %  
+    
     methods (Abstract)        
         setX(obj,X);
         % sets the platform state to the value passed             
+    end   
+    
+    methods (Access=public)
+        function obj = Platform(~)
+            
+        end        
     end
 end

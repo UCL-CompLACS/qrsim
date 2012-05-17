@@ -15,9 +15,8 @@ classdef AreaGraphics<handle
             %   obj = AreaGraphics(objparams)
             %        objparams = [minx maxx miny maxy minz maxz]  meters
             %
-            global state;
             
-            set(0,'CurrentFigure',state.display3d.figure)
+            set(0,'CurrentFigure',objparams.state.display3d.figure)
             
             %ground patch
             if(~isfield(objparams,'backgroundimage'))
@@ -32,7 +31,7 @@ classdef AreaGraphics<handle
                 
                 cz = zeros(3,2);
                 
-                state.display3d.ground = patch(cx,cy,cz,'FaceColor',[0.2,0.4,0.2],'EdgeColor','none');
+                objparams.state.display3d.ground = patch(cx,cy,cz,'FaceColor',[0.2,0.4,0.2],'EdgeColor','none');
                 
             else
                 
@@ -84,11 +83,11 @@ classdef AreaGraphics<handle
                
                 [x,y] = meshgrid(vx,vy);
                 z = zeros(size(vy,2),size(vx,2));
-                state.display3d.ground = surface(x,y,z);
+                objparams.state.display3d.ground = surface(x,y,z);
                 
-                set(state.display3d.ground,'facecolor','texturemap');
-                set(state.display3d.ground,'edgecolor','none');
-                set(state.display3d.ground,'cdata',texture);
+                set(objparams.state.display3d.ground,'facecolor','texturemap');
+                set(objparams.state.display3d.ground,'edgecolor','none');
+                set(objparams.state.display3d.ground,'cdata',texture);
                 
             end
             
@@ -98,10 +97,10 @@ classdef AreaGraphics<handle
             
             %p = [70;20;-15];
             %pp = [p,p-[5;5;0],p-[5;4;0],p-[4;5;0],p-[5;5;0]];
-            %state.display3d.wind = line(pp(1,:),pp(2,:),pp(3,:));
-            %set(state.display3d.wind,'color','r');
-            %set(state.display3d.wind,'LineWidth',2);            
-            %state.display3d.text = text(68,18,-18,'MEAN WIND','FontSize',15,'Color','r');
+            %objparams.state.display3d.wind = line(pp(1,:),pp(2,:),pp(3,:));
+            %set(objparams.state.display3d.wind,'color','r');
+            %set(objparams.state.display3d.wind,'LineWidth',2);            
+            %objparams.state.display3d.text = text(68,18,-18,'MEAN WIND','FontSize',15,'Color','r');
             
             % a reasonable starting view
             view([-30,35]);

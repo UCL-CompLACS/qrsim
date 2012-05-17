@@ -15,9 +15,8 @@ classdef AreaWithObstaclesGraphics<handle
             %   obj = AreaGraphics(objparams)
             %        objparams = [minx maxx miny maxy minz maxz]  meters
             %
-            global state;
             
-            set(0,'CurrentFigure',state.display3d.figure)
+            set(0,'CurrentFigure',objparams.state.display3d.figure)
             hold on;
             limits = objparams.limits;
             
@@ -34,7 +33,7 @@ classdef AreaWithObstaclesGraphics<handle
                 
                 cz = zeros(3,2);
                 
-                state.display3d.ground = patch(cx,cy,cz,'FaceColor',[0.2,0.4,0.2],'EdgeColor','none');
+                objparams.state.display3d.ground = patch(cx,cy,cz,'FaceColor',[0.2,0.4,0.2],'EdgeColor','none');
                 
             else
                 
@@ -86,11 +85,11 @@ classdef AreaWithObstaclesGraphics<handle
                
                 [x,y] = meshgrid(vx,vy);
                 z = zeros(size(vy,2),size(vx,2));
-                state.display3d.ground = surface(x,y,z);
+                objparams.state.display3d.ground = surface(x,y,z);
                 
-                set(state.display3d.ground,'facecolor','texturemap');
-                set(state.display3d.ground,'edgecolor','none');
-                set(state.display3d.ground,'cdata',texture);
+                set(objparams.state.display3d.ground,'facecolor','texturemap');
+                set(objparams.state.display3d.ground,'edgecolor','none');
+                set(objparams.state.display3d.ground,'cdata',texture);
                 
             end
             
@@ -98,11 +97,11 @@ classdef AreaWithObstaclesGraphics<handle
             for i = 1:size(objparams.obstacles,2),
                 [X,Y,Z] = cylinder(objparams.obstacles(4,i)-0.2,16);
                 
-                state.display3d.obstacle(i) = surface(X+objparams.obstacles(1,i), ...
+                objparams.state.display3d.obstacle(i) = surface(X+objparams.obstacles(1,i), ...
                      Y+objparams.obstacles(2,i), ...
                      Z*abs(objparams.obstacles(3,i))+objparams.obstacles(3,i));
-                set(state.display3d.obstacle(i),'EdgeColor', [0.627 0.321 0.176],'FaceColor', [0.627 0.321 0.176]); 
-                set(state.display3d.obstacle(i),'FaceAlpha',0.7,'EdgeAlpha',1);
+                set(objparams.state.display3d.obstacle(i),'EdgeColor', [0.627 0.321 0.176],'FaceColor', [0.627 0.321 0.176]); 
+                set(objparams.state.display3d.obstacle(i),'FaceAlpha',0.7,'EdgeAlpha',1);
             end
             
             %invert axis to be coherent with NED

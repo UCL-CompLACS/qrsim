@@ -37,13 +37,12 @@ classdef AltimeterGM<Altimeter
             %                objparams.BETA - noise time constant
             %                objparams.SIGMA - noise standard deviation
             %
-            global state;
                         
             obj = obj@Altimeter(objparams);
             
-            obj.nPrngId = state.numRStreams+1;
-            obj.rPrngId = state.numRStreams+2; 
-            state.numRStreams = state.numRStreams + 2;
+            obj.nPrngId = obj.simState.numRStreams+1;
+            obj.rPrngId = obj.simState.numRStreams+2; 
+            obj.simState.numRStreams = obj.simState.numRStreams + 2;
             
             assert(isfield(objparams,'TAU'),'altimetergm:notau',...
                 'the platform config file a must define altimetergm.TAU parameter');
@@ -68,11 +67,10 @@ classdef AltimeterGM<Altimeter
         
         function obj=reset(obj)
             % reinitialize the noise state
-            global state;
             obj.n = 0;
             
-            for i=1:randi(state.rStreams{obj.rPrngId},1000),
-                obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStreams{obj.nPrngId},1,1);
+            for i=1:randi(obj.simState.rStreams{obj.rPrngId},1000),
+                obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(obj.simState.rStreams{obj.nPrngId},1,1);
             end
         end       
                         
@@ -96,7 +94,6 @@ classdef AltimeterGM<Altimeter
             % updates the altimeter noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            global state;
             
             if(isempty(obj.estimatedAltAndAltDot))                
                 % velocity in global frame
@@ -106,7 +103,7 @@ classdef AltimeterGM<Altimeter
                 obj.estimatedAltAndAltDot(1) = obj.n -X(3) + gvel(3)*obj.dt;
             end                
                         
-            obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(state.rStreams{obj.nPrngId},1,1);
+            obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(obj.simState.rStreams{obj.nPrngId},1,1);
             
             obj.pastEstimatedAltitude = obj.estimatedAltAndAltDot(1,1);
             obj.estimatedAltAndAltDot(1,1) = obj.n - X(3);  %altitude not Z

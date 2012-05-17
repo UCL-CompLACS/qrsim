@@ -54,14 +54,14 @@ classdef GPSReceiverG < GPSReceiver
             %                objparams.R_SIGMA - receiver noise standard deviation
             %                objparams.delay - time delay in multiples of receiver's dt
             %
-            global state;
+
             obj=obj@GPSReceiver(objparams);
             
-            obj.nPrngId = state.numRStreams+1;
-            obj.sPrngId = state.numRStreams+2;
-            state.numRStreams = state.numRStreams + 2;
+            obj.nPrngId = obj.simState.numRStreams+1;
+            obj.sPrngId = obj.simState.numRStreams+2;
+            obj.simState.numRStreams = obj.simState.numRStreams + 2;
             
-            obj.originUTMcoords = state.environment.area.getOriginUTMCoords();
+            obj.originUTMcoords = obj.simState.environment.area.getOriginUTMCoords();
             
             assert(isfield(objparams,'R_SIGMA'),'gpsreceiverg:nosigma','the platform config must define the gpsreceiver.R_SIGMA parameter');
             obj.R_SIGMA = objparams.R_SIGMA;
@@ -71,7 +71,7 @@ classdef GPSReceiverG < GPSReceiver
             % pick randomly the satellites visible for this receiver
             assert(isfield(objparams,'minmaxnumsv'),'gpsreceiverg:nonumsvs','the platform config must define the gpsreceiver.minmaxnumsv parameter');
             obj.minmaxnumsv = objparams.minmaxnumsv;
-            obj.totalnumsvs = state.environment.gpsspacesegment.getTotalNumSVS();
+            obj.totalnumsvs = obj.simState.environment.gpsspacesegment.getTotalNumSVS();
         end        
         
         function estimatedPosVelNED = getMeasurement(obj,~)
@@ -96,15 +96,14 @@ classdef GPSReceiverG < GPSReceiver
             %
             %   obj.reset()
             %
-            global state;
             
-            obj.nsv = obj.minmaxnumsv(1)+randi(state.rStreams{obj.sPrngId},obj.minmaxnumsv(2)-obj.minmaxnumsv(1));
+            obj.nsv = obj.minmaxnumsv(1)+randi(obj.simState.rStreams{obj.sPrngId},obj.minmaxnumsv(2)-obj.minmaxnumsv(1));
             
             obj.svidx = zeros(1,obj.nsv);
-            r = randperm(state.rStreams{obj.sPrngId},obj.totalnumsvs);
+            r = randperm(obj.simState.rStreams{obj.sPrngId},obj.totalnumsvs);
             obj.svidx = r(1:obj.nsv);
             
-            obj.receivernoise = obj.R_SIGMA*randn(state.rStreams{obj.nPrngId},obj.nsv,1);
+            obj.receivernoise = obj.R_SIGMA*randn(obj.simState.rStreams{obj.nPrngId},obj.nsv,1);
         end
         
         function obj = setState(obj,X)
@@ -125,15 +124,13 @@ classdef GPSReceiverG < GPSReceiver
         
         function estimatedPosNED = solveFromObservations(obj,posNED)
             
-            global state;
-            
             truePosECEF = nedToEcef(posNED, obj.originUTMcoords);
             
             obs = zeros(obj.nsv,1);
             for i = 1:obj.nsv,
                 % compute pseudorange
-                obs(i,1) = norm(truePosECEF-state.environment.gpsspacesegment_.svspos(:,obj.svidx(i)))...
-                    +state.environment.gpsspacesegment_.prns(obj.svidx(i))...
+                obs(i,1) = norm(truePosECEF-obj.simState.environment.gpsspacesegment_.svspos(:,obj.svidx(i)))...
+                    +obj.simState.environment.gpsspacesegment_.prns(obj.svidx(i))...
                     +obj.receivernoise(i);
             end
             
@@ -143,7 +140,7 @@ classdef GPSReceiverG < GPSReceiver
                 A = zeros(obj.nsv,4);
                 omc = zeros(obj.nsv,1); % observed minus computed observation
                 for i = 1:obj.nsv,
-                    XX = state.environment.gpsspacesegment_.svspos(:,obj.svidx(i));
+                    XX = obj.simState.environment.gpsspacesegment_.svspos(:,obj.svidx(i));
                     omc(i,:) = obs(i)-norm(XX-p(1:3),'fro')-p(4);
                     A(i,:) = [(-(XX(1)-p(1)))/obs(i),(-(XX(2)-p(2)))/obs(i),(-(XX(3)-p(3)))/obs(i),1];
                 end % i
@@ -169,11 +166,10 @@ classdef GPSReceiverG < GPSReceiver
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
+
+            obj.receivernoise = obj.R_SIGMA*randn(obj.simState.rStreams{obj.nPrngId},obj.nsv,1);
             
-            global state;
-            obj.receivernoise = obj.R_SIGMA*randn(state.rStreams{obj.nPrngId},obj.nsv,1);
-            
-            assert(isfield(state.environment.gpsspacesegment_,'svspos'), ...
+            assert(isfield(obj.simState.environment.gpsspacesegment_,'svspos'), ...
                 'In order to run a GPSReceiver needs the corresponding space segment!');
             
             if(isempty(obj.delayedPositionsNED))

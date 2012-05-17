@@ -84,13 +84,14 @@ classdef Pelican<Steppable & Platform
             %                objparams.stateLimits - 13 by 2 vector of allowed values of the state
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
+            %                objparams.state - handle to simulator state
             %
-            global state;
             
             obj=obj@Steppable(objparams);
+            obj=obj@Platform(objparams);
             
-            obj.prngIds = [1;2;3;4;5;6] + state.numRStreams;
-            state.numRStreams = state.numRStreams + 6;
+            obj.prngIds = [1;2;3;4;5;6] + obj.simState.numRStreams;
+            obj.simState.numRStreams = obj.simState.numRStreams + 6;
             
             assert(isfield(objparams,'stateLimits'),'pelican:nostatelimits',...
                 'the platform config file must define the stateLimits parameter');
@@ -113,12 +114,13 @@ classdef Pelican<Steppable & Platform
             % TURBULENCE
             objparams.aerodynamicturbulence.DT = objparams.DT;
             objparams.aerodynamicturbulence.dt = objparams.dt;
+            objparams.aerodynamicturbulence.state = objparams.state;
             if(objparams.aerodynamicturbulence.on)
                 
                 assert(isfield(objparams.aerodynamicturbulence,'type'),'pelican:noaerodynamicturbulencetype',...
                     'the platform config file must define an aerodynamicturbulence.type ');
                 
-                limits = state.environment.area.getLimits();
+                limits = obj.simState.environment.area.getLimits();
                 objparams.aerodynamicturbulence.zOrigin = limits(6);
                 
                 tmp = feval(objparams.aerodynamicturbulence.type, objparams.aerodynamicturbulence);
@@ -137,6 +139,7 @@ classdef Pelican<Steppable & Platform
             objparams.sensors.ahars.DT = objparams.DT;
             assert(isfield(objparams.sensors.ahars,'type'),'pelican:noaharstype',...
                 'the platform config file must define an ahars.type');
+            objparams.sensors.ahars.state = objparams.state;
             tmp = feval(objparams.sensors.ahars.type,objparams.sensors.ahars);
             if(isa(tmp,'AHARS'))
                 obj.ahars = tmp;
@@ -148,9 +151,10 @@ classdef Pelican<Steppable & Platform
             assert(isfield(objparams.sensors,'gpsreceiver')&&isfield(objparams.sensors.gpsreceiver,'on'),'pelican:nogpsreceiver',...
                 'the platform config file must define a gps receiver if not needed set gpsreceiver.on = 0');
             objparams.sensors.gpsreceiver.DT = objparams.DT;
+            objparams.sensors.gpsreceiver.state = objparams.state;
             if(objparams.sensors.gpsreceiver.on)
                 
-                assert(~strcmp(class(state.environment.gpsspacesegment),'GPSSpaceSegment'),...
+                assert(~strcmp(class(obj.simState.environment.gpsspacesegment),'GPSSpaceSegment'),...
                     'pelican:nogpsspacesegment','the task config file must define a gpsspacesegment if a gps receiver is in use');
                 
                 assert(isfield(objparams.sensors.gpsreceiver,'type'),'pelican:nogpsreceivertype',...
@@ -169,6 +173,7 @@ classdef Pelican<Steppable & Platform
             assert(isfield(objparams,'graphics')&&isfield(objparams.graphics,'on'),'pelican:nographics',...
                 'the platform config file must define a graphics parameter if not needed set graphics.on = 0');
             objparams.graphics.DT = objparams.DT;
+            objparams.graphics.state = objparams.state;
             if(objparams.graphics.on)
                 assert(isfield(objparams.graphics,'type'),'pelican:nographicstype',...
                     'the platform config file must define a graphics.type');
@@ -311,11 +316,10 @@ classdef Pelican<Steppable & Platform
         
         function coll = inCollision(obj)
             % returns 1 if a collision is occourring
-            global state;
             coll = 0;
-            for i=1:length(state.platforms),
-                if(state.platforms(i) ~= obj)
-                    if(norm(state.platforms(i).X(1:3)-obj.X(1:3))< obj.collisionD)
+            for i=1:length(obj.simState.platforms),
+                if(obj.simState.platforms{i} ~= obj)
+                    if(norm(obj.simState.platforms{i}.X(1:3)-obj.X(1:3))< obj.collisionD)
                         coll = 1;
                     end
                 end
@@ -368,7 +372,6 @@ classdef Pelican<Steppable & Platform
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-            global state;
             
             if(obj.valid)
                 
@@ -381,17 +384,17 @@ classdef Pelican<Steppable & Platform
                 
                 %wind and turbulence this closely mimic the Simulink example "Lightweight Airplane Design"
                 % asbSkyHogg/Environment/WindModels
-                meanWind = state.environment.wind.getLinear(obj.X);
+                meanWind = obj.simState.environment.wind.getLinear(obj.X);
                 
                 obj.aerodynamicTurbulence.step(obj.X);
                 turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
                 
-                accNoise = obj.dynNoise.*[randn(state.rStreams{obj.prngIds(1)},1,1);
-                                          randn(state.rStreams{obj.prngIds(2)},1,1);
-                                          randn(state.rStreams{obj.prngIds(3)},1,1);
-                                          randn(state.rStreams{obj.prngIds(4)},1,1);
-                                          randn(state.rStreams{obj.prngIds(5)},1,1);
-                                          randn(state.rStreams{obj.prngIds(6)},1,1)];
+                accNoise = obj.dynNoise.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(3)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(4)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(5)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(6)},1,1)];
                 
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;meanWind + turbWind; obj.MASS; accNoise], obj.dt);

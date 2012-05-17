@@ -11,6 +11,7 @@ classdef Sensor<Steppable
     %    setState(X)            - re-initialise the state to a new value
     %
     %                           *hyperlink broken because the method is abstract
+    
     methods
         function obj = Sensor(objparams)
             % constructs the object
@@ -18,8 +19,9 @@ classdef Sensor<Steppable
             % Example:
             %
             %   obj=Sensor(objparams)
-            %                objparams.dt - timestep of this object
-            %                objparams.on - 1 if the object is active
+            %                objparams.dt    - timestep of this object
+            %                objparams.on    - 1 if the object is active
+            %                objparams.state - handle to the simulator state
             %
             % Note:
             % this is an abstract class so this contructor is meant to be called by any

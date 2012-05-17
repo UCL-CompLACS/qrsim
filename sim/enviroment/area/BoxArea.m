@@ -25,6 +25,7 @@ classdef BoxArea<EnvironmentObject
             %               objparams.originutmcoords - structure containing the origin in utm coord
             %               objparams.graphics.type - class type for thegraphics object 
             %                                         (only needed if the 3D displayis active)
+            %               objparams.state - handle to the simulator state
             %
             obj=obj@EnvironmentObject(objparams);
             
@@ -39,6 +40,7 @@ classdef BoxArea<EnvironmentObject
             if(objparams.graphics.on)
                 assert(isfield(objparams.graphics,'type'),'boxarea:nographicstype','Since the display3d is on the task must define environment.area.graphics.type');
                 tmp.limits = objparams.limits;
+                tmp.state = objparams.state;
                 if(isfield(objparams,'graphics') && isfield(objparams.graphics,'backgroundimage'))
                     tmp.backgroundimage = objparams.graphics.backgroundimage;
                 end

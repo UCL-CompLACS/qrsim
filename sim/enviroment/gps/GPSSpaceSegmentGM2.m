@@ -54,8 +54,6 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             %                objparams.svs - visible satellites
             %
             
-            global state;
-            
             obj=obj@GPSSpaceSegment(objparams);
             
             assert(isfield(objparams,'tStart'),'gpsspacesegmentgm2:notstart','The task must define a gps start time gpsspacesegment.tStart');
@@ -73,67 +71,65 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             
             % read in the precise satellite orbits
             assert(isfield(objparams,'orbitfile'),'gpsspacesegmentgm2:noorbitfile','The task must define a gpsspacesegment.orbitfile');
-            state.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);
+            obj.simState.environment.gpsspacesegment_.stdPe = readSP3(Orbits, objparams.orbitfile);
             
-            state.environment.gpsspacesegment_.stdPe.compute();
+            obj.simState.environment.gpsspacesegment_.stdPe.compute();
             
             assert(isfield(objparams,'svs'),'gpsspacesegmentgm2:nosvs','The task must define a gpsspacesegment.svs');
-            state.environment.gpsspacesegment_.svs = objparams.svs;
+            obj.simState.environment.gpsspacesegment_.svs = objparams.svs;
             
             % for each of the possible svs we initialize the
             % common part of the pseudorange noise models
-            state.environment.gpsspacesegment_.nsv = length(objparams.svs);                        
+            obj.simState.environment.gpsspacesegment_.nsv = length(objparams.svs);                        
                         
-            obj.prPrngIds = state.numRStreams+1:state.numRStreams+state.environment.gpsspacesegment_.nsv;
-            state.numRStreams = state.numRStreams+state.environment.gpsspacesegment_.nsv+1;
-            obj.sPrngId = state.numRStreams;
+            obj.prPrngIds = obj.simState.numRStreams+1:obj.simState.numRStreams+obj.simState.environment.gpsspacesegment_.nsv;
+            obj.simState.numRStreams = obj.simState.numRStreams+obj.simState.environment.gpsspacesegment_.nsv+1;
+            obj.sPrngId = obj.simState.numRStreams;
             
-            state.environment.gpsspacesegment_.betas2 = (1/obj.PR_BETA2)*ones(state.environment.gpsspacesegment_.nsv,1);
-            state.environment.gpsspacesegment_.betas1 = (1/obj.PR_BETA1)*ones(state.environment.gpsspacesegment_.nsv,1);
-            state.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(state.environment.gpsspacesegment_.nsv,1);
+            obj.simState.environment.gpsspacesegment_.betas2 = (1/obj.PR_BETA2)*ones(obj.simState.environment.gpsspacesegment_.nsv,1);
+            obj.simState.environment.gpsspacesegment_.betas1 = (1/obj.PR_BETA1)*ones(obj.simState.environment.gpsspacesegment_.nsv,1);
+            obj.simState.environment.gpsspacesegment_.w = obj.PR_SIGMA*ones(obj.simState.environment.gpsspacesegment_.nsv,1);
         end
         
         function obj = reset(obj)
             % reinitializes the noise model
-            global state;
             
-            [b,e] = state.environment.gpsspacesegment_.stdPe.tValidLimits();
+            [b,e] = obj.simState.environment.gpsspacesegment_.stdPe.tValidLimits();
             
             if(obj.randomTStart)
-                obj.tStart=b+rand(state.rStreams{obj.sPrngId},1,1)*(e-b-obj.TBEFOREEND);
+                obj.tStart=b+rand(obj.simState.rStreams{obj.sPrngId},1,1)*(e-b-obj.TBEFOREEND);
             end
             
             if((obj.tStart<b)||(obj.tStart>e))
                 error('GPS start time out of sp3 file bounds');
             end
             
-            state.environment.gpsspacesegment_.prns=zeros(state.environment.gpsspacesegment_.nsv,1);
-            state.environment.gpsspacesegment_.prns1=zeros(state.environment.gpsspacesegment_.nsv,1);
+            obj.simState.environment.gpsspacesegment_.prns=zeros(obj.simState.environment.gpsspacesegment_.nsv,1);
+            obj.simState.environment.gpsspacesegment_.prns1=zeros(obj.simState.environment.gpsspacesegment_.nsv,1);
             
             % spin up the noise process
-            for i=1:randi(state.rStreams{obj.sPrngId},1000)
+            for i=1:randi(obj.simState.rStreams{obj.sPrngId},1000)
                 % update noise states
-                state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
-                    state.environment.gpsspacesegment_.betas1+state.environment.gpsspacesegment_.prns1;
+                obj.simState.environment.gpsspacesegment_.prns = obj.simState.environment.gpsspacesegment_.prns.*...
+                    obj.simState.environment.gpsspacesegment_.betas1+obj.simState.environment.gpsspacesegment_.prns1;
                 
-                for j=1:state.environment.gpsspacesegment_.nsv
-                    state.environment.gpsspacesegment_.prns1(j) = state.environment.gpsspacesegment_.prns1(j)*...
-                        exp(-state.environment.gpsspacesegment_.betas2(j)*obj.dt)...
-                        +state.environment.gpsspacesegment_.w(j)*randn(state.rStreams{obj.prPrngIds(j)},1);
+                for j=1:obj.simState.environment.gpsspacesegment_.nsv
+                    obj.simState.environment.gpsspacesegment_.prns1(j) = obj.simState.environment.gpsspacesegment_.prns1(j)*...
+                        exp(-obj.simState.environment.gpsspacesegment_.betas2(j)*obj.dt)...
+                        +obj.simState.environment.gpsspacesegment_.w(j)*randn(obj.simState.rStreams{obj.prPrngIds(j)},1);
                 end
             end
             
-            for j = 1:state.environment.gpsspacesegment_.nsv,
+            for j = 1:obj.simState.environment.gpsspacesegment_.nsv,
                 %compute sv positions
-                state.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(state.environment.gpsspacesegment_.stdPe,...
-                    state.environment.gpsspacesegment_.svs(j),(obj.tStart+state.t));
+                obj.simState.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(obj.simState.environment.gpsspacesegment_.stdPe,...
+                    obj.simState.environment.gpsspacesegment_.svs(j),(obj.tStart+obj.simState.t));
             end
         end
         
         function n = getTotalNumSVS(~)
             % returns number of satellite vehicles
-            global state;
-            n = state.environment.gpsspacesegment_.nsv;
+            n = obj.simState.environment.gpsspacesegment_.nsv;
         end
     end
     
@@ -145,26 +141,25 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-            global state;
             
             %disp('gps space seg update');
             
             % update noise states
-            state.environment.gpsspacesegment_.prns = state.environment.gpsspacesegment_.prns.*...
-                state.environment.gpsspacesegment_.betas1+state.environment.gpsspacesegment_.prns1;
+            obj.simState.environment.gpsspacesegment_.prns = obj.simState.environment.gpsspacesegment_.prns.*...
+                obj.simState.environment.gpsspacesegment_.betas1+obj.simState.environment.gpsspacesegment_.prns1;
             
-            for j=1:state.environment.gpsspacesegment_.nsv
-                state.environment.gpsspacesegment_.prns1(j) = state.environment.gpsspacesegment_.prns1(j)*...
-                    exp(-state.environment.gpsspacesegment_.betas2(j)*obj.dt)...
-                    +state.environment.gpsspacesegment_.w(j)*randn(state.rStreams{obj.prPrngIds(j)},1);
+            for j=1:obj.simState.environment.gpsspacesegment_.nsv
+                obj.simState.environment.gpsspacesegment_.prns1(j) = obj.simState.environment.gpsspacesegment_.prns1(j)*...
+                    exp(-obj.simState.environment.gpsspacesegment_.betas2(j)*obj.dt)...
+                    +obj.simState.environment.gpsspacesegment_.w(j)*randn(obj.simState.rStreams{obj.prPrngIds(j)},1);
             end
             
-            state.environment.gpsspacesegment_.svspos=zeros(3,state.environment.gpsspacesegment_.nsv);
+            obj.simState.environment.gpsspacesegment_.svspos=zeros(3,obj.simState.environment.gpsspacesegment_.nsv);
             
-            for j = 1:state.environment.gpsspacesegment_.nsv,
+            for j = 1:obj.simState.environment.gpsspacesegment_.nsv,
                 %compute sv positions
-                state.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(state.environment.gpsspacesegment_.stdPe,...
-                    state.environment.gpsspacesegment_.svs(j),(obj.tStart+state.t));
+                obj.simState.environment.gpsspacesegment_.svspos(:,j) = getSatCoord(obj.simState.environment.gpsspacesegment_.stdPe,...
+                    obj.simState.environment.gpsspacesegment_.svs(j),(obj.tStart+obj.simState.t));
             end
         end
     end

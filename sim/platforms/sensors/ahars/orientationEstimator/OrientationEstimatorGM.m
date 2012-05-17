@@ -36,13 +36,12 @@ classdef OrientationEstimatorGM<OrientationEstimator
             %                objparams.BETA - noise time constant
             %                objparams.SIGMA - noise standard deviation
             %
-            global state;
             
             obj=obj@OrientationEstimator(objparams);                       
 
-            obj.nPrngIds = [1,2,3]+state.numRStreams;
-            obj.rPrngId = state.numRStreams+4; 
-            state.numRStreams = state.numRStreams + 4;
+            obj.nPrngIds = [1,2,3]+obj.simState.numRStreams;
+            obj.rPrngId = obj.simState.numRStreams+4; 
+            obj.simState.numRStreams = obj.simState.numRStreams + 4;
             
             assert(isfield(objparams,'BETA'),'orientationestimatorgm:nobeta',...
                 'the platform config file a must define orientationEstimator.BETA parameter');
@@ -67,13 +66,12 @@ classdef OrientationEstimatorGM<OrientationEstimator
                 
         function obj=reset(obj)
             % reinitializes the noise state
-            global state;
             
             obj.n = zeros(3,1);
-            for i=1:randi(state.rStreams{obj.rPrngId},1000)
-                eta = [randn(state.rStreams{obj.nPrngIds(1)},1,1);
-                       randn(state.rStreams{obj.nPrngIds(2)},1,1);
-                       randn(state.rStreams{obj.nPrngIds(3)},1,1)];
+            for i=1:randi(obj.simState.rStreams{obj.rPrngId},1000)
+                eta = [randn(obj.simState.rStreams{obj.nPrngIds(1)},1,1);
+                       randn(obj.simState.rStreams{obj.nPrngIds(2)},1,1);
+                       randn(obj.simState.rStreams{obj.nPrngIds(3)},1,1)];
                 obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*eta;
             end
         end
@@ -84,10 +82,10 @@ classdef OrientationEstimatorGM<OrientationEstimator
             % updates the orientation sensor noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            global state;
-            eta = [randn(state.rStreams{obj.nPrngIds(1)},1,1);
-                   randn(state.rStreams{obj.nPrngIds(2)},1,1);
-                   randn(state.rStreams{obj.nPrngIds(3)},1,1)];
+
+            eta = [randn(obj.simState.rStreams{obj.nPrngIds(1)},1,1);
+                   randn(obj.simState.rStreams{obj.nPrngIds(2)},1,1);
+                   randn(obj.simState.rStreams{obj.nPrngIds(3)},1,1)];
             obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*eta;
             obj.estimatedOrientation = obj.n + X(4:6);
         end

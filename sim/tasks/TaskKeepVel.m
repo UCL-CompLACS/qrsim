@@ -16,8 +16,12 @@ classdef TaskKeepVel<Task
     end    
         
     methods (Sealed,Access=public)
+                
+        function obj = TaskKeepVel(state)
+           obj = obj@Task(state);             
+        end
         
-        function taskparams=init(obj)
+        function taskparams=init(obj) %#ok<MANU>
             % loads and returns all the parameters for the various simulator objects
             %
             % Example:
@@ -98,11 +102,10 @@ classdef TaskKeepVel<Task
             %   r = obj.reward();
             %          r - the reward
             %
-            global state;
             
-            if(state.platforms(1).valid)
-                e = state.platforms(1).X(1:12);
-                e = e(1:3)-state.platforms(1).params.X(1:3);
+            if(obj.simState.platforms{1}.valid)
+                e = obj.simState.platforms{1}.X(7:9);
+                e = e-obj.simState.platforms{1}.params.X(7:9);
                 r = - e' * e; 
             else
                 % returning a large penalty in case the state is not valid

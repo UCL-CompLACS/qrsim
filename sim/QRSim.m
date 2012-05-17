@@ -18,6 +18,7 @@ classdef QRSim<handle
     properties (Access=private)
         par         % task parameters 
         paths =[];  % paths
+        simState;
     end
     
     methods (Sealed,Access=public)
@@ -35,31 +36,29 @@ classdef QRSim<handle
             obj.paths = obj.toPathArray(p(1:idx(end)));
             
             addpath(obj.paths);
+            
+            obj.simState = State();
         end
         
-        function obj = init(obj,taskName)
+        function state = init(obj,taskName)
             % Initializes the simulator given a task.
             %
             % Example:
             %    obj.init('task_name');
             %       task_name - class name of the task
             %
-            assert(~isempty(whos('global','state')),'qrsim:noglobalstate',...
-                'Before initializing qrsim a global state variable must be decleared');
-            
-            global state;
             
             % counter for the number of independent random stream needed
-            state.numRStreams = 0;
+            obj.simState.numRStreams = 0;
             
             % load the required configuration
-            task = feval(taskName);
+            task = feval(taskName,obj.simState);
             
             obj.par = task.init();
                         
             % simulation timestep
             assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
-            state.DT = obj.par.DT;
+            obj.simState.DT = obj.par.DT;
             
             % random number generator stream
             assert(isfield(obj.par,'seed'),'qrsim:noseed','the task must define a seed');
@@ -74,20 +73,24 @@ classdef QRSim<handle
                     'qrsim:nodisplay3dwidthorheight',['If the 3D display is on, the task must define width and height '...
                     'parameters of the rendering window']);
                 
-                state.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
+                obj.simState.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
                     [20,20,obj.par.display3d.width,obj.par.display3d.height]);
-                set(state.display3d.figure,'DoubleBuffer','on');
-                set(state.display3d.figure, 'Renderer', 'OpenGL');
+                set(obj.simState.display3d.figure,'DoubleBuffer','on');
+                set(obj.simState.display3d.figure, 'Renderer', 'OpenGL');
             end
             
             assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
             obj.par.environment.area.graphics.on = obj.par.display3d.on;
-            state.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
+            obj.par.environment.area.state = obj.simState;
+            obj.simState.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             
             obj.createObjects();
             
             obj.resetSeed();
             obj.reset();
+            
+            % we return a handle to the state this should avoid copies
+            state = obj.simState;
         end
         
         function obj=reset(obj)
@@ -99,17 +102,16 @@ classdef QRSim<handle
             % Example:
             %    obj.reset();
             %
-            global state;
             
             % simulation time
-            state.t = 0;
+            obj.simState.t = 0;
             
-            state.environment.gpsspacesegment.reset();
-            state.environment.wind.reset();
-            state.environment.area.reset();
+            obj.simState.environment.gpsspacesegment.reset();
+            obj.simState.environment.wind.reset();
+            obj.simState.environment.area.reset();
             
-            for i=1:length(state.platforms)
-                state.platforms(i).setX(obj.par.platforms(i).X);
+            for i=1:length(obj.simState.platforms)
+                obj.simState.platforms{i}.setX(obj.par.platforms(i).X);
             end
         end
         
@@ -124,19 +126,18 @@ classdef QRSim<handle
             %   
             %   obj.resetSeed(s) - reset to the seed s passed as argument
             %
-            global state;
             
             % note:
             % mrg32k3a has a period of 2^127 which shorter than the period of mt19937ar
             % however it guarantees independence between streams, so we prefer it
             %
             if(size(varargin)==1)
-                state.rStreams = RandStream.create('mrg32k3a','seed',varargin{1},'NumStreams',state.numRStreams,'CellOutput',1);
+                obj.simState.rStreams = RandStream.create('mrg32k3a','seed',varargin{1},'NumStreams',obj.simState.numRStreams,'CellOutput',1);
             else
                 if(obj.par.seed~=0)
-                    state.rStreams = RandStream.create('mrg32k3a','seed',obj.par.seed,'NumStreams',state.numRStreams,'CellOutput',1);
+                    obj.simState.rStreams = RandStream.create('mrg32k3a','seed',obj.par.seed,'NumStreams',obj.simState.numRStreams,'CellOutput',1);
                 else
-                    state.rStreams = RandStream.create('mrg32k3a','seed',sum(100*clock),'NumStreams',state.numRStreams,'CellOutput',1);
+                    obj.simState.rStreams = RandStream.create('mrg32k3a','seed',sum(100*clock),'NumStreams',obj.simState.numRStreams,'CellOutput',1);
                 end
             end
         end
@@ -148,30 +149,29 @@ classdef QRSim<handle
             %  obj.step(U);
             %     U - 5 by m matrix of control inputs for each of the m platforms
             %
-            global state;
-                                    
+ 
             % update time
-            state.t=state.t+state.DT;
+            obj.simState.t=obj.simState.t+obj.simState.DT;
             
             %%% step all the common objects
             
             % step the gps
-            state.environment.gpsspacesegment.step([]);
+            obj.simState.environment.gpsspacesegment.step([]);
             
             % step the wind
-            state.environment.wind.step([]);
+            obj.simState.environment.wind.step([]);
             
             %%% step all the platforms given U
-            assert(size(state.platforms,2)==size(U,2),'qrsim:wronginputsize',...
+            assert(size(obj.simState.platforms,2)==size(U,2),'qrsim:wronginputsize',...
                 'the number of colum of the control input matrix has to be equal to the number of platforms');
             
-            for i=1:length(state.platforms)
-                state.platforms(i).step(U(:,i));
+            for i=1:length(obj.simState.platforms)
+                obj.simState.platforms{i}.step(U(:,i));
             end
             
             % force figure refresh
             if(obj.par.display3d.on == 1)
-                refresh(state.display3d.figure);
+                refresh(obj.simState.display3d.figure);
             end
 
         end
@@ -197,20 +197,19 @@ classdef QRSim<handle
         function obj=createObjects(obj)
             % create environment and platform objects from the saved parameters
             
-            global state;
-            
             % space segment of GPS
             assert(isfield(obj.par.environment,'gpsspacesegment')&&isfield(obj.par.environment.gpsspacesegment,'on'),...
                 'qrsim:nogpsspacesegment',['the task must define environment.gpsspacesegment.on\n',...
                 'this can be environment.gpsspacesegment.on=0; if no GPS is needed']);
             obj.par.environment.gpsspacesegment.DT = obj.par.DT;
+            obj.par.environment.gpsspacesegment.state = obj.simState;
             if(obj.par.environment.gpsspacesegment.on)
                 assert(isfield(obj.par.environment.gpsspacesegment,'type'),...
                     'qrsim:nogpsspacesegmenttype','the task must define environment.gpsspacesegment.type');
-                state.environment.gpsspacesegment = feval(obj.par.environment.gpsspacesegment.type,...
+                obj.simState.environment.gpsspacesegment = feval(obj.par.environment.gpsspacesegment.type,...
                     obj.par.environment.gpsspacesegment);
             else
-                state.environment.gpsspacesegment = feval('GPSSpaceSegment',...
+                obj.simState.environment.gpsspacesegment = feval('GPSSpaceSegment',...
                     obj.par.environment.gpsspacesegment);
             end
             
@@ -218,16 +217,17 @@ classdef QRSim<handle
             assert(isfield(obj.par.environment,'wind')&&isfield(obj.par.environment.wind,'on'),'qrsim:nowind',...
                 'the task must define environment.wind this can be environment.wind.on=0; if no wind is needed');
             obj.par.environment.wind.DT = obj.par.DT;
+            obj.par.environment.wind.state = obj.simState;
             if(obj.par.environment.wind.on)
                 assert(isfield(obj.par.environment.wind,'type'),...
                     'qrsim:nowindtype','the task must define environment.wind.type');
 
-                limits = state.environment.area.getLimits();
+                limits = obj.simState.environment.area.getLimits();
                 obj.par.environment.wind.zOrigin = limits(6);
                 
-                state.environment.wind =feval(obj.par.environment.wind.type, obj.par.environment.wind);
+                obj.simState.environment.wind =feval(obj.par.environment.wind.type, obj.par.environment.wind);
             else
-                state.environment.wind = feval('Wind', obj.par.environment.wind);
+                obj.simState.environment.wind = feval('Wind', obj.par.environment.wind);
             end
             
             %%% instantiates the platform objects
@@ -239,12 +239,12 @@ classdef QRSim<handle
                 assert(isfield(obj.par.platforms(i),'X'),'qrsim:noplatformsx','the platform config file must define a state X for platform %d',i);
                 p.X = obj.par.platforms(i).X;
                 p.graphics.on = obj.par.display3d.on;
-                
+                p.state = obj.simState;
                 assert(isfield(p,'aerodynamicturbulence')&&isfield(p.aerodynamicturbulence,'on'),'qrsim:noaerodynamicturbulence',...
                     'the platform config file must define an aerodynamicturbulence if not needed set aerodynamicturbulence.on = 0');
                 
                 assert(isfield(p,'type'),'qrsim:noplatformtype','the platform config file must define a platform type');
-                state.platforms(i)=feval(p.type,p);
+                obj.simState.platforms{i}=feval(p.type,p);
             end
             
         end

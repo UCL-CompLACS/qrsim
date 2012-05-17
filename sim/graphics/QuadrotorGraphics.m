@@ -7,9 +7,14 @@ classdef QuadrotorGraphics<handle
     %   update()                         - does nothing
     %
        
+    properties (Access = protected)
+        simState;
+    end
+    
     methods (Sealed)
-        function obj=QuadrotorGraphics(~,~)
+        function obj=QuadrotorGraphics(objparams,~)
             % constructs the object
+            obj.simState = objparams.state;
         end
     end
     

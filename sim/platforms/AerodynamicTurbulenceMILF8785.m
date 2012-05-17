@@ -64,7 +64,6 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %                objparams.zOrigin - origin reference Z coord
             %                objparams.direction - main turbulence direction
             %
-            global state;
             
             obj=obj@AerodynamicTurbulence(objparams);
             assert(isfield(objparams,'W6'),'aerodynamicturbulencemilf8785:now6',...
@@ -84,8 +83,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             
             obj.hOrigin = -objparams.zOrigin;
             
-            obj.prngIds = [1,2,3,4]+state.numRStreams;
-            state.numRStreams = state.numRStreams + 4;
+            obj.prngIds = [1,2,3,4]+obj.simState.numRStreams;
+            obj.simState.numRStreams = obj.simState.numRStreams + 4;
         end
         
         function v = getLinear(obj,~)
@@ -116,10 +115,9 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         
         function obj = reset(obj)            
             % resets the state of the model
-            global state;
                         
             if(obj.randDir)
-                obj.direction = 2*pi*rand(state.rStreams{obj.prngIds(4)},1,1);
+                obj.direction = 2*pi*rand(obj.simState.rStreams{obj.prngIds(4)},1,1);
             end
             
             % airspeed along the flight path, governs the lengthscale,
@@ -135,7 +133,9 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             obj.vgust_windframe = zeros(3,1);
             for i=0:1000
                 % noise samples
-                eta = [randn(state.rStreams{obj.prngIds(1)},1,1);randn(state.rStreams{obj.prngIds(2)},1,1);randn(state.rStreams{obj.prngIds(3)},1,1)];
+                eta = [randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
+                       randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                       randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
                 
                 % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)
                 obj.vgust_windframe =  (1-(Vfts*obj.dt)./L).*obj.vgust_windframe+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
@@ -157,7 +157,6 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-            global state;
             
             % airspeed along the flight path, governs the lengthscale,
             Vfts = mToFt(obj.Vof+norm(X(7:9)));
@@ -170,7 +169,9 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             L = [1/(0.177+0.000823*hft)^1.2;1/(0.177+0.000823*hft)^1.2;1]*hft;
             
             % noise samples
-            eta = [randn(state.rStreams{obj.prngIds(1)},1,1);randn(state.rStreams{obj.prngIds(2)},1,1);randn(state.rStreams{obj.prngIds(3)},1,1)];
+            eta = [randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
+                   randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                   randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
             
             % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)
             obj.vgust_windframe =  (1-(Vfts*obj.dt)./L).*obj.vgust_windframe+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;

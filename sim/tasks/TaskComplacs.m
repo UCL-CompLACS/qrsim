@@ -15,11 +15,15 @@ classdef TaskComplacs<Task
     %
     properties (Constant)
         PENALTY = 1000;
-    end    
+    end     
         
     methods (Sealed,Access=public)
+                                
+        function obj = TaskComplacs(state)
+           obj = obj@Task(state);             
+        end
         
-        function taskparams=init(obj)
+        function taskparams=init(obj) %#ok<MANU>
             % loads and returns all the parameters for the various simulator objects
             %
             % Example:
@@ -100,11 +104,10 @@ classdef TaskComplacs<Task
             %   r = obj.reward();
             %          r - the reward
             %
-            global state;
             
-            if(state.platforms(1).valid)
-                e = state.platforms(1).X(1:12);
-                e = e(1:3)-state.platforms(1).params.X(1:3);
+            if(obj.simState.platforms{1}.isValid())
+                e = obj.simState.platforms{1}.getX(1:12);
+                e = e(1:3)-obj.simState.platforms{1}.params.getX(1:3);
                 r = - e' * e; 
             else
                 % returning a large penalty in case the state is not valid

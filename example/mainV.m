@@ -4,7 +4,6 @@
 clear all
 close all
 clc
-global state;
 
 % only needed if using the pid controller
 
@@ -13,7 +12,7 @@ global state;
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TaskKeepVel');
+state = qrsim.init('TaskKeepVel');
 
 % number of steps we run the simulation for
 N = 400;
@@ -28,11 +27,11 @@ tstart = tic;
 for i=1:N,
     tloop=tic;
     % compute controls
-    U = quadrotorVelPID(state.platforms(1).getX(),vt(:,i));
+    U = quadrotorVelPID(state.platforms{1}.getX(),vt(:,i));
     % step simulator
     qrsim.step(U);
     
-    X(:,i) = state.platforms(1).getX(7:9);
+    X(:,i) = state.platforms{1}.getX(7:9);
     % get reward
     % qrsim.reward();
     

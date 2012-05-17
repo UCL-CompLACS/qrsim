@@ -32,11 +32,11 @@ classdef GyroscopeG<Gyroscope
             %                objparams.on - 1 if the object is active
             %                objparams.SIGMA - noise standard deviation
             %
-            global state;
+
             obj=obj@Gyroscope(objparams);
             
-            obj.prngIds = [1,2,3]+state.numRStreams;
-            state.numRStreams = state.numRStreams+3;
+            obj.prngIds = [1,2,3]+obj.simState.numRStreams;
+            obj.simState.numRStreams = obj.simState.numRStreams+3;
             
             assert(isfield(objparams,'SIGMA'),'gyroscopeg:nosigma',...
                 'the platform config file a must define gyroscope.SIGMA parameter');
@@ -60,10 +60,10 @@ classdef GyroscopeG<Gyroscope
             % updates the gyroscope noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-            global state;
-            obj.n = obj.SIGMA.*[randn(state.rStreams{obj.prngIds(1)},1,1);
-                                randn(state.rStreams{obj.prngIds(2)},1,1);
-                                randn(state.rStreams{obj.prngIds(3)},1,1)];
+
+            obj.n = obj.SIGMA.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
+                                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
             obj.measurementAngularVelocity = obj.n + X(10:12);
         end
     end

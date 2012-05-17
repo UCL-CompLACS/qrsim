@@ -1,4 +1,4 @@
-function U = quadrotorPID(X,wp)
+function U = quadrotorPID(X,wp,DT)
 
 %  quadrotorPID simple nested loops PID controller that can fly a quadrotor
 %  given a target waypoint (wp). The platform axes are considered decoupled.
@@ -72,9 +72,9 @@ Kdz = 0.04;
 % vertical controller is a full PID
 ez = -(wp(3) - z);
 
-pid.iz = pid.iz + ez *state.DT;
+pid.iz = pid.iz + ez *DT;
 if(~wpChange)
-    de = (ez - pid.ez)/state.DT;
+    de = (ez - pid.ez)/DT;
 else
     %disp('wp change');
     de =  0;
