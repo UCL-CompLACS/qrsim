@@ -51,23 +51,20 @@ X=zeros(13,N);
 % a control that in absence of noise gives perfect hover
 U = [0;0;0.59004353928;0;11];
 
-% new state structure
-global state;
-
 % create simulator object
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init(task);
+state = qrsim.init(task);
 
 
 for i=1:N    
     % step simulator
     qrsim.step(U);
           
-    eX(1:20,i) = state.platforms(1).getEX();
-    eX(21:23,i) = state.platforms(1).getA();
-    X(:,i) = state.platforms(1).getX();
+    eX(1:20,i) = state.platforms{1}.getEX();
+    eX(21:23,i) = state.platforms{1}.getA();
+    X(:,i) = state.platforms{1}.getX();
     
     if(mod(i,1000)==0)
         fprintf('.');
@@ -75,6 +72,6 @@ for i=1:N
 end
 
 % clear the state
-clear global state;
+clear state;
 
 end
