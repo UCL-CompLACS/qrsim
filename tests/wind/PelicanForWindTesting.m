@@ -57,7 +57,7 @@ classdef PelicanForWindTesting<Pelican
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-            global state;
+            global windstate;
             
             if(obj.valid)
                 
@@ -70,22 +70,22 @@ classdef PelicanForWindTesting<Pelican
                 
                 %wind and turbulence this closely mimic the Simulink example "Lightweight Airplane Design"
                 % asbSkyHogg/Environment/WindModels
-                state.i=state.i+1;
-                state.simin(state.i,:)=[state.t-obj.dt,mToFt(-obj.X(3)),mToFt(norm(obj.X(7:9))),obj.X(4),obj.X(5),obj.X(6)];
+                windstate.i=windstate.i+1;
+                windstate.simin(windstate.i,:)=[obj.simState.t-obj.dt,mToFt(-obj.X(3)),mToFt(norm(obj.X(7:9))),obj.X(4),obj.X(5),obj.X(6)];
                 
-                meanWind = state.environment.wind.getLinear(obj.X);                
-                state.meanwindfts(state.i,:)=mToFt(meanWind');
+                meanWind = obj.simState.environment.wind.getLinear(obj.X);                
+                windstate.meanwindfts(windstate.i,:)=mToFt(meanWind');
                 
                 obj.aerodynamicTurbulence.step(obj.X);
                 turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);                               
-                state.turbwindfts(state.i,:)=mToFt(turbWind');
+                windstate.turbwindfts(windstate.i,:)=mToFt(turbWind');
                 
-                accNoise = obj.dynNoise.*[randn(state.rStreams{obj.prngIds(1)},1,1);
-                                          randn(state.rStreams{obj.prngIds(2)},1,1);
-                                          randn(state.rStreams{obj.prngIds(3)},1,1);
-                                          randn(state.rStreams{obj.prngIds(4)},1,1);
-                                          randn(state.rStreams{obj.prngIds(5)},1,1);
-                                          randn(state.rStreams{obj.prngIds(6)},1,1)];
+                accNoise = obj.dynNoise.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(3)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(4)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(5)},1,1);
+                                          randn(obj.simState.rStreams{obj.prngIds(6)},1,1)];
             
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;meanWind + turbWind; obj.MASS; accNoise], obj.dt);

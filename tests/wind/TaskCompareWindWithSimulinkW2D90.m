@@ -18,6 +18,10 @@ classdef TaskCompareWindWithSimulinkW2D90<Task
     end    
         
     methods (Sealed,Access=public)
+                        
+        function obj = TaskCompareWindWithSimulinkW2D90(state)
+            obj = obj@Task(state);
+        end
         
         function taskparams=init(obj)
             % loads and returns all the parameters for the various simulator objects

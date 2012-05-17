@@ -142,23 +142,22 @@ TOL2 = 6;
 e = 0;
 
 % trick to pass stuff to simulink, surely there mut be a better way
-evalin('base','global state;');
-
-% new state structure
-global state;
-
-state.i =0;
-
-
-state.simin=zeros(N,6);
-state.meanwindfts=zeros(N,3);
-state.turbwindfts=zeros(N,3);
+evalin('base','global windstate;');
 
 % create simulator object
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init(task);
+state = qrsim.init(task);
+
+global windstate;
+
+windstate.i =0;
+
+windstate.simin=zeros(N,6);
+windstate.meanwindfts=zeros(N,3);
+windstate.turbwindfts=zeros(N,3);
+
 
 fs = 1/state.DT;
 
@@ -173,7 +172,7 @@ j =1;
 for i=1:N,
     %tloop=tic;
     % compute controls
-    U=quadrotorPIDForWindTesting(state.platforms(1).getX(),wps(j,:));
+    U=quadrotorPIDForWindTesting(state.platforms{1}.getX(),wps(j,:),state.DT);
     
     % step simulator
     qrsim.step(U);
@@ -182,7 +181,7 @@ for i=1:N,
     %wait = max(0,state.DT-toc(tloop));
     %pause(wait);
     
-    d=norm(state.platforms(1).getX(1:3)-wps(j,1:3)');
+    d=norm(state.platforms{1}.getX(1:3)-wps(j,1:3)');
     
     if(d<1.5)
         j=j+1;
@@ -191,14 +190,14 @@ for i=1:N,
     end
 end
 
-evalin('base','simin=state.simin;');
+evalin('base','simin=windstate.simin;');
 load_system('wind_and_turb_comparison');
 set_param('wind_and_turb_comparison','StopTime',num2str((N-1)*state.DT));
 set_param('wind_and_turb_comparison','FixedStep',num2str(state.DT));
 set_param('wind_and_turb_comparison/shear_model','W_20',num2str(mToFt(state.environment.wind.getW6())));
 set_param('wind_and_turb_comparison/shear_model','Wdeg',num2str(radsToDegs(state.environment.wind.getDirection())));
-set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(mToFt(state.platforms(1).getAerodynamicTurbulence().getW6())));
-set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(radsToDegs(state.platforms(1).getAerodynamicTurbulence().getDirection())));
+set_param('wind_and_turb_comparison/dryden_turb_model','W20',num2str(mToFt(state.platforms{1}.getAerodynamicTurbulence().getW6())));
+set_param('wind_and_turb_comparison/dryden_turb_model','Wdeg',num2str(radsToDegs(state.platforms{1}.getAerodynamicTurbulence().getDirection())));
 set_param('wind_and_turb_comparison/dryden_turb_model','ts',num2str(state.DT));
 simOut = sim('wind_and_turb_comparison','SaveState','off');
 
@@ -208,7 +207,7 @@ ymeanwindfts = yout(:,2:4);
 yturbwindfts = yout(:,5:7);
 
 
-if(~all(mean((state.meanwindfts - ymeanwindfts).^2)<TOL1))
+if(~all(mean((windstate.meanwindfts - ymeanwindfts).^2)<TOL1))
     e = e | 1;
 end
 
@@ -219,9 +218,9 @@ Puu_y = Puu_y.*0.25;
 Pvv_y = Pvv_y.*0.25;
 Pww_y = Pww_y.*0.25;
 
-Puu_s=pwelch(state.turbwindfts(:,1),rectwin(2^12),0, 2^12,fs);
-Pvv_s=pwelch(state.turbwindfts(:,2),rectwin(2^12),0, 2^12,fs);
-Pww_s=pwelch(state.turbwindfts(:,3),rectwin(2^12),0, 2^12,fs);
+Puu_s=pwelch(windstate.turbwindfts(:,1),rectwin(2^12),0, 2^12,fs);
+Pvv_s=pwelch(windstate.turbwindfts(:,2),rectwin(2^12),0, 2^12,fs);
+Pww_s=pwelch(windstate.turbwindfts(:,3),rectwin(2^12),0, 2^12,fs);
 Puu_s = Puu_s.*0.25;
 Pvv_s = Pvv_s.*0.25;
 Pww_s = Pww_s.*0.25;
@@ -238,34 +237,34 @@ end
 if(plots)
     figure();
     subplot(3,1,1);
-    plot(t,state.meanwindfts(:,1));
+    plot(t,windstate.meanwindfts(:,1));
     hold on;
     plot(t,ymeanwindfts(:,1),'r');
     
     subplot(3,1,2);
-    plot(t,state.meanwindfts(:,2));
+    plot(t,windstate.meanwindfts(:,2));
     hold on;
     plot(t,ymeanwindfts(:,2),'r');
     
     subplot(3,1,3);
-    plot(t,state.meanwindfts(:,3));
+    plot(t,windstate.meanwindfts(:,3));
     hold on;
     plot(t,ymeanwindfts(:,3),'r');
     
     
     figure();
     subplot(3,1,1);
-    plot(t,state.turbwindfts(:,1));
+    plot(t,windstate.turbwindfts(:,1));
     hold on;
     plot(t,yturbwindfts(:,1),'r');
     
     subplot(3,1,2);
-    plot(t,state.turbwindfts(:,2));
+    plot(t,windstate.turbwindfts(:,2));
     hold on;
     plot(t,yturbwindfts(:,2),'r');
     
     subplot(3,1,3);
-    plot(t,state.turbwindfts(:,3));
+    plot(t,windstate.turbwindfts(:,3));
     hold on;
     plot(t,yturbwindfts(:,3),'r');
     
@@ -298,7 +297,7 @@ else
     fprintf(['Test ', msg,' [FAILED]\n']);
 end
 
-clear global state;
+clear state;
 clear global pid;
 
 end
@@ -324,9 +323,12 @@ Lv = Lu;
 
 
 %%% turbulence model
-global state;
+global windstate;
+
 % trick to pass stuff to simulink, surely there mut be a better way
-evalin('base','global state;');
+evalin('base','global windstate;');
+
+state = State();
 
 state.t = 0;
 state.DT = T;
@@ -338,20 +340,21 @@ objparams.on = 1;
 objparams.W6 = ftToM(W20ft);
 objparams.direction = dir;
 objparams.zOrigin = 0;
+objparams.state = state;
 
 X = [0;0;-ftToM(hft);phi;theta;psi;V;0;0;0;0;0];
 
 objparams.W6 = ftToM(W20ft);
-state.turbModel = AerodynamicTurbulenceMILF8785ForTesting(objparams);
+turbModel = AerodynamicTurbulenceMILF8785ForTesting(objparams);
 state.rStreams = RandStream.create('mrg32k3a','seed',seed,'NumStreams',state.numRStreams,'CellOutput',1);
 
-state.turbModel.setState(X);
-state.turbModel.reset();
+turbModel.setState(X);
+turbModel.reset();
 uvwm = zeros(3,N);
 
 for i=1:N
-    state.turbModel.step(X);
-    uvwm(:,i) = mToFt(state.turbModel.getLinear([]));
+    turbModel.step(X);
+    uvwm(:,i) = mToFt(turbModel.getLinear([]));
 end
 
 [Pmuu,f]=pwelch(uvwm(1,:),rectwin(2^12),0, 2^12,fs);
@@ -373,8 +376,8 @@ if(strcmp(reference,'theoretical'))
         Pww(i,1) = (((sigmaw^2)*Lw)/(pi*Vfts))*((1+3*(Lw*w(i)/Vfts)^2)/(1+(Lw*(w(i)/Vfts))^2)^2);
     end
 else
-    state.simin = [((0:(N-1))*state.DT)',repmat([hft,Vfts,phi,theta,psi],N,1)];
-    evalin('base','simin=state.simin;');
+    windstate.simin = [((0:(N-1))*state.DT)',repmat([hft,Vfts,phi,theta,psi],N,1)];
+    evalin('base','simin=windstate.simin;');
     load_system('wind_and_turb_comparison');
     set_param('wind_and_turb_comparison','StopTime',num2str((N-1)*state.DT));
     set_param('wind_and_turb_comparison','FixedStep',num2str(state.DT));
@@ -433,6 +436,6 @@ else
     e = 1;
 end
 
-clear global state;
+clear state;
 
 end
