@@ -10,8 +10,6 @@ plots = 0;
 
 %%% run a reasonable simulation
 
-global state;
-
 N = 7000; % this give as much data as in the log
 
 eX=zeros(20,N);
@@ -25,7 +23,7 @@ U = [0;0;0.59004353928;0;11];
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-qrsim.init('TestGPSTask');
+state = qrsim.init('TestGPSTask');
 
 disp('Generating data, this will take a while');
 
@@ -34,13 +32,13 @@ for i=1:N
     % step simulator
     qrsim.step(U);
     
-    eX(:,i)=state.platforms(1).getEX();
-    X(:,i)=state.platforms(1).getX();
+    eX(:,i)=state.platforms{1}.getEX();
+    X(:,i)=state.platforms{1}.getX();
     
     if(mod(i,1000)==0)
         fprintf('.');
     end
-    a(:,i)=state.platforms(1).getA();
+    a(:,i)=state.platforms{1}.getA();
 end
 fprintf('\n');
 
