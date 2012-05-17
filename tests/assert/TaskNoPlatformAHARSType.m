@@ -2,6 +2,10 @@ classdef TaskNoPlatformAHARSType<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
+                
+        function obj = TaskNoPlatformAHARSType(state)
+            obj = obj@Task(state);
+        end
         
         function taskparams=init(obj)
             % loads and returns all the parameters for the various simulator objects

@@ -2,6 +2,10 @@ classdef TaskNoPlatformAccelerometerSigma<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
+                        
+        function obj = TaskNoPlatformAccelerometerSigma(state)
+            obj = obj@Task(state);
+        end
         
         function taskparams=init(~)
             % loads and returns all the parameters for the various simulator objects

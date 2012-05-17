@@ -2,6 +2,10 @@ classdef TaskNoSeed<Task
     % Task used to test assertions on seed
     %
     methods (Sealed,Access=public)
+                
+        function obj = TaskNoSeed(state)
+            obj = obj@Task(state);
+        end  
         
         function taskparams=init(obj)
             

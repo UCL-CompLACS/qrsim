@@ -2,6 +2,10 @@ classdef TaskNoAreaType<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
+                
+        function obj = TaskNoAreaType(state)
+            obj = obj@Task(state);
+        end
         
         function taskparams=init(obj)
             % loads and returns all the parameters for the various simulator objects

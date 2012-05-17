@@ -2,6 +2,10 @@ classdef TaskNoDT<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
+                
+        function obj = TaskNoDT(state)
+            obj = obj@Task(state);
+        end
         
         function taskparams=init(obj)
             taskparams = [];

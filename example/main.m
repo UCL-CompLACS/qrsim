@@ -1,8 +1,8 @@
 % bare bones example of use of the QRSim() simulator object with one
 % helicopter
 
-%clear all
-%close all
+clear all
+close all
 
 
 % only needed if using the pid controller

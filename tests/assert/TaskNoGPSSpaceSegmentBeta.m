@@ -3,6 +3,10 @@ classdef TaskNoGPSSpaceSegmentBeta<Task
     %
     methods (Sealed,Access=public)
         
+        function obj = TaskNoGPSSpaceSegmentBeta(state)
+            obj = obj@Task(state);
+        end
+        
         function taskparams=init(obj)
             % loads and returns all the parameters for the various simulator objects
             

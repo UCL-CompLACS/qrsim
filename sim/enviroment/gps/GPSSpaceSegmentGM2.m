@@ -127,7 +127,7 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             end
         end
         
-        function n = getTotalNumSVS(~)
+        function n = getTotalNumSVS(obj)
             % returns number of satellite vehicles
             n = obj.simState.environment.gpsspacesegment_.nsv;
         end

@@ -6,7 +6,7 @@ addpath('assert');
 
 clear all;
 
-e = testNoGlobalState('missign global state declaration');
+e = 0;
 
 e = e | loadBadlySpecifiedTask('TaskNoDT','qrsim:nodt','missing DT task parameter');
 e = e | loadBadlySpecifiedTask('TaskNoSeed','qrsim:noseed','missing seed task parameter');
@@ -51,7 +51,7 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformCollisionDistance','pelican:nocoll
 e = e | loadBadlySpecifiedTask('TaskNoPlatformDynNoise','pelican:nodynnoise','missing platform dynamic noise');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGPSReceiver','pelican:nogpsreceiver','missing platform gps receiver');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformGPSReceiverOff','state.platforms(1).getGPSReceiver()','GPSReceiver','gpsreceiver off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformGPSReceiverOff','state.platforms{1}.getGPSReceiver()','GPSReceiver','gpsreceiver off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverType','pelican:nogpsreceivertype','missing platform gps receiver type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGPSReceiverSigma','gpsreceiverg:nosigma','missing gps receiver sigma');
@@ -62,32 +62,32 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformAHARSType','pelican:noaharstype','
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulence','qrsim:noaerodynamicturbulence','missing aerodynamic turbulence');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformAerodynamicTurbulenceOff','state.platforms(1).getAerodynamicTurbulence()','AerodynamicTurbulence','aerodynamic turbulence off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformAerodynamicTurbulenceOff','state.platforms{1}.getAerodynamicTurbulence()','AerodynamicTurbulence','aerodynamic turbulence off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceType','pelican:noaerodynamicturbulencetype','missing aerodynamic turbulence type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceW6','aerodynamicturbulencemilf8785:now6','missing aerodynamic turbulence W6 parameter');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAerodynamicTurbulenceDirection','aerodynamicturbulencemilf8785:nodirection','missing aerodynamic turbulence direction parameter');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms(1).getAHARS().getAccelerometer()','Accelerometer','accelerometer off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformAccelerometerOff','state.platforms{1}.getAHARS().getAccelerometer()','Accelerometer','accelerometer off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAccelerometer','ahahrspelican:noaccelerometer','missing accelerometer');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAccelerometerType','ahahrspelican:noaccelerometertype','missing accelerometer type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAccelerometerSigma','accelerometerg:sigma','missing accelerometer sigma');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformGyroscopeOff','state.platforms(1).getAHARS().getGyroscope()','Gyroscope','gyroscope off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformGyroscopeOff','state.platforms{1}.getAHARS().getGyroscope()','Gyroscope','gyroscope off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGyroscope','ahahrspelican:nogyroscope','missing gyroscope');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGyroscopeType','ahahrspelican:nogyroscopetype','missing gyroscope type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGyroscopeSigma','gyroscopeg:nosigma','missing gyroscope sigma');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformAltimeterOff','state.platforms(1).getAHARS().getAltimeter()','Altimeter','altimeter off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformAltimeterOff','state.platforms{1}.getAHARS().getAltimeter()','Altimeter','altimeter off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeter','ahahrspelican:noaltimeter','missing altimeter');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeterType','ahahrspelican:noaltimetertype','missing altimeter type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeterTau','altimetergm:notau','missing altimeter tau');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformAltimeterSigma','altimetergm:nosigma','missing altimeter sigma');
 
-e = e | loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms(1).getAHARS().getOrientationEstimator()','OrientationEstimator','orientation estimator off');
+e = e | loadWorkingTaskWithObjectOff('TaskPlatformOrientationEstimatorOff','state.platforms{1}.getAHARS().getOrientationEstimator()','OrientationEstimator','orientation estimator off');
 
 e = e | loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimator','ahahrspelican:noorientationestimator','missing orientation estimator');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorType','ahahrspelican:noorientationestimatortype','missing orientation estimator type');
@@ -104,10 +104,6 @@ end
 
 function e = loadWorkingTaskWith3DDisplayOff(task,msg)
 
-clear('global');
-
-global state; %#ok<NUSED>
-
 qrsim = QRSim();
 e = 0;
 
@@ -115,11 +111,11 @@ e = 0;
 U = [0;0;0.59004353928;0;11];
 
 try
-    qrsim.init(task);
+    state = qrsim.init(task);
     
     e = e || state.environment.area.isGraphicsOn();
     e = e || (~ischar('state.environment.area.graphics'));
-    e = e || (strcmp(class(state.platforms(1).getGraphics()),'QuadrotorGraphics')~=1);
+    e = e || (strcmp(class(state.platforms{1}.getGraphics()),'QuadrotorGraphics')~=1); %#ok<STISA>
 
     % do a few steps to make sure things actually work
     for i=1:10
@@ -136,7 +132,7 @@ else
     fprintf(['Test ',msg,' [PASSED]\n']);
 end
 
-clear('global state');
+clear('state');
 clear('qrsim');
 close('all');
 
@@ -145,10 +141,6 @@ end
 
 function e = loadWorkingTaskWithObjectOff(task,obj,shouldBeClass,msg)
 
-clear('global');
-
-global state; %#ok<NUSED>
-
 qrsim = QRSim();
 e = 0;
 
@@ -156,7 +148,7 @@ e = 0;
 U = [0;0;0.59004353928;0;11];
 
 try
-    qrsim.init(task);
+    state = qrsim.init(task); %#ok<NASGU>
     
     if(~isa(eval(obj),shouldBeClass))
         e = 1;
@@ -178,7 +170,7 @@ else
     fprintf(['Test ',msg,' [PASSED]\n']);
 end
 
-clear('global state');
+clear('state');
 clear('qrsim');
 close('all');
 
@@ -186,15 +178,11 @@ end
 
 function e = loadBadlySpecifiedTask(task,id,msg)
 
-clear('global');
-
-global state; %#ok<NUSED>
-
 qrsim = QRSim();
 e = 0;
 
 try
-    qrsim.init(task);
+    state = qrsim.init(task); %#ok<NASGU>
     e = 1;
 catch exception
    if(~strcmp(exception.identifier,id))
@@ -202,37 +190,9 @@ catch exception
        fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
    end
 end
-clear('global state');
+clear('state');
 clear('qrsim');
 close('all');
-
-if(e)
-    fprintf(['Test ',msg,' [FAILED]\n']);
-else
-    fprintf(['Test ',msg,' [PASSED]\n']);
-end
-
-end
-
-function e = testNoGlobalState(msg)
-
-clear('global');
-
-qrsim = QRSim();
-
-e = 0;
-
-try
-    qrsim.init('TaskRandomSeed');
-    e = 1;
-catch exception
-    if(~strcmp(exception.identifier,'qrsim:noglobalstate'))
-        e = 1;
-        fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
-    end
-end
-
-clear('qrsim');
 
 if(e)
     fprintf(['Test ',msg,' [FAILED]\n']);
