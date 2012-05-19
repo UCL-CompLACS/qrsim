@@ -5,8 +5,6 @@ clear all
 close all
 clc
 
-% only needed if using the pid controller
-
 
 % create simulator object
 qrsim = QRSim();
@@ -17,8 +15,10 @@ state = qrsim.init('TaskKeepVel');
 % number of steps we run the simulation for
 N = 400;
 
-% target velocity (in body coordinates)
+% target velocity (in NED coordinates)
 vt = [repmat([0.4;0;0],1,100),repmat([0;1;0],1,100),repmat([0;0;-1],1,100),repmat([-1;-1;0],1,100)];
+
+pid = VelocityPID(state.DT);
 
 X = zeros(3,N);
 
@@ -27,7 +27,7 @@ tstart = tic;
 for i=1:N,
     tloop=tic;
     % compute controls
-    U = quadrotorVelPID(state.platforms{1}.getX(),vt(:,i));
+    U = pid.computeU(state.platforms{1}.getX(),vt(:,i));
     % step simulator
     qrsim.step(U);
     

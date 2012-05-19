@@ -4,11 +4,10 @@
 clear all
 close all
 
-
-% only needed if using the pid controller
-clear global pid;
-
+% include simulator
 addpath('../sim');
+% include controllers
+addpath('../controllers');
 
 % create simulator object
 qrsim = QRSim();
@@ -21,12 +20,15 @@ N = 3000;
 
 wp = [state.platforms{1}.getX(1:3)',0];
 
+% creat PID controller object
+pid = WaypointPID(state.DT);
+
 tstart = tic;
 
 for i=1:N,
     tloop=tic;
     % compute controls
-    U = quadrotorPID(state.platforms{1}.getEX(),wp,state.DT);
+    U = pid.computeU(state.platforms{1}.getEX(),wp);
     % step simulator
     qrsim.step(U);
     
