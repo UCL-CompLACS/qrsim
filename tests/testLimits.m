@@ -111,6 +111,8 @@ function e = testFlyingOutOfBounds(msg)
 
 e = 0;
 
+addpath('../../controllers');
+
 % number of steps we run the simulation for
 N = 600;
 
@@ -127,12 +129,14 @@ wps=[   0,   0, 100, 0;
         0, 100,   0, 0;
         0,-100,   0, 0];
 
+pid = WaypointPID(state.DT);
+
 for j = 1:size(wps,1)
     
     for i=1:N,
         
         % compute controls
-        U=quadrotorPID(state.platforms{1}.getEX(),wps(j,:),state.DT);
+        U=pid.computeU(state.platforms{1}.getEX(),wps(j,:));
         
         % step simulator
         qrsim.step(U);

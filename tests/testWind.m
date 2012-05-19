@@ -141,6 +141,8 @@ TOL2 = 6;
 
 e = 0;
 
+addpath('../../controllers');
+
 % trick to pass stuff to simulink, surely there mut be a better way
 evalin('base','global windstate;');
 
@@ -149,6 +151,8 @@ qrsim = QRSim();
 
 % load task parameters and do housekeeping
 state = qrsim.init(task);
+
+pid = WaypointPID(state.DT);
 
 global windstate;
 
@@ -172,7 +176,7 @@ j =1;
 for i=1:N,
     %tloop=tic;
     % compute controls
-    U=quadrotorPIDForWindTesting(state.platforms{1}.getX(),wps(j,:),state.DT);
+    U=pid.computeU(state.platforms{1}.getX(),wps(j,:));
     
     % step simulator
     qrsim.step(U);

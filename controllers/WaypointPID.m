@@ -1,7 +1,7 @@
 classdef WaypointPID<handle
     %  quadrotorPID simple nested loops PID controller that can fly a quadrotor
     %  given a target waypoint (wp). The platform axes are considered decoupled.
-        
+    
     properties (Access=protected)
         iz;  % altitude controller integrator state
         ez;  % altitude error
@@ -10,16 +10,16 @@ classdef WaypointPID<handle
     end
     
     properties (Constant)
-            Kxy =0.5;
-            Kv = 0.09;
-            maxtilt = 0.34;            
-                        Kya = 6;
-            maxyawrate = 4.4;
-            Kiz = 0.0008;
-            Kpz = 0.03;
-            Kdz = 0.04;
-            th_hover = 0.59;
-    end       
+        Kxy =0.5;
+        Kv = 0.09;
+        maxtilt = 0.34;
+        Kya = 6;
+        maxyawrate = 4.4;
+        Kiz = 0.0008;
+        Kpz = 0.03;
+        Kdz = 0.04;
+        th_hover = 0.59;
+    end
     
     methods (Access = public)
         
@@ -41,7 +41,7 @@ classdef WaypointPID<handle
             %  saturation effects
             %
             %  use:
-            % 
+            %
             %
             
             if(~all(obj.wp==wp))
