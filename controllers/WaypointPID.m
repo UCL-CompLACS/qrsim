@@ -10,7 +10,7 @@ classdef WaypointPID<handle
     end
     
     properties (Constant)
-        Kxy =0.5;
+        Kxy =0.9;
         Kv = 0.09;
         maxtilt = 0.34;
         Kya = 6;
