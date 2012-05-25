@@ -38,7 +38,7 @@ classdef TaskKeepSpot<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;
+            taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;            
             
@@ -61,7 +61,7 @@ classdef TaskKeepSpot<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 0; % if off the gps returns the noiseless position
+            taskparams.environment.gpsspacesegment.on = 1; % if off the gps returns the noiseless position
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';

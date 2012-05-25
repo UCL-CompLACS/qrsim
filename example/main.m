@@ -36,8 +36,8 @@ for i=1:N,
     % qrsim.reward();
     
     % wait so to run in real time
-    %wait = max(0,state.DT-toc(tloop));
-    %pause(wait);
+    wait = max(0,state.DT-toc(tloop));
+    pause(wait);
 end
 elapsed = toc(tstart);
 
