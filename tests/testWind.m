@@ -141,6 +141,8 @@ TOL2 = 6;
 
 e = 0;
 
+addpath('../../controllers');
+
 % trick to pass stuff to simulink, surely there mut be a better way
 evalin('base','global windstate;');
 

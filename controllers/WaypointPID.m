@@ -53,22 +53,29 @@ classdef WaypointPID<handle
             
             x = X(1);
             y = X(2);
-            z = X(3);
             psi = X(6);
-            
-            pxdot = X(18);
-            pydot = X(19);
             
             % rotationg the wp to body coordinates
             d = ((wp(1)-x)^2+(wp(2)-y)^2)^0.5;
             a = (atan2((wp(2)-y),(wp(1)-x)) - psi);
             
             bx = d * cos(a);
-            by = d * sin(a);
+            by = d * sin(a); 
             
-            vel = sqrt(pxdot*pxdot+pydot*pydot);
-            u = vel * cos(a);
-            v = vel * sin(a);
+            if(length(X)==13)
+                % the input is X 
+                z = X(3);                
+                u = X(7);
+                v = X(8);              
+            else    
+                % the input is EX            
+                z = -X(17);            
+                pxdot = X(18);
+                pydot = X(19);            
+                vel = sqrt(pxdot*pxdot+pydot*pydot);
+                u = vel * cos(a);
+                v = vel * sin(a);
+            end
             
             % simple P controller on velocity with a cap on the max velocity and
             % maxtilt
