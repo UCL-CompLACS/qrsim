@@ -22,7 +22,7 @@ classdef GPSReceiverG < GPSReceiver
         v_light = 299792458;        % speed of light (Constant)
     end
     
-    properties (Access=private)
+    properties (Access=public)
         svidx;                      % array with the ids of the visible satellite vehicles
         nsv;                        % number of satellite visible by this receiver
         pastEstimatedPosNED;        % past North East Down coordinate returned by the receiver
@@ -136,7 +136,7 @@ classdef GPSReceiverG < GPSReceiver
             
             % ordinary lest square solution initialised at the previous solution
             p = [obj.pastEstimatedPosNED;0];
-            for iter = 1:3 % even 3 iterations should do since we prime it
+            for iter = 1:4 % even 3 iterations should do since we prime it
                 A = zeros(obj.nsv,4);
                 omc = zeros(obj.nsv,1); % observed minus computed observation
                 for i = 1:obj.nsv,
@@ -184,7 +184,7 @@ classdef GPSReceiverG < GPSReceiver
                     obj.delayedPositionsNED(:,1+obj.delay-i) = X(1:3) - gvel*i*obj.dt;
                 end
                 
-                obj.pastEstimatedPosNED = zeros(3,1);
+                obj.pastEstimatedPosNED = X(1:3);
                 obj.pastEstimatedPosNED = obj.solveFromObservations(X(1:3) - gvel*(obj.delay+2)*obj.dt);
                 obj.estimatedPosVelNED(1:3,1) = obj.solveFromObservations(X(1:3) - gvel*(obj.delay+1)*obj.dt);
             end
