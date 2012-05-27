@@ -62,19 +62,19 @@ To the extent allowed by Matlab we used object-oriented programming concepts in 
 
 \subsection{State}\label{sec:state}
 
-At any point in time the state of the objects present in the simulator must be maintained; for reason of computational efficiency in Matlab we use a \texttt{global} structure to store such state. Rather obviously this data structure is called \texttt{state} and by being global it is accessible from any function or object method of the simulator.
-
-Consistently with the definition in section \ref{sec:platandenv} we use the fields \texttt{state.environment} and the array \texttt{state.platforms} to store the handles to all the environment and platforms objects respectively. 
-Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms(1).getX()} gives access to the state variables of the first platform, while \texttt{state.environment.area.getLimits()} returns the size of the flying area. 
+At any point in time the simulator must maintain the state of all the objects taking part in the simulation, this is accomplished with a data structure is defined by a Matlab class called (rather obviously) \texttt{State}.
+ 
+A handle to a object of this type is returned during the initialisation of the simulator and can be used to reference the various objects part of the simulation. For instance the fields \texttt{environment} and \texttt{platforms} store respectively the handles to all the environment objects and to the cell arraay of platforms objects. 
+Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms{1}.getX()} gives access to the state variables of the first platform, while \texttt{state.environment.area.getLimits()} returns the size of the flying area. 
 
 When meaningful, the \texttt{Platform} and \texttt{EnvironmentObject} classes define methods to retrieve the object state (e.g. \texttt{getX()} in the case of a platform), to reset the state to its initial value defined by the task (see section \ref{sec:createtask}) and to set the object state (e.g. \texttt{setX(X)} in the case of a platform)\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set.}.
 
-The global \texttt{state} structure stores also other important variables:
+The \texttt{State} structure stores also other important variables:
 \begin{itemize}
- \item the simulator time \texttt{state.t}, used to ensure synchronization between all the environment and platforms objects;
- \item the independent pseudo-random number generator streams \texttt{state.rStreams}, used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
- \item the simulator time step \texttt{state.DT}, the time granularity with which the simulator time is incremented;
- \item the handle to the 3D graphics visualization \texttt{state.display3d}.
+ \item the simulator time (field \texttt{t}), used to ensure synchronization between all the environment and platforms objects;
+ \item the independent pseudo-random number generator streams (field \texttt{rStreams}), used by any of the objects that requires any form of random numbers (e.g. to simulate noise samples);
+ \item the simulator time step (field \texttt{DT}), the time granularity with which the simulator time is incremented;
+ \item the handle to the 3D graphics visualization (field \texttt{display3d}).
 \end{itemize}
 
 \subsection{Steppable}
@@ -82,9 +82,9 @@ The global \texttt{state} structure stores also other important variables:
 Since the platforms and environment that we are simulating are representation of physical objects, one simple way to think about their evolution in time is to consider time discretized into steps and to ``step forward'' the object's state at each time step. In the case of a quadrotor for instance, stepping forward is nothing more than integrating the ODE that describe its dynamics, for other objects stepping forward might mean instead triggering an event associated with a specific time.
 In our implementation every object that evolves with time is derived from a common class (i.e. \texttt{Steppable}) which defines an abstract \texttt{update()} method and a time step property \texttt{dt}.
 
-The method \texttt{update()} propagates the object's state forward to the current time \texttt{state.t}, the object's field \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. 
+The method \texttt{update()} propagates the object's state forward to the current time (field \texttt{t} of the \texttt{State} data structure), the object's field \texttt{dt} specifies with what (time) granularity \texttt{update()} should be called. 
 
-As we will see in section \ref{sec:qrobj}, the \texttt{update()} method is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns only calls \texttt{update()} if a time equal to \texttt{dt} has passed since the last update\footnote{To simplify the implementation the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{state.DT}); in practice this is not a very restrictive assumption.}.
+As we will see in section \ref{sec:qrobj}, the \texttt{update()} method is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns only calls \texttt{update()} if a time equal to \texttt{dt} has passed since the last update\footnote{To simplify the implementation the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{DT}); in practice this is not a very restrictive assumption.}.
 
 \subsection{Task}
 
@@ -93,7 +93,7 @@ By combining different types of environment objects and platforms \sname allows 
 The abstract class \texttt{Task} provides a way to derive task objects that specify both a scenario and an activity to be learned; the class defines two main methods \texttt{init()} and \texttt{reward()}:
 \begin{itemize}
  \item \texttt{init()} allows the user to define the type of each of the environment objects (i.e. the class name) and of each platform and sensor. Along with the object type, a specification of all the class specific parameters is also needed.
- \item \texttt{reward()} allows for defining an instantaneous reward for the task, this can be used for the purpose of learning. The design of a reward function is very task specific but most often the user will rely on the global \texttt{state} structure in order to compute such a reward.
+ \item \texttt{reward()} allows for defining an instantaneous reward for the task, this can be used for the purpose of learning. The design of a reward function is very task specific but most often the user will rely on the \texttt{state} data structure in order to compute such a reward.
 \end{itemize}
 
 We will present how to create a task in section \ref{sec:createtask}.
@@ -124,28 +124,27 @@ The object \snamettt allows to initialize, set up and control the simulator as a
  \item \texttt{reset()}, resets the simulator to the initial state specified by the task. This is generally called after a learning episode in order to restore the state of the simulator. 
  \item \texttt{step(U)}, steps forward in time all the environment objects and all the platforms . This command accepts a matrix of control inputs \texttt{U} (i.e. one column array for each platform) and calls the \texttt{step()} method for each of the objects. Listing~\ref{lst:step} shows the implementation of the method.
 
-Very simply, first \texttt{state.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}.
+Very simply, first \texttt{obj.state.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}.
  \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is simply a pass through call to the task \texttt{reward()} method and is meant to be called after stepping the simulator.
 \end{itemize}
 
 \begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,numbers=left,basicstyle=\small]
 function obj=step(obj,U)
-  global state;
            
   %% update time
-  state.t=state.t+state.DT;
+  obj.state.t=obj.state.t+obj.state.DT;
                         
   %% step all the common objects
             
   % the space segment of the GPS
-  state.environment.gpsspacesegment.step([]);
+  obj.state.environment.gpsspacesegment.step([]);
             
   % the wind
-  state.environment.wind.step([]);
+  obj.state.environment.wind.step([]);
             
   %% step all the platforms            
-  for i=1:length(state.platforms)
-    state.platforms(i).step(U(:,i));
+  for i=1:length(obj.state.platforms)
+    obj.state.platforms{i}.step(U(:,i));
   end
 end
 \end{lstlisting}
@@ -265,10 +264,8 @@ Such a function gives higher rewards to a policy that maintain the quadrotor clo
 
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]
 function r=reward(obj)
-  global state;
-
-  e = state.platforms(1).X(1:12);
-  e = e(1:3)-state.platforms(1).params.X(1:3);
+  e = obj.state.platforms{1}.X(1:12);
+  e = e(1:3)-obj.state.platforms{1}.params.X(1:3);
   r = - e' * e; 
 end
 \end{lstlisting}
@@ -280,19 +277,21 @@ To clarify the use of the simulator through the \snamettt object, we shall prese
 Listing \ref{lst:main} shows the code of this bare bone example. 
 
 \begin{lstlisting}[float=ht!bp,caption=main script,language=Matlab,frame=lines,label=lst:main,numbers=left,basicstyle=\small]
-global state;
 
 % create simulator object
 qrsim = QRSim();
 
-% load task parameters and do housekeeping
-qrsim.init('TaskKeepSpot');
+% load task parameters and return hanle to simulator state
+state = qrsim.init('TaskKeepSpot');
+
+% create a PID object
+pid = WaypointPID(state.DT);
 
 % number of steps we run the simulation for
 N = 3000;
 
 % initial position of the helicopter
-wp = [state.platforms(1).getX(1:3)',0];
+wp = [state.platforms{1}.getX(1:3)',0];
 
 tstart = tic;
 
@@ -300,7 +299,7 @@ for i=1:N,
     tloop=tic;
 
     % compute controls based on the ESTIMATED state 
-    U = quadrotorPID(state.platforms(1).getEX(),wp);
+    U = pid.computeU(state.platforms{1}.getEX(),wp);
 
     % step simulator
     qrsim.step(U);
@@ -314,7 +313,7 @@ for i=1:N,
 end
 elapsed = toc(tstart);
 \end{lstlisting}
-Before anything else we are required to initialize the global structure \texttt{state} that will hold the simulator state and give access to the quadrotor state. Next, instantiating the \snamettt object will make sure that all the functions and classes of the simulator are reachable; is then possible to load all the task parameters by calling \texttt{qrsim.init()}. 
+Before anything else we are required to instantiate the \snamettt object, this will make sure that all the functions and classes of the simulator are reachable. Next we load all the task parameters by calling \texttt{qrsim.init()}, such function returns a handle to the simulator state.
 
 The main for loop (see line 17) drives the simulation forward by calling in sequence the PID controller and the \texttt{qrsim.step(U)} method; given the current state of the platform, the PID computes the new control action  \texttt{U} which is then used to step the dynamics forward in time.
 
@@ -341,6 +340,24 @@ Figure \ref{fig:3d} shows a snapshot from the 3D visualization of the simulator 
 There is obviously no need to define a specific main script like the one presented above, in certain application for instance it might make more sense to call the \snamettt directly from  a learning algorithm; this is perfectly fine as long as the calls are executed in the same sequence shown in listing \ref{lst:main}.
 
 An additional example called \texttt{main10.m} is also present in the example directory and shows how to generalize the \texttt{TaskKeepSpot} to a group of ten helicopters.
+
+\section{Controllers}
+
+The directory \texttt{/controllers} contain baseline implementations of simple controllers\footnote{We believe these contollers to be qualitatively similar to the ones implemented in the Pelican helicopter, however at present no quantitative comparison has been carried out.} that are often useful in a variety of tasks. Generally such controllers can be used to compute the set of control inputs \texttt{U} given the current state of the platform and a waypoint or velocity that the UAV is meant to reach. 
+
+Currently the following controllers are available:
+\begin{itemize}
+\item \texttt{WaypointPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (x-y-x) velocity in global frame while maintaining a specified heading.
+\item \texttt{VelocityPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (x-y-x) velocity in global frame while maintaining a specified heading.
+\item \texttt{VelocityHeightPID} Controller that computes the pitch and roll input necessary to achieve a desired 2D (x-y) velocity in global frame while maintaining a specified altitude and heading.
+\item \texttt{HeightHeadingPID} Simple controller that computes the throttle and yaw imput necessary to maintain a specified height and heading. The roll and pitch angle control are left to the user.
+\end{itemize}
+
+\section{Multiple Simulations}
+
+Since the implementation of the simulator is completely object oriented, it is possible (and sometimes very useful) to instantiate multiple and completely independent simulations within the same Matlab workspace.  
+
+The script \texttt{/example/multisim.m} shows an example in which one simulator is used to sample control action that are then carried out on the second simulator. 
 
 \appendix
 \chapter{Implementation Details}
