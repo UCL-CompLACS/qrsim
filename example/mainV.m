@@ -33,7 +33,7 @@ for i=1:N,
     
     X(:,i) = state.platforms{1}.getX(7:9);
     % get reward
-    % qrsim.reward();
+    qrsim.reward();
     
     % wait so to run in real time
     wait = max(0,state.DT-toc(tloop));

@@ -15,8 +15,8 @@ classdef TaskComplacs<Task
     %
     properties (Constant)
         PENALTY = 1000;
-    end     
-        
+    end    
+    
     methods (Sealed,Access=public)
                                 
         function obj = TaskComplacs(state)

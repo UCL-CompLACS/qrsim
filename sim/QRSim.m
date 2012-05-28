@@ -19,6 +19,7 @@ classdef QRSim<handle
         par         % task parameters 
         paths =[];  % paths
         simState;
+        task;
     end
     
     methods (Sealed,Access=public)
@@ -52,9 +53,9 @@ classdef QRSim<handle
             obj.simState.numRStreams = 0;
             
             % load the required configuration
-            task = feval(taskName,obj.simState);
+            obj.task = feval(taskName,obj.simState);
             
-            obj.par = task.init();
+            obj.par = obj.task.init();
                         
             % simulation timestep
             assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
@@ -174,6 +175,10 @@ classdef QRSim<handle
                 refresh(obj.simState.display3d.figure);
             end
 
+        end
+        
+        function r = reward(obj)
+            r = obj.task.reward();
         end
     end
     

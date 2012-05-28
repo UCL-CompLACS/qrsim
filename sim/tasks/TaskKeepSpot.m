@@ -17,6 +17,10 @@ classdef TaskKeepSpot<Task
         PENALTY = 1000;
     end    
         
+    properties (Access=private)
+        initialX;
+    end    
+        
     methods (Sealed,Access=public)
         
         function obj = TaskKeepSpot(state)
@@ -95,6 +99,8 @@ classdef TaskKeepSpot<Task
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config';
             taskparams.platforms(1).X = [0;0;-10;0;0;0];
+            
+            obj.initialX = taskparams.platforms(1).X;
         end
         
         function r=reward(obj) 
@@ -105,9 +111,9 @@ classdef TaskKeepSpot<Task
             %          r - the reward
             %
             
-            if(simState.platforms{1}.isValid())
-                e = simState.platforms{1}.getX(1:12);
-                e = e(1:3)-simState.platforms{1}.params.getX(1:3);
+            if(obj.simState.platforms{1}.isValid())
+                e = obj.simState.platforms{1}.getX(1:12);
+                e = e(1:3)-obj.initialX(1:3);
                 r = - e' * e; 
             else
                 % returning a large penalty in case the state is not valid
