@@ -6,7 +6,7 @@ clear all;
 close all;
 
 TOL = 0.1;
-plots = 0;
+plots = 1;
 
 %%% run a reasonable simulation
 

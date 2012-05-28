@@ -1,0 +1,89 @@
+package qrsimsrvcli;
+
+// Auxiliary data types
+message Size{
+  required fixed32 value = 1;
+}
+
+message Arrayd {
+  repeated double value = 1 [packed=true];
+} 
+
+// REQUESTS from client to qrsim
+message Init {
+  required string task = 1;    // filename of the task that qrsim will load at init
+  optional bool realTime = 2;  // if true the simulator will run no faster than real-time
+  							   // as fast as possible otherwise  							  
+}
+
+message Reset {
+	required bool value = 1;   // reset the simulator state to the initial state defined in the task
+}
+
+message Disconnect {           // disconnect from qrsim
+	required bool quit = 1 [default = false];   // if true quit the simulator.
+}
+
+message SetState {
+    repeated Arrayd X = 2;     // list of UAVs noiseless states
+}
+
+message Step {
+	enum Type{
+		WP = 1;
+		CTRL = 2;
+		VEL = 3;
+	} 
+	required double dt = 1;    // dt the simulator is stepped forward of
+	required Type type = 2;    // type of control command: wp,ctrls,v 
+	repeated Arrayd cmd = 3;   // commands one array for each UAV 
+}
+
+// REPLY from qrsim to client
+message State {
+	required double t = 1;     // simulator time
+    repeated Arrayd X = 2;     // list of UAVs noiseless states
+    repeated Arrayd eX = 3;    // list of UAVs noisy states
+}
+
+message TaskInfo {
+  optional double timestep = 1;// the main simulation timestep
+  optional int32 numUAVs = 2;  // number of UAVs
+}
+
+message Ack {
+  required bool error = 1;     // true if there was an error
+  optional string msg = 2;     // error message
+}
+
+//
+// main MESSAGE
+// for simplicity we use the same message for both cli->srv and srv->cli messages 
+//
+
+message Message {
+
+	enum Type {
+    	NONE = 0;
+		INIT = 1;
+		RESET = 2; 
+    	DISCONNECT = 3;
+    	SETSTATE = 4;
+    	STEP = 5;
+	    STATE = 6;  
+   	 	TASKINFO = 7;
+    	ACK = 8;
+	}
+
+    required Type type = 1 [default=NONE];
+	optional Init init = 2;
+	optional Reset reset = 3;
+	optional Disconnect disconnect = 4;
+	optional SetState setsState= 5;
+	optional Step step = 6;
+	optional State state = 7;
+	optional TaskInfo taskInfo = 8;
+	optional Ack ack = 9;
+}
+
+

@@ -1,0 +1,240 @@
+function QRSimTCPServer(port)
+% harness to use qrsim over TCP
+
+
+% include the simulator code
+addpath('../../sim');
+
+% include the controllers code
+addpath('../../controllers');
+
+% tell matlab where the class file are..
+javaaddpath('/usr/share/java/qrsimtcpserver.jar');
+javaaddpath('/usr/share/java/protobuf-java.jar');
+
+s = qrsimsrvcli.QRSimTCPServer(port);
+
+% create simulator object
+qrsim = QRSim();
+
+exit = 0;
+
+realTime = 0;
+numUAVs = 0;
+
+% server loop
+while (~exit)
+    
+    try        
+        
+        % wait forever for client to connect server socket
+        waiting = 1;
+        while(waiting)
+            fprintf(['Waiting for client to connect to this ' ...
+            'host on port : %d\n'], port);
+            try
+                s.waitForClient();
+                waiting = 0;
+            catch e
+            end
+        end
+        
+        fprintf('Client connected\n');
+        
+        disconnect = 0;
+        
+        % the TCP messages are simply msg_length followed by the message
+        % all encoded using protocol buffers
+        while(disconnect==0)
+            
+            % wait and read the input command
+            msg = s.nextCommand();
+            
+            % type INIT
+            if(strcmp(msg.getType(),'INIT'))
+                
+                % load specified task
+                try
+                    state = qrsim.init(char(msg.getInit().getTask()));
+                    realTime = msg.getInit().getRealTime();
+                    
+                    numUAVs = length(state.platforms);
+                    
+                    X = zeros(numUAVs,13);
+                    eX =  zeros(numUAVs,20);
+                    
+                    for i=1:numUAVs,
+                        X(i,:) = state.platforms{i}.getX()';
+                        eX(i,:) = state.platforms{i}.getEX()';
+                    end                                    
+
+                    % create controllers
+                    velpid = VelocityPID(state.DT);
+                    wppid = WaypointPID(state.DT);                    
+                    
+                    % return state
+                    s.sendState(state.t,X,eX);
+                    % return task info
+                    s.sendTaskInfo(state.DT,numUAVs);
+                catch e
+                    %disp(e.message);
+                    % return error
+                    s.sendAck(1,e.message);
+                end
+            end
+            
+            % type SETSTATE
+            if(strcmp(msg.getType(),'SETSTATE'))
+                try
+                    X = qrsimsrvcli.QRSimTCPServer.parseSetState(msg.getSetState());
+                    
+                    for i=1:numUAVs,
+                        state.platforms{i}.setX(X(i,:)');
+                    end
+                    % return ack
+                    s.sendAck(0);
+                catch e
+                    % return error
+                    s.sendAck(1,e.message);
+                end
+            end
+            
+            % type RESET
+            if(strcmp(msg.getType(),'RESET'))
+                if(msg.getReset().getValue())
+                    try
+                        %reset
+                        qrsim.reset();
+                        % return ack
+                        s.sendAck(0);
+                    catch e
+                        % return error
+                        s.sendAck(1,e.message);
+                    end
+                end
+            end
+            
+            % type STEP
+            if(strcmp(msg.getType(),'STEP'))
+                
+                % get time we have to advance the simulation by
+                dt = msg.getStep().getDt();
+                % get the WP inputs
+                cmd = qrsimsrvcli.QRSimTCPServer.parseStepCmd(msg.getStep());
+                
+                % pitch roll throttle yaw input
+                if(strcmp(msg.getStep().getType(),'CTRL'))
+                   try
+                        % step simulator
+                        for i=1:round(dt/state.DT)
+                            tloop = tic;
+                            qrsim.step(cmd');
+                            if(realTime)
+                               wait = max(0,state.DT-toc(tloop)); 
+                               pause(wait);
+                            end
+                        end
+                   catch e
+                        % return error
+                        s.sendAck(1,e.message);
+                   end
+                end
+                
+                % waypoint input
+                if(strcmp(msg.getStep().getType(),'WP'))
+                    try
+                        U = zeros(5,numUAVs);
+                        % step simulator
+                        for i=1:round(dt/state.DT)
+                            tloop = tic;
+                            for j=1: numUAVs,
+                                % compute control commands using a pid
+                                U(:,j) = wppid.computeU(state.platforms{j}.getEX(),cmd(j,:));
+                            end
+                            qrsim.step(U);
+                            if(realTime)
+                               wait = max(0,state.DT-toc(tloop)); 
+                               pause(wait);
+                            end
+                        end
+                    catch e
+                        % return error
+                        s.sendAck(1,e.message);
+                    end
+                end
+                
+                % velocity input
+                if(strcmp(msg.getStep().getType(),'VEL'))
+                    try
+                        U = zeros(5,numUAVs);
+                        % step simulator
+                        for i=1:round(dt/state.DT)
+                            tloop = tic;
+                            for j=1: numUAVs,
+                                % compute control commands using a pid
+                                U(:,j) = velpid.computeU(state.platforms{j}.getEX(),cmd(j,:)');
+                            end
+                            qrsim.step(U);
+                            if(realTime)
+                               wait = max(0,state.DT-toc(tloop)); 
+                               pause(wait);
+                            end
+                        end
+                    catch e
+                        % return error
+                        s.sendAck(1,e.message);
+                    end
+                end
+                
+                % check is all the UAVs have a valid state
+                valid = zeros(numUAVs,1);
+                for i=1:numUAVs,
+                    valid(i) = state.platforms{i}.isValid();
+                end
+                
+                if(~all(valid))
+                    % return error
+                    s.sendAck(1,'invalid uav state');
+                else
+                    X = zeros(numUAVs,13);
+                    eX =  zeros(numUAVs,20);
+                    
+                    for i=1:numUAVs,
+                        X(i,:) = state.platforms{i}.getX()';
+                        eX(i,:) = state.platforms{i}.getEX()';
+                    end
+                    % return state
+                    s.sendState(state.t,X,eX);
+                end
+            end
+                        
+            % type DISCONNECT
+            if(strcmp(msg.getType(),'DISCONNECT'))
+                
+                disconnect = 1;
+                % return ack
+                s.sendAck(0);
+                fprintf('disconnecting from client\n');
+                
+                if(msg.getDisconnect().getQuit())
+                    % quit the sim
+                    exit = 1;
+                    % close socket
+                    s.close();
+                    fprintf('quitting simulation\n');
+                end
+            end
+        end
+        
+    catch e
+        fprintf('Unexpecetd exception:\n');
+        disp(e.message);        
+        fprintf('Server forcing client disconnect\n');
+    end
+end
+
+% housekeeping
+close all;
+clear all;
+
+end

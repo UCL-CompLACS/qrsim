@@ -347,9 +347,9 @@ The directory \texttt{/controllers} contain baseline implementations of simple c
 
 Currently the following controllers are available:
 \begin{itemize}
-\item \texttt{WaypointPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (x-y-x) velocity in global frame while maintaining a specified heading.
-\item \texttt{VelocityPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (x-y-x) velocity in global frame while maintaining a specified heading.
-\item \texttt{VelocityHeightPID} Controller that computes the pitch and roll input necessary to achieve a desired 2D (x-y) velocity in global frame while maintaining a specified altitude and heading.
+\item \texttt{WaypointPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (NED) velocity in global frame while maintaining a specified heading.
+\item \texttt{VelocityPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (NED) velocity in global frame while maintaining a specified heading.
+\item \texttt{VelocityHeightPID} Controller that computes the pitch and roll input necessary to achieve a desired 2D (NE) velocity in global frame while maintaining a specified altitude and heading.
 \item \texttt{HeightHeadingPID} Simple controller that computes the throttle and yaw imput necessary to maintain a specified height and heading. The roll and pitch angle control are left to the user.
 \end{itemize}
 
@@ -358,6 +358,130 @@ Currently the following controllers are available:
 Since the implementation of the simulator is completely object oriented, it is possible (and sometimes very useful) to instantiate multiple and completely independent simulations within the same Matlab workspace.  
 
 The script \texttt{/example/multisim.m} shows an example in which one simulator is used to sample control action that are then carried out on the second simulator. 
+
+\section{TCP Interface (Linux)}
+
+We also provide a TCP interface to the quadrotor simulator QRSim so that it functionalities can by easily accessed by a second software. 
+The interface is constituted of two parts: a Matlab (Java) server that is responsible for listening to client connection and managing the QRSim simulation and a client library that allows a client to communicate with such server.
+Currently the client library is written in C++ for Linux but very similar libraries could be developed easily for other languages\footnote{The data serialization is based on the Google protocol buffers library, so writing a client for any of the languages supported by protocol buffer is pretty straightforward.}.
+
+\subsection{Client}
+
+The client library exposes a series of convenient methods to interact with the Matlab simulator QRSim; we now present them briefly, however we refer to the header file \texttt{QRSimTCPClient.h} and to the QRSim documentation for mare details about the meaning of the parameters.
+
+\begin{itemize}
+
+\item \textbf{\texttt{bool connectTo(string ip, int port)}}\\
+  Connects to the Matlab server of QRSim listening at the specified ip address and port. 
+  
+\item \textbf{\texttt{bool init(string task,vector<vector<double>>\& X,vector<vector<double>>\&\\ \hspace*{55pt} eX,double\& tStep,int\& nUAVs,bool realTime)}}\\
+Send to the server the command to initialize the simulator by loading the specified task file; the initial state is returned;
+
+\item \textbf{\texttt{bool reset()}}\\
+Sends a reset command to the server, this will cause the simulator to set itself to the initial state defined in the task.
+
+\item \textbf{\texttt{bool disconnect()}}\\
+Disconnects from the server without turning off the simulator.
+
+\item \textbf{\texttt{bool quit()}}\\
+Disconnects from the server and turns off the simulator.
+
+\item \textbf{\texttt{bool setState(const vector<vector<double>>\& X)}}\\
+Send to the server the command to set the UAV noiseless states to the values provided. The state must be within the limits specified in the task.
+
+\item \textbf{\texttt{bool stepWP(double dt,const vector<vector<double>>\& WP,\\ \hspace*{68pt} vector<vector<double>>\& X,vector<vector<double>>\& eX)}}\\
+Step forward the simulator giving to each of the UAVs the specified waypoint as input.
+The simulator uses a PID in order to reach the specified waypoint, once the waypoint is achieved the UAV will remain stationary at the waypoint.
+
+\item \textbf{\texttt{bool stepVel(double dt, const vector<vector<double>>\& vel,\\ \hspace*{72pt} vector<vector<double>>\& X,vector<vector<double>>\& eX)}}\\
+Steps forward the simulator giving to each of the UAVs the specified velocity commands as input.
+The simulator uses a PID in order to achieve and maintain the velocity command specified.
+
+\item \textbf{\texttt{bool stepCtrl(double dt, const vector<vector<double>>\& ctrl,\\ \hspace*{80pt} vector<vector<double>>\& X,vector<vector<double>>\& eX)}}\\
+Steps forward the simulator giving to each of the UAVs the specified control commands as input.
+The input is expressed in terms of angles and throttle command so it is directly passed to the dynamic model of the quadrotors.
+
+\end{itemize}
+
+\subsection{Server}
+The server code is constituted by a Matlab function (\texttt{qrsim/tcp/matlab/QRSimTCPServer.m}) that takes care of setting up and executing command in the quadrotor simulator and a Java class (\texttt{qrsim/tcp/java/qrsimsrvcli/QRSimTCPServer.java}) which manages the TCP connection and the data serialization.
+
+In general a user of the client library does not need to modify the server code, but this needs to be compiled\footnote{Google protocol buffer serialization tightly depends on the version of the protocol buffer library so shipping a precompiled server library is not a viable option.} and installed (see section \ref{comp} and \ref{inst}) on the machine that will run the quadrotor simulation.
+
+\subsection{Compilation and Installation}
+
+The current version of the TCP interface only supports Linux\footnote{Currently we only tested the code on Ubuntu 12.04LTS, but (assuming that all the dependencies are satisfied) the code should compile in any other recent Linux distribution.}, in the following we assume to be working on one of such systems.
+
+\subsubsection{Dependencies} 
+The C++ client uses Google protocol buffers\footnote{https://developers.google.com/protocol-buffers/} for data serialization and the build process uses CMake\footnote{http://www.cmake.org/}, so both of these tools needs to be available in your Linux machine.
+
+On Ubuntu 12.04 these can be installed as follows:
+\begin{verbatim}
+$ sudo apt-get install cmake
+$ sudo apt-get install libprotoc-dev libprotobuf7 libprotobuf-lite7 libprotobuf-java
+\end{verbatim}
+
+\subsubsection{Compilation} \label{comp}
+To compile the server and client code cd into \texttt{qrsim/tcp/build} and run:
+ \begin{verbatim}
+$ cmake ..
+$ make
+\end{verbatim}
+all should compile cleanly.
+
+CMake is smart enough to figure out if you do not have Java installed in your machine in which case only the C++ client library will be compiled.
+Note that this is a legitimate scenario since you might be interested in connecting to a remote server which takes care of running QRSim. 
+
+\subsubsection{Installation}\label{inst}
+Installing\footnote{The library is installed in \texttt{/usr/local/lib} and the header files in \texttt{/usr/local/include/qrsimtcpclient/}.} the library is nothing different from any usual Linux library compiled from source:
+
+\begin{verbatim}
+$ sudo make install
+\end{verbatim}
+
+\subsection{Using the Client Library in your C++ code}
+
+Now that the client library is compiled and installed in your system, using it in your custom C++ code is straightforward.
+As you commonly do with other shared library installed in your system:
+\begin{itemize}
+\item include the file \texttt{QRSimTCPClient.h} in you source code to have access to the library methods
+\item link against libqrsim \texttt{libqrsimtcpclient.so}.
+\end{itemize}
+The files \texttt{qrsim/tcp/src/exampleclient.cpp} and \texttt{qrsim/tcp/src/testclient.cpp} provide two small examples of using the client library.
+
+\subsection{Running the Server}\label{run}
+The server code runs in Matlab; from the Matlab console cd into the directory \texttt{qrsim/tcp/matlab} and run:
+\begin{verbatim}
+>> QRSimTCPServer(10000)
+\end{verbatim}
+where \texttt{10000} is the number of the TCP port you want to use. As the program starts you should see the following message:
+\begin{verbatim}
+>> QRSimTCPServer(10000)
+Waiting for client to connect to this host on port : 10000
+\end{verbatim}
+indicating that the server is running correctly and is awaiting for connecting from the client.
+
+\subsection{Testing the Interface}
+
+We provide a simple binary to test the TCP interface, after the compilation this should be present in the directory \texttt{qrsim/tcp/bin}.
+Once the server is up and running you can run the client as follows:
+\begin{verbatim}
+$ testclient 127.0.0.1 10000
+\end{verbatim}
+where \texttt{127.0.0.1} and \texttt{10000} are the IP address and TCP port of the server.
+If the tests run successfully you should obtain the following output:
+\begin{verbatim}
+$ ./testclient 127.0.0.1 10000
+QRSIM init test[PASSED]
+QRSIM reset test [PASSED]
+QRSIM stepWP test [PASSED]
+QRSIM stepCtrl test [PASSED]
+QRSIM stepVel test [PASSED]
+QRSIM disconnect test [PASSED]
+QRSIM quit test [PASSED]
+\end{verbatim}
+
+
 
 \appendix
 \chapter{Implementation Details}
