@@ -16,7 +16,11 @@ classdef TaskKeepSpot10<Task
     properties (Constant)
         PENALTY = 1000;
     end    
-        
+    
+    properties (Access=private)
+        initialX;
+    end     
+    
     methods (Sealed,Access=public)
                         
         function obj = TaskKeepSpot10(state)
@@ -96,6 +100,7 @@ classdef TaskKeepSpot10<Task
             for i=1:10,
                 taskparams.platforms(i).configfile = 'pelican_config';
                 taskparams.platforms(i).X = [-100+20*i;0;-10;0;0;0];
+                obj.initialX(i,:) = taskparams.platforms(i).X;
             end
         end
         
@@ -116,7 +121,7 @@ classdef TaskKeepSpot10<Task
                 r = 0;
                 for i=1:length(obj.simState.platforms)
                     e = obj.simState.platforms{i}.getX(1:12);
-                    e = e(1:3)-obj.simState.platforms{i}.params.getX(1:3);
+                    e = e(1:3)-obj.initialX(i,1:3);
                     r = r - e' * e; 
                 end
             else
