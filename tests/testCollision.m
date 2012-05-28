@@ -49,9 +49,6 @@ else
     fprintf('Test collision checking [PASSED]\n');
 end
 
-% clear the state
-clear global state;
-
 cd('..');
 
 end

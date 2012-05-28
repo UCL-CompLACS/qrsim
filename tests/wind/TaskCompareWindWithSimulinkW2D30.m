@@ -98,25 +98,7 @@ classdef TaskCompareWindWithSimulinkW2D30<Task
         end
         
         function r=reward(obj) 
-            % returns the instantateous reward for this task
-            %
-            % Example:
-            %   r = obj.reward();
-            %          r - the reward
-            %
-            global state;
-            
-            if(state.platforms(1).valid)
-                e = state.platforms(1).X(1:12);
-                e = e(1:3)-state.platforms(1).params.X(1:3);
-                r = - e' * e; 
-            else
-                % returning a large penalty in case the state is not valid
-                % i.e. the helicopter is out of the area, there was a
-                % collision or the helicopter has crashed 
-                r = - obj.PENALTY;
-            end
-                
+            % returns the instantateous reward for this task               
         end
     end
     

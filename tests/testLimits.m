@@ -211,9 +211,6 @@ catch exception
     end
 end
 
-% clear the state
-clear global state;
-
 if(e)
     fprintf(['Test ',msg,' [FAILED]\n']);
 else
