@@ -1,5 +1,5 @@
 classdef WaypointPID<handle
-    %  quadrotorPID simple nested loops PID controller that can fly a quadrotor
+    %  WaypointPID simple nested loops PID controller that can fly a quadrotor
     %  given a target waypoint (wp). The platform axes are considered decoupled.
     
     properties (Access=protected)
@@ -23,7 +23,13 @@ classdef WaypointPID<handle
     
     methods (Access = public)
         
-        function obj = WaypointPID(DT)
+        function obj = WaypointPID(DT) 
+            %  Creates a WaypointPID object:
+            %      
+            %  use:
+            %    pid = WaypointPID(DT)
+            %      DT - control timestep (i.e. inverse of the control rate)
+            %
             obj.DT = DT;
             obj.iz = 0;
             obj.ez = 0;
@@ -32,18 +38,29 @@ classdef WaypointPID<handle
         
         function U = computeU(obj,X,wp)
             %
-            %  Compute the quadtotor control signals given the current state and a desired waypoint
+            %  Computes the quadtotor control signals given the current state and a desired waypoint
             %
             %  The desidred attitude is enforced by a P controller that tries to achieve a
             %  linear velocity proportional to the  distance from the target.
             %  Limits are in place to not reach dangerous velocities.
             %  The battery voltage is set to 12 volts to not trigger
-            %  saturation effects
+            %  saturation effects.
+            %
+            %  Note:
+            %  both noiseless (X) and noisy (eX) states are valid inputs, 
+            %  the controller will take care of any needed changes of coordinates.
             %
             %  use:
+            %      
+            %  U = pid.computeU(X,wp)
+            %       X  - current platform state this could be either X or eX       
+            %       wp - desired waypoint [px;py;pz;desPsi] 
+            %            px - position (North)
+            %            py - position (East)
+            %            pz - position (Down)
+            %            desPsi - desired platform heading (psi)            
+            %       U  - computed controls [pt;rl;th;ya;vb]
             %
-            %
-            
             if(~all(obj.wp==wp))
                 wpChange=1;
                 obj.wp = wp;

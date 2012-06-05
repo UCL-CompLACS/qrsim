@@ -124,7 +124,7 @@ The object \snamettt allows to initialize, set up and control the simulator as a
  \item \texttt{reset()}, resets the simulator to the initial state specified by the task. This is generally called after a learning episode in order to restore the state of the simulator. 
  \item \texttt{step(U)}, steps forward in time all the environment objects and all the platforms . This command accepts a matrix of control inputs \texttt{U} (i.e. one column array for each platform) and calls the \texttt{step()} method for each of the objects. Listing~\ref{lst:step} shows the implementation of the method.
 
-Very simply, first \texttt{obj.state.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}.
+Very simply, first \texttt{obj.simState.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}.
  \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is simply a pass through call to the task \texttt{reward()} method and is meant to be called after stepping the simulator.
 \end{itemize}
 
@@ -132,19 +132,19 @@ Very simply, first \texttt{obj.state.t} is updated\footnote{This is the only sta
 function obj=step(obj,U)
            
   %% update time
-  obj.state.t=obj.state.t+obj.state.DT;
+  obj.simState.t=obj.simState.t+obj.simState.DT;
                         
   %% step all the common objects
             
   % the space segment of the GPS
-  obj.state.environment.gpsspacesegment.step([]);
+  obj.simState.environment.gpsspacesegment.step([]);
             
   % the wind
-  obj.state.environment.wind.step([]);
+  obj.simState.environment.wind.step([]);
             
   %% step all the platforms            
-  for i=1:length(obj.state.platforms)
-    obj.state.platforms{i}.step(U(:,i));
+  for i=1:length(obj.simState.platforms)
+    obj.simState.platforms{i}.step(U(:,i));
   end
 end
 \end{lstlisting}
@@ -264,8 +264,8 @@ Such a function gives higher rewards to a policy that maintain the quadrotor clo
 
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]
 function r=reward(obj)
-  e = obj.state.platforms{1}.X(1:12);
-  e = e(1:3)-obj.state.platforms{1}.params.X(1:3);
+  e = obj.simState.platforms{1}.X(1:12);
+  e = e(1:3)-obj.initialX(1:3);
   r = - e' * e; 
 end
 \end{lstlisting}
@@ -350,8 +350,10 @@ Currently the following controllers are available:
 \item \texttt{WaypointPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (NED) velocity in global frame while maintaining a specified heading.
 \item \texttt{VelocityPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (NED) velocity in global frame while maintaining a specified heading.
 \item \texttt{VelocityHeightPID} Controller that computes the pitch and roll input necessary to achieve a desired 2D (NE) velocity in global frame while maintaining a specified altitude and heading.
-\item \texttt{HeightHeadingPID} Simple controller that computes the throttle and yaw imput necessary to maintain a specified height and heading. The roll and pitch angle control are left to the user.
+\item \texttt{AnglesHeightPID} Simple controller that computes the throttle and yaw imput necessary to maintain a specified height and heading. The roll and pitch angle control are left to the user.
 \end{itemize}
+
+To use one or more of such controllers simply add the directory \texttt{controllers} to the matlab path.
 
 \section{Multiple Simulations}
 
