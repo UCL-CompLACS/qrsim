@@ -14,7 +14,9 @@ classdef TaskKeepSpot10<Task
     % - the step dt MUST be always specified eve if on=0
     %
     properties (Constant)
-        PENALTY = 1000;
+        PENALTY = 1000;  
+        U_NEUTRAL = [0;0;0.59;0];
+        R = diag([2/pi, 2/pi, 0.5, 1]); %very rough scaling factors
     end    
     
     properties (Access=private)
@@ -104,8 +106,19 @@ classdef TaskKeepSpot10<Task
             end
         end
         
+        function updateReward(obj,U)
+           % updates reward
+           % in this simple example we only have a quadratic control
+           % cost
+           
+           for i=1:size(U,2)
+               u = (U(1:4,i)-obj.U_NEUTRAL);
+               obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.simState.DT;
+           end
+        end
+        
         function r=reward(obj) 
-            % returns the instantateous reward for this task
+            % returns the total reward for this task
             %
             % Example:
             %   r = obj.reward();
@@ -115,23 +128,24 @@ classdef TaskKeepSpot10<Task
             valid = 1;
             for i=1:length(obj.simState.platforms)
                valid = valid &&  obj.simState.platforms{i}.isValid();
-            end    
+            end
             
             if(valid)
                 r = 0;
                 for i=1:length(obj.simState.platforms)
-                    e = obj.simState.platforms{i}.getX(1:12);
-                    e = e(1:3)-obj.initialX(i,1:3);
+                    e = obj.simState.platforms{i}.getX(1:3);
+                    e = e-obj.initialX(i,1:3);
+                    % control cost so far plus end cost
                     r = r - e' * e; 
                 end
+                r = obj.currentReward + r;
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. the helicopter is out of the area, there was a
                 % collision or the helicopter has crashed 
                 r = - obj.PENALTY;
-            end
-                
-        end
+            end                
+        end 
     end
     
 end

@@ -33,10 +33,10 @@ classdef WaypointPID<handle
             obj.DT = DT;
             obj.iz = 0;
             obj.ez = 0;
-            obj.wp = [0,0,0,0];
+            obj.wp = [0;0;0];
         end
         
-        function U = computeU(obj,X,wp)
+        function U = computeU(obj,X,wp,desPsi)
             %
             %  Computes the quadtotor control signals given the current state and a desired waypoint
             %
@@ -104,7 +104,7 @@ classdef WaypointPID<handle
             desPhi = obj.Kv*(desv - v);
             desPhi = obj.limit(desPhi,-obj.maxtilt,obj.maxtilt);
             
-            ya = obj.limit(obj.Kya * (wp(4) - psi),-obj.maxyawrate,obj.maxyawrate);
+            ya = obj.limit(obj.Kya * (desPsi - psi),-obj.maxyawrate,obj.maxyawrate);
             
             % vertical controller is a full PID
             ez_ = -(wp(3) - z);

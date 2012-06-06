@@ -102,25 +102,14 @@ classdef TaskComplacs<Task
             obj.initialX = taskparams.platforms(1).X;
         end
         
+        function r=updateReward(obj,U) 
+            % no istantaneous reward defined
+            r = 0;    
+        end
+        
         function r=reward(obj) 
-            % returns the instantateous reward for this task
-            %
-            % Example:
-            %   r = obj.reward();
-            %          r - the reward
-            %
-            
-            if(obj.simState.platforms{1}.isValid())
-                e = obj.simState.platforms{1}.getX(1:12);
-                e = e(1:3)-obj.initialX(1:3);
-                r = - e' * e; 
-            else
-                % returning a large penalty in case the state is not valid
-                % i.e. the helicopter is out of the area, there was a
-                % collision or the helicopter has crashed 
-                r = - obj.PENALTY;
-            end
-                
+            % no final reward defined
+            r = 0;    
         end
     end
     

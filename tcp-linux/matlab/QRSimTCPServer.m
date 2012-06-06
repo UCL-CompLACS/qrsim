@@ -149,7 +149,7 @@ while (~exit)
                             tloop = tic;
                             for j=1: numUAVs,
                                 % compute control commands using a pid
-                                U(:,j) = wppid.computeU(state.platforms{j}.getEX(),cmd(j,:));
+                                U(:,j) = wppid.computeU(state.platforms{j}.getEX(),cmd(j,1:3)',cmd(j,4));
                             end
                             qrsim.step(U);
                             if(realTime)
@@ -172,7 +172,7 @@ while (~exit)
                             tloop = tic;
                             for j=1: numUAVs,
                                 % compute control commands using a pid
-                                U(:,j) = velpid.computeU(state.platforms{j}.getEX(),cmd(j,:)');
+                                U(:,j) = velpid.computeU(state.platforms{j}.getEX(),cmd(j,1:3)',0);
                             end
                             qrsim.step(U);
                             if(realTime)

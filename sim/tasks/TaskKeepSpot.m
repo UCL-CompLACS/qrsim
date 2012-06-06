@@ -111,7 +111,7 @@ classdef TaskKeepSpot<Task
            % cost
            
            for i=1:size(U,2)
-               u = (U(:,i)-obj.U_NEUTRAL);
+               u = (U(1:4,i)-obj.U_NEUTRAL);
                obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.simState.DT;
            end
         end
