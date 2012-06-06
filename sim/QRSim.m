@@ -114,6 +114,8 @@ classdef QRSim<handle
             for i=1:length(obj.simState.platforms)
                 obj.simState.platforms{i}.setX(obj.par.platforms(i).X);
             end
+            
+            obj.task.resetReward();            
         end
         
         function obj = resetSeed(obj,varargin)
@@ -169,6 +171,9 @@ classdef QRSim<handle
             for i=1:length(obj.simState.platforms)
                 obj.simState.platforms{i}.step(U(:,i));
             end
+            
+            % update the task reward
+            obj.task.updateReward(U);
             
             % force figure refresh
             if(obj.par.display3d.on == 1)

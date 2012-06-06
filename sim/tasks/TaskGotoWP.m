@@ -1,12 +1,11 @@
-classdef TaskKeepSpot<Task
-    % Simple task in which a qudrotor has to keep its starting position despite the wind.
-    % Single platform task which requires to maintain the quadrotor hovering at the 
-    % position it has when the task starts; the solution requires non constant control 
-    % since the helicopter is affected by time varying wind disturbances.
+classdef TaskGotoWP<Task
+    % Simple task in which a quadrotor has to go to a specified waypoint.
     %
-    % KeepSpot methods:
-    %   init()   - loads and returns all the parameters for the various simulator objects
-    %   reward() - returns the instantateous reward for this task
+    % TaskGotoWP methods:
+    %   init()         - loads and returns all the parameters for the various simulator objects
+    %   reward()       - returns the final reward for this task
+    %   resetReward()  - sets reward to zero
+    %   updateReward() - add up control cost to current cost
     %
     % 
     % GENERAL NOTES:
@@ -20,13 +19,13 @@ classdef TaskKeepSpot<Task
     end    
         
     properties (Access=private)
-        initialX;
+        wp;
         currentReward;
     end    
         
     methods (Sealed,Access=public)
         
-        function obj = TaskKeepSpot(state)
+        function obj = TaskGotoWP(state)
            obj = obj@Task(state); 
            obj.currentReward = 0;
         end
@@ -53,7 +52,7 @@ classdef TaskKeepSpot<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-10 20 -10 10 -20 0];
+            taskparams.environment.area.limits = [-70 70 -70 70 -50 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -104,7 +103,8 @@ classdef TaskKeepSpot<Task
             taskparams.platforms(1).configfile = 'pelican_config';
             taskparams.platforms(1).X = [0;0;-10;0;0;0];
             
-            obj.initialX = taskparams.platforms(1).X;
+            %%% arbitrary waypoint to go to %%%%
+            obj.wp = [-50 -50 -10 0];
         end
         
         function resetReward(obj)
@@ -120,7 +120,7 @@ classdef TaskKeepSpot<Task
            % cost
            
            for i=1:size(U,2)
-               u = (U(:,i)-obj.U_NEUTRAL);
+               u = (U(1:4,i)-obj.U_NEUTRAL);
                obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.simState.DT;
            end
         end
@@ -134,17 +134,21 @@ classdef TaskKeepSpot<Task
             %
             
             if(obj.simState.platforms{1}.isValid())
-                e = obj.simState.platforms{1}.getX(1:12);
-                e = e(1:3)-obj.initialX(1:3);
+                e = obj.simState.platforms{1}.getX(1:3)-obj.wp(1:3)';
                 % control cost so far plus end cost
-                r = obj.currentReward - e' * e; 
+                r = obj.currentReward - e' * e;
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. the helicopter is out of the area, there was a
                 % collision or the helicopter has crashed 
                 r = - obj.PENALTY;
-            end
-                
+            end                
+        end
+        
+        % the waypoint to go to can be set at runtime
+        function setWP(obj,wp)
+            % sets the task waypoint
+            obj.wp = wp;
         end
     end
     
