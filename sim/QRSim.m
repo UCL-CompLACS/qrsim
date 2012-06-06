@@ -19,6 +19,9 @@ classdef QRSim<handle
         par         % task parameters 
         paths =[];  % paths
         simState;
+    end
+    
+    properties (Access=public)
         task;
     end
     
