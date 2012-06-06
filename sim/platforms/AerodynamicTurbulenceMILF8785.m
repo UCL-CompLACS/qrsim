@@ -183,8 +183,6 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
                                     0                  0 1];
             
             obj.vgust = dcm(X)*Cte*ftToM(-obj.vgust_windframe);
-            
-            a=1;
         end
     end
 end
