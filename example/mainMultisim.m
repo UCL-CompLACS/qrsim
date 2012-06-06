@@ -57,7 +57,7 @@ dwp = [ 0   0   0 0;
 N = 50;
 
 % number of timestep that constitute an action
-M = 100; % 1 seconds
+M = 300; 
 
 % creat PID controller object for "real world"
 pid_real = VelocityHeightPID(state_real.DT);
@@ -112,7 +112,7 @@ for i=1:N,
     
     % carry out only the first part of the control action on the "real
     % world"
-    for k=1:M/4
+    for k=1:M/2
         % compute controls
         U = pid_real.computeU(state_real.platforms{1}.getEX(),best_action(1:2)',best_action(3),best_action(4));
         % step simulator

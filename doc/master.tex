@@ -64,10 +64,10 @@ To the extent allowed by Matlab we used object-oriented programming concepts in 
 
 At any point in time the simulator must maintain the state of all the objects taking part in the simulation, this is accomplished with a data structure is defined by a Matlab class called (rather obviously) \texttt{State}.
  
-A handle to a object of this type is returned during the initialisation of the simulator and can be used to reference the various objects part of the simulation. For instance the fields \texttt{environment} and \texttt{platforms} store respectively the handles to all the environment objects and to the cell arraay of platforms objects. 
+A handle to a object of this type is returned during the initialisation of the simulator and can be used to reference the various objects part of the simulation. For instance the fields \texttt{environment} and \texttt{platforms} store respectively the handles to all the environment objects and to the cell array of platforms objects. 
 Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms{1}.getX()} gives access to the state variables of the first platform, while \texttt{state.environment.area.getLimits()} returns the size of the flying area. 
 
-When meaningful, the \texttt{Platform} and \texttt{EnvironmentObject} classes define methods to retrieve the object state (e.g. \texttt{getX()} in the case of a platform), to reset the state to its initial value defined by the task (see section \ref{sec:createtask}) and to set the object state (e.g. \texttt{setX(X)} in the case of a platform)\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set.}.
+When meaningful, the \texttt{Platform} and \texttt{EnvironmentObject} classes define methods to retrieve the object state (e.g. \texttt{getX()} in the case of a platform\footnote{In addition to \texttt{getX()} platforms define \texttt{getEX()} to return the estimated state and \texttt{getEXasX()} which returns the estimated state with the same format of \texttt{getX()}; we refer to the matlab API for more details.}), to reset the state to its initial value defined by the task (see section \ref{sec:createtask}) and to set the object state (e.g. \texttt{setX(X)} in the case of a platform)\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set.}.
 
 The \texttt{State} structure stores also other important variables:
 \begin{itemize}
@@ -93,7 +93,8 @@ By combining different types of environment objects and platforms \sname allows 
 The abstract class \texttt{Task} provides a way to derive task objects that specify both a scenario and an activity to be learned; the class defines two main methods \texttt{init()} and \texttt{reward()}:
 \begin{itemize}
  \item \texttt{init()} allows the user to define the type of each of the environment objects (i.e. the class name) and of each platform and sensor. Along with the object type, a specification of all the class specific parameters is also needed.
- \item \texttt{reward()} allows for defining an instantaneous reward for the task, this can be used for the purpose of learning. The design of a reward function is very task specific but most often the user will rely on the \texttt{state} data structure in order to compute such a reward.
+ \item \texttt{updateReward(U)} allows for defining an instantaneous reward for the task which is integrated as the task progresses (e.g. this could be used to include a control or state cost). Thiss method is called by qrsim after a step; its content depends on how the task is defined.
+ \item \texttt{reward()} allows for defining the total reward for the task (e.g. the sum of the integrated instantaneous reward plus a final reward). The design of a reward function is again very task specific but most often the user will rely on the \texttt{state} data structure in order to compute such a reward. 
 \end{itemize}
 
 We will present how to create a task in section \ref{sec:createtask}.
@@ -121,7 +122,7 @@ The object \snamettt allows to initialize, set up and control the simulator as a
 \snamettt exposes three main methods:
 \begin{itemize}
  \item \texttt{init('task\_name')}, initializes the platforms the environment objects and the task according to what specified by the task \texttt{'task\_name'} (see section \ref{sec:createtask}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \snamettt object and must be called only once.
- \item \texttt{reset()}, resets the simulator to the initial state specified by the task. This is generally called after a learning episode in order to restore the state of the simulator. 
+ \item \texttt{reset()}, resets the simulator to the initial state specified by the task\footnote{This also resets the task reward to zero.}. This is generally called after a learning episode in order to restore the state of the simulator. 
  \item \texttt{step(U)}, steps forward in time all the environment objects and all the platforms . This command accepts a matrix of control inputs \texttt{U} (i.e. one column array for each platform) and calls the \texttt{step()} method for each of the objects. Listing~\ref{lst:step} shows the implementation of the method.
 
 Very simply, first \texttt{obj.simState.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}.
@@ -191,7 +192,7 @@ The software was tested succesfully on the following setups :
 
 As a first example of use we look at a single platform task which requires to maintain the quadrotor hovering at the position it has when the task starts; the solution requires to adjust continuously controls since the helicopter is affected by time varying wind disturbances. We call this task TaskKeepSpot. 
  
-To implement such a task, we start by creating a new class that extends the abstract class \texttt{Task} and implements the \texttt{init()} and \texttt{reward()} methods.
+To implement such a task, we start by creating a new class that extends the abstract class \texttt{Task} and implements the \texttt{init()}, \texttt{updateReward(U)}  and \texttt{reward()} methods.
 
 The \texttt{init()} method (see listing \ref{lst:init}) 
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left,basicstyle=\small]
@@ -259,14 +260,29 @@ The number of sensors and parameters present in a platform would make defining s
 
 Lastly we see the \texttt{taskparams.display3d} parameters which allow to specify if the 3D visualization is active and the size of the window used for its rendering. 
 
-As already explained, a task must also define a reward function. For the TaskKeepSpot task a straightforward reward can be computed subtracting the initial position of the quadrotor from its state vector and taking the square magnitude of the vector obtained (see listing \ref{lst:reward}). 
-Such a function gives higher rewards to a policy that maintain the quadrotor close to the starting point but also keeps it level (i.e. \texttt{X(4:6)=0}) and minimizes linear and rotational velocities (i.e. \texttt{X(7:12)=0}).
+As already explained, a task must also define a the \texttt{updateReward(U)} and \texttt{reward()} functions. For the TaskKeepSpot task a straightforward update reward can be defined as a quadratic cost of the control inputs (see listing \ref{lst:updatereward}) in order to penalize large controls. An appropriate total reward can be defined adding the current reward to a final reward computed as the square of the distance to the quadrotor initial position (see listing \ref{lst:reward}). Such a function gives higher rewards to a policy that at the end of the task gets the quadrotor close to the starting point.
 
-\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]
-function r=reward(obj)
-  e = obj.simState.platforms{1}.X(1:12);
-  e = e(1:3)-obj.initialX(1:3);
-  r = - e' * e; 
+\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot updateReward(U) method,language=Matlab,frame=lines,label=lst:updatereward,numbers=left,basicstyle=\small]
+function updateReward(obj,U)         
+  % updates the reward based on control costs
+  dt = obj.simState.DT;
+  for i=1:size(U,2)
+    u = (U(:,i)-obj.U_NEUTRAL);
+    obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*dt;
+  end
+end
+\end{lstlisting}    
+\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot reward() method,language=Matlab,frame=lines,label=lst:reward,numbers=left,basicstyle=\small]   
+function r=reward(obj) 
+  % returns the total reward for this task      
+  if(obj.simState.platforms{1}.isValid())
+    e = obj.simState.platforms{1}.getX(1:12);
+    e = e(1:3)-obj.initialX(1:3);
+    % control cost so far plus end cost
+    r = obj.currentReward - e' * e; 
+  else
+    r = - obj.PENALTY;
+  end                
 end
 \end{lstlisting}
 The complete listing for this task can be found in the file \texttt{TaskKeepSpot.m}.  
@@ -304,13 +320,14 @@ for i=1:N,
     % step simulator
     qrsim.step(U);
     
-    % get reward
-    % qrsim.reward();
-    
     % wait so to run in real time
     wait = max(0,state.DT-toc(tloop));
     pause(wait);
 end
+
+% get reward
+% r = qrsim.reward();
+
 elapsed = toc(tstart);
 \end{lstlisting}
 Before anything else we are required to instantiate the \snamettt object, this will make sure that all the functions and classes of the simulator are reachable. Next we load all the task parameters by calling \texttt{qrsim.init()}, such function returns a handle to the simulator state.
@@ -323,7 +340,7 @@ Any pitch or roll rotation away from the level attitude will produce a correspon
 
 The PID controller computes the required pitch roll yaw and throttle command proportionally to the current distance between the helicopter and it selected waypoint.
 
-Since we are using a PID controller and no learning is involved, after stepping the simulator we do not make use of the reward returned by the task. In the listing (line 27) we show the call commented out since this is where normally the reward would be computed.
+Since we are using a PID controller and no learning is involved, after running the predefined number of iterations we do not make use of the reward returned by the task. In the listing (line 34) we show the call commented out since this is where normally the total task reward would be retrieved.
 
 Since the task defines to run the simulation with the 3D visualization, it makes sense to run it in real time, therefore line 30 introduces the necessary pause.  
 
@@ -359,7 +376,7 @@ To use one or more of such controllers simply add the directory \texttt{controll
 
 Since the implementation of the simulator is completely object oriented, it is possible (and sometimes very useful) to instantiate multiple and completely independent simulations within the same Matlab workspace.  
 
-The script \texttt{/example/multisim.m} shows an example in which one simulator is used to sample control action that are then carried out on the second simulator. 
+The script \texttt{/example/multisim.m} shows an example in which one simulator is used to sample control actions the best of which (in terms of reward) is then carried out on the second simulator\footnote{This replicates what one might do in reality where the simulation is used to evaluate control action that are then carried out on a real platform.}. 
 
 \section{TCP Interface (Linux)}
 

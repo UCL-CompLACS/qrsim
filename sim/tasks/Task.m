@@ -13,7 +13,8 @@ classdef Task<handle
     %
     
     properties (Access=protected)
-       simState;      % handle to the simultor state
+       simState;      % handle to the simultor stateTask
+       currentReward;
     end
     
     methods (Abstract)        
@@ -24,9 +25,6 @@ classdef Task<handle
         updateReward(obj,U);
         % called by qrsim after a step in order to compute any
         % state/control const; its content depends on the task neeeds
-                
-        resetReward(obj);
-        % resets the reward to 0, this is called by qrsim during a reset
         
         r = reward(obj);
         % returns a task reward given the current state, its content depends on the task
@@ -36,6 +34,14 @@ classdef Task<handle
     methods (Access=public)
         function obj = Task(state)
            obj.simState = state; 
+           obj.currentReward = 0;
+        end        
+                
+        function resetReward(obj)
+           % resets reward, this method is called by qrsim and generally
+           % should not be called explicitly
+           % 
+           obj.currentReward = 0;
         end
     end    
 end

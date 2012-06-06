@@ -20,15 +20,13 @@ classdef TaskKeepSpot<Task
     end    
         
     properties (Access=private)
-        initialX;
-        currentReward;
+        initialX;        
     end    
         
     methods (Sealed,Access=public)
         
         function obj = TaskKeepSpot(state)
            obj = obj@Task(state); 
-           obj.currentReward = 0;
         end
         
         function taskparams=init(obj) %#ok<MANU>
@@ -106,13 +104,6 @@ classdef TaskKeepSpot<Task
             
             obj.initialX = taskparams.platforms(1).X;
         end
-        
-        function resetReward(obj)
-           % resets reward, this method is called by qrsim and generally
-           % should not be called explicitly
-           % 
-           obj.currentReward = 0;
-        end
                 
         function updateReward(obj,U)
            % updates reward
@@ -143,14 +134,11 @@ classdef TaskKeepSpot<Task
                 % i.e. the helicopter is out of the area, there was a
                 % collision or the helicopter has crashed 
                 r = - obj.PENALTY;
-            end
-                
+            end                
         end
     end
     
 end
-
-
 
 % [1] J. Rankin, "An error model for sensor simulation GPS and differential GPS," IEEE
 %     Position Location and Navigation Symposium, 1994, pp.260-266.
