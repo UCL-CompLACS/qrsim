@@ -12,9 +12,16 @@ classdef TaskKeepVel<Task
     % - the step dt MUST be always specified eve if on=0
     %
     properties (Constant)
-        PENALTY = 1000;
-    end    
-        
+        PENALTY = 1000;        
+        U_NEUTRAL = [0;0;0.59;0];
+        R = diag([2/pi, 2/pi, 0.5, 1]); %very rough scaling factors       
+        Q = eye(3); %unit scaling factors
+    end  
+    
+    properties (Access=private)
+       v; %velocity target
+    end
+    
     methods (Sealed,Access=public)
                 
         function obj = TaskKeepVel(state)
@@ -93,27 +100,46 @@ classdef TaskKeepVel<Task
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config';
             taskparams.platforms(1).X = [0;0;-10;0;0;0];
+            
+            obj.v = [0;0;0];
+        end
+        
+        function updateReward(obj,U)
+           % updates reward
+           % in this simple example we only have a quadratic control
+           % cost
+           
+           for i=1:size(U,2)
+               u = (U(1:4,i)-obj.U_NEUTRAL);
+               e = (dcm(obj.simState.platforms{i}.getX())'*obj.simState.platforms{i}.getX(7:9))-obj.v;
+               control_cost = (obj.R*u)'*(obj.R*u);
+               state_cost = (obj.Q*e)'*(obj.Q*e);
+               obj.currentReward = obj.currentReward - (control_cost+state_cost)*obj.simState.DT;
+           end
+        end
+        
+        function setTargetVelocity(obj,v)
+            % updates the velocity target
+            obj.v = v;
         end
         
         function r=reward(obj) 
-            % returns the instantateous reward for this task
+            % returns the total reward for this task
             %
             % Example:
             %   r = obj.reward();
             %          r - the reward
             %
             
-            if(obj.simState.platforms{1}.valid)
-                e = obj.simState.platforms{1}.X(7:9);
-                e = e-obj.simState.platforms{1}.params.X(7:9);
-                r = - e' * e; 
+            if(obj.simState.platforms{1}.isValid())
+                % no end cost
+                r = obj.currentReward; 
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. the helicopter is out of the area, there was a
                 % collision or the helicopter has crashed 
                 r = - obj.PENALTY;
-            end
-                
+            end                
         end
     end
     

@@ -27,18 +27,20 @@ tstart = tic;
 for i=1:N,
     tloop=tic;
     % compute controls
-    U = pid.computeU(state.platforms{1}.getX(),vt(:,i));
+    U = pid.computeU(state.platforms{1}.getX(),vt(1:3,i),0);
+    qrsim.task.setTargetVelocity(vt(:,i));
     % step simulator
     qrsim.step(U);
     
     X(:,i) = state.platforms{1}.getX(7:9);
-    % get reward
-    qrsim.reward();
     
     % wait so to run in real time
     wait = max(0,state.DT-toc(tloop));
     pause(wait);
 end
+% get reward
+qrsim.reward();
+    
 elapsed = toc(tstart);
 
 figure();
