@@ -212,6 +212,21 @@ classdef Pelican<Steppable & Platform
                 eX = obj.eX(varargin{1});
             end
         end
+                
+        function X = getEXasX(obj,varargin)
+            % returns the estimated state (noisy) formatted as the noiseless state
+            % eX = [~px;~py;-~h;~phi;~theta;~psi;~u;~v;~w;~p;~q;~r]
+            %
+            % Examples
+            %    allX = obj.getEXasX(); returns the whole 12 elements state vector
+            %  shortX = obj.getEXasX(1:3); returns only the first three elements of the state vector
+            %
+            uvw = dcm(obj.X)*[obj.eX(18:19);-obj.eX(20)];
+            X = [obj.eX(1:2);-obj.eX(17);obj.eX(4:6);uvw;obj.eX(10:12)];
+            if(~isempty(varargin))
+                X = X(varargin{1});
+            end
+        end
         
         function iv = isValid(obj)
             % true if the state is valid
@@ -275,6 +290,7 @@ classdef Pelican<Steppable & Platform
             obj.aerodynamicTurbulence.reset();
             obj.ahars.reset();
             obj.graphics.reset();
+            obj.valid = 1;
         end
         
         function d = getCollisionDistance(obj)
@@ -388,7 +404,7 @@ classdef Pelican<Steppable & Platform
                 
                 obj.aerodynamicTurbulence.step(obj.X);
                 turbWind = obj.aerodynamicTurbulence.getLinear(obj.X);
-                
+                    
                 accNoise = obj.dynNoise.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
                                           randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
                                           randn(obj.simState.rStreams{obj.prngIds(3)},1,1);
@@ -399,8 +415,7 @@ classdef Pelican<Steppable & Platform
                 % dynamics
                 [obj.X obj.a] = ruku2('pelicanODE', obj.X, [US;meanWind + turbWind; obj.MASS; accNoise], obj.dt);
                 
-                
-                if(obj.thisStateIsWithinLimits(obj.X) && ~obj.inCollision())
+                if(isreal(obj.X)&& obj.thisStateIsWithinLimits(obj.X) && ~obj.inCollision())
                     
                     % AHARS
                     obj.ahars.step([obj.X;obj.a]);
