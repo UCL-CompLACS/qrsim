@@ -24,34 +24,34 @@ qrsim_sim = QRSim();
 % load task parameters and do housekeeping
 state_sim = qrsim_sim.init('TaskGotoWP');
 
-% list of possible "actions" formulated as relative waypoints
-dwp = [ 0    0    0 0;
-        0    0   10 0;
-        0    0  -10 0;
-        0   10    0 0;
-        0   10   10 0;
-        0   10  -10 0;
-        0  -10    0 0;
-        0  -10   10 0;
-        0  -10  -10 0;
-       10    0    0 0;
-       10    0   10 0;
-       10    0  -10 0;
-       10   10    0 0;
-       10   10   10 0;
-       10   10  -10 0;
-       10  -10    0 0;
-       10  -10   10 0;
-       10  -10  -10 0;
-      -10    0    0 0;
-      -10    0   10 0;
-      -10    0  -10 0;
-      -10   10    0 0;
-      -10   10   10 0;
-      -10   10  -10 0;
-      -10  -10    0 0;
-      -10  -10   10 0;
-      -10  -10  -10 0;];   
+% list of possible discrete "actions" formulated as velocity & height commands
+dwp = [ 0   0   0 0;
+        0   0   5 0;
+        0   0  -5 0;
+        0   2   0 0;
+        0   2   5 0;
+        0   2  -5 0;
+        0  -2   0 0;
+        0  -2   5 0;
+        0  -2  -5 0;
+        2   0   0 0;
+        2   0   5 0;
+        2   0  -5 0;
+        2   2   0 0;
+        2   2   5 0;
+        2   2  -5 0;
+        2  -2   0 0;
+        2  -2   5 0;
+        2  -2  -5 0;
+       -2   0   0 0;
+       -2   0   5 0;
+       -2   0  -5 0;
+       -2   2   0 0;
+       -2   2   5 0;
+       -2   2  -5 0;
+       -2  -2   0 0;
+       -2  -2   5 0;
+       -2  -2  -5 0;];   
    
 % number of times we choose a control action to solve the task
 N = 50;
@@ -60,10 +60,10 @@ N = 50;
 M = 100; % 1 seconds
 
 % creat PID controller object for "real world"
-pid_real = WaypointPID(state_real.DT);
+pid_real = VelocityHeightPID(state_real.DT);
 
 % creat PID controller object for simulated world
-pid_sim = WaypointPID(state_sim.DT);
+pid_sim = VelocityHeightPID(state_sim.DT);
 
 for i=1:N,
     
@@ -80,14 +80,14 @@ for i=1:N,
         % set simulated platform to the state of the "real" platform 
         state_sim.platforms{1}.setX(p1_state_real);
         
-        % the action is in term of a waypoint relative to the current
-        % position, so we add the current position to it.
-        tmpwp = dwp(j,:)+[p1_state_real(1:3)',0];
+        % the altitude action is relative to the current
+        % Z position, so we add the current Z to it.
+        action = dwp(j,:)+[0,0,p1_state_real(3),0];
         
         % run the action for M timestep and compute the reward/cost
         for k=1:M
             % compute controls            
-            U = pid_sim.computeU(state_sim.platforms{1}.getEX(),tmpwp);
+            U = pid_sim.computeU(state_sim.platforms{1}.getEX(),action(1:2)',action(3),action(4));
             
             % step simulator
             qrsim_sim.step(U);            
@@ -108,13 +108,13 @@ for i=1:N,
     %fprintf('best action [%f %f %f %f] \n',dwp(best_action_idx,1),dwp(best_action_idx,2),dwp(best_action_idx,3),dwp(best_action_idx,4)); 
     
     % now that we have got the best action we can carry it out in the "real world"
-    best_action_wp = dwp(best_action_idx,:)+[p1_state_real(1:3)',0];
+    best_action = dwp(best_action_idx,:)+[0,0,p1_state_real(3),0];
     
     % carry out only the first part of the control action on the "real
     % world"
     for k=1:M/4
         % compute controls
-        U = pid_real.computeU(state_real.platforms{1}.getEX(),best_action_wp);
+        U = pid_real.computeU(state_real.platforms{1}.getEX(),best_action(1:2)',best_action(3),best_action(4));
         % step simulator
         qrsim_real.step(U);
     end
