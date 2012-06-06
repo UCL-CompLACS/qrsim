@@ -29,7 +29,7 @@ c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limi
     params.environment.area.limits(5:6);... % position limits defined by the area
     -pi,pi;-pi,pi;-10*pi,10*pi;... % attitude limits
     -15,15;-15,15;-15,15;... % linear velocity limits
-    -2,2;-2,2;-2,2]; %rotational velocity limits
+    -3,3;-3,3;-3,3]; %rotational velocity limits
     
 c.collisionDistance = 2; % two platforms colser than this distance are deemed in collision 
 c.dynNoise = [0.2;0.2;0.2;0.2;0.2;0.2];
