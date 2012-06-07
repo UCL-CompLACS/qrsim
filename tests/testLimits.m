@@ -122,13 +122,10 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 state = qrsim.init('TaskNoWind');
 
-wps=[   0,   0, 100, 0;
-        0,   0,-100, 0;
-      100,   0,   0, 0;
-     -100,   0,   0, 0;
-        0, 100,   0, 0;
-        0,-100,   0, 0];
-
+wps = [   0,    0, 100, -100,   0,    0;
+          0,    0,   0,    0, 100, -100;
+        100, -100,   0,    0,   0,    0];
+        
 pid = WaypointPID(state.DT);
 
 for j = 1:size(wps,1)
@@ -136,7 +133,7 @@ for j = 1:size(wps,1)
     for i=1:N,
         
         % compute controls
-        U=pid.computeU(state.platforms{1}.getEX(),wps(j,:));
+        U=pid.computeU(state.platforms{1}.getEX(),wps(:,j),0);
         
         % step simulator
         qrsim.step(U);

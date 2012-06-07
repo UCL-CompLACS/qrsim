@@ -36,16 +36,14 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 state = qrsim.init('TaskNoWind');
 
-des=[   0,   0,  10, 0;
-        0,   0, -10, pi/4;
-       10,   0,   0, 0;
-      -10,   0,   0, pi/2;
-        0,  10,   0, 0;
-        0, -10,   0, -pi/3];
-
+des = [  0,    0,  10,  -10,   0,     0;
+         0,    0,   0,    0,  10,   -10;
+        10,  -10,   0,    0,   0,     0;
+         0, pi/4,   0, pi/2,   0, -pi/3]; 
+    
 pid = WaypointPID(state.DT);
 
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(j);
         P=[];
@@ -54,7 +52,7 @@ for j = 1:size(des,1)
     end
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getEX(),des(j,:));
+        U=pid.computeU(state.platforms{1}.getEX(),des(1:3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -69,35 +67,35 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(P(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('px [m]');
         grid on;
         axis([0 400 -15 15]);
         subplot(4,1,2)
         plot(P(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('py [m]');
         grid on;
         axis([0 400 -15 15]);
         subplot(4,1,3)
         plot(Z);
         hold on;
-        plot(ones(1,N)*des(j,3),'r');
+        plot(ones(1,N)*des(3,j),'r');
         ylabel('pz [m]');
         grid on;
         axis([0 400 -15 15]);
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         grid on;
         axis([0 400 -pi pi]);
     end
     
-    diffd = norm([state.platforms{1}.getEX(1:2)-des(j,1:2)';-state.platforms{1}.getEX(17)-des(j,3)]);
-    diffa = abs(state.platforms{1}.getEX(6)-des(j,4));    
+    diffd = norm([state.platforms{1}.getEX(1:2)-des(1:2,j);-state.platforms{1}.getEX(17)-des(3,j)]);
+    diffa = abs(state.platforms{1}.getEX(6)-des(4,j));    
     if(~((diffd<told)&&(diffa<tola)))
         e = e | 1;
     end
@@ -105,7 +103,7 @@ for j = 1:size(des,1)
 end
 
 jj = j;
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(jj+j);
         P=[];
@@ -113,7 +111,7 @@ for j = 1:size(des,1)
     end
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getX(),des(j,:));
+        U=pid.computeU(state.platforms{1}.getX(),des(1:3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -128,35 +126,35 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(P(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('px [m]');
         grid on;
         axis([0 400 -15 15]);
         subplot(4,1,2)
         plot(P(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('py [m]');
         grid on;
         axis([0 400 -15 15]);
         subplot(4,1,3)
         plot(P(3,:));
         hold on;
-        plot(ones(1,N)*des(j,3),'r');
+        plot(ones(1,N)*des(3,j),'r');
         ylabel('pz [m]');
         grid on;
         axis([0 400 -15 15]);
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         grid on;
         axis([0 400 -pi pi]);
     end
     
-    diffd = norm(state.platforms{1}.getX(1:3)-des(j,1:3)');
-    diffa = abs(state.platforms{1}.getX(6)-des(j,4));    
+    diffd = norm(state.platforms{1}.getX(1:3)-des(1:3,j));
+    diffa = abs(state.platforms{1}.getX(6)-des(4,j));    
     if(~((diffd<told)&&(diffa<tola)))
         e = e | 1;
     end
@@ -192,16 +190,14 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 state = qrsim.init('TaskNoWindNoDrag');
 
-des=[  -2,   0, 0, 0;
-    0,   0, -2, pi/4;
-    2,   0,  0, 0;
-    -2,   0,  0, pi/2;
-    0,   2,  0, 0;
-    0,  -2,  0, -pi/3];
+des = [ -2,    0,   2,   -2,   0,     0;
+         0,    0,   0,    0,   2,    -2;
+         0,   -2,   0,    0,   0,     0;
+         0, pi/4,   0, pi/2,   0, -pi/3]; 
 
 pid = VelocityPID(state.DT);
 
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(j);
         VV=[];
@@ -209,7 +205,7 @@ for j = 1:size(des,1)
     end
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getEX(),des(j,1:3)',des(j,4));
+        U=pid.computeU(state.platforms{1}.getEX(),des(1:3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -223,35 +219,35 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(VV(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('vx [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,2)
         plot(VV(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('vy [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,3)
         plot(VV(3,:));
         hold on;
-        plot(ones(1,N)*des(j,3),'r');
+        plot(ones(1,N)*des(3,j),'r');
         ylabel('vz [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         grid on;
         axis([0 400 -pi pi]);
     end
     
-    diffv = norm([state.platforms{1}.getEX(18:19)-des(j,1:2)';-state.platforms{1}.getEX(20)-des(j,3)]);
-    diffa = abs(state.platforms{1}.getEX(6)-des(j,4));
+    diffv = norm([state.platforms{1}.getEX(18:19)-des(1:2,j);-state.platforms{1}.getEX(20)-des(3,j)]);
+    diffa = abs(state.platforms{1}.getEX(6)-des(4,j));
     if(~(diffv<tolv)&&(diffa<tola))
         e = e | 1;
     end
@@ -259,7 +255,7 @@ for j = 1:size(des,1)
 end
 
 jj = j;
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(jj+j);
         VV=[];
@@ -267,7 +263,7 @@ for j = 1:size(des,1)
     end    
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getX(),des(j,1:3)',des(j,4));
+        U=pid.computeU(state.platforms{1}.getX(),des(1:3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -282,36 +278,36 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(VV(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('vx [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,2)
         plot(VV(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('vy [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,3)
         plot(VV(3,:));
         hold on;
-        plot(ones(1,N)*des(j,3),'r');
+        plot(ones(1,N)*des(3,j),'r');
         ylabel('vz [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         grid on;
         axis([0 400 -pi pi]);
     end
     
     vv=dcm(state.platforms{1}.getX())'*state.platforms{1}.getX(7:9);
-    diffv = norm(vv(1:3)-des(j,1:3)');
-    diffa = abs(state.platforms{1}.getX(6)-des(j,4));
+    diffv = norm(vv(1:3)-des(1:3,j));
+    diffa = abs(state.platforms{1}.getX(6)-des(4,j));
     if(~(diffv<tolv)&&(diffa<tola))
         e = e | 1;
     end
@@ -348,16 +344,14 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 state = qrsim.init('TaskNoWind');
 
-des=[  -2,   0,  0, 0;
-    2,   0,  0, pi/4;
-    2,   0,  0, 0;
-    -2,   0,  0, pi/2;
-    0,   2,  10, 0;
-    0,  -2, -10, -pi/3];
-
+des = [ -2,    2,   2,   -2,   0,     0;
+         0,    0,   0,    0,   2,    -2;
+         0,    0,   0,    0,  10,   -10;
+         0, pi/4,   0, pi/2,   0, -pi/3]; 
+     
 pid = VelocityHeightPID(state.DT);
 
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(j);
         VV=[];
@@ -366,7 +360,7 @@ for j = 1:size(des,1)
     end
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getEX(),des(j,1:2)',des(j,3),des(j,4));
+        U=pid.computeU(state.platforms{1}.getEX(),des(1:2,j),des(3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -381,36 +375,36 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(VV(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('vx [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,2)
         plot(VV(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('vy [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,3)
         plot(Z);
         hold on;
-        plot(ones(1,N)*des(j,3),'r');
+        plot(ones(1,N)*des(3,j),'r');
         ylabel('z [m]');
         grid on;
         axis([0 400 -12 12]);
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         grid on;
         axis([0 400 -pi pi]);
     end
     
-    diffv = norm(state.platforms{1}.getEX(18:19)-des(j,1:2)');
-    diffh = abs(-state.platforms{1}.getEX(17)-des(j,3));
-    diffa = abs(state.platforms{1}.getEX(6)-des(j,4));
+    diffv = norm(state.platforms{1}.getEX(18:19)-des(1:2,j));
+    diffh = abs(-state.platforms{1}.getEX(17)-des(3,j));
+    diffa = abs(state.platforms{1}.getEX(6)-des(4,j));
     if(~(diffv<tolv)&&(diffh<tolh)&&(diffa<tola))
         e = e | 1;
     end
@@ -418,7 +412,7 @@ for j = 1:size(des,1)
 end
 
 jj = j;
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(jj+j);
         VV=[];
@@ -427,7 +421,7 @@ for j = 1:size(des,1)
     end
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getX(),des(j,1:2)',des(j,3),des(j,4));
+        U=pid.computeU(state.platforms{1}.getX(),des(1:2,j),des(3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -444,37 +438,37 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(VV(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('vx [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,2)
         plot(VV(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('vy [m/s]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,3)
         plot(Z);
         hold on;
-        plot(ones(1,N)*des(j,3),'r');        
+        plot(ones(1,N)*des(3,j),'r');        
         ylabel('z [m]');
         axis([0 400 -12 12]);
         grid on;
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         axis([0 400 -pi pi]);
         grid on;
     end
     
     vv=dcm(state.platforms{1}.getX())'*state.platforms{1}.getX(7:9);
-    diffv = norm(vv(1:2)-des(j,1:2)');
-    diffh = abs(state.platforms{1}.getX(3)-des(j,3));
-    diffa = abs(state.platforms{1}.getX(6)-des(j,4));
+    diffv = norm(vv(1:2)-des(1:2,j));
+    diffh = abs(state.platforms{1}.getX(3)-des(3,j));
+    diffa = abs(state.platforms{1}.getX(6)-des(4,j));
     if(~(diffv<tolv)&&(diffh<tolh)&&(diffa<tola))
         e = e | 1;
     end
@@ -509,15 +503,15 @@ qrsim = QRSim();
 
 % load task parameters and do housekeeping
 state = qrsim.init('TaskNoWind');
-
-des=[  0,   0,  0, 0;
-       0,   0,  0, pi/4;
-       0,   0,  10, 0;
-       0,   0, -10, -pi/3];
+   
+des = [  0,    0,   0,     0;
+         0,    0,   0,     0;
+         0,    0,  10,   -10;
+         0, pi/4,   0, -pi/3];    
 
 pid = VelocityHeightPID(state.DT);
 
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(j);
         PT=[];
@@ -526,7 +520,7 @@ for j = 1:size(des,1)
     end
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getEX(),des(j,1:2)',des(j,3),des(j,4));
+        U=pid.computeU(state.platforms{1}.getEX(),des(1:2,j),des(3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -541,36 +535,36 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(PT(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('phi [rad]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,2)
         plot(PT(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('theta [rad]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,3)
         plot(Z);
         hold on;
-        plot(ones(1,N)*des(j,3),'r');
+        plot(ones(1,N)*des(3,j),'r');
         ylabel('z [m]');
         grid on;
         axis([0 400 -12 12]);
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         grid on;
         axis([0 400 -pi pi]);
     end
     
-    diffpt = norm(state.platforms{1}.getEX(4:5)-des(j,1:2)');
-    diffh = abs(-state.platforms{1}.getEX(17)-des(j,3));
-    diffa = abs(state.platforms{1}.getEX(6)-des(j,4));
+    diffpt = norm(state.platforms{1}.getEX(4:5)-des(1:2,j));
+    diffh = abs(-state.platforms{1}.getEX(17)-des(3,j));
+    diffa = abs(state.platforms{1}.getEX(6)-des(4,j));
     if(~(diffpt<tolpt)&&(diffh<tolh)&&(diffa<tola))
         e = e | 1;
     end
@@ -578,7 +572,7 @@ for j = 1:size(des,1)
 end
 
 jj = j;
-for j = 1:size(des,1)
+for j = 1:size(des,2)
     if(plots)
         figure(jj+j);
         PT=[];
@@ -587,7 +581,7 @@ for j = 1:size(des,1)
     end
     for i=1:N,
         % compute controls
-        U=pid.computeU(state.platforms{1}.getX(),des(j,1:2)',des(j,3),des(j,4));
+        U=pid.computeU(state.platforms{1}.getX(),des(1:2,j),des(3,j),des(4,j));
         
         % step simulator
         qrsim.step(U);
@@ -603,36 +597,36 @@ for j = 1:size(des,1)
         subplot(4,1,1);
         plot(PT(1,:));
         hold on;
-        plot(ones(1,N)*des(j,1),'r');
+        plot(ones(1,N)*des(1,j),'r');
         ylabel('phi [rad]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,2)
         plot(PT(2,:));
         hold on;
-        plot(ones(1,N)*des(j,2),'r');
+        plot(ones(1,N)*des(2,j),'r');
         ylabel('theta [rad]');
         grid on;
         axis([0 400 -3 3]);
         subplot(4,1,3)
         plot(Z);
         hold on;
-        plot(ones(1,N)*des(j,3),'r');        
+        plot(ones(1,N)*des(3,j),'r');        
         ylabel('z [m]');
         axis([0 400 -12 12]);
         grid on;
         subplot(4,1,4)
         plot(A);
         hold on;
-        plot(ones(1,N)*des(j,4),'r');
+        plot(ones(1,N)*des(4,j),'r');
         ylabel('heading [rad]');
         axis([0 400 -pi pi]);
         grid on;
     end
     
-    diffpt = norm(state.platforms{1}.getX(4:5)-des(j,1:2)');
-    diffh = abs(state.platforms{1}.getX(3)-des(j,3));
-    diffa = abs(state.platforms{1}.getX(6)-des(j,4));
+    diffpt = norm(state.platforms{1}.getX(4:5)-des(1:2,j));
+    diffh = abs(state.platforms{1}.getX(3)-des(3,j));
+    diffa = abs(state.platforms{1}.getX(6)-des(4,j));
     if(~(diffpt<tolpt)&&(diffh<tolh)&&(diffa<tola))
         e = e | 1;
     end

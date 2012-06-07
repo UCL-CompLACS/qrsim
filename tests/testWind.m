@@ -165,18 +165,15 @@ windstate.turbwindfts=zeros(N,3);
 
 fs = 1/state.DT;
 
-wps=[   0,   0,   -5, 0;
-    0,   0,  -35, 0;
-    35,   0,  -30, 0;
-    -35,   0,  -30, 0;
-    0,  35,   -5, 0;
-    0, -35,   -5, 0];
+wps = [ 0,   0,  35, -35,  0,   0;
+        0,   0,   0,   0, 35, -35;
+       -5, -35, -30, -30, -5,  -5];
 
 j =1;
 for i=1:N,
     %tloop=tic;
     % compute controls
-    U=pid.computeU(state.platforms{1}.getX(),wps(j,:));
+    U=pid.computeU(state.platforms{1}.getX(),wps(:,j),0);
     
     % step simulator
     qrsim.step(U);
@@ -185,12 +182,12 @@ for i=1:N,
     %wait = max(0,state.DT-toc(tloop));
     %pause(wait);
     
-    d=norm(state.platforms{1}.getX(1:3)-wps(j,1:3)');
+    d=norm(state.platforms{1}.getX(1:3)-wps(:,j));
     
     if(d<1.5)
         j=j+1;
         if(j>6), j=1; end
-        %disp(['switching to:',num2str(wps(j,1:3))]);
+        %disp(['switching to:',num2str(wps(:,j))]);
     end
 end
 
