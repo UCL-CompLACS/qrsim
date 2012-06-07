@@ -434,14 +434,14 @@ The current version of the TCP interface only supports Linux\footnote{Currently 
 \subsubsection{Dependencies} 
 The C++ client uses Google protocol buffers\footnote{https://developers.google.com/protocol-buffers/} for data serialization and the build process uses CMake\footnote{http://www.cmake.org/}, so both of these tools needs to be available in your Linux machine.
 
-On Ubuntu 12.04 these can be installed as follows:
+On Ubuntu 12.04 these can be installed as follows\footnote{On a different distro the protocol buffer library might have a different name.}:
 \begin{verbatim}
 $ sudo apt-get install cmake
 $ sudo apt-get install libprotoc-dev libprotobuf7 libprotobuf-lite7 libprotobuf-java
 \end{verbatim}
 
 \subsubsection{Compilation} \label{comp}
-To compile the server and client code cd into \texttt{qrsim/tcp/build} and run:
+To compile the server and client code cd into \texttt{qrsim/tcp/build}\footnote{If the directory \texttt{build} does not exist, create it.} and run:
  \begin{verbatim}
 $ cmake ..
 $ make

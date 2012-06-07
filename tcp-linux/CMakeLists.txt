@@ -15,8 +15,10 @@ set(PACKAGE_BUGREPORT 	"r.denardi@cs.ucl.ac.uk")
 # check for math library
 FIND_PATH(CMATH_INCLUDEDIR math.h)
 FIND_LIBRARY(CMATH_LIBRARYDIR NAMES m) 
+FIND_PACKAGE(Threads)
 
-INCLUDE(FindProtocolBuffers.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+FIND_PACKAGE(ProtocolBuffers)
 FIND_PACKAGE(Java)
 INCLUDE(UseJava)
 
@@ -31,7 +33,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${BIN} CACHE PATH "Output directory for the executabl
 # define header and library search paths
 include_directories (
 	${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/proto_gen
+        ${CMAKE_SOURCE_DIR}/proto_gen
 	${PROTOBUF_INCLUDE_DIR} 
 )
 
@@ -42,8 +44,8 @@ WRAP_PROTO(PROTO_GENERATED ${PROTO_FILES})
 
 # build the library
 add_library(qrsimtcpclient SHARED
-    ${PROTO_GENERATED}			
-	src/QRSimTCPClient.cpp
+    	${PROTO_GENERATED}			
+    	src/QRSimTCPClient.cpp
 )
 
 # interface test binary
@@ -53,6 +55,7 @@ add_executable(testclient
 
 target_link_libraries(testclient
 	qrsimtcpclient
+	${CMAKE_THREAD_LIBS_INIT}
 	${PROTOBUF_LIBRARY} 
 )
 
@@ -63,24 +66,27 @@ add_executable(exampleclient
 
 target_link_libraries(exampleclient
 	qrsimtcpclient
+	${CMAKE_THREAD_LIBS_INIT}
 	${PROTOBUF_LIBRARY} 
 )
 
-find_jar(PROTO_JAVA 
-         protobuf-java 
-)
-
 if(JAVA_FOUND)
+	find_jar(PROTO_JAVA 
+	         protobuf-java 
+	)
+
 	set(CMAKE_JAVA_INCLUDE_PATH            
     	${PROTO_JAVA}
 	)
-
+	
 	add_jar(qrsimtcpserver 
-    	java/qrsimsrvcli/QrsSrvCliMsg.java
-    	java/qrsimsrvcli/QRSimTCPServer.java
+	java/qrsimsrvcli/QrsSrvCliMsg.java
+	java/qrsimsrvcli/QRSimTCPServer.java
 	)  
 	
-	install_jar(qrsimtcpserver /usr/share/java)  	
+	install_jar(qrsimtcpserver /usr/share/java) 
+else(JAVA_FOUND)
+        MEASSAGE(WARNING "cmake is not able to find Java in your system, only the C++ tests will be compiled") 
 endif(JAVA_FOUND)
 
 # make an uninstall target 
