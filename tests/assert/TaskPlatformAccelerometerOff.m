@@ -5,6 +5,10 @@ classdef TaskPlatformAccelerometerOff<Task
                 
         function obj = TaskPlatformAccelerometerOff(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(~)

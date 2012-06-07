@@ -5,6 +5,10 @@ classdef TaskNoPlatformDynNoise<Task
                 
         function obj = TaskNoPlatformDynNoise(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(obj)

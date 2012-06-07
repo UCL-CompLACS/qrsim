@@ -5,6 +5,10 @@ classdef TaskNoSeed<Task
                 
         function obj = TaskNoSeed(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(obj)

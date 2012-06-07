@@ -5,6 +5,10 @@ classdef TaskPlatformGyroscopeOff<Task
                 
         function obj = TaskPlatformGyroscopeOff(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(~)

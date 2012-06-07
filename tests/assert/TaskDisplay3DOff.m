@@ -6,6 +6,10 @@ classdef TaskDisplay3DOff<Task
         function obj = TaskDisplay3DOff(state)
             obj = obj@Task(state);
         end
+
+        function updateReward(obj,U)
+            % reward not defined
+        end
         
         function taskparams=init(obj)
             % loads and returns all the parameters for the various simulator objects

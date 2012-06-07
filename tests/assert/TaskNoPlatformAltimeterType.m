@@ -5,6 +5,10 @@ classdef TaskNoPlatformAltimeterType<Task
                 
         function obj = TaskNoPlatformAltimeterType(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(~)

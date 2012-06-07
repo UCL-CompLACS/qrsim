@@ -5,6 +5,10 @@ classdef TaskNoPlatformGPSReceiverType<Task
                 
         function obj = TaskNoPlatformGPSReceiverType(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(obj)

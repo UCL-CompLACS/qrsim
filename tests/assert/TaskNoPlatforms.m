@@ -5,6 +5,10 @@ classdef TaskNoPlatforms<Task
                 
         function obj = TaskNoPlatforms(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(obj)

@@ -5,6 +5,10 @@ classdef TaskNoWindW6<Task
                 
         function obj = TaskNoWindW6(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(obj)

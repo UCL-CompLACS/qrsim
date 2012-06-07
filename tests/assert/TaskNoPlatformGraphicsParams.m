@@ -5,6 +5,10 @@ classdef TaskNoPlatformGraphicsParams<Task
                 
         function obj = TaskNoPlatformGraphicsParams(state)
             obj = obj@Task(state);
+        end
+
+        function updateReward(obj,U)
+            % reward not defined
         end  
         
         function taskparams=init(~)
