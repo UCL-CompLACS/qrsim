@@ -20,7 +20,6 @@ classdef TaskGotoWP<Task
         
     properties (Access=private)
         wp;
-        currentReward;
     end    
         
     methods (Sealed,Access=public)
