@@ -86,7 +86,7 @@ if(JAVA_FOUND)
 	
 	install_jar(qrsimtcpserver /usr/share/java) 
 else(JAVA_FOUND)
-        MEASSAGE(WARNING "cmake is not able to find Java in your system, only the C++ tests will be compiled") 
+        MESSAGE(WARNING "cmake is not able to find Java in your system, only the C++ tests will be compiled") 
 endif(JAVA_FOUND)
 
 # make an uninstall target 
