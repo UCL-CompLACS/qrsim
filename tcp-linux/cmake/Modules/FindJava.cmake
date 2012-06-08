@@ -159,7 +159,7 @@ FIND_PROGRAM(Java_JAVADOC_EXECUTABLE
   PATHS ${_JAVA_PATHS}
 )
 
-include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+include(${CMAKE_MODULE_PATH}/FindPackageHandleStandardArgs.cmake)
 if(Java_FIND_COMPONENTS)
   foreach(component ${Java_FIND_COMPONENTS})
     # User just want to execute some Java byte-compiled
