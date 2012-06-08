@@ -72,17 +72,18 @@ target_link_libraries(exampleclient
 
 if(JAVA_FOUND)
 	find_jar(PROTO_JAVA 
+		 NAMES
 		 protobuf
 	         protobuf-java 
 	)
 
 	set(CMAKE_JAVA_INCLUDE_PATH            
-    	${PROTO_JAVA}
+    		${PROTO_JAVA}
 	)
 	
 	add_jar(qrsimtcpserver 
-	java/qrsimsrvcli/QrsSrvCliMsg.java
-	java/qrsimsrvcli/QRSimTCPServer.java
+		java/qrsimsrvcli/QrsSrvCliMsg.java
+		java/qrsimsrvcli/QRSimTCPServer.java
 	)  
 	
 	install_jar(qrsimtcpserver /usr/share/java) 
