@@ -2,7 +2,7 @@
 PROJECT(QRSIMTCP)
  
 # minimum cmake version required
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 # keeps Eclipse happy about include files
 SET(CMAKE_VERBOSE_MAKEFILE ON)
