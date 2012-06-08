@@ -1,3 +1,5 @@
+@THE_FOLLOWING_IS_TURNED_INTO_ACTUAL_MATLAB_CODE_BY_CMAKE@
+
 function QRSimTCPServer(port)
 % harness to use qrsim over TCP
 
@@ -9,8 +11,8 @@ addpath('../../sim');
 addpath('../../controllers');
 
 % tell matlab where the class file are..
-javaaddpath('/usr/share/java/qrsimtcpserver.jar');
-javaaddpath('/usr/share/java/protobuf-java.jar');
+javaaddpath('@PROTO_JAVA_DIR@/qrsimtcpserver.jar');
+javaaddpath('@PROTO_JAVA@');
 
 s = qrsimsrvcli.QRSimTCPServer(port);
 
