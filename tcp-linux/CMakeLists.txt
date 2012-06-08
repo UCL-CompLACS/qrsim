@@ -81,8 +81,7 @@ if(JAVA_FOUND)
     		${PROTO_JAVA}
 	)
 
-        STRING(FIND ${PROTO_JAVA} "/" POS REVERSE)
-        STRING(SUBSTRING ${PROTO_JAVA} 0 ${POS} PROTO_JAVA_DIR) 
+	GET_FILENAME_COMPONENT(PROTO_JAVA_DIR ${PROTO_JAVA} PATH)
 	MESSAGE(STATUS "jar files will be installed in "${PROTO_JAVA_DIR})
 
 	add_jar(qrsimtcpserver 
