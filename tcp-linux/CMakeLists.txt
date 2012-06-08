@@ -72,6 +72,7 @@ target_link_libraries(exampleclient
 
 if(JAVA_FOUND)
 	find_jar(PROTO_JAVA 
+		 protobuf
 	         protobuf-java 
 	)
 
