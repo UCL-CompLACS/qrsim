@@ -18,7 +18,7 @@ N = 3000;
 
 wp = state.platforms{1}.getX(1:3);
 
-% creat PID controller object
+% creat PID controller omainbject
 pid = WaypointPID(state.DT);
 
 tstart = tic;
@@ -26,7 +26,8 @@ tstart = tic;
 for i=1:N,
     tloop=tic;
     % compute controls
-    U = pid.computeU(state.platforms{1}.getEX(),wp,0);
+    %U = pid.computeU(state.platforms{1}.getEX(),wp,0);
+    U = [0;0.02;0.595;0;12];
     % step simulator
     qrsim.step(U);
     

@@ -39,7 +39,7 @@ for i=1:N,
     pause(wait);
 end
 % get reward
-qrsim.reward();
+% qrsim.reward();
     
 elapsed = toc(tstart);
 

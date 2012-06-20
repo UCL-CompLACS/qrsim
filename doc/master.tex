@@ -262,7 +262,7 @@ Lastly we see the \texttt{taskparams.display3d} parameters which allow to specif
 
 As already explained, a task must also define a the \texttt{updateReward(U)} and \texttt{reward()} functions. For the TaskKeepSpot task a straightforward update reward can be defined as a quadratic cost of the control inputs (see listing \ref{lst:updatereward}) in order to penalize large controls. An appropriate total reward can be defined adding the current reward to a final reward computed as the square of the distance to the quadrotor initial position (see listing \ref{lst:reward}). Such a function gives higher rewards to a policy that at the end of the task gets the quadrotor close to the starting point.
 
-\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot updateReward(U) method,language=Matlab,frame=lines,label=lst:updatereward,numbers=left,basicstyle=\small]
+\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpotWithReward updateReward(U) method,language=Matlab,frame=lines,label=lst:updatereward,numbers=left,basicstyle=\small]
 function updateReward(obj,U)         
   % updates the reward based on control costs
   dt = obj.simState.DT;
@@ -285,7 +285,7 @@ function r=reward(obj)
   end                
 end
 \end{lstlisting}
-The complete listing for this task can be found in the file \texttt{TaskKeepSpot.m}.  
+The complete listing for this task can be found in the file \texttt{TaskKeepSpotWithReward.m}.  
 
 \section{Example Main}
 To clarify the use of the simulator through the \snamettt object, we shall present a simple example of use\footnote{Source code in the directory \texttt{example}}; namely we will use a manually designed PID controller to achieve the behavior required by the \texttt{TaskKeepSpot} task\footnote{We want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very conservative controller and its performance are suboptimal. This said it might still be useful as a baseline for comparisons.}.
@@ -364,8 +364,8 @@ The directory \texttt{/controllers} contain baseline implementations of simple c
 
 Currently the following controllers are available:
 \begin{itemize}
-\item \texttt{WaypointPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (NED) velocity in global frame while maintaining a specified heading.
-\item \texttt{VelocityPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (NED) velocity in global frame while maintaining a specified heading.
+\item \texttt{WaypointPID} Controller that computes the pitch, roll and throttle input necessary to achieve a desired 3D (NED) position in global frame while maintaining a specified heading.
+\item \texttt{VelocityPID} Controller that computes the pitch, roll and throttle input necessary to maintain a desired velocity in global frame while keeping a specified heading.
 \item \texttt{VelocityHeightPID} Controller that computes the pitch and roll input necessary to achieve a desired 2D (NE) velocity in global frame while maintaining a specified altitude and heading.
 \item \texttt{AnglesHeightPID} Simple controller that computes the throttle and yaw imput necessary to maintain a specified height and heading. The roll and pitch angle control are left to the user.
 \end{itemize}

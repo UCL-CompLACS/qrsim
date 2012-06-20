@@ -1,4 +1,4 @@
-classdef TaskKeepSpot<Task
+classdef TaskKeepSpotWithReward<Task
     % Simple task in which a qudrotor has to keep its starting position despite the wind.
     % Single platform task which requires to maintain the quadrotor hovering at the 
     % position it has when the task starts; the solution requires non constant control 
@@ -25,7 +25,7 @@ classdef TaskKeepSpot<Task
         
     methods (Sealed,Access=public)
         
-        function obj = TaskKeepSpot(state)
+        function obj = TaskKeepSpotWithReward(state)
            obj = obj@Task(state); 
         end
         
@@ -106,13 +106,35 @@ classdef TaskKeepSpot<Task
         end
                 
         function updateReward(obj,U)
-           % reward update not defined
-           obj.currentReward = 0;
+           % updates reward
+           % in this simple example we only have a quadratic control
+           % cost
+           
+           for i=1:size(U,2)
+               u = (U(1:4,i)-obj.U_NEUTRAL);
+               obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.simState.DT;
+           end
         end
         
         function r=reward(obj) 
-            % reward not defined
-            r = 0;
+            % returns the total reward for this task
+            %
+            % Example:
+            %   r = obj.reward();
+            %          r - the reward
+            %
+            
+            if(obj.simState.platforms{1}.isValid())
+                e = obj.simState.platforms{1}.getX(1:12);
+                e = e(1:3)-obj.initialX(1:3);
+                % control cost so far plus end cost
+                r = obj.currentReward - e' * e; 
+            else
+                % returning a large penalty in case the state is not valid
+                % i.e. the helicopter is out of the area, there was a
+                % collision or the helicopter has crashed 
+                r = - obj.PENALTY;
+            end                
         end
     end
     
