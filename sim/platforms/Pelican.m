@@ -38,6 +38,7 @@ classdef Pelican<Steppable & Platform
     %    isValid()          - true if the state is valid
     %    getX()             - returns the state (noiseless)
     %    getEX()            - returns the estimated state (noisy)
+    %    getEXasX()         - returns the estimated state (noisy) formatted as the noiseless state    
     %
     properties (Constant)
         CONTROL_LIMITS = [-0.9,0.9; -0.9,0.9; 0,1; -4.5,4.5; 9,12]; %limits of the control inputs
