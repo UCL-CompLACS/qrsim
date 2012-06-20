@@ -28,3 +28,6 @@
 /doc/exercises.dvi
 /doc/exercises.tex~
 /doc/exercises.tex.backup
+/doc/exercises.aux
+/doc/exercises.log
+/doc/exercises.out
