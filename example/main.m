@@ -26,8 +26,8 @@ tstart = tic;
 for i=1:N,
     tloop=tic;
     % compute controls
-    %U = pid.computeU(state.platforms{1}.getEX(),wp,0);
-    U = [0;0.02;0.595;0;12];
+    U = pid.computeU(state.platforms{1}.getEX(),wp,0);
+    %U = [0;0.02;0.595;0;12];
     % step simulator
     qrsim.step(U);
     
