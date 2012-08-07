@@ -423,7 +423,7 @@ The input is expressed in terms of angles and throttle command so it is directly
 \end{itemize}
 
 \subsection{Server}
-The server code is constituted by a Matlab function (\texttt{qrsim/tcp/matlab/QRSimTCPServer.m}) that takes care of setting up and executing command in the quadrotor simulator and a Java class (\texttt{qrsim/tcp/java/qrsimsrvcli/QRSimTCPServer.java}) which manages the TCP connection and the data serialization.
+The server code is constituted by a Matlab function (\texttt{qrsim/tcp-linux/matlab/QRSimTCPServer.m}) that takes care of setting up and executing command in the quadrotor simulator and a Java class (\texttt{qrsim/tcp-linux/java/qrsimsrvcli/QRSimTCPServer.java}) which manages the TCP connection and the data serialization.
 
 In general a user of the client library does not need to modify the server code, but this needs to be compiled\footnote{Google protocol buffer serialization tightly depends on the version of the protocol buffer library so shipping a precompiled server library is not a viable option.} and installed (see section \ref{comp} and \ref{inst}) on the machine that will run the quadrotor simulation.
 
@@ -441,7 +441,7 @@ $ sudo apt-get install libprotoc-dev libprotobuf7 libprotobuf-lite7 libprotobuf-
 \end{verbatim}
 
 \subsubsection{Compilation} \label{comp}
-To compile the server and client code cd into \texttt{qrsim/tcp/build}\footnote{If the directory \texttt{build} does not exist, create it.} and run:
+To compile the server and client code cd into \texttt{qrsim/tcp-linux/build}\footnote{If the directory \texttt{build} does not exist, create it.} and run:
  \begin{verbatim}
 $ cmake ..
 $ make
@@ -466,10 +466,10 @@ As you commonly do with other shared library installed in your system:
 \item include the file \texttt{QRSimTCPClient.h} in you source code to have access to the library methods
 \item link against libqrsim \texttt{libqrsimtcpclient.so}.
 \end{itemize}
-The files \texttt{qrsim/tcp/src/exampleclient.cpp} and \texttt{qrsim/tcp/src/testclient.cpp} provide two small examples of using the client library.
+The files \texttt{qrsim/tcp-linux/src/exampleclient.cpp} and \texttt{qrsim/tcp-linux/src/testclient.cpp} provide two small examples of using the client library.
 
 \subsection{Running the Server}\label{run}
-The server code runs in Matlab; from the Matlab console cd into the directory \texttt{qrsim/tcp/matlab} and run:
+The server code runs in Matlab; from the Matlab console cd into the directory \texttt{qrsim/tcp-linux/matlab} and run:
 \begin{verbatim}
 >> QRSimTCPServer(10000)
 \end{verbatim}
@@ -482,7 +482,7 @@ indicating that the server is running correctly and is awaiting for connecting f
 
 \subsection{Testing the Interface}
 
-We provide a simple binary to test the TCP interface, after the compilation this should be present in the directory \texttt{qrsim/tcp/bin}.
+We provide a simple binary to test the TCP interface, after the compilation this should be present in the directory \texttt{qrsim/tcp-linux/bin}.
 Once the server is up and running you can run the client as follows:
 \begin{verbatim}
 $ testclient 127.0.0.1 10000
