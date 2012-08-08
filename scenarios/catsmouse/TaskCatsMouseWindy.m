@@ -1,4 +1,4 @@
-classdef TaskKeepSpotWithReward<Task
+classdef TaskCatsMouseWindy<Task
     % Simple task in which a qudrotor has to keep its starting position despite the wind.
     % Single platform task which requires to maintain the quadrotor hovering at the 
     % position it has when the task starts; the solution requires non constant control 
@@ -14,19 +14,19 @@ classdef TaskKeepSpotWithReward<Task
     % - the step dt MUST be always specified eve if on=0
     %
     properties (Constant)
-        PENALTY = 1000;
+        PENALTY = 1000;  
         U_NEUTRAL = [0;0;0.59;0];
         R = diag([2/pi, 2/pi, 0.5, 1]); %very rough scaling factors
     end    
-        
+    
     properties (Access=private)
-        initialX;        
-    end    
-        
+        initialX;
+    end     
+    
     methods (Sealed,Access=public)
-        
-        function obj = TaskKeepSpotWithReward(state)
-           obj = obj@Task(state); 
+                        
+        function obj = TaskCatsMouseWindy(state)
+           obj = obj@Task(state);             
         end
         
         function taskparams=init(obj) %#ok<MANU>
@@ -51,7 +51,7 @@ classdef TaskKeepSpotWithReward<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-10 20 -10 10 -20 0];
+            taskparams.environment.area.limits = [-120 120 -10 10 -40 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -64,7 +64,7 @@ classdef TaskKeepSpotWithReward<Task
             taskparams.environment.area.originutmcoords.zone = zone;
             taskparams.environment.area.graphics.type = 'AreaGraphics';
             taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
-            
+               
             % GPS
             % The space segment of the gps system
             taskparams.environment.gpsspacesegment.on = 1; % if off the gps returns the noiseless position
@@ -99,14 +99,11 @@ classdef TaskKeepSpotWithReward<Task
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            taskparams.platforms(1).configfile = 'pelican_config';
-            taskparams.platforms(1).X = [0;0;-10;0;0;0];
-            
-            obj.initialX = taskparams.platforms(1).X;
-        end
-                                                
-        function obj = step(obj,~)
-            % no task specific update is needed             
+            for i=1:10,
+                taskparams.platforms(i).configfile = 'pelican_config';
+                taskparams.platforms(i).X = [-100+20*i;0;-10;0;0;0];
+                obj.initialX(i,:) = taskparams.platforms(i).X;
+            end
         end
         
         function updateReward(obj,U)
@@ -128,21 +125,32 @@ classdef TaskKeepSpotWithReward<Task
             %          r - the reward
             %
             
-            if(obj.simState.platforms{1}.isValid())
-                e = obj.simState.platforms{1}.getX(1:12);
-                e = e(1:3)-obj.initialX(1:3);
-                % control cost so far plus end cost
-                r = obj.currentReward - e' * e; 
+            valid = 1;
+            for i=1:length(obj.simState.platforms)
+               valid = valid &&  obj.simState.platforms{i}.isValid();
+            end
+            
+            if(valid)
+                r = 0;
+                for i=1:length(obj.simState.platforms)
+                    e = obj.simState.platforms{i}.getX(1:3);
+                    e = e-obj.initialX(i,1:3);
+                    % control cost so far plus end cost
+                    r = r - e' * e; 
+                end
+                r = obj.currentReward + r;
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. the helicopter is out of the area, there was a
                 % collision or the helicopter has crashed 
                 r = - obj.PENALTY;
             end                
-        end
+        end 
     end
     
 end
+
+
 
 % [1] J. Rankin, "An error model for sensor simulation GPS and differential GPS," IEEE
 %     Position Location and Navigation Symposium, 1994, pp.260-266.

@@ -100,14 +100,18 @@ classdef TaskComplacs<Task
             taskparams.platforms(1).configfile = 'pelican_config_complacs';
             taskparams.platforms(1).X = [6;-8;-9;0;0;0];
             obj.initialX = taskparams.platforms(1).X;
+        end      
+                                                
+        function obj = step(obj,~)
+            % no task specific update is needed             
         end
         
-        function r=updateReward(obj,U) 
+        function r=updateReward(~,~) 
             % no istantaneous reward defined
             r = 0;    
         end
         
-        function r=reward(obj) 
+        function r=reward(~) 
             % no final reward defined
             r = 0;    
         end

@@ -22,6 +22,10 @@ classdef Task<handle
         % initializes all the simulation parameter needed to define a task,
         % its content depends on the task neeeds
         
+        step(obj,U);
+        % called by qrsim during a step in order to do any upates
+        % that the task might need
+        
         updateReward(obj,U);
         % called by qrsim after a step in order to compute any
         % state/control const; its content depends on the task neeeds

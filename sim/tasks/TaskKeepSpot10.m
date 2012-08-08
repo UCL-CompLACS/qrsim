@@ -104,6 +104,10 @@ classdef TaskKeepSpot10<Task
                 taskparams.platforms(i).X = [-100+20*i;0;-10;0;0;0];
                 obj.initialX(i,:) = taskparams.platforms(i).X;
             end
+        end     
+                                                
+        function obj = step(obj,~)
+            % no task specific update is needed             
         end
         
         function updateReward(obj,U)

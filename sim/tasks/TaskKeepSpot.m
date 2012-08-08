@@ -103,14 +103,18 @@ classdef TaskKeepSpot<Task
             taskparams.platforms(1).X = [0;0;-10;0;0;0];
             
             obj.initialX = taskparams.platforms(1).X;
+        end      
+                                                
+        function obj = step(obj,~)
+            % no task specific update is needed             
         end
-                
-        function updateReward(obj,U)
+        
+        function updateReward(obj,~)
            % reward update not defined
            obj.currentReward = 0;
         end
         
-        function r=reward(obj) 
+        function r=reward(~) 
             % reward not defined
             r = 0;
         end
