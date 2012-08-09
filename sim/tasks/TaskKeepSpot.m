@@ -17,11 +17,7 @@ classdef TaskKeepSpot<Task
         PENALTY = 1000;
         U_NEUTRAL = [0;0;0.59;0];
         R = diag([2/pi, 2/pi, 0.5, 1]); %very rough scaling factors
-    end    
-        
-    properties (Access=private)
-        initialX;        
-    end    
+    end      
         
     methods (Sealed,Access=public)
         
@@ -100,11 +96,13 @@ classdef TaskKeepSpot<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config';
-            %taskparams.platforms(1).X = [0;0;-10;0;0;0];
-            
-            %obj.initialX = taskparams.platforms(1).X;
+
         end 
         
+        function reset(obj)
+           obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
+        end
+
         function updateReward(obj,~)
            % reward update not defined
            obj.currentReward = 0;

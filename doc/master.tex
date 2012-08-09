@@ -86,15 +86,18 @@ The method \texttt{update()} propagates the object's state forward to the curren
 
 As we will see in section \ref{sec:qrobj}, the \texttt{update()} method is never called directly, instead the  \texttt{Steppable} class exposes the method \texttt{step()} which in turns only calls \texttt{update()} if a time equal to \texttt{dt} has passed since the last update\footnote{To simplify the implementation the time step \texttt{dt} of any object must be a multiple of the simulator time step (\texttt{DT}); in practice this is not a very restrictive assumption.}.
 
-\subsection{Task}
+\subsection{Task} \label{sec:task}
 
 By combining different types of environment objects and platforms \sname allows to define a variety of single and multiple helicopter scenarios as well as many different objectives for the platforms.
 
-The abstract class \texttt{Task} provides a way to derive task objects that specify both a scenario and an activity to be learned; the class defines two main methods \texttt{init()} and \texttt{reward()}:
+The abstract class \texttt{Task} provides a way to derive task objects that specify both a scenario and an activity to be learned; the class defines four required and one optional methods:
+
 \begin{itemize}
  \item \texttt{init()} allows the user to define the type of each of the environment objects (i.e. the class name) and of each platform and sensor. Along with the object type, a specification of all the class specific parameters is also needed.
  \item \texttt{updateReward(U)} allows for defining an instantaneous reward for the task which is integrated as the task progresses (e.g. this could be used to include a control or state cost). Thiss method is called by qrsim after a step; its content depends on how the task is defined.
  \item \texttt{reward()} allows for defining the total reward for the task (e.g. the sum of the integrated instantaneous reward plus a final reward). The design of a reward function is again very task specific but most often the user will rely on the \texttt{state} data structure in order to compute such a reward. 
+ \item \texttt{reset()}\footnote{Introduced in version 1.2.0.} for defines initial states of the platforms and any other task specific object.
+ \item \texttt{step(U)}\footnote{Introduced in version 1.2.0.} \textit{(optional)} allows for defining a method that handles inputs in a format specific to the task (i.e. not the standard U=[$u_{pt};u_{rl};u_{th};u_{ya}$]), or for triggering any other task specific updates. 
 \end{itemize}
 
 We will present how to create a task in section \ref{sec:createtask}.
@@ -244,9 +247,8 @@ function taskparams=init(obj)
  taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
             
  %%%%% platforms %%%%%
- % Configuration and initial state for each of the platforms
+ % Configuration for each of the platforms
  taskparams.platforms(1).configfile = 'pelican_config';
- taskparams.platforms(1).X = [0;0;-10;0;0;0];       
 end
 \end{lstlisting}
 returns a data structure that contains general fields like the simulator time step \texttt{taskparams.DT} and the seed of the pseudo-random number generator (\texttt{taskparams.seed}), fields for each of the environment objects (\texttt{taskparams.environment}), and for each of the platforms (\texttt{taskparams.platforms}). The fields depend on the number and type of objects, but by convention we name:
@@ -256,11 +258,21 @@ returns a data structure that contains general fields like the simulator time st
 \item \texttt{type}, the class name of the object.
 \end{itemize}
 
-The number of sensors and parameters present in a platform would make defining several identical platforms quite cumbersome. For this reason all the platform parameters are specified in a single configuration file (see \texttt{'pelican\_config'}); in this way the same file can be used for more than one platform. Nonetheless is still possible to define a different initial position and orientation for each platform using the parameter \texttt{taskparams.platforms(1).X} (see line 51).
+The number of sensors and parameters present in a platform would make defining several identical platforms quite cumbersome. For this reason all the platform parameters are specified in a single configuration file (see \texttt{'pelican\_config'}); in this way the same file can be used for more than one platform. 
 
 Lastly we see the \texttt{taskparams.display3d} parameters which allow to specify if the 3D visualization is active and the size of the window used for its rendering. 
 
-As already explained, a task must also define a the \texttt{updateReward(U)} and \texttt{reward()} functions. For the TaskKeepSpot task a straightforward update reward can be defined as a quadratic cost of the control inputs (see listing \ref{lst:updatereward}) in order to penalize large controls. An appropriate total reward can be defined adding the current reward to a final reward computed as the square of the distance to the quadrotor initial position (see listing \ref{lst:reward}). Such a function gives higher rewards to a policy that at the end of the task gets the quadrotor close to the starting point.
+The second of the mathods that is necessary to define in a task is the method \texttt{reset()}.
+\begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot reset() method,language=Matlab,frame=lines,label=lst:reset,numbers=left,basicstyle=\small]   
+function reset(obj)
+  % defines the platform initial state
+  obj.simState.platforms{1}.setX([0;0;-10;0;0;0]); 
+end
+\end{lstlisting}
+In such method\footnote{Prior to version 1.2.0 the syntax \texttt{taskparams.platforms(1).X} was used within the init method to set the platform initial state, such syntax is now meaningless.} the user specifies that starting state of each platform and also of any other task specific objects.
+This method is called after \texttt{init()} but also every time \texttt{qrsim} itself is reset; it is therefore possible for instance to have different randomly generated position for the platform at every reset of teh task. 
+
+As already explained, a task must also define the \texttt{updateReward(U)} and \texttt{reward()} functions. For the TaskKeepSpot task a straightforward update reward can be defined as a quadratic cost of the control inputs (see listing \ref{lst:updatereward}) in order to penalize large controls. An appropriate total reward can be defined adding the current reward to a final reward computed as the square of the distance to the quadrotor initial position (see listing \ref{lst:reward}). Such a function gives higher rewards to a policy that at the end of the task gets the quadrotor close to the starting point.
 
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpotWithReward updateReward(U) method,language=Matlab,frame=lines,label=lst:updatereward,numbers=left,basicstyle=\small]
 function updateReward(obj,U)         
@@ -285,6 +297,7 @@ function r=reward(obj)
   end                
 end
 \end{lstlisting}
+
 The complete listing for this task can be found in the file \texttt{TaskKeepSpotWithReward.m}.  
 
 \section{Example Main}

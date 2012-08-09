@@ -29,17 +29,19 @@ classdef Task<handle
         r = reward(obj);
         % returns a task reward given the current state, its content depends on the task
         % to be learned and on the learning algorithm used
+
+        reset(obj);
+        % called by qrsim during a reset in order to do any house keeping
+        % that the task might need
     end
     
-    methods (Access=protected)
+    methods (Access=public)
         function UU = step(~,~)
             % called by qrsim during a step in order to do any upates
             % that the task might need
             UU = [];
-        end
-    end
-
-    methods (Access=public)
+        end  
+      
         function obj = Task(state)
            obj.simState = state; 
            obj.currentReward = 0;

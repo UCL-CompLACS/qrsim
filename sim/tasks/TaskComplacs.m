@@ -16,10 +16,6 @@ classdef TaskComplacs<Task
     properties (Constant)
         PENALTY = 1000;
     end    
-
-    properties (Access=private)
-        initialX;
-    end
     
     methods (Sealed,Access=public)
                                 
@@ -99,7 +95,6 @@ classdef TaskComplacs<Task
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_complacs';
             taskparams.platforms(1).X = [6;-8;-9;0;0;0];
-            obj.initialX = taskparams.platforms(1).X;
         end 
         
         function r=updateReward(~,~) 

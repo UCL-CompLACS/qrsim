@@ -114,10 +114,14 @@ classdef QRSim<handle
             obj.simState.environment.wind.reset();
             obj.simState.environment.area.reset();
             
-            for i=1:length(obj.simState.platforms)
-                obj.simState.platforms{i}.setX(obj.par.platforms(i).X);
-            end
+            obj.task.reset();
             
+            if(isfield(obj.par.platforms(1),'X'))
+                for i=1:length(obj.simState.platforms)
+                    obj.simState.platforms{i}.setX(obj.par.platforms(i).X);
+                end
+            end
+
             obj.task.resetReward();            
         end
         
@@ -249,8 +253,9 @@ classdef QRSim<handle
                 assert(isfield(obj.par.platforms(i),'configfile'),'qrsim:noplatforms','the task must define a configfile for each platform');
                 p = loadPlatformConfig(obj.par.platforms(i).configfile, obj.par);
                 p.DT = obj.par.DT;
-                assert(isfield(obj.par.platforms(i),'X'),'qrsim:noplatformsx','the platform config file must define a state X for platform %d',i);
-                p.X = obj.par.platforms(i).X;
+
+                assert(~isfield(obj.par.platforms(i),'X'),'qrsim:platformsx','platforms(i).X is not used any longher to define the initial platform state, for that purpouse use the reset() method of your task');
+                
                 p.graphics.on = obj.par.display3d.on;
                 p.state = obj.simState;
                 assert(isfield(p,'aerodynamicturbulence')&&isfield(p.aerodynamicturbulence,'on'),'qrsim:noaerodynamicturbulence',...
