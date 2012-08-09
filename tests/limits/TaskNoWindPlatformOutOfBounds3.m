@@ -66,8 +66,11 @@ classdef TaskNoWindPlatformOutOfBounds3<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_no_turbulence';
-            taskparams.platforms(1).X = [0;0;100;0;0;0];
-            
+	end
+
+        function reset(obj) 
+	    % initial state
+	    obj.simState.platforms{1}.setX([0;0;100;0;0;0]);
         end
         
         function r=reward(~) 

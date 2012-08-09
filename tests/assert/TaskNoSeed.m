@@ -18,6 +18,10 @@ classdef TaskNoSeed<Task
                        
         end
         
+        function reset(obj) 
+            % initial state
+        end 
+
         function r=reward(obj) 
             % nothing this is just a test task
         end

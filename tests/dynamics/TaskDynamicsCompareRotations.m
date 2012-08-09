@@ -72,10 +72,14 @@ classdef TaskDynamicsCompareRotations<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_dynamics';
-            
-            taskparams.platforms(1).X = [0;0;-10;-0.021293;0.021991;1.92700;0;0;0;0.02419;-0.0089594;0.0031358];
+
         end
-        
+
+        function reset(obj) 
+	    % initial state
+	    obj.simState.platforms{1}.setX([0;0;-10;-0.021293;0.021991;1.92700;0;0;0;0.02419;-0.0089594;0.0031358]);
+        end
+
         function r=reward(~) 
             % nothing this is just a test task
         end

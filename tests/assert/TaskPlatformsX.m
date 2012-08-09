@@ -1,9 +1,9 @@
-classdef TaskNoPlatformsX<Task
+classdef TaskPlatformsX<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
                 
-        function obj = TaskNoPlatformsX(state)
+        function obj = TaskPlatformsX(state)
             obj = obj@Task(state);
         end
 
@@ -77,8 +77,12 @@ classdef TaskNoPlatformsX<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_everything_on';
+            taskparams.platforms(1).X = [0;0;0;0;0;0];
         end
-        
+
+        function reset(obj) 
+        end
+
         function r=reward(obj) 
             % nothing this is just a test task
         end

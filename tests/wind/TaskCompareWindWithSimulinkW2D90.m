@@ -97,8 +97,12 @@ classdef TaskCompareWindWithSimulinkW2D90<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config_compare_wind_with_simulink_w2_d90';
-            taskparams.platforms(1).X = [0;0;-10;0;0;0];
             
+        end
+        
+        function reset(obj) 
+	    % initial state
+	    obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
         end
         
         function r=reward(obj) 

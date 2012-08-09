@@ -116,8 +116,9 @@ Try out some of the following changes \textsf{in turn}, and look at the resultin
  \item change the values of \texttt{taskparams.environment.area.limits}, you will see the 3D area changing accordingly\footnote{If you change the area so that the starting position of the helicopter is outside the flying volume the simulation won't run!}.
  \item try to set \texttt{taskparams.environment.gpsspacesegment.on} to $0$, what happens? We will see later why this is the case.
  \item set \texttt{taskparams.environment.wind.on} to $1$, and run the simulation twice with different values of \texttt{taskparams.environment.wind.direction}. You should see a clear effect on the helicopter flight pattern.
- \item experiment with different initial values for the platform state \texttt{taskparams.platforms(1).X}. Note that you can also define the initial velocities by specifying an initial state of length 12.
 \end{itemize}
+
+Try now to experiment with different initial values for the platform state by modifying the line \texttt{obj.simState.platforms{1}.setX([6;-8;-9;0;0;0]);} in the function \texttt{reset()} of the task. Note that you can also define the initial velocities by specifying an initial state of length 12.
 
 Let's now continue by experimenting with the platform settings and therefore editing the file \texttt{pelican\_config\_tutorial.m}.
 Immediately one can see that the file uses the same naming convention that we have seen for the environment object parameters. 

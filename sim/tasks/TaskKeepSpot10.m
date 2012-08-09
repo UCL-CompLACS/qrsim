@@ -98,14 +98,20 @@ classdef TaskKeepSpot10<Task
             taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
-            % Configuration and initial state for each of the platforms
+            % Configuration for each of the platforms
             for i=1:10,
                 taskparams.platforms(i).configfile = 'pelican_config';
-                taskparams.platforms(i).X = [-100+20*i;0;-10;0;0;0];
-                obj.initialX(i,:) = taskparams.platforms(i).X;
             end
         end 
         
+        function reset(obj)
+            % initial state for each of the platforms
+            for i=1:10,
+                obj.simState.platforms{i}.setX([-100+20*i;0;-10;0;0;0]);
+                obj.initialX(i,:) = obj.simState.platforms{i}.getX();
+            end
+        end
+
         function updateReward(obj,U)
            % updates reward
            % in this simple example we only have a quadratic control
