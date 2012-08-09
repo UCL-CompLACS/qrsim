@@ -104,10 +104,6 @@ classdef TaskKeepSpotWithReward<Task
             
             obj.initialX = taskparams.platforms(1).X;
         end
-                                                
-        function obj = step(obj,~)
-            % no task specific update is needed             
-        end
         
         function updateReward(obj,U)
            % updates reward

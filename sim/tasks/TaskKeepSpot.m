@@ -100,14 +100,10 @@ classdef TaskKeepSpot<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config';
-            taskparams.platforms(1).X = [0;0;-10;0;0;0];
+            %taskparams.platforms(1).X = [0;0;-10;0;0;0];
             
-            obj.initialX = taskparams.platforms(1).X;
-        end      
-                                                
-        function obj = step(obj,~)
-            % no task specific update is needed             
-        end
+            %obj.initialX = taskparams.platforms(1).X;
+        end 
         
         function updateReward(obj,~)
            % reward update not defined

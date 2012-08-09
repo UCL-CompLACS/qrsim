@@ -105,10 +105,6 @@ classdef TaskGotoWP<Task
             %%% arbitrary waypoint to go to %%%%
             obj.wp = [-50 -50 -10 0];
         end
-                                                        
-        function obj = step(obj,~)
-            % no task specific update is needed             
-        end
         
         function resetReward(obj)
            % resets reward, this method is called by qrsim and generally

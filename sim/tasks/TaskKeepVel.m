@@ -103,10 +103,6 @@ classdef TaskKeepVel<Task
             
             obj.v = [0;0;0];
         end
-                                                
-        function obj = step(obj,~)
-            % no task specific update is needed             
-        end
         
         function updateReward(obj,U)
            % updates reward
