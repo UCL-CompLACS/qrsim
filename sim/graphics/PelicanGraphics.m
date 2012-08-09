@@ -36,14 +36,11 @@ classdef PelicanGraphics<QuadrotorGraphics
     end
     
     methods (Sealed)
-        function obj=PelicanGraphics(objparams,initX)
+        function obj=PelicanGraphics(objparams)
             % constructs the object
             %
             % Example:
-            %   obj =  QuadrotorGraphics(initX,params);
-            %          initX - initial state [px;py;pz;phi;theta;psi]
-            %                  px,py,pz      [m]   position (NED coordinates)
-            %                  phi,theta,psi [rad] attitude in Euler angles ZYX convention
+            %   obj =  QuadrotorGraphics(params);
             %          params.AL - arm length m
             %          params.AT - arm width m
             %          params.AW - arm thickness m
@@ -54,7 +51,7 @@ classdef PelicanGraphics<QuadrotorGraphics
             %          params.on - 1 if graphics is active
             %          params.trajectory - 1 if plotting of trajectory is active
             
-            obj=obj@QuadrotorGraphics(objparams,initX);
+            obj=obj@QuadrotorGraphics(objparams);
             
             assert(isfield(objparams,'AL'),'pelicangraphics:nopar',...
                 'the platform configuration file need to define the parameter AL');
@@ -111,7 +108,8 @@ classdef PelicanGraphics<QuadrotorGraphics
             % trajectory
             obj.plotTrj = objparams.trajectory;
             
-            obj.X=initX(1:6);
+            % arbitrary initial position and orientation
+            obj.X=zeros(6,1);
             
             obj.initGlobalGraphics();
             obj.createGraphicsHandlers();

@@ -178,9 +178,9 @@ classdef Pelican<Steppable & Platform
             if(objparams.graphics.on)
                 assert(isfield(objparams.graphics,'type'),'pelican:nographicstype',...
                     'the platform config file must define a graphics.type');
-                obj.graphics=feval(objparams.graphics.type,objparams.graphics,objparams.X);
+                obj.graphics=feval(objparams.graphics.type,objparams.graphics);
             else
-                obj.graphics=feval('QuadrotorGraphics',objparams.graphics,objparams.X);
+                obj.graphics=feval('QuadrotorGraphics',objparams.graphics);
             end
         end
         

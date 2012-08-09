@@ -3,7 +3,7 @@ classdef QuadrotorGraphics<handle
     % basically an empty shell mostly useful for type checking.
     %
     % QuadrotorGraphics Methods:
-    %   QuadrotorGraphics(initX,params)  - constructs the object
+    %   QuadrotorGraphics(params)  - constructs the object
     %   update()                         - does nothing
     %
        
@@ -12,7 +12,7 @@ classdef QuadrotorGraphics<handle
     end
     
     methods (Sealed)
-        function obj=QuadrotorGraphics(objparams,~)
+        function obj=QuadrotorGraphics(objparams)
             % constructs the object
             obj.simState = objparams.state;
         end
