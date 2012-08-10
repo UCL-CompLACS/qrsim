@@ -3,29 +3,39 @@ classdef TaskCatsMouseNoiseless<Task
     % quadrotor (mouse) at the end of the allotted time for the task.
     % In other words we have only a final cost equal to the sum of the
     % squared distances of the cats to the mouse. A large negative reward
-    % is returned if any of the helicopters flyes outside of the flying area.
+    % is returned if any of the helicopters goes outside of the flying area.
     % For simplicity all quadrotors are supposed to fly at the same altitude.
     % The initial configuration of the quadrotors is defined randomly
-    % (within reason) and the mouse follows a predefined control law which
-    % pays more heed to cats that are close by.
+    % (within reason); the mouse moves at a constant (max) speed and uses
+    % a predefined control law which pays more heed to cats that are close by.
+    %
+    % Note:
+    % This task accepts control inputs (for each cat) in terms of 2D accelerations,
+    % in global coordinates. So in the case of three cats one would use
+    % qrsim.step(U);  where U = [ax_1,ax_2,ax_3; ay_1,ay_2,ay_3];
     %
     % TaskCatsMouseNoiseless methods:
-    %   init()   - loads and returns the parameters for the various simulation objects
-    %   reset()  - defines the starting state for the task
-    %   reward() - returns the instantateous reward for this task
+    %   init()         - loads and returns the parameters for the various simulation objects
+    %   reset()        - defines the starting state for the task
+    %   updateReward() - updates the running costs (zero for this task)
+    %   reward()       - computes the final reward for this task
+    %   step()         - computes pitch, roll, yaw, throttle  commands from the user dVn,dVe commands
     %
     properties (Constant)
-        Nc = 3; %number of cats
-        minCatMouseInitDistance = 10;
-        maxCatMouseInitDistance = 15;
+        durationInSteps = 300;
+        Nc = 3; %number of cats        
+        minCatMouseInitDistance = 8;
+        maxCatMouseInitDistance = 6;
         minInterCatsInitDistance = 5;
         hfix = 10;
         PENALTY = 1000;
     end
     
     properties (Access=private)
-        initialX;
+        initialX; % initial state of the uavs
         prngId;   % id of the prng stream used to select the initial positions
+        velPIDs;  % pid used to control the uavs  
+        Vs;       % last velocity command
     end
     
     methods (Sealed,Access=public)
@@ -105,9 +115,11 @@ classdef TaskCatsMouseNoiseless<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.Nc,
-                taskparams.platforms(i).configfile = 'noiseless_cat_config';
+                taskparams.platforms(i).configfile = 'noiseless_cat_config';                
+                obj.velPIDs{i} = VelocityHeightPID(taskparams.DT);
             end
             taskparams.platforms(obj.Nc+1).configfile = 'noiseless_mouse_config';
+            obj.velPIDs{obj.Nc+1} = VelocityHeightPID(taskparams.DT);
             
             % get hold of a prng stream
             obj.prngId = obj.simState.numRStreams+1;
@@ -138,13 +150,35 @@ classdef TaskCatsMouseNoiseless<Task
                 
                 obj.simState.platforms{i}.setX([pos;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
-            end
+            end        
             
+            %reset the last velocity controls
+            obj.Vs = zeros(2,obj.Nc+1);
         end
         
         function UU = step(obj,U)
             % compute the UAVs controls from the velocity inputs
-            UU = repmat([0;0;0.595;0;12],1,4);
+            UU = zeros(5,obj.Nc+1);
+            
+            mousePos = obj.simState.platforms{obj.Nc+1}.getX(1:2);
+            Umouse = [0;0];
+            
+            for i=1:obj.Nc,
+                diff = (mousePos-obj.simState.platforms{i}.getX(1:2));
+                Umouse = Umouse+diff/(diff'*diff);            
+            end
+            
+            % take the obtained direction and rescale it by the max
+            % velocity we can fly
+            Umouse = obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
+            
+            obj.Vs(:,obj.Nc+1) =  obj.Vs(:,obj.Nc+1) + obj.simState.DT*Umouse;
+            UU(:,obj.Nc+1) = obj.velPIDs{obj.Nc+1}.computeU(obj.simState.platforms{obj.Nc+1}.getX(),obj.Vs(:,obj.Nc+1),-obj.hfix,0);
+            
+            for i=1:obj.Nc,
+               obj.Vs(:,i) =  obj.Vs(:,i) + obj.simState.DT*U(:,i);               
+               UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getX(),obj.Vs(:,i),-obj.hfix,0);
+            end
         end
         
         function updateReward(~,~)

@@ -82,8 +82,8 @@ classdef VelocityHeightPID<handle
             
             % convert desired velocity to body frame.
             vt = Cbn*[desVelNE;0];
-            desu = limit(vt(1),-obj.maxv,obj.maxv);
-            desv = limit(vt(2),-obj.maxv,obj.maxv);            
+            desu = obj.limit(vt(1),-obj.maxv,obj.maxv);
+            desv = obj.limit(vt(2),-obj.maxv,obj.maxv);            
             psi = X(6);
             
             % simple P controller on velocity with a cap on the max velocity and

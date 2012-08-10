@@ -1,12 +1,12 @@
-% bare bones example of use of the QRSim() simulator object with one
-% helicopter
+% bare bones example of use of the QRSim() simulator 
+% with one of the the cats-mouse scenario
 
 %clear all
 close all
 
 % include simulator
-addpath(['../../sim']);
-addpath(['../../controllers']);
+addpath('../../sim');
+addpath('../../controllers');
 
 % create simulator object
 qrsim = QRSim();
@@ -16,17 +16,15 @@ state = qrsim.init('TaskCatsMouseNoiseless');
 %state = qrsim.init('TaskCatsMouseNoisy');
 %state = qrsim.init('TaskCatsMouseWindy');
 
-% number of steps we run the simulation for
-N = 3000;
-
 
 tstart = tic;
 
-for i=1:N,
+for i=1:qrsim.task.durationInSteps,
     tloop=tic;
-    % compute controls
-    %U = pid.computeU(state.platforms{1}.getEX(),wp,0);
-    U = [0;0.02;0.595;0;12];
+    
+    % compute acceleration controls for each cat    
+    U = zeros(2,3);
+    
     % step simulator
     qrsim.step(U);
     
@@ -36,8 +34,8 @@ for i=1:N,
 end
 
 % get reward
-% qrsim.reward();
+fprintf('final reward: %f',qrsim.reward());
 
 elapsed = toc(tstart);
 
-fprintf('running %d times real time\n',(N*state.DT)/elapsed);
+fprintf('running %d times real time\n',(qrsim.task.durationInSteps*state.DT)/elapsed);
