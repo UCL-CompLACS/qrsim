@@ -13,7 +13,8 @@ classdef VelocityPID
         maxtilt = 0.34;
         th_hover = 0.59;
         Kya = 6;
-        maxyawrate = 4.4;
+        maxyawrate = 4.4; 
+        maxv = 3;
     end
     
     methods (Access = public)
@@ -68,15 +69,15 @@ classdef VelocityPID
             vt = Cbn*desVelNED; 
             psi = X(6);
              
-            despxdot = obj.limit( vt(1),-3,3);
+            despxdot = obj.limit( vt(1),-obj.maxv,obj.maxv);
             desTheta = obj.Kv*(-(despxdot - u));
             desTheta = obj.limit(desTheta,-obj.maxtilt,obj.maxtilt);
             
-            despydot = obj.limit( vt(2),-3,3);
+            despydot = obj.limit( vt(2),-obj.maxv,obj.maxv);
             desPhi = obj.Kv*(despydot - v);
             desPhi = obj.limit(desPhi,-obj.maxtilt,obj.maxtilt);
             
-            despzdot = obj.limit( vt(3),-3,3);
+            despzdot = obj.limit( vt(3),-obj.maxv,obj.maxv);
             desth = obj.th_hover + obj.Kw*(despzdot - w);
             th = obj.limit(desth,0,1);
             

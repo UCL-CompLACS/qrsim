@@ -19,6 +19,7 @@ classdef VelocityHeightPID<handle
         Kpz = 0.03;
         Kdz = 0.04;
         th_hover = 0.59;
+        maxv = 3;
     end
     
     methods (Access = public)
@@ -81,8 +82,8 @@ classdef VelocityHeightPID<handle
             
             % convert desired velocity to body frame.
             vt = Cbn*[desVelNE;0];
-            desu = vt(1);
-            desv = vt(2);            
+            desu = limit(vt(1),-obj.maxv,obj.maxv);
+            desv = limit(vt(2),-obj.maxv,obj.maxv);            
             psi = X(6);
             
             % simple P controller on velocity with a cap on the max velocity and
