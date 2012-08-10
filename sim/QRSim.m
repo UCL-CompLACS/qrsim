@@ -171,6 +171,13 @@ classdef QRSim<handle
             % step the wind
             obj.simState.environment.wind.step([]);
             
+            % see if the task is the one generating the controls
+            UU = obj.task.step(U);
+            
+            if(~isempty(UU))
+                U = UU;
+            end
+            
             %%% step all the platforms given U
             assert(size(obj.simState.platforms,2)==size(U,2),'qrsim:wronginputsize',...
                 'the number of colum of the control input matrix has to be equal to the number of platforms');

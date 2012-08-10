@@ -1,40 +1,45 @@
-classdef TaskCatsMouseNoisy<Task
-    % Simple task in which a qudrotor has to keep its starting position despite the wind.
-    % Single platform task which requires to maintain the quadrotor hovering at the 
-    % position it has when the task starts; the solution requires non constant control 
-    % since the helicopter is affected by time varying wind disturbances.
+classdef TaskCatsMouseNoiseless<Task
+    % Simple task in which three quadrotors (cats) have to catch another
+    % quadrotor (mouse) at the end of the allotted time for the task.
+    % In other words we have only a final cost equal to the sum of the
+    % squared distances of the cats to the mouse. A large negative reward
+    % is returned if any of the helicopters flyes outside of the flying area.
+    % For simplicity all quadrotors are supposed to fly at the same altitude.
+    % The initial configuration of the quadrotors is defined randomly
+    % (within reason) and the mouse follows a predefined control law which
+    % pays more heed to cats that are close by.
     %
-    % KeepSpot methods:
-    %   init()   - loads and returns all the parameters for the various simulator objects
+    % TaskCatsMouseNoiseless methods:
+    %   init()   - loads and returns the parameters for the various simulation objects
+    %   reset()  - defines the starting state for the task
     %   reward() - returns the instantateous reward for this task
     %
-    % 
-    % GENERAL NOTES:
-    % - if the on flag is zero, the NOISELESS version of the object is loaded instead
-    % - the step dt MUST be always specified eve if on=0
-    %
     properties (Constant)
-        PENALTY = 1000;  
-        U_NEUTRAL = [0;0;0.59;0];
-        R = diag([2/pi, 2/pi, 0.5, 1]); %very rough scaling factors
-    end    
+        Nc = 3; %number of cats
+        minCatMouseInitDistance = 10;
+        maxCatMouseInitDistance = 15;
+        minInterCatsInitDistance = 5;
+        hfix = 10;
+        PENALTY = 1000;
+    end
     
     properties (Access=private)
         initialX;
-    end     
+        prngId;   % id of the prng stream used to select the initial positions
+    end
     
     methods (Sealed,Access=public)
-                        
-        function obj = TaskKeepSpot10(state)
-           obj = obj@Task(state);             
+        
+        function obj = TaskCatsMouseNoiseless(state)
+            obj = obj@Task(state);
         end
         
         function taskparams=init(obj) %#ok<MANU>
-            % loads and returns all the parameters for the various simulator objects
+            % loads and returns the parameters for the various simulation objects
             %
             % Example:
             %   params = obj.init();
-            %          params - all the task parameters
+            %          params - the task parameters
             %
             
             % Simulator step time in second this should not be changed...
@@ -46,16 +51,16 @@ classdef TaskCatsMouseNoisy<Task
             % 3D display parameters
             taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
-            taskparams.display3d.height = 600;            
+            taskparams.display3d.height = 600;
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-120 120 -10 10 -40 0];
+            taskparams.environment.area.limits = [-200 200 -200 200 -40 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
-            % generally when this is changed gpsspacesegment.orbitfile and 
+            % generally when this is changed gpsspacesegment.orbitfile and
             % gpsspacesegment.svs need to be changed
             [E N zone h] = llaToUtm([51.71190;-0.21052;0]);
             taskparams.environment.area.originutmcoords.E = E;
@@ -64,17 +69,17 @@ classdef TaskCatsMouseNoisy<Task
             taskparams.environment.area.originutmcoords.zone = zone;
             taskparams.environment.area.graphics.type = 'AreaGraphics';
             taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
-               
+            
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 1; % if off the gps returns the noiseless position
+            taskparams.environment.gpsspacesegment.on = 0; %% NO GPS NOISE!!!
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
-            % simulation start in GPS time, this needs to agree with the sp3 file above, 
+            % simulation start in GPS time, this needs to agree with the sp3 file above,
             % alternatively it can be set to 0 to have a random initialization
-            %taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0); 
-            taskparams.environment.gpsspacesegment.tStart = 0;             
+            %taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0);
+            taskparams.environment.gpsspacesegment.tStart = 0;
             % id number of visible satellites, the one below are from a typical flight day at RVC
             % these need to match the contents of gpsspacesegment.orbitfile
             taskparams.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
@@ -84,68 +89,96 @@ classdef TaskCatsMouseNoisy<Task
             %taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation
             % the following model was instead designed to match measurements of real
             % data, it appears more relistic than the above
-            taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
+            taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';
             taskparams.environment.gpsspacesegment.PR_BETA2 = 4;       % process time constant
-            taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;  % process time constant   
-            taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;   % process standard deviation            
+            taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;  % process time constant
+            taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;   % process standard deviation
             
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 0;
+            taskparams.environment.wind.on = 0;  %% NO WIND!!!
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = degsToRads(45); %mean wind direction, rad clockwise from north set to [] to initialise it randomly
             taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
-            for i=1:10,
-                taskparams.platforms(i).configfile = 'pelican_config';
-                taskparams.platforms(i).X = [-100+20*i;0;-10;0;0;0];
-                obj.initialX(i,:) = taskparams.platforms(i).X;
+            for i=1:obj.Nc,
+                taskparams.platforms(i).configfile = 'noiseless_cat_config';
             end
+            taskparams.platforms(obj.Nc+1).configfile = 'noiseless_mouse_config';
+            
+            % get hold of a prng stream
+            obj.prngId = obj.simState.numRStreams+1;
+            obj.simState.numRStreams = obj.simState.numRStreams + 1;
         end
         
-        function updateReward(obj,U)
-           % updates reward
-           % in this simple example we only have a quadratic control
-           % cost
-           
-           for i=1:size(U,2)
-               u = (U(1:4,i)-obj.U_NEUTRAL);
-               obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.simState.DT;
-           end
+        function reset(obj)
+            % mouse always at the origin
+            obj.simState.platforms{obj.Nc+1}.setX([0;0;-obj.hfix;0;0;0]);
+            obj.initialX{obj.Nc+1} = obj.simState.platforms{obj.Nc+1}.getX();
+            
+            % cats randomly placed around, not too close not too far
+            for i=1:obj.Nc,
+                
+                tooClose = 1;
+                while tooClose
+                    angle = 2*pi*rand(obj.simState.rStreams{obj.prngId},1,1);
+                    d = obj.minCatMouseInitDistance + rand(obj.simState.rStreams{obj.prngId},1,1)*(obj.maxCatMouseInitDistance-obj.minCatMouseInitDistance);
+                    pos = obj.initialX{obj.Nc+1}(1:3)+[d*cos(angle);d*sin(angle);0];
+                    
+                    tooClose = 0;
+                    for j=1:i-1,
+                        if(norm(pos-obj.initialX{j}(1:3))<obj.minInterCatsInitDistance)
+                            tooClose = 1;
+                        end
+                    end
+                end
+                
+                obj.simState.platforms{i}.setX([pos;0;0;0]);
+                obj.initialX{i} = obj.simState.platforms{i}.getX();
+            end
+            
         end
         
-        function r=reward(obj) 
+        function UU = step(obj,U)
+            % compute the UAVs controls from the velocity inputs
+            UU = repmat([0;0;0.595;0;12],1,4);
+        end
+        
+        function updateReward(~,~)
+            % updates reward
+            % in this task we only have a final cost
+        end
+        
+        function r=reward(obj)
             % returns the total reward for this task
-            %
-            % Example:
-            %   r = obj.reward();
-            %          r - the reward
-            %
+            % in this case simply the sum of the squared distances of the
+            % cats to the mouse (multiplied by -1)
             
             valid = 1;
             for i=1:length(obj.simState.platforms)
-               valid = valid &&  obj.simState.platforms{i}.isValid();
+                valid = valid &&  obj.simState.platforms{i}.isValid();
             end
             
             if(valid)
                 r = 0;
-                for i=1:length(obj.simState.platforms)
-                    e = obj.simState.platforms{i}.getX(1:3);
-                    e = e-obj.initialX(i,1:3);
-                    % control cost so far plus end cost
-                    r = r - e' * e; 
+                mousePos = obj.simState.platforms{obj.Nc+1}.getX(1:3);
+                for i=1:length(obj.Nc)
+                    catPos = obj.simState.platforms{i}.getX(1:3);
+                    e = mousePos - catPos;
+                    % accumulate square distance of mouse from cat i
+                    r = r - e' * e;
                 end
                 r = obj.currentReward + r;
             else
                 % returning a large penalty in case the state is not valid
-                % i.e. the helicopter is out of the area, there was a
-                % collision or the helicopter has crashed 
+                % i.e. one the helicopters is out of the area, there was a
+                % collision or one of the helicoptera has crashed
                 r = - obj.PENALTY;
-            end                
-        end 
+            end
+        end
     end
     
 end
