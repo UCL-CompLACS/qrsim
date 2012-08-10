@@ -1,5 +1,5 @@
 % This script defines all the typical parameters of an AscTec pelican quadrotor
-% in this case only sensor noise is active, wind is disabled.
+% in this case both noisy sensors and wind turbulence are turned on
 % 
 % These paramters must be loaded using the function loadConfig and are then
 % passed to the platform constructor, which will take care of propagating the correct 
@@ -70,7 +70,7 @@ c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
 
 % Aerodynamic Turbulence
-c.aerodynamicturbulence.on = 0;
+c.aerodynamicturbulence.on = 1;
 c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785';
 c.aerodynamicturbulence.direction = []; % mean wind direction, (rad clockwise from north set to [] to initialise randomly)
 c.aerodynamicturbulence.W6 = 2;  % velocity at 6m from ground in m/s

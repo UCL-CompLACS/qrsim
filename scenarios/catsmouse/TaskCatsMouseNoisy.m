@@ -1,4 +1,4 @@
-classdef TaskCatsMouseNoiseless<Task
+classdef TaskCatsMouseNoisy<Task
     % Simple task in which three quadrotors (cats) have to catch another
     % quadrotor (mouse) at the end of the allotted time for the task.
     % In other words we have only a final cost equal to the sum of the
@@ -8,7 +8,7 @@ classdef TaskCatsMouseNoiseless<Task
     % The initial configuration of the quadrotors is defined randomly
     % (within reason); the mouse moves at a constant (max) speed and uses
     % a predefined control law which pays more heed to cats that are close by.
-    % Finally in this task all the sensors are noiseless and the wind is
+    % Finally in this task sensors are afected by noise noiseless but wind is
     % turned off.
     %
     % Note:
@@ -42,7 +42,7 @@ classdef TaskCatsMouseNoiseless<Task
     
     methods (Sealed,Access=public)
         
-        function obj = TaskCatsMouseNoiseless(state)
+        function obj = TaskCatsMouseNoisy(state)
             obj = obj@Task(state);
         end
         
@@ -84,7 +84,7 @@ classdef TaskCatsMouseNoiseless<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 0; %% NO GPS NOISE!!!
+            taskparams.environment.gpsspacesegment.on = 1; 
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
@@ -117,10 +117,10 @@ classdef TaskCatsMouseNoiseless<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.Nc,
-                taskparams.platforms(i).configfile = 'noiseless_cat_config';                
+                taskparams.platforms(i).configfile = 'noisy_cat_config';                
                 obj.velPIDs{i} = VelocityHeightPID(taskparams.DT);
             end
-            taskparams.platforms(obj.Nc+1).configfile = 'noiseless_mouse_config';
+            taskparams.platforms(obj.Nc+1).configfile = 'noisy_mouse_config';
             obj.velPIDs{obj.Nc+1} = VelocityHeightPID(taskparams.DT);
             
             % get hold of a prng stream

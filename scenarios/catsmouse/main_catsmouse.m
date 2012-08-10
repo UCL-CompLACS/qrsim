@@ -12,9 +12,9 @@ addpath('../../controllers');
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-state = qrsim.init('TaskCatsMouseNoiseless');
+%state = qrsim.init('TaskCatsMouseNoiseless');
 %state = qrsim.init('TaskCatsMouseNoisy');
-%state = qrsim.init('TaskCatsMouseWindy');
+state = qrsim.init('TaskCatsMouseNoisyAndWindy');
 
 
 tstart = tic;
@@ -34,7 +34,7 @@ for i=1:qrsim.task.durationInSteps,
 end
 
 % get reward
-fprintf('final reward: %f',qrsim.reward());
+fprintf('final reward: %f\n',qrsim.reward());
 
 elapsed = toc(tstart);
 
