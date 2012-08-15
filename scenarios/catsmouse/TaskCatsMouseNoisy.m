@@ -12,9 +12,9 @@ classdef TaskCatsMouseNoisy<Task
     % turned off.
     %
     % Note:
-    % This task accepts control inputs (for each cat) in terms of 2D accelerations,
+    % This task accepts control inputs (for each cat) in terms of 2D velocities,
     % in global coordinates. So in the case of three cats one would use
-    % qrsim.step(U);  where U = [ax_1,ax_2,ax_3; ay_1,ay_2,ay_3];
+    % qrsim.step(U);  where U = [vx_1,vx_2,vx_3; vy_1,vy_2,vy_3];
     %
     % TaskCatsMouseNoiseless methods:
     %   init()         - loads and returns the parameters for the various simulation objects
@@ -24,20 +24,20 @@ classdef TaskCatsMouseNoisy<Task
     %   step()         - computes pitch, roll, yaw, throttle  commands from the user dVn,dVe commands
     %
     properties (Constant)
-        durationInSteps = 300;
+        durationInSteps = 1000;
         Nc = 3; %number of cats        
-        minCatMouseInitDistance = 8;
-        maxCatMouseInitDistance = 6;
-        minInterCatsInitDistance = 5;
+        minCatMouseInitDistance = 18;
+        maxCatMouseInitDistance = 16;
+        minInterCatsInitDistance = 25;
+        mouseVcap = 1; % max mouse speed = mouseVcap * catMaxSpeed
         hfix = 10;
         PENALTY = 1000;
     end
     
-    properties (Access=private)
+    properties (Access=public)
         initialX; % initial state of the uavs
         prngId;   % id of the prng stream used to select the initial positions
-        velPIDs;  % pid used to control the uavs  
-        Vs;       % last velocity command
+        velPIDs;  % pid used to control the uavs 
     end
     
     methods (Sealed,Access=public)
@@ -136,6 +136,7 @@ classdef TaskCatsMouseNoisy<Task
             % cats randomly placed around, not too close not too far
             for i=1:obj.Nc,
                 
+                cnt = 0;
                 tooClose = 1;
                 while tooClose
                     angle = 2*pi*rand(obj.simState.rStreams{obj.prngId},1,1);
@@ -148,14 +149,13 @@ classdef TaskCatsMouseNoisy<Task
                             tooClose = 1;
                         end
                     end
+                    cnt = cnt + 1;
+                    assert(cnt<100,'not able to generate an initial configuration, the minInterCatsInitDistance required by the tigsks appears too tight');
                 end
                 
                 obj.simState.platforms{i}.setX([pos;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
             end        
-            
-            %reset the last velocity controls
-            obj.Vs = zeros(2,obj.Nc+1);
         end
         
         function UU = step(obj,U)
@@ -172,14 +172,12 @@ classdef TaskCatsMouseNoisy<Task
             
             % take the obtained direction and rescale it by the max
             % velocity we can fly
-            Umouse = obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
+            Umouse = obj.mouseVcap*obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
             
-            obj.Vs(:,obj.Nc+1) =  obj.Vs(:,obj.Nc+1) + obj.simState.DT*Umouse;
-            UU(:,obj.Nc+1) = obj.velPIDs{obj.Nc+1}.computeU(obj.simState.platforms{obj.Nc+1}.getX(),obj.Vs(:,obj.Nc+1),-obj.hfix,0);
+            UU(:,obj.Nc+1) = obj.velPIDs{obj.Nc+1}.computeU(obj.simState.platforms{obj.Nc+1}.getEX(),Umouse,-obj.hfix,0);
             
-            for i=1:obj.Nc,
-               obj.Vs(:,i) =  obj.Vs(:,i) + obj.simState.DT*U(:,i);               
-               UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getX(),obj.Vs(:,i),-obj.hfix,0);
+            for i=1:obj.Nc,         
+               UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-obj.hfix,0);
             end
         end
         

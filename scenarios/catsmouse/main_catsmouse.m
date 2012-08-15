@@ -12,18 +12,29 @@ addpath(['..',filesep,'..',filesep,'controllers']);
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-%state = qrsim.init('TaskCatsMouseNoiseless');
+state = qrsim.init('TaskCatsMouseNoiseless');
 %state = qrsim.init('TaskCatsMouseNoisy');
-state = qrsim.init('TaskCatsMouseNoisyAndWindy');
+%state = qrsim.init('TaskCatsMouseNoisyAndWindy');
 
-
+U = zeros(2,qrsim.task.Nc);
 tstart = tic;
 
 for i=1:qrsim.task.durationInSteps,
     tloop=tic;
     
-    % compute acceleration controls for each cat    
-    U = zeros(2,3);
+    mousePos = state.platforms{qrsim.task.Nc+1}.getEX(1:2);
+    
+    % a quick and by no means perfect way of 
+    % computing velocity controls for each cat   
+    for j=1:qrsim.task.Nc,
+        % vector to the mouse
+        u = mousePos - state.platforms{j}.getX(1:2);
+        % if far away add 
+        u = u  + (norm(u)/2)*state.platforms{qrsim.task.Nc+1}.getEX(18:19);
+        % scale by the max allowed velocity
+        U(:,j) = qrsim.task.velPIDs{j}.maxv*(u/norm(u));
+    end
+    
     
     % step simulator
     qrsim.step(U);
