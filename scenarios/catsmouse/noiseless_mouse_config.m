@@ -32,8 +32,8 @@ c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limi
     -15,15;-15,15;-15,15;... % linear velocity limits
     -3,3;-3,3;-3,3]; %rotational velocity limits
     
-c.collisionDistance = 0; % two platforms colser than this distance are deemed in collision 
-c.dynNoise = [0.2;0.2;0.2;0.2;0.2;0.2];
+c.collisionDistance = 2; % two platforms closer than this distance are deemed in collision 
+c.dynNoise = [0;0;0;0;0;0];
 
 % GPS Receiver
 c.sensors.gpsreceiver.on = 0; % NO GPS NOISE!!!
@@ -76,7 +76,7 @@ c.aerodynamicturbulence.direction = []; % mean wind direction, (rad clockwise fr
 c.aerodynamicturbulence.W6 = 2;  % velocity at 6m from ground in m/s
             
 % Graphics
-c.graphics.type = 'PelicanGraphics';
+c.graphics.type = 'PelicanGraphicsBlack';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m
 c.graphics.AT = 0.01;      % arm width m
