@@ -5,9 +5,9 @@ clear all
 close all
 
 % include simulator
-addpath('../sim');
+addpath(['..',filesep,'sim']);
 % include controllers
-addpath('../controllers');
+addpath(['..',filesep,'controllers']);
 
 % create simulator object
 qrsim = QRSim();
