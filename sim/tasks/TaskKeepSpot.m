@@ -97,9 +97,16 @@ classdef TaskKeepSpot<Task
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config';
 
-        end 
+        end
+        
+        function UU = step(obj,U)
+           % translate from task inputs to platforms inputs,
+           % in these simple task they are the same
+           UU = U;
+        end
         
         function reset(obj)
+           % set the initial platform state
            obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
         end
 
