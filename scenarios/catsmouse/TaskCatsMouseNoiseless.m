@@ -5,8 +5,8 @@ classdef TaskCatsMouseNoiseless<Task
     % squared distances of the cats to the mouse. A large negative reward
     % is returned if any of the helicopters goes outside of the flying area.
     % For simplicity all quadrotors are supposed to fly at the same altitude.
-    % The initial configuration of the quadrotors is defined randomly
-    % (within reason); the mouse moves at a constant (max) speed and uses
+    % The initial position of the quadrotors is defined randomly
+    % (within reason) around the mouse the mouse moves at a constant (max) speed and uses
     % a predefined control law which pays more heed to cats that are close by.
     % Finally in this task all the sensors are noiseless and the wind is
     % turned off.
@@ -25,9 +25,9 @@ classdef TaskCatsMouseNoiseless<Task
     %
     properties (Constant)
         durationInSteps = 1000;
-        Nc = 4; %number of cats        
-        minCatMouseInitDistance = 18;
-        maxCatMouseInitDistance = 16;
+        Nc = 3; %number of cats        
+        minCatMouseInitDistance = 20;
+        maxCatMouseInitDistance = 14;
         minInterCatsInitDistance = 20;
         mouseVcap = 1; % max mouse speed = mouseVcap * catMaxSpeed
         hfix = 10;
@@ -68,7 +68,7 @@ classdef TaskCatsMouseNoiseless<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-140 140 -140 140 -40 0];
+            taskparams.environment.area.limits = [-25 25 -25 25 -15 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -162,11 +162,11 @@ classdef TaskCatsMouseNoiseless<Task
             % compute the UAVs controls from the velocity inputs
             UU = zeros(5,obj.Nc+1);
             
-            mousePos = obj.simState.platforms{obj.Nc+1}.getX(1:2);
+            mousePos = obj.simState.platforms{obj.Nc+1}.getEX(1:2);
             Umouse = [0;0];
             
             for i=1:obj.Nc,
-                diff = (mousePos-obj.simState.platforms{i}.getX(1:2));
+                diff = (mousePos-obj.simState.platforms{i}.getEX(1:2));
                 Umouse = Umouse+diff/(diff'*diff);            
             end
             
