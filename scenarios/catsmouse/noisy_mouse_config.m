@@ -76,7 +76,7 @@ c.aerodynamicturbulence.direction = []; % mean wind direction, (rad clockwise fr
 c.aerodynamicturbulence.W6 = 2;  % velocity at 6m from ground in m/s
             
 % Graphics
-c.graphics.type = 'PelicanGraphics';
+c.graphics.type = 'PelicanGraphicsBlack';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m
 c.graphics.AT = 0.01;      % arm width m
