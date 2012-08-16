@@ -57,7 +57,7 @@ Since we will be modifying these files in the following exercises it makes sense
 Of course now we need to update the files that reference such scripts, this will give us the chance to see what references what, within one of our projects.
 We start by editing \texttt{main.m} in the following way:
 \begin{itemize}
- \item line 8: update \texttt{addpath('../sim:../controllers');} to point to the directories \texttt{sim} and \texttt{controller} in your machine. Note that this is the only command needed to make use of QRSim in your project (this is akin to the need of including a toolbox in the Matlab path).
+ \item line 8: update \texttt{addpath(['..',filesep,'sim:..',filesep,'controllers']);} to point to the directories \texttt{sim} and \texttt{controllers} in your machine. Note that this is the only command needed to make use of QRSim in your project (this is akin to the need of including a toolbox in the Matlab path).
  \item line 14: update \texttt{state = qrsim.init('TaskKeepSpot');} to reference the renamed task \texttt{TaskTutorial.m}. Note that this is the only location in which a task is referenced.
 \end{itemize}  
 Now, since \texttt{TaskTutorial.m} is a Matlab class, its file name needs to match the class name\footnote{If you are not familiar with object-oriented programming in Matlab you can find more informations at \url{http://www.mathworks.co.uk/help/techdoc/matlab_oop/ug_intropage.html}}. We therefore need to open \texttt{TaskTutorial.m} in the file editor and do the following:
@@ -80,7 +80,7 @@ This script implements what is possibly the simplest way of running a simulation
  \item line 14: \texttt{state = qrsim.init('TaskTutorial')} initialization of the simulation;\\
   the setting specified in the task are used to instantiate the required platform and environment objects, and subsequently to initialize them to the starting state. After calling \texttt{init} the simulator is in a valid state and the simulation time \texttt{state.t} is equal to zero.
  \item line 35: \texttt{qrsim.step(U)} stepping the simulator;\\
-  this command first updates the environment objects and then applies to each platform the given input \texttt{U} (where \texttt{U} is a matrix with a number of columns equal to the number of platforms\footnote{Use \texttt{doc Pelican} to see details about meaning and ranges of the control inputs.}). At completion the simulation time had advanced of \texttt{state.DT}.  
+ this command first updates the environment objects and then calls the function \texttt{step(U)} of the task to transform \texttt{U} into the input for each of the platforms. We will see later that in the task \texttt{TaskTutorial} the function \texttt{step(U)} does not modify the input matrix \texttt{U}; \texttt{U} is therefore expected to be already a matrix in which each column corresponds to the control inputs for a platform\footnote{Use \texttt{doc Pelican} to see details about meaning and ranges of the control inputs.}. At completion the simulation time had advanced of \texttt{state.DT}.  
 \end{itemize}
 From the description just given one can understand that calling \texttt{step()} only makes sense after the simulation is created and initialized to a valid state. 
 In our \texttt{main.m} script the simulator is stepped within a for loop since we want to run the task for \texttt{N} steps but it is rather obvious that this does not always need to be the case. Once the simulation object is initialized the step method can be called in whatever fashion is more convenient to the user.
@@ -132,6 +132,8 @@ Even in this case is instructive to make changes to the setting and compare the 
 \item set \texttt{dynNoise = [0;0;0;0;0;0]} and all \texttt{gpsreceiver.on} \texttt{ahars.on} \texttt{aerodynamicturbulence.on} to $0$; verify that the behavior of the simulator is now completely deterministic.
 \end{itemize}
 
+Lastly, take a look at the function \texttt{step(U)} of the task. In this case the input matrix \texttt{U} is simply returned unchanged, but in certain tasks it might be useful to do some computation within this function. For instance if we wanted a task that accepts inputs in terms of waypoints, we could have included the PID controllers computations in this function so to perform the translation from waypoints to platform controls.
+
 \section*{Exercise 4:\\Set and reset the platform state}
 
 We have seen how changing the initial platform state in the \texttt{pelican\_config\_tutorial.m} is very straightforward but is often necessary to be able to save, set and reset the platform state at runtime.
@@ -143,7 +145,7 @@ The platform objects expose a set of methods designed to make setting and resett
 
 The main QRSim object also exposes a reset method 
 \begin{itemize}
-\item \texttt{qrsim.reset()} resets the simulator to the initial state specified by the task. This also resets the task reward to zero and resets the pseudorandom number generators if the user specified a fixed seed. 
+\item \texttt{qrsim.reset()} resets the simulator to the initial state specified by the task. This also resets the task reward to zero, and calls the method \texttt{reset()} of the task which re-initializes the platforms state. 
 \end{itemize}
 
 With those concepts clear in mind modify \texttt{main.m} as follows:
@@ -200,8 +202,8 @@ Finally, we want to point out that while defining rewards within a task is very 
 Up until now we only considered one single helicopter, however QRSim can readily deal with more than one platform.
 Let's try to modify the task file and \texttt{main.m} to handle 10 different helicopters; to do so you will need to:
 \begin{itemize}
- \item modify the platforms section of \texttt{TaskTutorial.m} to define \texttt{configfile} and initial state \texttt{X} for each of the platforms. You can easily do this with a for loop but make sure that the initial position of the platforms are sufficiently far apart otherwise they would be deemed in collision and the simulation will fail to start.
-\item modify \texttt{main.m} so that ten different way-points and ten different PID controller are created instead of only one of each. In the \texttt{for} loop use each of the ten PIDs to compute the control input for the respective helicopter. Remember to bundle up the control commands of each platform as columns of the matrix \texttt{U} so you can pass it to \texttt{qrsim.step(U)}.
+ \item modify \texttt{TaskTutorial.m} to define a \texttt{configfile} for each of the platforms and modify the \texttt{seset()} function to define the initial state of each platform. You can easily do this with a for loop but make sure that the initial position of the platforms are sufficiently far apart otherwise they would be deemed in collision and the simulation will fail to start.
+\item modify \texttt{main.m} so that ten different way-points and ten different PID controllers are created instead of only one of each. In the \texttt{for} loop use each of the ten PIDs to compute the control input for the respective helicopter. Remember to bundle up the control commands of each platform as columns of the matrix \texttt{U} so you can pass it to \texttt{qrsim.step(U)}.
 \end{itemize}
 If you get stuck you can have a look in the directory \texttt{example}, the file \texttt{main10.m} shows a possible solution to this exercise.
 
