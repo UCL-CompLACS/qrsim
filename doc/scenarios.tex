@@ -1,0 +1,81 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage{fullpage}
+\usepackage[hyphens]{url}
+\usepackage{hyperref} %this messes up the line breaks of url
+\usepackage{xspace}
+\usepackage{listings}
+\usepackage{graphicx}
+\setlength{\parindent}{0pt} 
+\setlength{\parskip}{2ex}
+
+\newcommand{\webman}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/manual.pdf}\xspace}
+
+% Title Page
+\title{Quadrotors Scenarios}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+This documents provides details on the test scenarios chosen for the quadrotors application platform of the CompLACS project. 
+
+\section{Scenario 1: Cats and Mouse game}
+
+\textbf{Objective:} Control N quadrotors\footnote{N is usually 3.} (cats) in order to catch another quadrotor (mouse) at the end of the allotted time.
+
+\textbf{Setup:} At the beginning of the task the mouse is placed at the center of the flight space\footnote{Without loss of generality since the control problem depends on the relative positions of mouse and cats as long as the flying area is sufficiently large.} and the cats are positioned randomly (within reason) around the mouse. 
+Initially all the helicopters are stationary. As the task starts the mouse helicopter tries to escape the cats by moving at a constant\footnote{While the PID controller that governs the quadrotor attempts to maintain a fix maximum speed, in practise this will not always be the case due to sensor noise wind disturbance and dynamic effects.} (max) speed and following a predefined control law that prioritize escaping from the closest cats. 
+The task final reward is computed as the sum of the squared distances of the cats to the mouse at the end of the allotted time. 
+A large negative reward is returned if any of the helicopters goes outside of the flying area or if any collision happens during the task.
+
+Since how hard the control problem is depends on the level of sensor noise and wind disturbance, we provide three versions of the task with in increasing level of difficulty:
+\begin{itemize}
+ \item \textit{noiseless:} the dynamics of the quadrotors is deterministic and the state returned is the true platform state;
+ \item \textit{noisy:} the dynamics of the quadrotors is stochastic and the state returned is a noiy estimate of the platform state;
+ \item \textit{noisy and windy:} the dynamics of the quadrotors is stochastic and affected by wind disturbances, the state returned is a noiy estimate of the platform state.
+\end{itemize}
+
+\textbf{State:} 
+For each of the helicopters the full estimated state $eX$ of cats and mouse is made available:
+$$eX = [\tilde{p}_x;\tilde{p}_y;\tilde{p}_z;\tilde{\phi};\tilde{\theta};\tilde{\psi};0;0;0;\tilde{p};\tilde{q};\tilde{r};0;\tilde{a}_x;\tilde{a}_y;\tilde{a}_z;h;\dot{p}_x;\dot{p}_y;\dot{h}]$$
+
+\textbf{Actions:} 
+To limit the space of control inputs we do not expose directly the four control input of each quadrotor, instead we provide each quadrotor with a PID controller that allows it to maintain a fixed altitude and heading and to receive commands in terms of a 2D linear velocity\footnote{In addition to reducing the number of control inputs this makes the task closer to what is possible to implement and test using real quadrotors.}. 
+Therefore for each of the (cats) helicopters the available action is in the form:
+$$u=[v_x,v_y]^T,$$
+the mouse insteads moves autonomously. 
+
+\textbf{Code:}
+All the ingredients of the scenario described above are implemented as a task class for the quadrotor simulator QRSim\footnote{We refer to the QRSim manual for details on the simulator API \webman.}; the three variation of the scenario are named (rather obviously) \texttt{TaskCatsMouseNoiseless.m} \texttt{TaskCatsMouseNoisy.m} and \texttt{TaskCatsMouseNoisyAndWindy.m}. 
+
+An example file \texttt{main\_catsmouse.m} shows how to initialize and run a task and can be easily modified to test learning and control algorithm that generate actions for the cats.
+
+The task, the configurations and the example main files are in the directory \texttt{scenarios/catsmouse} within the qrsim simulator. 
+\\
+\\
+
+\begin{tabular}{lll}
+     $\tilde{p}_x$ & x position estimate from GPS (NED coordinates)            & $m$\\
+     $\tilde{p}_y$ & y position estimate from GPS (NED coordinates)            & $m$\\
+     $\tilde{p}_z$ & z position estimate from GPS (NED coordinates)            & $m$\\
+     $\tilde{\phi}$ & roll attitude in Euler angles right-hand ZYX convention & $rad$\\
+     $\tilde{\theta}$ & pitch attitude in Euler angles right-hand ZYX convention& $rad$\\
+     $\tilde{\psi}$ & yaw attitude in Euler angles right-hand ZYX convention  & $rad$\\
+     $\tilde{p}$  & rotational velocity around x body axis from gyro                 & $rad/s$\\ 
+     $\tilde{q}$  & rotational velocity around y body axis from gyro                 & $rad/s$\\ 
+     $\tilde{r}$  & rotational velocity around z body axis from gyro                & $rad/s$\\
+     $\tilde{a}_x$ & linear acceleration in x body axis from accelerometer            & $m/s^2$\\
+     $\tilde{a}_y$ & linear acceleration in y body axis from accelerometer             & $m/s^2$\\
+     $\tilde{a}_z$ & linear acceleration in z body axis from accelerometer             & $m/s^2$\\
+     $h$& altitude\footnotemark  from altimeter NED & $m$\\
+     $\dot{p}_x$ & x velocity from GPS (NED coordinates)            & $m/s$\\
+     $\dot{p}_y$ & y velocity from GPS (NED coordinates)            & $m/s$\\
+     $\dot{h}$    & altitude rate from altimeter NED                   & $m/s$\\
+     $v_x$ & desired x velocity control (NED coordinates)            & $m/s$\\ 
+     $v_y$ & desired y velocity control (NED coordinates)            & $m/s$\\
+\end{tabular} 
+
+
+
+\end{document}          
