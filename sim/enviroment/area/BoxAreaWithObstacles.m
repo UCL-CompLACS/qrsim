@@ -1,8 +1,8 @@
-classdef BoxArea<Area
+classdef BoxAreaWithObstacles<Area
     % Defines a simple box shaped empty area in which the platforms can fly
     %
     % BoxArea Methods:
-    %    BoxArea(objparams)   - constructs the object
+    %    BoxAreaWithObstacles(objparams)   - constructs the object
     %    reset()              - does nothing
     %    getOriginUTMCoords() - returns origin
     %    getLimits()          - returns limits
@@ -10,27 +10,31 @@ classdef BoxArea<Area
     %           
     
     methods (Sealed,Access=public)
-        function obj = BoxArea(objparams)
+        function obj = BoxAreaWithObstacles(objparams)
             % constructs the object
             %
             % Example:
             %
-            %   obj=BoxArea(objparams)
+            %   obj=BoxAreaWithObstacles(objparams)
             %               objparams.limits - x,y,z limits of the area 
             %               objparams.originutmcoords - structure containing the origin in utm coord
             %               objparams.graphics.type - class type for thegraphics object 
             %                                         (only needed if the 3D displayis active)
-            %               objparams.state - handle to the simulator state
+            %               objparams.state - handle to the simulator state 
+            %               objparams.obstacles - the set of obstacles
             %
             obj=obj@Area(objparams);
             
             if(objparams.graphics.on)
-                assert(isfield(objparams.graphics,'type'),'boxarea:nographicstype','Since the display3d is on the task must define environment.area.graphics.type');
+                assert(isfield(objparams.graphics,'type'),'boxareawithobstacles:nographicstype','Since the display3d is on the task must define environment.area.graphics.type');
                 tmp.limits = objparams.limits;
                 tmp.state = objparams.state;
                 if(isfield(objparams,'graphics') && isfield(objparams.graphics,'backgroundimage'))
                     tmp.backgroundimage = objparams.graphics.backgroundimage;
                 end
+                assert(isfield(objparams,'obstacles'),'boxareawithobstacles:noobstacles','for this type of flight area the task must define obstacles environment.area.obstacles');
+                tmp.obstacles = objparams.obstacles;
+                
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
         end
