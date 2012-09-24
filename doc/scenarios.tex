@@ -1,61 +1,393 @@
-\documentclass[a4paper,11pt]{article}
-\usepackage[utf8x]{inputenc}
-\usepackage{fullpage}
-\usepackage[hyphens]{url}
-\usepackage{hyperref} %this messes up the line breaks of url
-\usepackage{xspace}
-\usepackage{listings}
+\documentclass{article}
+
+\usepackage{times}
+%\usepackage[round]{natbib}
+
+\usepackage[round]{natbib}
+\usepackage{bm}
 \usepackage{graphicx}
-\setlength{\parindent}{0pt} 
-\setlength{\parskip}{2ex}
+\usepackage{latexsym}
+\usepackage{amsmath,amsfonts,amssymb,mathrsfs,color}
+%\usepackage{algorithm,algorithmic}
+\usepackage{latexsym}
+\usepackage{subfigure}
+\usepackage{pifont}
+\usepackage{amsthm}
+\usepackage[hyphens]{url}
+%\usepackage{hyperref} this messes up the line breaks of url
+\usepackage{xspace}
+\usepackage{longtable}
+
+
+
+%%environments
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\newenvironment{definition}[1][Definition]{\begin{trivlist}\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{example}[1][Example]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+\newenvironment{remark}[1][Remark]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+\newcommand\mytexttt[1]{\texttt{\hyphenchar\font=45\relax #1}}
+%bibs
+%\newcommand{\SzepesvariAlgorithms}{SzepesvariAlgorithms}
+\newcommand{\SongEmbeddings}{DBLP:conf/icml/SongHSF09}
+%\newcommand{\HolmesFast}{isbell:density:2007}
+\newcommand{\MichelliVectorValued}{DBLP:journals/neco/MicchelliP05}
+\newcommand{\GrunewalderEmbeddingsRegression}{GrunewalderEmbeddingsRegression}
 
 \newcommand{\webman}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/manual.pdf}\xspace}
 
-% Title Page
-\title{Quadrotors Scenarios}
-\author{}
-\date{}
+%%commands
+\newcommand{\cH}{{\mathcal H}}
+\newcommand{\cV}{{\mathcal V}}
+\newcommand{\cX}{{\mathcal X}}
+\newcommand{\cS}{{\mathcal S}}
+\newcommand{\cF}{{\mathcal F}}
+\newcommand{\cY}{{\mathcal Y}}
+\newcommand{\cD}{{\mathcal D}}
+\newcommand{\bK}{\bm K}
+\newcommand{\bI}{\bm I}
+\newcommand{\bW}{\bm W}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\Expect}{\E}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\lang}{\langle}
+\newcommand{\rang}{\rangle}
+\newcommand{\nn}{\nonumber}
+\newcommand{\Prob}{{\rm Prob}}
+\newcommand{\wtilde}{\widetilde}
+\newcommand{\hP}{{\widehat P}}
+\newcommand{\hB}{{\widehat B}}
+\newcommand{\hQ}{{\widehat Q}}
+\newcommand{\hV}{{\widehat V}}
+\newcommand{\hmu}{{\widehat \mu}}
+\newcommand{\hcU}{{\widehat \cU}}
+\newcommand{\tP}{{\widetilde P}}
+\newcommand{\hp}{\widehat p}
+\newcommand{\hf}{\widehat f}
+\newcommand{\Id}{{\rm Id \,}}
+\newcommand{\hatmu}{\hat \mu}
+\newcommand{\Err}{{\mathcal{E}}}
+\newcommand{\what}{\widehat}
+\newcommand{\hatErr}{\what{\Err}}
+\newcommand{\loss}{{\rm loss}}
+
+\newcommand{\argmin}{\operatornamewithlimits{argmin}}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+
+%% AG2: why are we using cite* everywhere? This uses a massive amount of space. I've removed some of them, but I would recommend never using this.
 
 \begin{document}
+
+
+\title{CompLACS Helicopters Scenarios}
+
+
+\date{}
+\author{}
+
 \maketitle
-This documents provides details on the test scenarios chosen for the quadrotors application platform of the CompLACS project. 
 
 \section{Scenario 1: Cats and Mouse game}
+$N$ helicopters (cats) have to be controlled in order to catch (i.e. get close to) another helicopter (mouse) at the end of the allotted time.
 
-\textbf{Objective:} Control N quadrotors\footnote{N is usually 3.} (cats) in order to catch another quadrotor (mouse) at the end of the allotted time.
+\subsection{MDP}
 
-\textbf{Setup:} At the beginning of the task the mouse is placed at the center of the flight space\footnote{Without loss of generality since the control problem depends on the relative positions of mouse and cats as long as the flying area is sufficiently large.} and the cats are positioned randomly (within reason) around the mouse. 
-Initially all the helicopters are stationary. As the task starts the mouse helicopter tries to escape the cats by moving at a constant\footnote{While the PID controller that governs the quadrotor attempts to maintain a fix maximum speed, in practise this will not always be the case due to sensor noise wind disturbance and dynamic effects.} (max) speed and following a predefined control law that prioritize escaping from the closest cats. 
-The task final reward is computed as the sum of the squared distances of the cats to the mouse at the end of the allotted time. 
-A large negative reward is returned if any of the helicopters goes outside of the flying area or if any collision happens during the task.
+The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
 
-Since how hard the control problem is depends on the level of sensor noise and wind disturbance, we provide three versions of the task with in increasing level of difficulty:
+\paragraph{States:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises the position ($[p_x,p_y,p_z]^\intercal$), velocity and orientation of the cats (superscripts $1,...,N$) and of the mouse (superscript $m$). All are continuous variables (see section \ref{CatMouseSim}), the environment is 3 dimensional although the helicopters are assumed to fly at a fixed altitude.
+
+\paragraph{Initial State:} At the beginning of the task the mouse is placed at the center of the flight space\footnote{Without loss of generality since the control problem depends on the relative positions of mouse and cats as long as the flying area is sufficiently large.} and the cats are positioned randomly around the mouse\footnote{
+The initial position of cats are generated as:
+$$
+\left\{
+\begin{array}{l l}
+p^i_x =  d_i \cos(\alpha_i) & \\
+p^i_y =  d_i \sin(\alpha_i) & i \in 1..N\\
+p^i_z = - h_{fix} & \\
+\end{array}
+\right.
+$$
+where $\alpha_i \in \mathcal{U}(0,2\pi)$ and $d_i \in \mathcal{U}(D_m,D_M)$. The minimum and maximum distance from the mouse ($D_m,D_M$) and the altitude $h_{fix}$ are user-configurable.
+An additional parameter $D_{c2c}$ allows to define a minimum distance between two cats, which prevent the occurrence of an initial state in which two cats are too close.
+}.
+Initially all the helicopters are stationary (i.e. their velocities are zero).
+
+\paragraph{Actions:} 
+The action $a_t = (a^1_t,...,a^{N}_t)$ at time $t$ comprises the action for each of the cats helicopters. 
+To limit the space of control inputs we do not directly control the four inputs of each quadrotor (i.e. angles and throttle), instead each UAV is equipped with a PID controller\footnote{In addition to reducing the number of control inputs this makes the task closer to what is possible to implement and test using real quadrotors.} that accepts 2D linear velocity commands while maintaining a constant altitude and heading. The linear velocity commands are expressed in global coordinates (see section \ref{CatMouseSim} for details).
+
+\paragraph{Dynamics:} 
+Markovian transition dynamics are defined by a distribution $P(s'|s,a)$ which denotes the conditional density\footnote{We refer to the \texttt{QRSim} manual \webman for detail about the helicopter transition dynamics.} of state $s'$ at time $t+1$ given state-action $(s_t,a_t)=(s,a)$ at
+time $t$. As the task starts the mouse helicopter tries to escape the cats by moving at a constant\footnote{While the control law that governs the quadrotor attempts to maintain a fix maximum speed, in practice the true speed will not be constant due to sensor noise wind disturbance and dynamic effects.} (max) speed and following a predefined control law that prioritize escaping from the closest cats.\footnote{In specific the 2D velocity action for the mouse at time $t$ is computed as:
+$$
+\begin{array}{ll}
+a^m_t = V_{M} \frac{\mathsf{v}_t}{\| \mathsf{v}_t \|} &
+\text{where } \;\;\mathsf{v}_t = \sum_{i=1}^N \frac{\left[\begin{array}{c} p^i_x \\ p^i_y \end{array}\right]_t - \left[\begin{array}{c} p^m_x \\ p^m_y \end{array}\right]_t}{\left\| \left[\begin{array}{c} p^i_x \\ p^i_y \end{array}\right]_t - \left[\begin{array}{c} p^m_x \\ p^m_y \end{array}\right]_t \right\|^2}
+\end{array}
+$$
+and $V_{M}$ is the (user-configurable) maximum speed that the mouse can achieve.  
+}
+
+\paragraph{Rewards:}
+The task final reward is computed as the sum of the squared (2D) distances\footnote{$d_{2D}(x^i_T,x^m_T) = [p^i_x,p^i_y]\cdot[p^m_x,p^m_y]^\intercal$.} of the cats to the mouse at the end of the allotted time ($T$):
+$$r_T = - \sum^N_1 d_{2D}(x^i_T,x^m_T)^2.$$
+A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if any of the helicopters (including the mouse) goes outside of the flying area or if any collision happens during the task.
+
+\subsection{Task Variations} \label{CatMouseVariations}
+ Since the difficulty of the control problem depends on the level of sensor noise and wind disturbance, we provide three versions of the task with increasing level of difficulty:
 \begin{itemize}
- \item \textit{noiseless:} the dynamics of the quadrotors is deterministic and the state returned is the true platform state;
- \item \textit{noisy:} the dynamics of the quadrotors is stochastic and the state returned is a noiy estimate of the platform state;
- \item \textit{noisy and windy:} the dynamics of the quadrotors is stochastic and affected by wind disturbances, the state returned is a noiy estimate of the platform state.
+ \item \textit{\textbf{1A} noiseless:} the dynamics of the quadrotors is deterministic and the state returned is the true platform state;
+ \item \textit{\textbf{1B} noisy:} the dynamics of the quadrotors is stochastic and the state returned is a noisy estimate of the platform state (i.e. with additional white noise);
+ \item \textit{\textbf{1C} noisy and windy:} the dynamics of the quadrotors is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise).
 \end{itemize}
 
-\textbf{State:} 
-For each of the helicopters the full estimated state $eX$ of cats and mouse is made available:
-$$eX = [\tilde{p}_x;\tilde{p}_y;\tilde{p}_z;\tilde{\phi};\tilde{\theta};\tilde{\psi};0;0;0;\tilde{p};\tilde{q};\tilde{r};0;\tilde{a}_x;\tilde{a}_y;\tilde{a}_z;h;\dot{p}_x;\dot{p}_y;\dot{h}]$$
+If there is sufficient interest additional variations could be added, these includes (but are not limited to):
+\begin{itemize} 
+\item \textit{obstacles:} e.g. cylinders in the flying area which are impassable and result in crashes. The obstacles would be represented by providing the coordinates of their center and radius, for example.
+\item \textit{multitask:} a multitask setting which involves repeated attempts at tasks drawn from some distribution.
+\end{itemize}
 
-\textbf{Actions:} 
-To limit the space of control inputs we do not expose directly the four control input of each quadrotor, instead we provide each quadrotor with a PID controller that allows it to maintain a fixed altitude and heading and to receive commands in terms of a 2D linear velocity\footnote{In addition to reducing the number of control inputs this makes the task closer to what is possible to implement and test using real quadrotors.}. 
-Therefore for each of the (cats) helicopters the available action is in the form:
-$$u=[v_x,v_y]^T,$$
-the mouse insteads moves autonomously. 
 
-\textbf{Code:}
-All the ingredients of the scenario described above are implemented as a task class for the quadrotor simulator QRSim\footnote{We refer to the QRSim manual for details on the simulator API \webman.}; the three variation of the scenario are named (rather obviously) \texttt{TaskCatsMouseNoiseless.m} \texttt{TaskCatsMouseNoisy.m} and \texttt{TaskCatsMouseNoisyAndWindy.m}. 
+\subsection{Simulation Code}\label{CatMouseSim}
+All the ingredients of the scenario described above are implemented as a task class for the quadrotor simulator \texttt{QRSim}\footnote{We refer to the QRSim manual for details on the simulator API \webman.}; the three variations of the scenario are named:
+\begin{itemize}
+\item\textit{1A}: \mytexttt{TaskCatsMouseNoiseless.m},
+\item\textit{1B}: \mytexttt{TaskCatsMouseNoisy.m},
+\item\textit{1C}: \mytexttt{TaskCatsMouseNoisyAndWindy.m}. 
+\end{itemize}
 
-An example file \texttt{main\_catsmouse.m} shows how to initialize and run a task and can be easily modified to test learning and control algorithm that generate actions for the cats.
+We also provide the example file \texttt{main\_catsmouse.m} which shows how to initialize and run a task, how to retrieve the platform state
+and issue actions.
 
-The task, the configurations and the example main files are in the directory \texttt{scenarios/catsmouse} within the qrsim simulator. 
-\\
-\\
+The task, the configurations and the example main files are in the directory \mytexttt{scenarios/catsmouse} within the qrsim simulator. 
 
-\begin{tabular}{lll}
+\textbf{Note:}
+Within the simulator the helicopter state $x^i$ is denoted as $eX$:
+$$eX = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
+while the actions $a^i$ are denoted as controls $u$:
+$$u=[v_x,v_y]^\intercal$$
+with the variables defined in section \ref{tab:naming}.
+
+\subsection{Example Approach/Decomposition} \label{CatMouseDecompositions}
+
+\subsubsection{Kernel learning -- Modelling transition dynamics using RKHS embeddings -- planning} \label{EmbeddingsDecomp}
+
+The key composition will include a module to model the transition dynamics of the MDP using RKHS embeddings, followed by using this model to perform policy learning using dynamic programming methods. This composition is studied in \cite{GrunewalderEmbeddingsMDPs}. Further extensions of this work relevant to the application to this scenario include exploiting the multi-agent structure (e.g. factorizing the dynamics and learning the dynamics for each agent separately), as well as learning the mouse dynamics and cat dynamics separately.
+
+The modelling component using RKHS embeddings assumes a given kernel on the state space. We will additionally study a representation learning component which learns a kernel on the state space suitable for the given MDP, as in \cite{LeverFastSSLKernels,LeverKernelsForControl}, which is then used by the modelling component to model the transition dynamics. We will also investigate exploiting the connection between dynamics learning and regression \cite{GrunewalderEmbeddingsRegression} to learn the feature representation directly using methods of feature selection for regression including multi-task regression for the multi-task case.
+
+We will also replace the dynamic programming module with a direct policy search method -- policy gradients -- and study the interaction between modelling transition dynamics and the policy search component as is done for dynamic programming approach in \cite{GrunewalderEmbeddingsMDPs}.
+
+
+\newpage
+\section{Scenario 2: Search and Rescue}
+Several targets (people) are lost/injured on the ground in a landscape and need to be located and rescued. A helicopter agent is equipped with a camera/classification module for predicting the position of targets in its field of vision, but the quality of predictions depend upon the geometry between helicopter and ground (e.g. the distance). Rather than raw images the camera module provides higher-level data in the form of likelihood ratios of the current image conditioned on the presence or absence of a target.
+
+\subsection{MDP}
+
+The underlying system is modelled as a discrete time MDP on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
+
+\paragraph{States:} the state $s_t=(x_t,b_t)$ at time $t$ comprises the helicopter data $x_t$ which includes the agents position, velocity and orientation, and $b^i_{t}$, for $i\in\{1,...,N\}$ the position of $N$ targets. All are continuous variables. We assume that the ground is flat and that the targets are located on the ground.
+
+\paragraph{Actions:}
+The action $a_t$ at time $t$ is expressed in terms of a velocity vector in global coordinates (refer to section \ref{CatMouseSim} of the first scenario for details on the way actions are specified).
+
+\paragraph{Rewards:} a reward of $r_t=1$ is received when a helicopter hovers sufficiently close to any target $i\in\{1,...,N\}$ in which case it is rescued: the helicopter must be approximately stationary, $||[u,v,w]_t^\intercal|| \le \epsilon$, and the distance\footnote{$d_{3D}(x_t,b^i_t) = \sqrt{(b^i_t\cdot[p_x,p_y,p_z]_t^\intercal)}$.}
+\begin{align}
+d_{3D}(x_t,b^i_t)<\delta, \nn
+\end{align}
+for some user-specified $(\epsilon,\delta)$. 
+A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if any the helicopter goes outside of the flying area or if any collision happens during the task. Under any other circumstance $r_t=0$
+
+\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \texttt{QRSim} manual \webman for detail about the helicopter transition dynamics.} are defined by $P(x'|x,a)$ which denotes the conditional density of state $x'$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$. These dynamics are independent of the targets $b^i_t$.
+
+Targets $b^i_t$ are stationary unless a target is rescued in which case it should be removed, i.e. if $||[u,v,w]_t^\intercal|| \le \epsilon$, and for some $i$
+\begin{align}
+d_{3D}(x_t,b^i_t)<\delta, \nn
+\end{align}
+then $N\rightarrow N-1$ and target $i$ is removed.
+
+\subsection{Observations}
+
+The helicopter state $x_t$ is observed directly (there are various noise models - see Section~\ref{CatMouseVariations}).
+
+The position of the targets $b^i_t$ is not known, but observations $o_t$ are provided by the camera at each time step.
+
+Following standard object detection techniques we assume the incoming image is analyzed for targets at $m\in \{1,...,2M + 1\}$ different scales centred around a scale informed by the current altitude (and a fix size for the person). For each scale $m$ an any user-requested set of coordinates $\{c_i\}_{i=1}^C$ on the ground the following likelihood ratio scores are provided at each time step $t$:
+\begin{align}
+o_{t} = \left(\frac{\Prob(\mbox{image at time } t~|~\mbox{target in $g_{i}$, agent at $x_t$, analysis at scale $m$})}{\Prob(\mbox{image at time }
+t~|~\mbox{no target in $g_{i}$, agent at $x_t$, analysis at scale $m$})}\right)_{m,i} \nn
+\end{align}
+where here $g_{i}$ is a ground patch (a rectangular window of user-defined size) centred on $c_i$.\footnote{This form for the observations assumes that everything needed to provide the link between the ground coordinates and the camera's frame is engineered by hand and does not have to be learned autonomously. In other words it is assumed that a map is available and known and the mapping
+\begin{align}
+\mbox{ground coordinates } \mapsto \mbox{pixels in camera's frame}\nn
+\end{align}
+is known, but does not have to be considered explicitly by the agent.}
+
+
+\subsection{Agent state}
+
+We have outlined the underlying dynamics and what data is available to the agent. The learner can use this data to approach the problem in any way. For example an \emph{agent state} $\hat s_t$ could be defined using the entire history $\{x_1,...,x_t\}\cup\{o_1,...,o_t\}$, followed by defining an MDP on the agent state. Agent state might for example include current estimates of target locations and confidence intervals, and be constructed in a Bayesian or frequentist way, for example.
+
+\subsection{Task Variations} \label{Variations}
+The difficulty of solving the task depends on the number of platforms that are employed as well as on the level of sensor noise and wind disturbance; we provide four versions of the task with increasing level of difficulty:
+\begin{itemize}
+ \item \textit{\textbf{2A} single helicopter noiseless:} only one helicopter is used for the search, its dynamic is deterministic and the state returned is the true platform state;
+ \item \textit{\textbf{2B} single helicopter noisy:} only one helicopter is used for the search, its dynamics is stochastic and the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise);
+ \item \textit{\textbf{2C} multiple helicopters noiseless:} several helicopters are used for the search, their dynamics is deterministic and the state returned is the true platform state;
+ \item \textit{\textbf{2D} multiple helicopters noisy and windy:} several helicopters are used for the search, their dynamics is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise).
+\end{itemize}
+
+If there is sufficient interest additional variations could be added.
+
+\subsection{Simulation Code} \label{SearchRescueSim}
+
+All the ingredients of the scenario described above are implemented\footnote{We are currently in the process of finalizing the implementation.} as a task class for the quadrotor simulator \texttt{QRSim}\footnote{We refer to the QRSim manual for details on the simulator API \webman.}; the four variations of the scenario are named:
+\begin{itemize}
+\item\textit{2A}: \mytexttt{TaskSearchRescueSingleNoiseless.m}, 
+\item\textit{2B}: \mytexttt{TaskSearchRescueSingleNoisy.m}, 
+\item\textit{2C}: \mytexttt{TaskSearchRescueMultipleNoiseless.m} 
+\item\textit{2D}: \mytexttt{TaskSearchRescueMultipleNoisyAndWindy.m}. 
+\end{itemize}
+
+We also provide the example file \texttt{main\_searchrescue.m} which shows how to initialize and run a task, how to retrieve the platform state, retrieve the observations and issue actions.
+
+The task, the configurations and the example main files are in the directory \mytexttt{scenarios/searchrescue} within the qrsim simulator. 
+
+\textbf{Note:}
+Within the simulator the helicopter state $x^i$ is denoted as $eX$:
+$$eX = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
+while the actions $a^i$ are denoted as controls $u$:
+$$u=[v_x,v_y]^\intercal$$
+with the variables defined in section \ref{tab:naming}.
+
+\subsection{Example Approach/Decomposition}
+
+The decomposition of Section~\ref{EmbeddingsDecomp} will be applied here, but will be generalized to the POMDP setting due to imperfect state information and observation data.
+
+
+\newpage
+\section{Scenario 3: Plume modelling}
+Several smoke plumes evolve over time and a helicopter agent is equipped with a sensor that measures the concentration of smoke. The plume follows a known model but with unknown parameter values. The objective is to provide a smoke concentration estimate $\hat{c}_T$ at some prespecified time $T$\footnote{For simplicity we refer to concentration of smoke, in a real environment this would be a property of the plume that can be realistically measured e.g. CO concentration.}.
+
+\subsection{Markov process}
+The underlying system is modelled as a discrete time Markov process on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
+
+\paragraph{States:} the state $s_t=(x_t,c_t)$ at time $t$ comprises the helicopter data $x_t$ which includes the agents position, velocity and orientation, which are continuous variables, and $c_t$ the smoke concentration over the whole flight volume, also continuous.
+
+\paragraph{Actions:}
+The action $a_t$ at time $t$ is expressed in terms of a velocity vector in global coordinates (refer to section \ref{CatMouseSim} of the first scenario for details on the way actions are specified).
+
+\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \texttt{QRSim} manual \webman for detail about the helicopter transition dynamics.} and the smoke concentration are defined by $P(s'|s,a)$ which denotes the conditional density of state $s'$ at $t+1$ given $(s_t,a_t) = (s,a)$ at time $t$. The smoke evolves according to a plume model (see section \ref{PlumeVariations} for details) and its evolution is assumed to be independent of the helicopter actions and state  $P(c'|c,x,a)=P(c'|c)$.
+
+\paragraph{Observations:} The helicopter state $x_t$ is observed directly (there are various noise models - see Section~\ref{PlumeVariations}). The smoke concentration $c_t$ is not known, but noisy observations $o_t$ are provided by a concentration sensor at each time step returning the concentration at the position in which the helicopter is located.
+
+\paragraph{Performance measurement:} 
+For the tasks 3A, 3B, 3C and 3D (see section \ref{PlumeVariations}) in which the concentration is static, at a pre-specified time $T$ the agent must provide an estimate $\hat c_T$ of the concentration\footnote{In practice in order to enable the computation of the reward the agent will be asked to return the value of $c_t$ at a number of locations specified by the task.} $c_t$.
+The performance is computed as the square error between the true and estimated concentrations over the support of the true concentration $c_t$:
+$$
+r = \int_{S_c} | c_t - \hat{c}_t |^2  \qquad\qquad S_c=supp(c_t>\epsilon).
+$$
+
+For tasks 3E, 3F and 3G in which the concentration evolves in time, at a pre-specified time $T$ the agent must provide an estimate distribution over the concentration $\hat P(c_T)$.
+The performance is computed as the KL divergence from the true concentration distribution\footnote{In practice in order to enable the computation of the reward the agent will be asked to repeatedly return (i.e. draw samples from its distribution) the value of $c_t$ at a number of locations specified by the task.} $P(c_T)$ and the provided estimate $\hat P(c_T)$:
+$$
+r = KL(P(c_T) \|\hat{P}(c_T)).
+$$
+
+\subsection{Task Variations}  \label{PlumeVariations}
+The complexity of the estimation problem changes substantially depending on the type of dispersion model followed by the plume, and on the number of helicopters used to tackle the task hence we provide several version of the task with increasing level of difficulty:
+\begin{itemize}
+\item \textit{\textbf{3A} single source static Gaussian concentration:} only one helicopter is used for the sampling, its dynamic is deterministic, the state returned is the true platform state, the smoke concentration is static and has the form or a three dimensional Gaussian centered at the source (see equation \ref{eqn:singlesourcegaussian}).
+
+\item \textit{\textbf{3B} single source static Gaussian dispersion model:} only one helicopter is used for the sampling, its dynamics is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise) and the smoke concentration is static and has the form specified by what is commonly called a Gaussian dispersion model (see equation \ref{eqn:singlesourcegaussiandispersion}).
+
+\item \textit{\textbf{3C} multiple sources static Gaussian dispersion model:} only one helicopter is used for the sampling, its dynamics is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise) and the smoke concentration is static and has the form specified by the superposition of several sources each of which follows a Gaussian dispersion model (see equation \ref{eqn:multiplesourcesgaussiandispersion}).
+
+\item \textit{\textbf{3D} multiple helicopters multiple sources static Gaussian dispersion model :} as above but multiple helicopters are used for the sampling.
+
+\item \textit{\textbf{3E} single source time-varying Gaussian puff dispersion model:} only one helicopter is used for the sampling, its dynamics is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise) and the smoke concentration is time-varying and has the form specified by what is commonly called a Gaussian puff dispersion model (see equation \ref{eqn:singlesourcesgaussianpuffdispersion}).
+
+\item \textit{\textbf{3F} multiple sources time-varying Gaussian puff dispersion model:} only one helicopter is used for the sampling, its dynamics is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise) and the smoke concentration is static and has the form specified by the superposition of several sources each of which follows a Gaussian puff dispersion model (see equation \ref{eqn:multiplesourcesgaussianpuffdispersion}).
+
+\item \textit{\textbf{3G} multiple helicopters multiple sources time-varying Gaussian puff dispersion model :} as above but multiple helicopters are used for the sampling.
+
+\end{itemize}
+
+\textit{Note:}
+Since the dispersion models are known, one possible way to solve the tasks is to estimate the model parameters (or a distributions over them); while this is an appropriate solution we emphasize that the agent is not required to solve the task in this way and so other forms for the concentration (or for the distribution over the concentration) are equally appropriate.  
+
+If there is sufficient interest additional variations could be added.
+
+\subsection{Simulation Code} \label{PlumeSim}
+
+All the ingredients of the scenario described above are implemented\footnote{We are currently in the process of finalizing the implementation.} as a task class for the quadrotor simulator \texttt{QRSim}\footnote{We refer to the QRSim manual for details on the simulator API \webman.}; the seven variations of the scenario are named:
+\begin{itemize}
+\item\textit{3A}: \mytexttt{TaskPlumeSingleSourceGaussian.m}, 
+\item\textit{3B}: \mytexttt{TaskPlumeSingleSourceGaussianDispersion.m},
+\item\textit{3C}: \mytexttt{TaskPlumeMultiSourceGaussianDispersion.m}, 
+\item\textit{3D}: \mytexttt{TaskPlumeMultiHeliMultiSourceGaussianDispersion.m}, 
+\item\textit{3E}: \mytexttt{TaskPlumeSingleSourceGaussianPuffDispersion.m}, 
+\item\textit{3F}: \mytexttt{TaskPlumeMultiSourceGaussianPuffDispersion.m},
+\item\textit{3G}: \mytexttt{TaskPlumeMultiHeliMultiSourcePuffDispersion.m}. 
+\end{itemize}
+
+We also provide the example file \texttt{main\_plume.m} which shows how to initialize and run a task, how to retrieve the platform state, retrieve the observations, issue actions and return concentration estimates.
+
+The task, the configurations and the example main files are in the directory \mytexttt{scenarios/plume} within the qrsim simulator. 
+
+\textbf{Note:}
+Within the simulator the helicopter state $x^i$ is denoted as $eX$:
+$$eX = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
+while the actions $a^i$ are denoted as controls $u$:
+$$u=[v_x,v_y]^\intercal$$
+with the variables defined in section \ref{tab:naming}.
+
+
+\subsection{Example Approach/Decomposition}
+
+\subsubsection{Plume estimation -- planning}
+
+One approach will be to use a module which uses the observations $\{o_t\}_{t=1,...}$ to infer the plume parameters and provides rewards to the encourage the helicopter to collect useful data (the reward might be a measure of the improvement of its estimate, such as information gain). This defines a (PO)MDP for the helicopter and the embeddings -- planning approach of Section~\ref{CatMouseDecompositions} will be applied to solve the MDP. Additional data provided by the modelling module might be a current concentration estimate $\hat c_t$ of $c_t$ (or an estimate of the model parameters), suggestions for coordinates to visit (via e.g. active learning). This data will form part of the agent's state space but  the agent would not know the semantics of this data and must learn how to ustilse the data autonomously.
+
+
+\iffalse
+\section*{Acknowledgments}
+The authors want to thank for the support of the EPSRC \#EP/H017402/1 (CARDyAL) and the European Union \#FP7-ICT-270327 (CompLACS).
+\fi
+
+\begin{small}
+\bibliographystyle{abbrvnat}
+%\bibliographystyle{plainnat}
+%\bibliographystyle{plain}
+%\bibliographystyle{alpha}
+%\bibliographystyle{abbrv}
+%\bibliographystyle{icml2010}
+\bibliography{scenariosbib}
+
+\end{small}
+
+\newpage
+
+\appendix
+
+\section{Variable Definitions}\label{tab:naming}
+
+Helicopter state variables common to all the tasks:
+\begin{table}[h]  
+\begin{tabular}{l l l}
+     $p_x$ & true x position (NED coordinates)            & $m$\\
+     $p_y$ & true y position (NED coordinates)            & $m$\\
      $\tilde{p}_x$ & x position estimate from GPS (NED coordinates)            & $m$\\
      $\tilde{p}_y$ & y position estimate from GPS (NED coordinates)            & $m$\\
      $\tilde{p}_z$ & z position estimate from GPS (NED coordinates)            & $m$\\
@@ -74,8 +406,88 @@ The task, the configurations and the example main files are in the directory \te
      $\dot{h}$    & altitude rate from altimeter NED                   & $m/s$\\
      $v_x$ & desired x velocity control (NED coordinates)            & $m/s$\\ 
      $v_y$ & desired y velocity control (NED coordinates)            & $m/s$\\
-\end{tabular} 
+\end{tabular}
+\end{table}
+
+We remind the reader that NED stands for Noth-East-Down as explained in more detail in the \texttt{QRSim} manual.
+
+\section{Concentration Models}
+
+To interpret the following models, is useful to introduce some nomenclature:
+\begin{longtable}{l l l}
+$x,y,z$ & coordinates w.r.t. the global NED frame of reference & $m$\\
+$x',y',z'$ & coordinates w.r.t. the wind frame of reference & $m$\\
+$X_s,Y_s$ & coordinates of the source w.r.t. the global NED frame  & $m$\\
+$x\prime_s,y'_s$ & coordinates of the source w.r.t. the wind frame of reference  & $m$\\
+$Q_s$ & emission rate of source $s$ & $Kg/s$\\
+$H_s$ & equivalent height of source $s$ & $m$\\
+$u$ & constant magnitude of the wind speed & $m/s$\\
+$S$ & number of sources & \\
+$a$ & diffusion parameter & $m^{2-b}$\\
+$b$ & diffusion parameter & \\
+$\alpha_w$ & wind direction (clockwise from north) & $rads$\\
+$I_s$ & total number of puff for source $s$ & \\
+$T^i_s$ & time at which puff $i$ of source $s$ was emitted & $s$\\
+$Q^i_s$ & total amount of smoke emitted by source $s$ at time $T^i$ & $Kg$\\
+$\boldsymbol\Sigma$ & Gaussian concentration covariance matrix \\
+\label{tab:naming2}
+\end{longtable}
+
+We also introduce a change of reference frame, namely from global frame to wind frame (a frame of reference with origin in the global frame and aligned with the wind direction), since some of the models are expressed in this coordinates:
+\begin{eqnarray}
+x' &=& x \cos(\alpha_w) \\
+y' &=& y \sin(\alpha_w).
+\end{eqnarray}
+
+\subsection{Single Source Gaussian Concentration Model}
+\begin{equation}\label{eqn:singlesourcegaussian}
+c(x,y,z) = \frac{1}{(2\pi)^{3/2}|\boldsymbol\Sigma|^{1/2}}
+\exp\left(-\frac{1}{2}
+\left[\begin{array}{c}
+x-X_s\\
+y-Y_s\\
+z-H_s
+\end{array} \right]^T{\boldsymbol\Sigma}^{-1}
+\left[\begin{array}{c}
+x-X_s\\
+y-Y_s\\
+z-H_s
+\end{array} \right]
+\right)
+\end{equation}
+
+\subsection{Single Source Gaussian Dispersion Model}
+
+A standard static plume dispersion (for more details see \cite{stockie2011}):
+\begin{align}\label{eqn:singlesourcegaussiandispersion}
+c(x',y',z) = &\frac{Q}{2\pi u a (x'-X'_s)^b}  \exp \left(-\frac{(y'-Y'_s)^2}{2 a (x'-X'_s)^b}\right) \nonumber \\
+  & \left[ \exp \left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp \left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right].
+\end{align}
 
 
+\subsection{Multiple Sources Gaussian Dispersion Model}
 
-\end{document}          
+In the case of multiple sources the total concentration can be computed by superposition:
+\begin{align}\label{eqn:multiplesourcesgaussiandispersion}
+c(x',y',z) = \sum_{s=1}^S c(x',y',z;X'_s,Y'_s,H_s,Q_s).
+\end{align}
+
+\subsection{Single Source Gaussian Puff Dispersion Model}
+
+A standard time varying plume dispersion (for more details see \cite{stockie2011}):
+\begin{align}\label{eqn:singlesourcesgaussianpuffdispersion}
+c(x',y',z,t) = & \sum_{i=1}^I \left\{ \frac{Q^i_s}{8(\pi a (x'-X'_s)^b)^{3/2}} \right. \nonumber \\
+& \exp\left(-\frac{(x'-X'_s-u(t-T^i_s))^2+(y'-Y'_s)^2}{2 a (x'-X'_s)^b}\right) \nonumber \\
+& \left. \left[\exp\left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp\left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]\right\}.
+\end{align}
+
+\subsection{Multiple Sources Gaussian Puff Dispersion Model}
+
+Even in the case a time varying dispersion model, for multiple sources the total concentration can be computed by superposition:
+\begin{align}\label{eqn:multiplesourcesgaussianpuffdispersion}
+c(x',y',z,t) = \sum_{s=1}^S c(x',y',z,t;X'_s,Y'_s,H_s,Q^{1..I_s}_s).
+\end{align}
+
+\end{document}
+
+
