@@ -25,19 +25,21 @@ classdef TaskCatsMouseNoiseless<Task
     %
     properties (Constant)
         durationInSteps = 1000;
-        Nc = 3; %number of cats        
+        Nc = 3;              % number of cats
         minCatMouseInitDistance = 20;
         maxCatMouseInitDistance = 14;
-        minInterCatsInitDistance = 20;
-        mouseVcap = 1; % max mouse speed = mouseVcap * catMaxSpeed
-        hfix = 10;
-        PENALTY = 1000;
+        minInterCatsInitDistance = 22;
+        mouseVfactor = 1;       % max mouse speed = mouseVfactor * catMaxSpeed
+        trappedFactor = 2; % the mouse is trapped (and does not move) if its distance from any of the
+                             % cats is lower than trappedFactor*collisionDistance
+        hfix = 10;           % fix flight altitude
+        PENALTY = 1000;      % penalty reward in case of collision
     end
     
     properties (Access=public)
         initialX; % initial state of the uavs
         prngId;   % id of the prng stream used to select the initial positions
-        velPIDs;  % pid used to control the uavs  
+        velPIDs;  % pid used to control the uavs
     end
     
     methods (Sealed,Access=public)
@@ -68,7 +70,7 @@ classdef TaskCatsMouseNoiseless<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-25 25 -25 25 -15 0];
+            taskparams.environment.area.limits = [-140 140 -140 140 -40 0];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -117,7 +119,7 @@ classdef TaskCatsMouseNoiseless<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.Nc,
-                taskparams.platforms(i).configfile = 'noiseless_cat_config';                
+                taskparams.platforms(i).configfile = 'noiseless_cat_config';
                 obj.velPIDs{i} = VelocityHeightPID(taskparams.DT);
             end
             taskparams.platforms(obj.Nc+1).configfile = 'noiseless_mouse_config';
@@ -155,7 +157,7 @@ classdef TaskCatsMouseNoiseless<Task
                 
                 obj.simState.platforms{i}.setX([pos;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
-            end        
+            end
         end
         
         function UU = step(obj,U)
@@ -165,19 +167,26 @@ classdef TaskCatsMouseNoiseless<Task
             mousePos = obj.simState.platforms{obj.Nc+1}.getEX(1:2);
             Umouse = [0;0];
             
+            % sum up the vectors pointing from each cat to the mouse,
+            % weighted by their squared magnitude
             for i=1:obj.Nc,
                 diff = (mousePos-obj.simState.platforms{i}.getEX(1:2));
-                Umouse = Umouse+diff/(diff'*diff);            
+                if(~any(isnan(diff)))
+                    Umouse = Umouse+diff/(diff'*diff);
+                end
             end
             
-            % take the obtained direction and rescale it by the max
-            % velocity we can fly
-            Umouse = obj.mouseVcap*obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
+            % take the obtained direction and rescale it by the max mouse velocity
+            Umouse = obj.mouseVfactor*obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
             
             UU(:,obj.Nc+1) = obj.velPIDs{obj.Nc+1}.computeU(obj.simState.platforms{obj.Nc+1}.getEX(),Umouse,-obj.hfix,0);
             
             for i=1:obj.Nc,
-               UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-obj.hfix,0);
+                if(obj.simState.platforms{i}.isValid())
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-obj.hfix,0);
+                else
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],-obj.hfix,0);
+                end
             end
         end
         
@@ -201,9 +210,9 @@ classdef TaskCatsMouseNoiseless<Task
                 mousePos = obj.simState.platforms{obj.Nc+1}.getX(1:3);
                 for i=1:length(obj.Nc)
                     catPos = obj.simState.platforms{i}.getX(1:3);
-                    e = mousePos - catPos;
+                    e = max([0,norm(mousePos - catPos)-obj.trappedFactor*obj.simState.platforms{i}.getCollisionDistance()]);
                     % accumulate square distance of mouse from cat i
-                    r = r - e' * e;
+                    r = r - e^2;
                 end
                 r = obj.currentReward + r;
             else

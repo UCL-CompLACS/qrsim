@@ -1,4 +1,4 @@
-% bare bones example of use of the QRSim() simulator 
+% bare bones example of use of the QRSim() simulator
 % with one of the the cats-mouse scenario
 %
 % as a quick remainder, in this task which three quadrotors (cats) have to catch another
@@ -22,39 +22,48 @@ addpath(['..',filesep,'..',filesep,'controllers']);
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-state = qrsim.init('TaskCatsMouseNoiseless');
+%state = qrsim.init('TaskCatsMouseNoiseless');
 %state = qrsim.init('TaskCatsMouseNoisy');
-%state = qrsim.init('TaskCatsMouseNoisyAndWindy');
+state = qrsim.init('TaskCatsMouseNoisyAndWindy');
 
 % remainder:
-% platforms with id 1..qrsim.task.Nc are cats
-% the last platform (i.e. with id qrsim.task.Nc+1) is the mouse
+% platforms with id 1..state.task.Nc are cats
+% the last platform (i.e. with id state.task.Nc+1) is the mouse
 
 % create a 2 x cats matrix of control inputs
-% column i will contain the 2D NED velocity [vx;vy] in m/s for cat i 
-U = zeros(2,qrsim.task.Nc);
+% column i will contain the 2D NED velocity [vx;vy] in m/s for cat i
+U = zeros(2,state.task.Nc);
 tstart = tic;
 
 % run the scenario and at every timestep generate a control
 % input for each of the cats
-for i=1:qrsim.task.durationInSteps,
+for i=1:state.task.durationInSteps,
     tloop=tic;
     
-    % get the mouse position (note id qrsim.task.Nc+1)
-    mousePos = state.platforms{qrsim.task.Nc+1}.getEX(1:2);
+    % get the mouse position (note id state.task.Nc+1)
+    mousePos = state.platforms{state.task.Nc+1}.getEX(1:2);
     
-    % a quick and easy (and by no means perfect) way of 
-    % computing velocity controls for each cat; replace it with your
-    % control/learning algorithm.
-    % (Note that for simplicity this control law tries to catch the mouse 
+    % a quick and easy way of computing velocity controls for each cat (which almost never works); 
+    % REPLACE IT with your control/learning algorithm.
+    % (Note that for simplicity this control law tries to catch the mouse
     % as soon as possible and not simply at the end of the allotted time.)
-    for j=1:qrsim.task.Nc,
+    for j=1:state.task.Nc,
         % vector to the mouse
         u = mousePos - state.platforms{j}.getEX(1:2);
+        
         % if far away add a weighted velocity to "predict" where the mouse will be
-        u = u  + (norm(u)/2)*state.platforms{qrsim.task.Nc+1}.getEX(18:19);
+        u = u  + (norm(u)/2)*state.platforms{state.task.Nc+1}.getEX(18:19);
+        
+        % keep away from other cats if closer than 2*collisionDistance
+        for k = 1:state.task.Nc,
+            d = state.platforms{j}.getEX(1:2) - state.platforms{k}.getEX(1:2);
+            if((k~=j)&&(norm(d)<2*state.platforms{j}.getCollisionDistance()))
+                u = u + (1/(norm(d)-state.platforms{j}.getCollisionDistance()))*(d/norm(d));
+            end
+        end
+        
         % scale by the max allowed velocity
-        U(:,j) = qrsim.task.velPIDs{j}.maxv*(u/norm(u));
+        U(:,j) = state.task.velPIDs{j}.maxv*(u/norm(u));
     end
     
     % step simulator
@@ -68,9 +77,9 @@ end
 
 % get final reward
 % reminder: a large negative final reward (-1000) is returned in case of
-% collisions or in case of any uav going outside the flight area 
+% collisions or in case of any uav going outside the flight area
 fprintf('final reward: %f\n',qrsim.reward());
 
 elapsed = toc(tstart);
 
-fprintf('running %d times real time\n',(qrsim.task.durationInSteps*state.DT)/elapsed);
+fprintf('running %d times real time\n',(state.task.durationInSteps*state.DT)/elapsed);

@@ -28,7 +28,7 @@ for i=1:N,
     tloop=tic;
     % compute controls
     U = pid.computeU(state.platforms{1}.getX(),vt(1:3,i),0);
-    qrsim.task.setTargetVelocity(vt(:,i));
+    state.task.setTargetVelocity(vt(:,i));
     % step simulator
     qrsim.step(U);
     

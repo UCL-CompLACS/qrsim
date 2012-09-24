@@ -24,13 +24,15 @@ classdef TaskCatsMouseNoisyAndWindy<Task
     %
     properties (Constant)
         durationInSteps = 1000;
-        Nc = 3; %number of cats        
+        Nc = 3;              % number of cats
         minCatMouseInitDistance = 20;
         maxCatMouseInitDistance = 14;
-        minInterCatsInitDistance = 20;
-        mouseVcap = 1; % max mouse speed = mouseVcap * catMaxSpeed
-        hfix = 10;
-        PENALTY = 1000;
+        minInterCatsInitDistance = 22;
+        mouseVfactor = 1;       % max mouse speed = mouseVfactor * catMaxSpeed
+        trappedFactor = 2; % the mouse is trapped (and does not move) if its distance from any of the
+                             % cats is lower than trappedFactor*collisionDistance
+        hfix = 10;           % fix flight altitude
+        PENALTY = 1000;      % penalty reward in case of collision
     end
     
     properties (Access=public)
@@ -132,8 +134,9 @@ classdef TaskCatsMouseNoisyAndWindy<Task
             obj.simState.platforms{obj.Nc+1}.setX([0;0;-obj.hfix;0;0;0]);
             obj.initialX{obj.Nc+1} = obj.simState.platforms{obj.Nc+1}.getX();
             
-            % cats randomly placed around, not too close not too far
+            % cats randomly placed, not too close not too far
             for i=1:obj.Nc,
+                
                 cnt = 0;
                 tooClose = 1;
                 while tooClose
@@ -153,7 +156,7 @@ classdef TaskCatsMouseNoisyAndWindy<Task
                 
                 obj.simState.platforms{i}.setX([pos;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
-            end        
+            end
         end
         
         function UU = step(obj,U)
@@ -163,19 +166,26 @@ classdef TaskCatsMouseNoisyAndWindy<Task
             mousePos = obj.simState.platforms{obj.Nc+1}.getEX(1:2);
             Umouse = [0;0];
             
+            % sum up the vectors pointing from each cat to the mouse,
+            % weighted by their squared magnitude
             for i=1:obj.Nc,
                 diff = (mousePos-obj.simState.platforms{i}.getEX(1:2));
-                Umouse = Umouse+diff/(diff'*diff);            
+                if(~any(isnan(diff)))
+                    Umouse = Umouse+diff/(diff'*diff);
+                end
             end
             
-            % take the obtained direction and rescale it by the max
-            % velocity we can fly
-            Umouse = obj.mouseVcap*obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
+            % take the obtained direction and rescale it by the max mouse velocity
+            Umouse = obj.mouseVfactor*obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
             
             UU(:,obj.Nc+1) = obj.velPIDs{obj.Nc+1}.computeU(obj.simState.platforms{obj.Nc+1}.getEX(),Umouse,-obj.hfix,0);
             
-            for i=1:obj.Nc,      
-               UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-obj.hfix,0);
+            for i=1:obj.Nc,
+                if(obj.simState.platforms{i}.isValid())
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-obj.hfix,0);
+                else
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],-obj.hfix,0);
+                end
             end
         end
         
@@ -199,9 +209,9 @@ classdef TaskCatsMouseNoisyAndWindy<Task
                 mousePos = obj.simState.platforms{obj.Nc+1}.getX(1:3);
                 for i=1:length(obj.Nc)
                     catPos = obj.simState.platforms{i}.getX(1:3);
-                    e = mousePos - catPos;
+                    e = max([0,norm(mousePos - catPos)-obj.trappedFactor*obj.simState.platforms{i}.getCollisionDistance()]);
                     % accumulate square distance of mouse from cat i
-                    r = r - e' * e;
+                    r = r - e^2;
                 end
                 r = obj.currentReward + r;
             else
