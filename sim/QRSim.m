@@ -21,10 +21,6 @@ classdef QRSim<handle
         simState;
     end
     
-    properties (Access=public)
-        task;
-    end
-    
     methods (Sealed,Access=public)
         function obj = QRSim()
             % Constructs object and sets up the paths
@@ -56,9 +52,9 @@ classdef QRSim<handle
             obj.simState.numRStreams = 0;
             
             % load the required configuration
-            obj.task = feval(taskName,obj.simState);
+            obj.simState.task = feval(taskName,obj.simState);
             
-            obj.par = obj.task.init();
+            obj.par = obj.simState.task.init();
                         
             % simulation timestep
             assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
@@ -85,6 +81,7 @@ classdef QRSim<handle
             
             assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
             obj.par.environment.area.graphics.on = obj.par.display3d.on;
+            obj.par.environment.area.DT = obj.par.DT;
             obj.par.environment.area.state = obj.simState;
             obj.simState.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             
@@ -109,20 +106,24 @@ classdef QRSim<handle
             
             % simulation time
             obj.simState.t = 0;
+
+            % reset all environment objects
+            envObjs = fieldnames(obj.simState.environment); 
+            for i = 1:numel(envObjs) 
+                obj.simState.environment.(envObjs{i}).reset();
+            end
             
-            obj.simState.environment.gpsspacesegment.reset();
-            obj.simState.environment.wind.reset();
-            obj.simState.environment.area.reset();
+            % reste task
+            obj.simState.task.reset();
             
-            obj.task.reset();
-            
+            % reset all platforms objects
             if(isfield(obj.par.platforms(1),'X'))
                 for i=1:length(obj.simState.platforms)
                     obj.simState.platforms{i}.setX(obj.par.platforms(i).X);
                 end
             end
 
-            obj.task.resetReward();            
+            obj.simState.task.resetReward();            
         end
         
         function obj = resetSeed(obj,varargin)
@@ -163,22 +164,19 @@ classdef QRSim<handle
             % update time
             obj.simState.t=obj.simState.t+obj.simState.DT;
             
-            %%% step all the common objects
-            
-            % step the gps
-            obj.simState.environment.gpsspacesegment.step([]);
-            
-            % step the wind
-            obj.simState.environment.wind.step([]);
+            % step all the environment objects            
+            envObjs = fieldnames(obj.simState.environment); 
+            for i = 1:numel(envObjs)
+                obj.simState.environment.(envObjs{i}).step([]);
+            end
             
             % see if the task is the one generating the controls
-            UU = obj.task.step(U);
-            
+            UU = obj.simState.task.step(U);            
             if(~isempty(UU))
                 U = UU;
             end
             
-            %%% step all the platforms given U
+            % step all the platforms given U
             assert(size(obj.simState.platforms,2)==size(U,2),'qrsim:wronginputsize',...
                 'the number of colum of the control input matrix has to be equal to the number of platforms');
             
@@ -187,7 +185,7 @@ classdef QRSim<handle
             end
             
             % update the task reward
-            obj.task.updateReward(U);
+            obj.simState.task.updateReward(U);
             
             % force figure refresh
             if(obj.par.display3d.on == 1)
@@ -197,7 +195,7 @@ classdef QRSim<handle
         end
         
         function r = reward(obj)
-            r = obj.task.reward();
+            r = obj.simState.task.reward();
         end
     end
     

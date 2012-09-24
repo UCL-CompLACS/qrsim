@@ -129,8 +129,8 @@ classdef GPSReceiverG < GPSReceiver
             obs = zeros(obj.nsv,1);
             for i = 1:obj.nsv,
                 % compute pseudorange
-                obs(i,1) = norm(truePosECEF-obj.simState.environment.gpsspacesegment_.svspos(:,obj.svidx(i)))...
-                    +obj.simState.environment.gpsspacesegment_.prns(obj.svidx(i))...
+                obs(i,1) = norm(truePosECEF-obj.simState.environment_.gpsspacesegment.svspos(:,obj.svidx(i)))...
+                    +obj.simState.environment_.gpsspacesegment.prns(obj.svidx(i))...
                     +obj.receivernoise(i);
             end
             
@@ -140,7 +140,7 @@ classdef GPSReceiverG < GPSReceiver
                 A = zeros(obj.nsv,4);
                 omc = zeros(obj.nsv,1); % observed minus computed observation
                 for i = 1:obj.nsv,
-                    XX = obj.simState.environment.gpsspacesegment_.svspos(:,obj.svidx(i));
+                    XX = obj.simState.environment_.gpsspacesegment.svspos(:,obj.svidx(i));
                     omc(i,:) = obs(i)-norm(XX-p(1:3),'fro')-p(4);
                     A(i,:) = [(-(XX(1)-p(1)))/obs(i),(-(XX(2)-p(2)))/obs(i),(-(XX(3)-p(3)))/obs(i),1];
                 end % i
@@ -169,7 +169,7 @@ classdef GPSReceiverG < GPSReceiver
 
             obj.receivernoise = obj.R_SIGMA*randn(obj.simState.rStreams{obj.nPrngId},obj.nsv,1);
             
-            assert(isfield(obj.simState.environment.gpsspacesegment_,'svspos'), ...
+            assert(isfield(obj.simState.environment_.gpsspacesegment,'svspos'), ...
                 'In order to run a GPSReceiver needs the corresponding space segment!');
             
             if(isempty(obj.delayedPositionsNED))

@@ -55,6 +55,7 @@ classdef Pelican<Steppable & Platform
         gpsreceiver; % handle to the gps receiver
         aerodynamicTurbulence;  % handle to the aerodynamic turbulence
         ahars ;      % handle to the attitude heading altitude reference system
+        camera;      % handle to the camera
         graphics;    % handle to the quadrotor graphics
         a;           % linear accelerations in body coordinates [ax;ay;az]
         collisionD;  % distance from any other object that defines a collision
