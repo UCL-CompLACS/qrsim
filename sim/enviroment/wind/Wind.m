@@ -60,7 +60,7 @@ classdef Wind<Steppable & EnvironmentObject
     
     methods (Access=protected)
         function obj = update(obj, ~)
-            % no updates are carries out.
+            % no updates are carries out since this object is static.
             %
             % Note:
             %  this method is called automatically by the step() of the Steppable parent
