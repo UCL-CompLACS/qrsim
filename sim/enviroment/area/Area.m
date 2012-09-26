@@ -62,7 +62,9 @@ classdef Area<Steppable & EnvironmentObject
             % returns limits
             limits = obj.limits;
         end
-        
+    end
+    
+    methods (Access=public)
         function obj = reset(obj)
             % does nothing
         end
