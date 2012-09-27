@@ -69,6 +69,7 @@ c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
 c.sensors.ahars.altimeter.SIGMA = 0.03;   % noise standard deviation
 
 c.sensors.plumesensor.on = 0;             % if off the plume sensor is noiseless 
+c.sensors.plumesensor.dt = 0.02;           % update rate 
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;
