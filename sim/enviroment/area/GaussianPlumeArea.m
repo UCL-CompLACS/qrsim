@@ -1,4 +1,4 @@
-classdef GaussianPlumeArea<Area
+classdef GaussianPlumeArea<PlumeArea
     % Defines a simple box shaped area in which is present a plume with concentration described by a 3d Gaussian
     %
     % GaussianPlumeArea Methods:
@@ -35,7 +35,7 @@ classdef GaussianPlumeArea<Area
             %                                          randomly with uniform probability from the specified range)
             %               objparams.state - handle to the simulator state
             %
-            obj=obj@Area(objparams);
+            obj=obj@PlumeArea(objparams);
             
             obj.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
@@ -55,7 +55,7 @@ classdef GaussianPlumeArea<Area
         
         function obj = reset(obj)
             % redraw a different plume pattern
-            obj.drawParameters();
+            obj.init();
             % modify plot
             obj.graphics.update(obj.source,obj.sigma,obj.simState);            
         end
@@ -69,8 +69,8 @@ classdef GaussianPlumeArea<Area
         end    
     end
     
-    methods (Access=private)
-        function obj=drawParameters(obj)
+    methods (Access=protected)
+        function obj=init(obj)
             % generate the covariance matrix and the position o the source                       
             
             obj.angle=pi*rand(obj.simState.rStreams{obj.prngId});
