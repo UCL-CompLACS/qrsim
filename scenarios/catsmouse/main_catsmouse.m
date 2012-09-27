@@ -1,7 +1,7 @@
 % bare bones example of use of the QRSim() simulator
 % with one of the the cats-mouse scenario
 %
-% as a quick remainder, in this task which three quadrotors (cats) have to catch another
+% as a quick remainder, in this task three quadrotors (cats) have to catch another
 % quadrotor (mouse) AT THE END of the allotted time for the task.
 % In other words we have only a final cost equal to the sum of the
 % squared distances of the cats to the mouse. A large negative reward
