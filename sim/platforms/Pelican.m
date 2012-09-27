@@ -291,6 +291,7 @@ classdef Pelican<Steppable & Platform
             obj.gpsreceiver.reset();
             obj.aerodynamicTurbulence.reset();
             obj.ahars.reset();
+            obj.resetAdditional();
             obj.graphics.reset();
             obj.valid = 1;
         end
@@ -376,6 +377,15 @@ classdef Pelican<Steppable & Platform
     end
     
     methods (Access=protected)
+        
+        function obj=resetAdditional(obj)
+           % used by subclasses to reset additional stuff 
+        end
+        
+        function obj=updateAdditional(obj,U)
+           % used by subclasses to update additional stuff 
+        end
+        
         function obj = update(obj,U)
             % updates the state of the platform and of its components
             %
@@ -432,6 +442,8 @@ classdef Pelican<Steppable & Platform
                     %return values
                     obj.eX = [estimatedPosNED(1:3);estimatedAHA(1:3);zeros(3,1);...
                         estimatedAHA(4:6);0;estimatedAHA(7:10);estimatedPosNED(4:5);estimatedAHA(11)];
+                    
+                    obj.updateAdditional(U);
                     
                     % graphics
                     obj.graphics.update(obj.X);

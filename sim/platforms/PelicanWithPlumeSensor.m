@@ -1,6 +1,6 @@
-classdef PelicanWithCamera<Pelican
+classdef PelicanWithPlumeSensor<Pelican
     % Class that implementatios dynamic and sensors of an AscTec Pelican quadrotor
-    % with an onboard visual camera.
+    % with an onboard plume sensor.
     % The parameters are derived from the system identification of one of
     % the UCL quadrotors
     %
@@ -40,29 +40,29 @@ classdef PelicanWithCamera<Pelican
     %    getX()             - returns the state (noiseless)
     %    getEX()            - returns the estimated state (noisy)
     %    getEXasX()         - returns the estimated state (noisy) formatted as the noiseless state    
-    %    getCameraOutput()  - returns the camera output
+    %    getPlumeSensorOutput() - returns current plume sensor output
     
     properties (Access = protected)
-        camera;       % handle to the camera
-        cameraOutput; % last valid measurement from the camera
+        plumeSensor;       % handle to the plume sensor
+        plumeSensorOutput; % last valid measurement from the plume sensor
     end
     
     methods (Access = public)
-        function obj = PelicanWithCamera(objparams)
+        function obj = PelicanWithPlumeSensor(objparams)
             % constructs the platform object and initialises its subcomponent
             % The configuration of the type and parameters of the subcomponents are read
             % from the platform config file e.g. pelican_config.m
             %
             % Example:
             %
-            %   obj=PelicanWithCamera(objparams);
+            %   obj=PelicanWithPlumeSensor(objparams);
             %                objparams.dt - timestep of this object
             %                objparams.on - 1 if the object is active
             %                objparams.aerodynamicturbulence - aerodynamicturbulence parameters
             %                objparams.sensors.ahars - ahrs parameters
             %                objparams.sensors.gpsreceiver - gps receiver parameters
             %                objparams.graphics - graphics parameters
-            %                objparams.camera - camera parameters
+            %                objparams.plumesensor - plume sensor parameters
             %                objparams.stateLimits - 13 by 2 vector of allowed values of the state
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
@@ -71,25 +71,25 @@ classdef PelicanWithCamera<Pelican
             
             obj=obj@Pelican(objparams);
             
-            % camera
-            assert(isfield(objparams,'camera')&&isfield(objparams.camera,'on'),'pelican:nocamera',...
-                'the platform config file must define a camera parameter');
-            obj.camera = feval(objparams.sensors.camera.type,objparams.sensors.camera);           
+            % plumesensor
+            assert(isfield(objparams,'plumesensor')&&isfield(objparams.plumesensor,'on'),'pelican:noplumesensor',...
+                'the platform config file must define a plumesensor parameter');
+            obj.plumeSensor = feval(objparams.sensors.plumesensor.type,objparams.sensors.plumesensor);           
         end
         
         function obj = resetAdditional(obj)
-            % resets all the platform specific subcomponents
+            % resets additional platform subcomponents
             %
             % Example:
             %   obj.reset();
             %
-            obj.camera.reset();
+            obj.plumeSensor.reset();
         end        
         
-        function o = getCameraOutput(obj)
-            % return the last result from the camera, mind that this is
-            % updated at the camera frame rate
-            o = obj.cameraOutput; 
+        function o = getPlumeSensorOutput(obj)
+            % return the last result from the plume sensor, mind that this is
+            % updated at the sensor rate
+            o = obj.plumeSensorOutput; 
         end    
     end
     
@@ -102,11 +102,11 @@ classdef PelicanWithCamera<Pelican
             %  parent class
             %
             
-            % camera
-            obj.camera.step(obj.X);
+            % plume sensor
+            obj.plumeSensor.step(obj.X);
                     
-            obj.cameraOutput = obj.camera.getMeasurement(obj.X);
-        end          
+            obj.plumeSensorOutput = obj.plumeSensor.getMeasurement(obj.X);
+        end        
     end
 end
 
