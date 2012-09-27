@@ -24,13 +24,15 @@ classdef PlumeArea<Area
             %
             obj=obj@Area(objparams);
         end  
-    end
+    end   
     
-    methods (Abstract)
-        obj=init(obj)
-        % perform initialization 
-        
+    methods (Abstract,Access=public)            
         samples = getSamples(obj,positions)
         % returns concentration at positions
+    end
+    
+    methods (Abstract,Access=protected)
+        obj=init(obj)
+        % perform initialization 
     end    
 end
