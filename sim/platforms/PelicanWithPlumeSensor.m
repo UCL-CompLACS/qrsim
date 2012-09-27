@@ -62,7 +62,7 @@ classdef PelicanWithPlumeSensor<Pelican
             %                objparams.sensors.ahars - ahrs parameters
             %                objparams.sensors.gpsreceiver - gps receiver parameters
             %                objparams.graphics - graphics parameters
-            %                objparams.plumesensor - plume sensor parameters
+            %                objparams.sensors.plumesensor - plume sensor parameters
             %                objparams.stateLimits - 13 by 2 vector of allowed values of the state
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
@@ -72,19 +72,15 @@ classdef PelicanWithPlumeSensor<Pelican
             obj=obj@Pelican(objparams);
             
             % plumesensor
-            assert(isfield(objparams,'plumesensor')&&isfield(objparams.plumesensor,'on'),'pelican:noplumesensor',...
+            assert(isfield(objparams.sensors,'plumesensor')&&isfield(objparams.sensors.plumesensor,'on'),'pelican:noplumesensor',...
                 'the platform config file must define a plumesensor parameter');
-            obj.plumeSensor = feval(objparams.sensors.plumesensor.type,objparams.sensors.plumesensor);           
-        end
-        
-        function obj = resetAdditional(obj)
-            % resets additional platform subcomponents
-            %
-            % Example:
-            %   obj.reset();
-            %
-            obj.plumeSensor.reset();
-        end        
+            objparams.sensors.plumesensor.state = objparams.state;
+            if(objparams.sensors.plumesensor.on)
+                obj.plumeSensor = feval(objparams.sensors.plumesensor.type,objparams.sensors.plumesensor);    
+            else
+                obj.plumeSensor = feval('PlumeSensor', objparams.sensors.plumesensor);
+            end
+        end      
         
         function o = getPlumeSensorOutput(obj)
             % return the last result from the plume sensor, mind that this is
@@ -106,7 +102,16 @@ classdef PelicanWithPlumeSensor<Pelican
             obj.plumeSensor.step(obj.X);
                     
             obj.plumeSensorOutput = obj.plumeSensor.getMeasurement(obj.X);
-        end        
+        end         
+                
+        function obj = resetAdditional(obj)
+            % resets additional platform subcomponents
+            %
+            % Example:
+            %   obj.reset();
+            %
+            obj.plumeSensor.reset();
+        end 
     end
 end
 
