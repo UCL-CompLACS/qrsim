@@ -26,6 +26,9 @@ classdef TaskPlumeSingleSourceGaussian<Task
     properties (Access=public)
         prngId;   % id of the prng stream used to select the initial positions
         velPIDs;  % pid used to control the uavs
+        samples;
+        receivedSamples;
+        initialX;
     end
     
     methods (Sealed,Access=public)
@@ -57,7 +60,8 @@ classdef TaskPlumeSingleSourceGaussian<Task
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-140 140 -140 140 -40 0];
-            taskparams.environment.area.type = 'BoxAreaWithGaussianPlume';
+            taskparams.environment.area.type = 'GaussianPlumeArea';
+            taskparams.environment.area.sourceSigmaRange = [3 20];
             
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
@@ -67,7 +71,7 @@ classdef TaskPlumeSingleSourceGaussian<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.graphics.type = 'AreaWithGaussianGraphics';
+            taskparams.environment.area.graphics.type = 'GaussianPlumeAreaGraphics';
             taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
             
             % GPS
@@ -105,32 +109,33 @@ classdef TaskPlumeSingleSourceGaussian<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.numUAVs,
-                taskparams.platforms(i).configfile = 'pelican_config_plume_noiseless';
+                taskparams.platforms(i).configfile = 'pelican_config_plume_noiseless';                
+                obj.velPIDs{i} = VelocityHeightPID(taskparams.DT);
             end
             
         end
         
-        function reset(obj)           
+        function reset(obj)
             % uav randomly placed, but not too close to the edges of the area
             for i=1:obj.numUAVs,
                 
                 r = rand(obj.simState.rStreams{obj.prngId},2,1);
-                l = obj.simState.environment.area.limits;
-		
-		px = 0.5*(l(2)+l(1))+ (r(1)-0.5)*0.9*(l(2)-l(1));   
-		py = 0.5*(l(4)+l(3))+ (r(3)-0.5)*0.9*(l(4)-l(3));
+                l = obj.simState.environment.area.getLimits();
                 
-                obj.simState.platforms{i}.setX([px;py;obj.startHeight]);
+                px = 0.5*(l(2)+l(1))+ (r(1)-0.5)*0.9*(l(2)-l(1));
+                py = 0.5*(l(4)+l(3))+ (r(2)-0.5)*0.9*(l(4)-l(3));
+                
+                obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
             end
         end
         
         function UU = step(obj,U)
-            % compute the UAVs controls from the velocity inputs    
-            UU=zeros(4,length(obj.simState.platforms));
+            % compute the UAVs controls from the velocity inputs
+            UU=zeros(5,length(obj.simState.platforms));
             for i=1:length(obj.simState.platforms),
                 if(obj.simState.platforms{i}.isValid())
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-obj.hfix,0);
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-10,0);
                 else
                     UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],-10,0);
                 end
@@ -142,8 +147,25 @@ classdef TaskPlumeSingleSourceGaussian<Task
             % in this task we only have a final cost
         end
         
+        function l = getLocations(obj)
+            % return a list of x,y,z point for which the agent is
+            % expected to return predictions
+            
+        end
+        
+        function obj = setSamples(obj,samples)
+            % used by the agent to pass back the concentration value
+            % computed at the points specified by getLocations()
+            obj.samples = samples;
+            
+            obj.receivedSamples = 1;
+        end
+        
         function r=reward(obj)
             % returns the total reward for this task
+            
+            assert(obj.receivedSamples,'TaskPlumeSingleSourceGaussian:nosamples',...
+                'Before asking for a task reward, return a set of sample concentrations using setConcentrations(s)');
             
             valid = 1;
             for i=1:length(obj.simState.platforms)
@@ -151,7 +173,7 @@ classdef TaskPlumeSingleSourceGaussian<Task
             end
             
             if(valid)
-		% FIXME
+                % FIXME
                 r = 0;
                 r = obj.currentReward + r;
             else
