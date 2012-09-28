@@ -35,7 +35,7 @@ for i=1:N,
     X(:,i) = state.platforms{1}.getX(7:9);
     
     % wait so to run in real time
-    wait = max(0,state.DT-toc(tloop));
+    wait = max(0,state.task.dt-toc(tloop));
     pause(wait);
 end
 % get reward

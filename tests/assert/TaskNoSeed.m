@@ -13,8 +13,8 @@ classdef TaskNoSeed<Task
         
         function taskparams=init(obj)
             
-            % Simulator step time in second this should not be changed...
-            taskparams.DT = 0.02;
+            taskparams.dt = 0.02; % task timestep i.e. rate at which controls
+                               % are supplied and measurements are received
                        
         end
         

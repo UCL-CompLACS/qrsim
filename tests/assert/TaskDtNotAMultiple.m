@@ -1,9 +1,9 @@
-classdef TaskNoDisplay3D<Task
+classdef TaskDtNotAMultiple<Task
     % Task used to test assertions on DT
     %
     methods (Sealed,Access=public)
                 
-        function obj = TaskNoDisplay3D(state)
+        function obj = TaskDtNotAMultiple(state)
             obj = obj@Task(state);
         end
 
@@ -12,13 +12,7 @@ classdef TaskNoDisplay3D<Task
         end
         
         function taskparams=init(obj)
-            % loads and returns all the parameters for the various simulator objects
-            
-            taskparams.dt = 0.02; % task timestep i.e. rate at which controls
-                               % are supplied and measurements are received
-            
-            taskparams.seed = 0; %set to zero to have a seed that depends on the system time
-            
+            taskparams.dt = 0.03;
         end
         
         function reset(obj) 
@@ -27,6 +21,7 @@ classdef TaskNoDisplay3D<Task
 
         function r=reward(obj) 
             % nothing this is just a test task
+            r = 0;
         end
     end
     

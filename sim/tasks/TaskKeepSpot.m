@@ -33,8 +33,8 @@ classdef TaskKeepSpot<Task
             %          params - all the task parameters
             %
             
-            % Simulator step time in second this should not be changed...
-            taskparams.DT = 0.02;
+            taskparams.dt = 0.02; % task timestep i.e. rate at which controls
+                               % are supplied and measurements are received
             
             taskparams.seed = 0; %set to zero to have a seed that depends on the system time
             

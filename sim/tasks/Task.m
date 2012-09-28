@@ -11,6 +11,10 @@ classdef Task<handle
     %
     %                      *hyperlink broken because the method is abstract
     %
+    properties (Access=public)
+      dt; % task timestep i.e. rate at which controls
+          % are supplied and measurements are received
+    end
     
     properties (Access=protected)
        simState;      % handle to the simultor stateTask

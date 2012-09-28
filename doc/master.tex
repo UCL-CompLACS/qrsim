@@ -134,22 +134,30 @@ Very simply, first \texttt{obj.simState.t} is updated\footnote{This is the only 
 
 \begin{lstlisting}[float=ht!bp,caption=\sname step() method,language=Matlab,frame=lines,label=lst:step,numbers=left,basicstyle=\small]
 function obj=step(obj,U)
-           
-  %% update time
-  obj.simState.t=obj.simState.t+obj.simState.DT;
-                        
-  %% step all the common objects
-            
-  % the space segment of the GPS
-  obj.simState.environment.gpsspacesegment.step([]);
-            
-  % the wind
-  obj.simState.environment.wind.step([]);
-            
-  %% step all the platforms            
-  for i=1:length(obj.simState.platforms)
-    obj.simState.platforms{i}.step(U(:,i));
+  for j=1:obj.simState.task.dt/obj.DT,
+    % update time
+    obj.simState.t=obj.simState.t+obj.simState.DT;
+                
+    % step all the environment objects
+    envObjs = fieldnames(obj.simState.environment);
+    for i = 1:numel(envObjs)
+      obj.simState.environment.(envObjs{i}).step([]);
+    end
+                
+    % see if the task is the one generating the controls
+    UU = obj.simState.task.step(U);
+    if(~isempty(UU))
+      U = UU;
+    end
+                
+    % step all the platforms given U
+    for i=1:length(obj.simState.platforms)
+      obj.simState.platforms{i}.step(U(:,i));
+    end                
   end
+       
+  % update the task reward
+  obj.simState.task.updateReward(U);
 end
 \end{lstlisting}
 
@@ -200,7 +208,7 @@ To implement such a task, we start by creating a new class that extends the abst
 The \texttt{init()} method (see listing \ref{lst:init}) 
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left,basicstyle=\small]
 function taskparams=init(obj)  
- taskparams.DT = 0.02; % Simulator step time in seconds            
+%  taskparams.dt = 1; % % task timestep      
  taskparams.seed = 0; % if 0 the seed depends on the system time
             
  %%%%% visualization %%%%%
@@ -251,7 +259,7 @@ function taskparams=init(obj)
  taskparams.platforms(1).configfile = 'pelican_config';
 end
 \end{lstlisting}
-returns a data structure that contains general fields like the simulator time step \texttt{taskparams.DT} and the seed of the pseudo-random number generator (\texttt{taskparams.seed}), fields for each of the environment objects (\texttt{taskparams.environment}), and for each of the platforms (\texttt{taskparams.platforms}). The fields depend on the number and type of objects, but by convention we name:
+returns a data structure that contains general fields like the task time step \texttt{taskparams.dt} (i.e. the timestep at which control are needed)\footnote{Note that the simulator itself uses an internal timestep of $0.02$s.} and the seed of the pseudo-random number generator (\texttt{taskparams.seed}), fields for each of the environment objects (\texttt{taskparams.environment}), and for each of the platforms (\texttt{taskparams.platforms}). The fields depend on the number and type of objects, but by convention we name:
 \begin{itemize}
 \item \texttt{on}, the flag that allows to enable and disable the object in question,
 \item \texttt{dt}, the time step of the object,
@@ -277,10 +285,9 @@ As already explained, a task must also define the \texttt{updateReward(U)} and \
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpotWithReward updateReward(U) method,language=Matlab,frame=lines,label=lst:updatereward,numbers=left,basicstyle=\small]
 function updateReward(obj,U)         
   % updates the reward based on control costs
-  dt = obj.simState.DT;
   for i=1:size(U,2)
     u = (U(:,i)-obj.U_NEUTRAL);
-    obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*dt;
+    obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.dt;
   end
 end
 \end{lstlisting}    
@@ -334,7 +341,7 @@ for i=1:N,
     qrsim.step(U);
     
     % wait so to run in real time
-    wait = max(0,state.DT-toc(tloop));
+    wait = max(0,state.task.dt-toc(tloop));
     pause(wait);
 end
 

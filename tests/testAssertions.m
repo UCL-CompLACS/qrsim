@@ -8,7 +8,8 @@ clear all;
 
 e = 0;
 
-e = e | loadBadlySpecifiedTask('TaskNoDT','qrsim:nodt','missing DT task parameter');
+e = e | loadBadlySpecifiedTask('TaskNoDT','qrsim:nodt','missing dt task parameter');
+e = e | loadBadlySpecifiedTask('TaskDtNotAMultiple','qrsim:nomultipledt','dt task parameter not a multiple of DT');
 e = e | loadBadlySpecifiedTask('TaskNoSeed','qrsim:noseed','missing seed task parameter');
 e = e | loadBadlySpecifiedTask('TaskNoDisplay3D','qrsim:nodisplay3d','missing display3d task parameter');
 e = e | loadBadlySpecifiedTask('TaskNoDisplay3DHeight','qrsim:nodisplay3dwidthorheight','missing display3d.height task parameter');
@@ -17,9 +18,9 @@ e = e | loadBadlySpecifiedTask('TaskNoDisplay3DWidth','qrsim:nodisplay3dwidthorh
 e = e | loadWorkingTaskWith3DDisplayOff('TaskDisplay3DOff','3D display off');
 
 e = e | loadBadlySpecifiedTask('TaskNoAreaType','qrsim:noareatype','missing area.type task parameter');
-e = e | loadBadlySpecifiedTask('TaskNoAreaLimits','boxarea:nolimits','missing area.limits task parameter');
-e = e | loadBadlySpecifiedTask('TaskNoAreaOriginUTMCoords','boxarea:nooriginutmcoords','missing area.originutmcoords task parameter');
-e = e | loadBadlySpecifiedTask('TaskNoAreaGraphicsType','boxarea:nographicstype','missing area.graphics.type task parameter');
+e = e | loadBadlySpecifiedTask('TaskNoAreaLimits','area:nolimits','missing area.limits task parameter');
+e = e | loadBadlySpecifiedTask('TaskNoAreaOriginUTMCoords','area:nooriginutmcoords','missing area.originutmcoords task parameter');
+e = e | loadBadlySpecifiedTask('TaskNoAreaGraphicsType','area:nographicstype','missing area.graphics.type task parameter');
 
 e = e | loadWorkingTaskWithObjectOff('TaskGPSSpaceSegmentOff','state.environment.gpsspacesegment','GPSSpaceSegment','gpsspacesegment off');
 

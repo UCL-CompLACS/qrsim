@@ -43,7 +43,7 @@ for i=1:N,
     qrsim.step(U);
     
     % wait so to run in real time
-    wait = max(0,state.DT-toc(tloop));
+    wait = max(0,state.task.dt-toc(tloop));
     pause(wait);
     
 end

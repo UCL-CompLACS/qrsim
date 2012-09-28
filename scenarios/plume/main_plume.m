@@ -52,7 +52,7 @@ for i=1:state.task.durationInSteps,
     
     % wait so to run in real time
     % this can be commented out obviously
-    wait = max(0,state.DT-toc(tloop));
+    wait = max(0,state.task.dt-toc(tloop));
     pause(wait);
 end
 

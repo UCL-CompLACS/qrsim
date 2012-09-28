@@ -15,8 +15,13 @@ classdef QRSim<handle
     %                         objects and platforms.
     %   resetSeed(varargin) - re-initialize the random number generator seed
     %
+    
+    properties (Constant)
+        DT = 0.02; %simulator timestep
+    end
+    
     properties (Access=private)
-        par         % task parameters 
+        par         % task parameters
         paths =[];  % paths
         simState;
     end
@@ -48,6 +53,9 @@ classdef QRSim<handle
             %       task_name - class name of the task
             %
             
+            % simulation timestep
+            obj.simState.DT = obj.DT;
+            
             % counter for the number of independent random stream needed
             obj.simState.numRStreams = 0;
             
@@ -55,10 +63,11 @@ classdef QRSim<handle
             obj.simState.task = feval(taskName,obj.simState);
             
             obj.par = obj.simState.task.init();
-                        
+            
             % simulation timestep
-            assert(isfield(obj.par,'DT'),'qrsim:nodt','the task must define DT');
-            obj.simState.DT = obj.par.DT;
+            assert(isfield(obj.par,'dt'),'qrsim:nodt','the task must define a dt');
+            assert((rem(obj.par.dt,obj.DT)==0),'qrsim:nomultipledt','the task dt must be a multiple of the simulator DT (0.02s)');
+            obj.simState.task.dt = obj.par.dt;
             
             % random number generator stream
             assert(isfield(obj.par,'seed'),'qrsim:noseed','the task must define a seed');
@@ -81,7 +90,7 @@ classdef QRSim<handle
             
             assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
             obj.par.environment.area.graphics.on = obj.par.display3d.on;
-            obj.par.environment.area.DT = obj.par.DT;
+            obj.par.environment.area.DT = obj.DT;
             obj.par.environment.area.state = obj.simState;
             obj.simState.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
             
@@ -106,10 +115,10 @@ classdef QRSim<handle
             
             % simulation time
             obj.simState.t = 0;
-
+            
             % reset all environment objects
-            envObjs = fieldnames(obj.simState.environment); 
-            for i = 1:numel(envObjs) 
+            envObjs = fieldnames(obj.simState.environment);
+            for i = 1:numel(envObjs)
                 obj.simState.environment.(envObjs{i}).reset();
             end
             
@@ -122,19 +131,19 @@ classdef QRSim<handle
                     obj.simState.platforms{i}.setX(obj.par.platforms(i).X);
                 end
             end
-
-            obj.simState.task.resetReward();            
+            
+            obj.simState.task.resetReward();
         end
         
         function obj = resetSeed(obj,varargin)
             % re-initialize the random number generator seed
-            % 
+            %
             % Note: this does not call reset, often you want to call this
             % function BEFORE a reset
             %
             % Examples:
             %   obj.resetSeed()  - reset to the fixed or rensom seed specified by the task
-            %   
+            %
             %   obj.resetSeed(s) - reset to the seed s passed as argument
             %
             
@@ -160,28 +169,30 @@ classdef QRSim<handle
             %  obj.step(U);
             %     U - 5 by m matrix of control inputs for each of the m platforms
             %
- 
-            % update time
-            obj.simState.t=obj.simState.t+obj.simState.DT;
             
-            % step all the environment objects            
-            envObjs = fieldnames(obj.simState.environment); 
-            for i = 1:numel(envObjs)
-                obj.simState.environment.(envObjs{i}).step([]);
-            end
-            
-            % see if the task is the one generating the controls
-            UU = obj.simState.task.step(U);            
-            if(~isempty(UU))
-                U = UU;
-            end
-            
-            % step all the platforms given U
-            assert(size(obj.simState.platforms,2)==size(U,2),'qrsim:wronginputsize',...
-                'the number of colum of the control input matrix has to be equal to the number of platforms');
-            
-            for i=1:length(obj.simState.platforms)
-                obj.simState.platforms{i}.step(U(:,i));
+            for j=1:obj.simState.task.dt/obj.DT,
+                % update time
+                obj.simState.t=obj.simState.t+obj.simState.DT;
+                
+                % step all the environment objects
+                envObjs = fieldnames(obj.simState.environment);
+                for i = 1:numel(envObjs)
+                    obj.simState.environment.(envObjs{i}).step([]);
+                end
+                
+                % see if the task is the one generating the controls
+                UU = obj.simState.task.step(U);
+                if(~isempty(UU))
+                    U = UU;
+                end
+                
+                % step all the platforms given U
+                assert(size(obj.simState.platforms,2)==size(U,2),'qrsim:wronginputsize',...
+                    'the number of colum of the control input matrix has to be equal to the number of platforms');
+                
+                for i=1:length(obj.simState.platforms)
+                    obj.simState.platforms{i}.step(U(:,i));
+                end                
             end
             
             % update the task reward
@@ -191,7 +202,7 @@ classdef QRSim<handle
             if(obj.par.display3d.on == 1)
                 refresh(obj.simState.display3d.figure);
             end
-
+            
         end
         
         function r = reward(obj)
@@ -199,7 +210,7 @@ classdef QRSim<handle
         end
     end
     
-    methods (Access=public)                
+    methods (Access=public)
         function delete(obj)
             % destructor, cleans the path
             % this is called automatically by Matlab when using clear on a QRSim object.
@@ -223,7 +234,7 @@ classdef QRSim<handle
             assert(isfield(obj.par.environment,'gpsspacesegment')&&isfield(obj.par.environment.gpsspacesegment,'on'),...
                 'qrsim:nogpsspacesegment',['the task must define environment.gpsspacesegment.on\n',...
                 'this can be environment.gpsspacesegment.on=0; if no GPS is needed']);
-            obj.par.environment.gpsspacesegment.DT = obj.par.DT;
+            obj.par.environment.gpsspacesegment.DT = obj.DT;
             obj.par.environment.gpsspacesegment.state = obj.simState;
             if(obj.par.environment.gpsspacesegment.on)
                 assert(isfield(obj.par.environment.gpsspacesegment,'type'),...
@@ -238,12 +249,12 @@ classdef QRSim<handle
             % common part of Wind
             assert(isfield(obj.par.environment,'wind')&&isfield(obj.par.environment.wind,'on'),'qrsim:nowind',...
                 'the task must define environment.wind this can be environment.wind.on=0; if no wind is needed');
-            obj.par.environment.wind.DT = obj.par.DT;
+            obj.par.environment.wind.DT = obj.DT;
             obj.par.environment.wind.state = obj.simState;
             if(obj.par.environment.wind.on)
                 assert(isfield(obj.par.environment.wind,'type'),...
                     'qrsim:nowindtype','the task must define environment.wind.type');
-
+                
                 limits = obj.simState.environment.area.getLimits();
                 obj.par.environment.wind.zOrigin = limits(6);
                 
@@ -257,8 +268,8 @@ classdef QRSim<handle
             for i=1:length(obj.par.platforms)
                 assert(isfield(obj.par.platforms(i),'configfile'),'qrsim:noplatforms','the task must define a configfile for each platform');
                 p = loadPlatformConfig(obj.par.platforms(i).configfile, obj.par);
-                p.DT = obj.par.DT;
-
+                p.DT = obj.DT;
+                
                 assert(~isfield(obj.par.platforms(i),'X'),'qrsim:platformsx','platforms(i).X is not used any longher to define the initial platform state, for that purpouse use the reset() method of your task');
                 
                 p.graphics.on = obj.par.display3d.on;
