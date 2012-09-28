@@ -45,7 +45,7 @@ classdef TaskPlumeSingleSourceGaussian<Task
             %          params - the task parameters
             %
             
-            taskparams.dt = 0.02; % task timestep i.e. rate at which controls
+            taskparams.dt = 1; % task timestep i.e. rate at which controls
                                % are supplied and measurements are received
             
             taskparams.seed = 0; %set to zero to have a seed that depends on the system time
@@ -106,8 +106,7 @@ classdef TaskPlumeSingleSourceGaussian<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.numUAVs,
-                taskparams.platforms(i).configfile = 'pelican_config_plume_noiseless';                
-                obj.velPIDs{i} = VelocityHeightPID(taskparams.DT);
+                taskparams.platforms(i).configfile = 'pelican_config_plume_noiseless'; 
             end
             
         end
@@ -124,6 +123,8 @@ classdef TaskPlumeSingleSourceGaussian<Task
                 
                 obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
+                               
+                obj.velPIDs{i} = VelocityHeightPID(obj.simState.DT);
             end
         end
         

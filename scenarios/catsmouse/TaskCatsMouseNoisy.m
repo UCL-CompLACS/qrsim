@@ -119,11 +119,9 @@ classdef TaskCatsMouseNoisy<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.Nc,
-                taskparams.platforms(i).configfile = 'noisy_cat_config';                
-                obj.velPIDs{i} = VelocityHeightPID(taskparams.DT);
+                taskparams.platforms(i).configfile = 'noisy_cat_config'; 
             end
             taskparams.platforms(obj.Nc+1).configfile = 'noisy_mouse_config';
-            obj.velPIDs{obj.Nc+1} = VelocityHeightPID(taskparams.DT);
             
             % get hold of a prng stream
             obj.prngId = obj.simState.numRStreams+1;
@@ -157,7 +155,11 @@ classdef TaskCatsMouseNoisy<Task
                 
                 obj.simState.platforms{i}.setX([pos;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
+               
+                obj.velPIDs{i} = VelocityHeightPID(obj.simState.DT);
             end
+
+            obj.velPIDs{obj.Nc+1} = VelocityHeightPID(obj.simState.DT);
         end
         
         function UU = step(obj,U)
