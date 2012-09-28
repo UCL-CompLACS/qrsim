@@ -122,46 +122,21 @@ classdef GaussianPlumeAreaGraphics<handle
         end
         
         function obj = update(obj,source,sigma,state)
+            % draw coloured samples to display concentration
             
             set(0,'CurrentFigure',state.display3d.figure)
             
             hold on;
             
-            % Perform eigenvalue analysis on sigma..
-            % U: Eigenvectors - dictate orientation of ellipsoid
-            % L: Eigenvalues - decide size of ellipsoid
-            [U,L] = eig(sigma);
-            
-            % radii of the eliipsoid will be given by SQRT(eigenvalues).
-            radii = sqrt(diag(L));
-            
-            % now orient this ellipsoid in proper direction
-            % first, generate data for ellipsoid
-            [xc,yc,zc] = ellipsoid(0,0,0,radii(1),radii(2),radii(3));
-            % second, rotate it with orientation matrix U
-            a = kron(U(:,1),xc); b = kron(U(:,2),yc); c = kron(U(:,3),zc);
-            data = a+b+c;  n = size(data,2);
-            
-            x1 = 0.76*data(1:n,:)+source(1);
-            y1 = 0.76*data(n+1:2*n,:)+source(2);
-            z1 = 0.76*data(2*n+1:end,:)+source(3);
-            x2 = 1.17*data(1:n,:)+source(1);
-            y2 = 1.17*data(n+1:2*n,:)+source(2);
-            z2 = 1.17*data(2*n+1:end,:)+source(3);
-            x3 = 1.67*data(1:n,:)+source(1);
-            y3 = 1.67*data(n+1:2*n,:)+source(2);
-            z3 = 1.67*data(2*n+1:end,:)+source(3);
-            
-            % now plot the rotated ellipse
-            state.display3d.plume1 = surf(x1,y1,z1,0.25*ones(size(z1))); % 75% of max
-            state.display3d.plume2 = surf(x2,y2,z2,0.5*ones(size(z2)));  % 50% of max
-            state.display3d.plume3 = surf(x3,y3,z3,0.75*ones(size(z3))); % 25% of max
-            
-            colormap hot
-            
-            set(state.display3d.plume1 ,'FaceAlpha',0.2,'EdgeAlpha',0.2);
-            set(state.display3d.plume2 ,'FaceAlpha',0.2,'EdgeAlpha',0.2);
-            set(state.display3d.plume3 ,'FaceAlpha',0.2,'EdgeAlpha',0.2);
+            npos = 1000;
+            positions = mvnrnd(source,sigma,npos)';
+            rsource = repmat(source,1,npos);
+ 
+            samples = exp(-0.5*dot((positions-rsource),inv(sigma)*(positions-rsource),1));
+
+            colormap hot;
+            state.display3d.plume = scatter3(positions(1,:),positions(2,:),positions(3,:),15,samples,'filled');
         end
+
     end
 end
