@@ -26,9 +26,9 @@ classdef TaskPlumeSingleSourceGaussian<Task
     properties (Access=public)
         prngId;   % id of the prng stream used to select the initial positions
         velPIDs;  % pid used to control the uavs
-        samples;
         receivedSamples;
         initialX;
+        locations;
     end
     
     methods (Sealed,Access=public)
@@ -59,7 +59,7 @@ classdef TaskPlumeSingleSourceGaussian<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-140 140 -140 140 -40 0];
+            taskparams.environment.area.limits = [-140 140 -140 140 -80 0];
             taskparams.environment.area.type = 'GaussianPlumeArea';
             taskparams.environment.area.sourceSigmaRange = [3 20];
             
@@ -102,9 +102,6 @@ classdef TaskPlumeSingleSourceGaussian<Task
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
             taskparams.environment.wind.on = 0;  %% NO WIND!!!
-            taskparams.environment.wind.type = 'WindConstMean';
-            taskparams.environment.wind.direction = degsToRads(45); %mean wind direction, rad clockwise from north set to [] to initialise it randomly
-            taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
@@ -122,8 +119,8 @@ classdef TaskPlumeSingleSourceGaussian<Task
                 r = rand(obj.simState.rStreams{obj.prngId},2,1);
                 l = obj.simState.environment.area.getLimits();
                 
-                px = 0.5*(l(2)+l(1))+ (r(1)-0.5)*0.9*(l(2)-l(1));
-                py = 0.5*(l(4)+l(3))+ (r(2)-0.5)*0.9*(l(4)-l(3));
+                px = 0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
+                py = 0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
                 
                 obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
@@ -150,21 +147,20 @@ classdef TaskPlumeSingleSourceGaussian<Task
         function l = getLocations(obj)
             % return a list of x,y,z point for which the agent is
             % expected to return predictions
-            
+            obj.locations = mvnrnd(obj.simState.environment.area.source,obj.simState.environment.area.sigma,1000)';
+            l = obj.locations;
         end
         
         function obj = setSamples(obj,samples)
             % used by the agent to pass back the concentration value
-            % computed at the points specified by getLocations()
-            obj.samples = samples;
-            
-            obj.receivedSamples = 1;
+            % computed at the points specified by getLocations()            
+            obj.receivedSamples = samples;
         end
         
         function r=reward(obj)
             % returns the total reward for this task
             
-            assert(obj.receivedSamples,'TaskPlumeSingleSourceGaussian:nosamples',...
+            assert(~isempty(obj.receivedSamples),'TaskPlumeSingleSourceGaussian:nosamples',...
                 'Before asking for a task reward, return a set of sample concentrations using setConcentrations(s)');
             
             valid = 1;
@@ -173,9 +169,11 @@ classdef TaskPlumeSingleSourceGaussian<Task
             end
             
             if(valid)
-                % FIXME
-                r = 0;
-                r = obj.currentReward + r;
+                % true sampels from the environment
+                trueSamples = obj.simState.environment.area.getSamples(obj.locations);
+                
+                % the reward is simply the L2 norm (multiplied by -1 of course)
+                r = - norm(trueSamples-obj.receivedSamples)^2;
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. one the helicopters is out of the area, there was a
