@@ -31,25 +31,41 @@ state = qrsim.init('TaskPlumeSingleSourceGaussian');
 U = zeros(2,state.task.numUAVs);
 tstart = tic;
 
+hf = figure(2);
+hp = plot(0,0);
+
+plumeMeas = zeros(1,state.task.durationInSteps);
+
 % run the scenario and at every timestep generate a control
 % input for each of the helicopters
 for i=1:state.task.durationInSteps,
     tloop=tic;
     
     % a basic policy in which the helicopter(s) moves around 
-    % at the max velocity in rand directions 
-    for j=1:state.task.numUAVs,        
+    % at the max velocity changing direction every once in a while
+    
+    if(rem(i-1,10)==0)
+        for j=1:state.task.numUAVs,        
 	
-        % random velocity direction
-        u = rand(2,1);        
+            % random velocity direction
+            u = rand(2,1)-[0.5;0.5];        
 
-        % scale by the max allowed velocity
-        U(:,j) = state.task.velPIDs{j}.maxv*(u/norm(u));
+            % scale by the max allowed velocity
+            U(:,j) = state.task.velPIDs{j}.maxv*(u/norm(u));
+        end
     end
     
     % step simulator
     qrsim.step(U);
     
+    % get plume measurement
+    plumeMeas(i)=state.platforms{1}.getPlumeSensorOutput();
+    
+    set(0,'CurrentFigure',hf)
+    t = (1:i)*state.task.dt;
+    set(hp,'Xdata',t);
+    set(hp,'Ydata',plumeMeas(1:i));
+        
     % wait so to run in real time
     % this can be commented out obviously
     wait = max(0,state.task.dt-toc(tloop));
