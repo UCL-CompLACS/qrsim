@@ -42,7 +42,6 @@ classdef GaussianPlumeArea<PlumeArea
             obj.sigmaRange = objparams.sourceSigmaRange;
             
             if(objparams.graphics.on)
-                assert(isfield(objparams.graphics,'type'),'gaussianplumearea:nographicstype','Since the display3d is on the task must define environment.area.graphics.type');
                 tmp.limits = objparams.limits;
                 tmp.state = objparams.state;
                 if(isfield(objparams,'graphics') && isfield(objparams.graphics,'backgroundimage'))
