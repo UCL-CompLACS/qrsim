@@ -181,17 +181,19 @@ classdef QRSim<handle
                 end
                 
                 % see if the task is the one generating the controls
-                UU = obj.simState.task.step(U);
-                if(~isempty(UU))
-                    U = UU;
+                UfromTask = obj.simState.task.step(U);
+                if(~isempty(UfromTask))
+                    UU = UfromTask;
+                else
+                    UU = U;
                 end
                 
-                % step all the platforms given U
-                assert(size(obj.simState.platforms,2)==size(U,2),'qrsim:wronginputsize',...
+                % step all the platforms given UU
+                assert(size(obj.simState.platforms,2)==size(UU,2),'qrsim:wronginputsize',...
                     'the number of colum of the control input matrix has to be equal to the number of platforms');
                 
                 for i=1:length(obj.simState.platforms)
-                    obj.simState.platforms{i}.step(U(:,i));
+                    obj.simState.platforms{i}.step(UU(:,i));
                 end                
             end
             
