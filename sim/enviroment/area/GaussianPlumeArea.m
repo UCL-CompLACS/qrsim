@@ -9,7 +9,7 @@ classdef GaussianPlumeArea<PlumeArea
     %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
     %           
     
-    properties (Access=protected)
+    properties (Access=public)
        sigma;
        invSigma;
        detSigma;
@@ -61,17 +61,15 @@ classdef GaussianPlumeArea<PlumeArea
         end
         
         function samples = getSamples(obj,positions)
-            % compute the concentration at the requested locations
-            samples = zeros(1,size(positions,2));
-            for i=1:size(positions)
-                samples(i)=(1/((((2*pi)^3)*obj.detSigma)^0.5))*exp(-0.5*(positions(i)-obj.source)'*obj.invSigma*(positions(i)-obj.source));
-            end
+            % compute the concentration at the requested locations            
+            rsource = repmat(obj.source,1,size(positions,2)); 
+            samples = (1/((((2*pi)^3)*obj.detSigma)^0.5))*exp(-0.5*dot((positions-rsource),obj.invSigma*(positions-rsource),1));
         end    
     end
     
     methods (Access=protected)
         function obj=init(obj)
-            % generate the covariance matrix and the position o the source                       
+            % generate the covariance matrix and the position of the source                       
             
             obj.angle=pi*rand(obj.simState.rStreams{obj.prngId});
             s1 = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId})*...
@@ -87,17 +85,16 @@ classdef GaussianPlumeArea<PlumeArea
             obj.invSigma = inv(obj.sigma);
             obj.detSigma = det(obj.sigma);
             
-            ms=max([s1,s2,s3]);
             obj.source=zeros(3,1);
             obj.source(1)=0.5*(obj.limits(2)+obj.limits(1))+...
                           2*(rand(obj.simState.rStreams{obj.prngId})-0.5)*...
-                          (((obj.limits(2)-obj.limits(1))/2)-2*ms);
+                          0.8*(abs(obj.limits(2)-obj.limits(1))/2);
             obj.source(2)=0.5*(obj.limits(4)+obj.limits(3))+...
                           2*(rand(obj.simState.rStreams{obj.prngId})-0.5)*...
-                          (((obj.limits(4)-obj.limits(3))/2)-2*ms);   
+                          0.8*(abs(obj.limits(4)-obj.limits(3))/2);   
             obj.source(3)=0.5*(obj.limits(6)+obj.limits(5))+...
                           2*(rand(obj.simState.rStreams{obj.prngId})-0.5)*...
-                          (((obj.limits(6)-obj.limits(5))/2)-3*ms);  
+                          0.8*(abs(obj.limits(6)-obj.limits(5))/2);  
         end
     end    
 end
