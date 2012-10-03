@@ -70,6 +70,7 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;   % noise standard deviation
 
 c.sensors.plumesensor.on = 1;             % should always be on with PelicanWithPlumeSensor
 c.sensors.plumesensor.type = 'PlumeSensorG';
+c.sensors.plumesensor.dt = 0.5;
 c.sensors.plumesensor.SIGMA = 10;   % noise variance
 
 % Aerodynamic Turbulence
