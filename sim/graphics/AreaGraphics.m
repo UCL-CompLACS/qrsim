@@ -14,7 +14,7 @@ classdef AreaGraphics<handle
             % Example:
             %   obj = AreaGraphics(objparams)
             %        objparams = [minx maxx miny maxy minz maxz]  meters
-            %
+            %        objparams.backgroundimage = the image file to be used as background 
             
             set(0,'CurrentFigure',objparams.state.display3d.figure)
             
