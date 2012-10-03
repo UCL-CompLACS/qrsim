@@ -34,5 +34,5 @@ classdef PlumeArea<Area
     methods (Abstract,Access=protected)
         obj=init(obj)
         % perform initialization 
-    end    
+    end
 end

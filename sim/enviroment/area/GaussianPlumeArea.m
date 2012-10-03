@@ -9,7 +9,11 @@ classdef GaussianPlumeArea<PlumeArea
     %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
     %           
     
-    properties (Access=public)
+    properties (Constant)
+       NUMSAMPLES = 1000;
+    end
+    
+    properties (Access=protected)
        sigma;
        invSigma;
        detSigma;
@@ -17,6 +21,8 @@ classdef GaussianPlumeArea<PlumeArea
        angle;
        sigmaRange;
        prngId;
+       Q0;
+       cepsilon;
     end    
     
     methods (Sealed,Access=public)
@@ -56,44 +62,69 @@ classdef GaussianPlumeArea<PlumeArea
             % redraw a different plume pattern
             obj.init();
             % modify plot
-            obj.graphics.update(obj.source,obj.sigma,obj.simState);            
+            locations = obj.getLocations();
+            values = ((((2*pi)^3)*obj.detSigma)^0.5)*obj.getSamples(locations);
+            obj.graphics.update(obj.simState,obj.source,[0;0;0],locations,values);            
         end
         
         function samples = getSamples(obj,positions)
             % compute the concentration at the requested locations            
             rsource = repmat(obj.source,1,size(positions,2)); 
-            samples = (1/((((2*pi)^3)*obj.detSigma)^0.5))*exp(-0.5*dot((positions-rsource),obj.invSigma*(positions-rsource),1));
-        end    
+            samples = obj.Q0*exp(-0.5*dot((positions-rsource),obj.invSigma*(positions-rsource),1));
+        end
+        
+        function locations = getLocations(obj)
+            % generate locations locations within the support
+            % i.e. so that c(x,y,z)>epsilon
+            locations=zeros(3,obj.NUMSAMPLES);
+            
+            limits = reshape(obj.limits,2,3)';
+            lph = 0.5*(limits(:,2)+limits(:,1));
+            lm = (limits(:,2)-limits(:,1));
+            
+            n = obj.NUMSAMPLES;
+            while (n > 0)
+                % generate n points within the area limits                
+                ll = repmat(lph,1,n)+repmat(lm,1,n)...
+                    .*(rand(obj.simState.rStreams{obj.prngId},3,n)-0.5);
+                
+                % compute concentration at such points
+                c = obj.getSamples(ll);
+                
+                % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
+                csup = (c>obj.cepsilon);
+                ncsup = sum(csup);
+                idf = obj.NUMSAMPLES - n;
+                locations(:,idf+(1:ncsup)) = ll(:,csup);
+                
+                % update number of samples needed
+                n = n - ncsup;                
+            end
+        end
     end
     
     methods (Access=protected)
         function obj=init(obj)
             % generate the covariance matrix and the position of the source                       
             
-            obj.angle=pi*rand(obj.simState.rStreams{obj.prngId});
-            s1 = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId})*...
-                                   (obj.sigmaRange(2)-obj.sigmaRange(1));
-            s2 = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId})*...
-                                   (obj.sigmaRange(2)-obj.sigmaRange(1));
-            s3 = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId})*...
+            obj.angle = pi*rand(obj.simState.rStreams{obj.prngId});
+            ss = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId},3,1)*...
                                    (obj.sigmaRange(2)-obj.sigmaRange(1));
             
-            s = (angleToDcm(obj.angle,0,0)')*diag([s1,s2,s3]);
-            obj.sigma=s*s';
+            sqrts = (angleToDcm(obj.angle,0,0)')*diag(ss);
+            obj.sigma=sqrts*sqrts';
             
             obj.invSigma = inv(obj.sigma);
             obj.detSigma = det(obj.sigma);
             
-            obj.source=zeros(3,1);
-            obj.source(1)=0.5*(obj.limits(2)+obj.limits(1))+...
-                          2*(rand(obj.simState.rStreams{obj.prngId})-0.5)*...
-                          0.8*(abs(obj.limits(2)-obj.limits(1))/2);
-            obj.source(2)=0.5*(obj.limits(4)+obj.limits(3))+...
-                          2*(rand(obj.simState.rStreams{obj.prngId})-0.5)*...
-                          0.8*(abs(obj.limits(4)-obj.limits(3))/2);   
-            obj.source(3)=0.5*(obj.limits(6)+obj.limits(5))+...
-                          2*(rand(obj.simState.rStreams{obj.prngId})-0.5)*...
-                          0.8*(abs(obj.limits(6)-obj.limits(5))/2);  
+            obj.Q0 = (1/((((2*pi)^3)*obj.detSigma)^0.5));          
+            obj.cepsilon = 1e-5*obj.Q0;
+            
+            % source position
+            limits = reshape(obj.limits,2,3)';
+            lph = 0.5*(limits(:,2)+limits(:,1));
+            lm = 0.8*(limits(:,2)-limits(:,1));              
+            obj.source = lph+lm.*(rand(obj.simState.rStreams{obj.prngId},3,1)-0.5);            
         end
     end    
 end
