@@ -10,7 +10,7 @@ classdef PlumeSensorG<PlumeSensor
     %
     properties (Access=protected)
         sPrngId;
-        R_SIGMA;
+        SIGMA;
     end
     
     methods (Access=public)
@@ -27,7 +27,7 @@ classdef PlumeSensorG<PlumeSensor
             
             assert(isfield(objparams,'SIGMA'),'plumesensorg:nosigma',...
                     'for a PlumeSensorG the noise standard deviation SIGMA must be defined');
-            
+            obj.SIGMA = objparams.SIGMA;
             obj.sPrngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;            
         end
@@ -58,7 +58,7 @@ classdef PlumeSensorG<PlumeSensor
             % of this object dt, therefore it should not be called directly.
                         
             obj.estimatedConc = obj.simState.environment.area.getSamples(X(1:3));
-            obj.estimatedConc = obj.estimatedConc + obj.R_SIGMA*randn(obj.simState.rStreams{obj.sPrngId},1,1);
+            obj.estimatedConc = obj.estimatedConc + obj.SIGMA*randn(obj.simState.rStreams{obj.sPrngId},1,1);
         end
     end
 end
