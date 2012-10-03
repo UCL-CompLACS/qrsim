@@ -107,10 +107,12 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 
                 den = (2*obj.a*p(1,:).^obj.b);
                 
-                ci = (p(1,:)>0).*(obj.Qs(i)./(pi*obj.u*den)).*...
+                ci = (obj.Qs(i)./(pi*obj.u*den)).*...
                      exp(-((p(2,:).^2)./den)).*...
                      (exp(-((p(3,:).^2)./den))+exp(-((p(4,:).^2)./den))); 
-                ci(isnan(ci))=0; 
+                
+                % the model is not valid for negative x...
+                ci(p(1,:)<0)=0; 
                 c = c+ci;
             end            
         end
