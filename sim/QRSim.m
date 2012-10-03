@@ -88,12 +88,6 @@ classdef QRSim<handle
                 set(obj.simState.display3d.figure, 'Renderer', 'OpenGL');
             end
             
-            assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
-            obj.par.environment.area.graphics.on = obj.par.display3d.on;
-            obj.par.environment.area.DT = obj.DT;
-            obj.par.environment.area.state = obj.simState;
-            obj.simState.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
-            
             obj.createObjects();
             
             obj.resetSeed();
@@ -122,7 +116,7 @@ classdef QRSim<handle
                 obj.simState.environment.(envObjs{i}).reset();
             end
             
-            % reste task
+            % reset task
             obj.simState.task.reset();
             
             % reset all platforms objects
@@ -232,6 +226,11 @@ classdef QRSim<handle
         function obj=createObjects(obj)
             % create environment and platform objects from the saved parameters
             
+            %%%% NOTE:
+            %%%% the order in which the objects are created (i.e. added to
+            %%%% the environment structure), is also the order in which
+            %%%% they will be reset and updated.            
+            
             % space segment of GPS
             assert(isfield(obj.par.environment,'gpsspacesegment')&&isfield(obj.par.environment.gpsspacesegment,'on'),...
                 'qrsim:nogpsspacesegment',['the task must define environment.gpsspacesegment.on\n',...
@@ -256,14 +255,24 @@ classdef QRSim<handle
             if(obj.par.environment.wind.on)
                 assert(isfield(obj.par.environment.wind,'type'),...
                     'qrsim:nowindtype','the task must define environment.wind.type');
+               
+                assert(isfield(obj.par.environment.area,'limits'),...
+                    'qrsim:noarealimits','the task must define environment.area.limits');
                 
-                limits = obj.simState.environment.area.getLimits();
-                obj.par.environment.wind.zOrigin = limits(6);
+                obj.par.environment.wind.zOrigin = obj.par.environment.area.limits(6);
                 
                 obj.simState.environment.wind =feval(obj.par.environment.wind.type, obj.par.environment.wind);
             else
                 obj.simState.environment.wind = feval('Wind', obj.par.environment.wind);
             end
+            
+            % flying area           
+            assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
+            obj.par.environment.area.graphics.on = obj.par.display3d.on;
+            obj.par.environment.area.DT = obj.DT;
+            obj.par.environment.area.state = obj.simState;
+            obj.simState.environment.area = feval(obj.par.environment.area.type, obj.par.environment.area);
+            
             
             %%% instantiates the platform objects
             assert(isfield(obj.par,'platforms')&&(~isempty(obj.par.platforms)),'qrsim:noplatforms','the task must define at least one platform');
