@@ -128,7 +128,7 @@ The object \snamettt allows to initialize, set up and control the simulator as a
  \item \texttt{reset()}, resets the simulator to the initial state specified by the task\footnote{This also resets the task reward to zero.}. This is generally called after a learning episode in order to restore the state of the simulator. 
  \item \texttt{step(U)}, steps forward in time all the environment objects and all the platforms . This command accepts a matrix of control inputs \texttt{U} (i.e. one column array for each platform) and calls the \texttt{step()} method for each of the objects. Listing~\ref{lst:step} shows the implementation of the method.
 
-Very simply, first \texttt{obj.simState.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment object are propagated and only later each of the platform is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}.
+The sequence of operations executed during a step is straightforward, first the simulation time \texttt{obj.simState.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment objects are propagated and only later each of the platforms is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}. Line 13 shows how if any task specific computation of the platforms controls is defined using the task method \texttt{step} (see section \ref{sec:task}), this takes precedence to the controls \texttt{U}.
  \item \texttt{reward()}, returns the instantaneous reward defined by the current task. This is simply a pass through call to the task \texttt{reward()} method and is meant to be called after stepping the simulator.
 \end{itemize}
 
@@ -208,7 +208,7 @@ To implement such a task, we start by creating a new class that extends the abst
 The \texttt{init()} method (see listing \ref{lst:init}) 
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot init() method,language=Matlab,frame=lines,label=lst:init,numbers=left,basicstyle=\small]
 function taskparams=init(obj)  
-%  taskparams.dt = 1; % % task timestep      
+ taskparams.dt = 0.02; % task timestep      
  taskparams.seed = 0; % if 0 the seed depends on the system time
             
  %%%%% visualization %%%%%
