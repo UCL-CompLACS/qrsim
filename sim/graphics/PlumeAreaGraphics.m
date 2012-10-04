@@ -130,14 +130,26 @@ classdef PlumeAreaGraphics<handle
             hold on;
 
             colormap hot;
-            state.display3d.plume = scatter3(positions(1,:),positions(2,:),positions(3,:),15,10+log(values),'filled');
             
-            state.display3d.sources = plot3(sources(1,:),sources(2,:),sources(3,:),'*');
-           
-            for i=1:size(sources,2),
-                l = [sources(:,i),sources(:,i)+wind*4];
-                state.display3d.dirs(i) = plot3(l(1,:),l(2,:),l(3,:),'-','LineWidth',2);
-            end    
+            if(~isempty(positions))
+                if(~isfield(state.display3d,'plume'))
+                    state.display3d.plume = scatter3(positions(1,:),positions(2,:),positions(3,:),15,10+log(values),'filled');
+                else
+                    set(state.display3d.plume,'XData',positions(1,:));
+                    set(state.display3d.plume,'YData',positions(2,:));
+                    set(state.display3d.plume,'ZData',positions(3,:));
+                    set(state.display3d.plume,'CData',10+log(values));  
+                end    
+            end
+            
+            if(~isfield(state.display3d,'sources') && ~isempty(sources))
+                state.display3d.sources = plot3(sources(1,:),sources(2,:),sources(3,:),'*');
+            
+                for i=1:size(sources,2),
+                    l = [sources(:,i),sources(:,i)+wind*4];
+                    state.display3d.dirs(i) = plot3(l(1,:),l(2,:),l(3,:),'-','LineWidth',2);
+                end    
+            end
         end
 
     end

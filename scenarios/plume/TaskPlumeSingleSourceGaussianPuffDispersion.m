@@ -1,16 +1,17 @@
-classdef TaskPlumeMultiSourceGaussianDispersion<Task
-    % plume mapping task in which one helicopter is used for the sampling,
-    % its dynamics is stochastic and affected by wind disturbances (following a wind model),
-    % the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise).
-    % The smoke concentration is static and has the form specified by the superposition 
-    % of several sources each of which follows a Gaussian dispersion model.
+classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
+    % Plume mapping task in which only one helicopter is used
+    % for the sampling, its dynamics is stochastic and affected by wind disturbances
+    % (following a wind model), the state returned is a noisy estimate of the platform
+    % state (i.e. with additional correlated noise) and the smoke concentration is static
+    % and has the form specified by what is commonly called a Gaussian dispersion
+    % model.
     %
     % Note:
     % This task accepts control inputs in terms of 2D velocities,
     % in global coordinates.
     % qrsim.step(U);  where U = [vx; vy];
     %
-    % TaskPlumeMultiSourceGaussianDispersion methods:
+    % TaskPlumeSingleSourceGaussianPuffDispersion methods:
     %   init()         - loads and returns the parameters for the various simulation objects
     %   reset()        - defines the starting state for the task
     %   updateReward() - updates the running costs (zero for this task)
@@ -20,7 +21,7 @@ classdef TaskPlumeMultiSourceGaussianDispersion<Task
     properties (Constant)
         numUAVs = 1;
         startHeight = -10;
-        durationInSteps = 1000;
+        durationInSteps = 100;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -34,7 +35,7 @@ classdef TaskPlumeMultiSourceGaussianDispersion<Task
     
     methods (Sealed,Access=public)
         
-        function obj = TaskPlumeMultiSourceGaussianDispersion(state)
+        function obj = TaskPlumeSingleSourceGaussianPuffDispersion(state)
             obj = obj@Task(state);
         end
         
@@ -61,11 +62,13 @@ classdef TaskPlumeMultiSourceGaussianDispersion<Task
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-140 140 -140 140 -80 0];
-            taskparams.environment.area.type = 'GaussianDispersionPlumeArea';
+            taskparams.environment.area.type = 'GaussianPuffDispersionPlumeArea';
+            taskparams.environment.area.dt = 1;
             taskparams.environment.area.a = 0.33; %dispersion parameter from [1]
             taskparams.environment.area.b = 0.86; %dispersion parameter from [1]
             taskparams.environment.area.numSourcesRange = [1,5]; %range of number of sources
-            taskparams.environment.area.QRange = [0.1,2.5]*1e-3; %range of emission rates
+            taskparams.environment.area.mu = 5; % mean interemission time
+            taskparams.environment.area.QRange = [0.1,2.5]*1e-3; %range of emission quantities
             
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
@@ -108,7 +111,7 @@ classdef TaskPlumeMultiSourceGaussianDispersion<Task
             taskparams.environment.wind.on = 1;  
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = []; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
-            taskparams.environment.wind.W6 = 0.3;  % velocity at 6m from ground in m/s
+            taskparams.environment.wind.W6 = 3;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
