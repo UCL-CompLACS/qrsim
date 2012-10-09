@@ -21,8 +21,8 @@ qrsim = QRSim();
 %state = qrsim.init('TaskPlumeSingleSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeMultiSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeMultiHeliMultiSourceGaussianDispersion');
-state = qrsim.init('TaskPlumeSingleSourceGaussianPuffDispersion');
-%state = qrsim.init('TaskPlumeMultiSourceGaussianPuffDispersion');
+%state = qrsim.init('TaskPlumeSingleSourceGaussianPuffDispersion');
+state = qrsim.init('TaskPlumeMultiSourceGaussianPuffDispersion');
 %state = qrsim.init('TaskPlumeMultiHeliMultiSourcePuffDispersion');
 
 
@@ -61,15 +61,21 @@ for i=1:state.task.durationInSteps,
     % get plume measurement
     plumeMeas(i)=state.platforms{1}.getPlumeSensorOutput();
     
-    set(0,'CurrentFigure',hf)
-    t = (1:i)*state.task.dt;
-    set(hp,'Xdata',t);
-    set(hp,'Ydata',plumeMeas(1:i));
+%     positions = state.task.getLocations();
+%     samples = state.environment.area.getSamples(positions);
+%     set(0,'CurrentFigure',hf)
+%     t = (1:size(positions,2));
+%     set(hp,'Xdata',t);
+%     set(hp,'Ydata',samples);
+%     axis([0 300 0 2]);
+ %   t = (1:i)*state.task.dt;
+%    set(hp,'Xdata',t);
+%    set(hp,'Ydata',plumeMeas(1:i));
         
     % wait so to run in real time
     % this can be commented out obviously
-    wait = max(0,state.task.dt-toc(tloop));
-    pause(0.5);
+%    wait = max(0,state.task.dt-toc(tloop));
+%    pause(wait);
 end
 
 % query at what locations we need to make predictions of concentration
@@ -93,4 +99,4 @@ fprintf('final reward: %f\n',qrsim.reward());
 
 elapsed = toc(tstart);
 
-fprintf('running %d times real time\n',(state.task.durationInSteps*state.DT)/elapsed);
+fprintf('running %d times real time\n',(state.task.durationInSteps*state.task.dt)/elapsed);
