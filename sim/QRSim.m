@@ -136,7 +136,7 @@ classdef QRSim<handle
             % function BEFORE a reset
             %
             % Examples:
-            %   obj.resetSeed()  - reset to the fixed or rensom seed specified by the task
+            %   obj.resetSeed()  - reset to the fixed or random seed specified by the task
             %
             %   obj.resetSeed(s) - reset to the seed s passed as argument
             %
