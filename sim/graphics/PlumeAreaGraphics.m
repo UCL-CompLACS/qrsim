@@ -7,6 +7,12 @@ classdef PlumeAreaGraphics<handle
     % PlumeAreaGraphics methos:
     %   PlumeAreaGraphics(objparams) - constructs the object
     %
+    properties (Constant)
+        DOTSIZE = 15; % size of the plume dots
+        C1 = 10; % offset concentration value to get meaningful colormap values
+        C2 = 1e-15; %min concentration value to ensure that samples are always displayed
+    end
+    
     methods (Sealed)
         
         function obj = PlumeAreaGraphics(objparams)
@@ -133,13 +139,13 @@ classdef PlumeAreaGraphics<handle
             
             if(~isempty(positions))
                 if(~isfield(state.display3d,'plume'))
-                    state.display3d.plume = scatter3(positions(1,:),positions(2,:),positions(3,:),15,10+log(values),'filled');
-                else
+                    state.display3d.plume = scatter3(positions(1,:),positions(2,:),positions(3,:),obj.DOTSIZE,obj.C1+log(values+obj.C2),'filled');
+                 else
                     set(state.display3d.plume,'XData',positions(1,:));
                     set(state.display3d.plume,'YData',positions(2,:));
                     set(state.display3d.plume,'ZData',positions(3,:));
-                    set(state.display3d.plume,'CData',10+log(values));  
-                end    
+                    set(state.display3d.plume,'CData',obj.C1+log(values+obj.C2));  
+                 end    
             end
             
             if(~isfield(state.display3d,'sources') && ~isempty(sources))
