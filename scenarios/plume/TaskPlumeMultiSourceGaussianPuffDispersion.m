@@ -1,4 +1,4 @@
-classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
+classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
     % Plume mapping task in which only one helicopter is used
     % for the sampling, its dynamics is stochastic and affected by wind disturbances
     % (following a wind model), the state returned is a noisy estimate of the platform
@@ -34,7 +34,7 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
     
     methods (Sealed,Access=public)
         
-        function obj = TaskPlumeSingleSourceGaussianPuffDispersion(state)
+        function obj = TaskPlumeMultiSourceGaussianPuffDispersion(state)
             obj = obj@Task(state);
         end
         
@@ -53,7 +53,7 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 1;
+            taskparams.display3d.on = 0;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
@@ -65,9 +65,9 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             taskparams.environment.area.dt = 1;
             taskparams.environment.area.a = 0.33; %dispersion parameter from [1]
             taskparams.environment.area.b = 0.86; %dispersion parameter from [1]
-            taskparams.environment.area.numSourcesRange = [1,1]; %range of number of sources
+            taskparams.environment.area.numSourcesRange = [1,4]; %range of number of sources
             taskparams.environment.area.mu = 5; % mean interemission time
-            taskparams.environment.area.QRange = [0.1,0.11]*1e-3; %range of emission quantities
+            taskparams.environment.area.QRange = [0.1,2.5]*1e-3; %range of emission quantities
             
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
@@ -155,8 +155,9 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
         
         function l = getLocations(obj)
             % return a list of x,y,z point for which the agent is
-            % expected to return predictions            
-            l = obj.simState.environment.area.getLocations();
+            % expected to return predictions          
+            obj.locations = obj.simState.environment.area.getLocations();
+            l = obj.locations;
         end
         
         function obj = setSamples(obj,samples)
