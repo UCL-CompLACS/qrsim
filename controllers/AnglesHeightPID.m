@@ -89,7 +89,11 @@ classdef AnglesHeightPID<handle
     
     methods (Static)
         function v = limit(v, minval, maxval)
-            v = max([min([maxval,v]),minval]);
+            if(v<minval)
+                v = minval;
+            elseif (v>maxval)
+                v = maxval;
+            end
         end
     end
 end
