@@ -29,6 +29,7 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         sPrngId;
         cepsilon;
         vmean;
+        locations;
     end
     
     methods (Sealed,Access=public)
@@ -88,9 +89,9 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             % redraw a different plume pattern
             obj.init();
             % modify plot
-            locations = obj.getLocations();
-            values = obj.getSamples(locations);
-            obj.graphics.update(obj.simState,obj.sources,obj.vmean,locations,values);
+            locs = obj.getLocations();
+            values = obj.getSamples(locs);
+            obj.graphics.update(obj.simState,obj.sources,obj.vmean,locs,values);
         end
         
         function c = getSamples(obj,pos)
@@ -98,7 +99,7 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             
             n = size(pos,2);
             c = zeros(1,n);
-           
+            
             for i=1:obj.numSources,
                 % transform location to source centered wind frame
                 p = [obj.C*(pos(1:2,:)-repmat(obj.sources(1:2,i),1,n));...
@@ -108,42 +109,46 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 den = (2*obj.a*p(1,:).^obj.b);
                 
                 ci = (obj.Qs(i)./(pi*obj.u*den)).*...
-                     exp(-((p(2,:).^2)./den)).*...
-                     (exp(-((p(3,:).^2)./den))+exp(-((p(4,:).^2)./den))); 
+                    exp(-((p(2,:).^2)./den)).*...
+                    (exp(-((p(3,:).^2)./den))+exp(-((p(4,:).^2)./den)));
                 
                 % the model is not valid for negative x...
-                ci(p(1,:)<0)=0; 
+                ci(p(1,:)<0)=0;
                 c = c+ci;
-            end            
+            end
         end
         
         function locations = getLocations(obj)
             % generate random locations within the support
             % i.e. so that c(x,y,z)>epsilon
-            locations=zeros(3,obj.NUMSAMPLES);
             
-            limits = reshape(obj.limits,2,3)';
-            lph = 0.5*(limits(:,2)+limits(:,1));
-            lm = (limits(:,2)-limits(:,1));
-            
-            n = obj.NUMSAMPLES;
-            while (n > 0)
-                % generate n points within the area limits
-                ll = repmat(lph,1,n)+repmat(lm,1,n)...
-                    .*(rand(obj.simState.rStreams{obj.iPrngId},3,n)-0.5);
+            if(isempty(obj.locations))
+                obj.locations=zeros(3,obj.NUMSAMPLES);
                 
-                % compute concentration at such points
-                c = obj.getSamples(ll);
+                limits = reshape(obj.limits,2,3)';
+                lph = 0.5*(limits(:,2)+limits(:,1));
+                lm = (limits(:,2)-limits(:,1));
                 
-                % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
-                csup = (c>obj.cepsilon);
-                ncsup = sum(csup);
-                idf = obj.NUMSAMPLES - n;
-                locations(:,idf+(1:ncsup)) = ll(:,csup);
-                
-                % update number of samples needed
-                n = n - ncsup;
-            end
+                n = obj.NUMSAMPLES;
+                while (n > 0)
+                    % generate n points within the area limits
+                    ll = repmat(lph,1,n)+repmat(lm,1,n)...
+                        .*(rand(obj.simState.rStreams{obj.iPrngId},3,n)-0.5);
+                    
+                    % compute concentration at such points
+                    c = obj.getSamples(ll);
+                    
+                    % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
+                    csup = (c>obj.cepsilon);
+                    ncsup = sum(csup);
+                    idf = obj.NUMSAMPLES - n;
+                    obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
+                    
+                    % update number of samples needed
+                    n = n - ncsup;
+                end
+            end            
+            locations = obj.locations;
         end
     end
     
