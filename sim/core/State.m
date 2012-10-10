@@ -10,10 +10,12 @@ classdef State<handle
         DT;           % simulation time step
         t;            % current simulation time
         display3d;    % handle to the 3D graphic figure
+        display3dOn;  % true if the display is on
         environment;  % handle to all the environment objects
         environment_; % handle to hidden environment objects
         platforms;    % cell array containing handles to all the platforms
         task;         % handle to the current task
+        
     end
 end
 
