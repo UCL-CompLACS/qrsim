@@ -20,7 +20,7 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
     properties (Constant)
         numUAVs = 1;
         startHeight = -10;
-        durationInSteps = 100;
+        durationInSteps = 1000;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -177,17 +177,22 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             end
             
             if(valid)
-                % true sampels from the environment
-                trueSamples = obj.simState.environment.area.getSamples(obj.locations);
-                
-                % the reward is simply the L2 norm (multiplied by -1 of course)
-                r = - norm(trueSamples-obj.receivedSamples)^2;
+                % the reward is simply the KL divergence (multiplied by -1 of course)
+                r = - kl(obj.simState.environment.area.getReferenceSamples(),obj.receivedSamples);
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. one the helicopters is out of the area, there was a
                 % collision or one of the helicoptera has crashed
                 r = - obj.PENALTY;
             end
+        end
+                        
+        function spl = getSamplesPerLocation(obj)
+           spl = obj.simState.environment.area.getSamplesPerLocation();
+        end
+                
+        function rs = getReferenceSamples(obj)
+            rs = obj.simState.environment.area.getReferenceSamples();
         end
     end
     

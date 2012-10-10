@@ -2,7 +2,7 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
     % Plume mapping task in which only one helicopter is used
     % for the sampling, its dynamics is stochastic and affected by wind disturbances
     % (following a wind model), the state returned is a noisy estimate of the platform
-    % state (i.e. with additional correlated noise) and the smoke concentration is 
+    % state (i.e. with additional correlated noise) and the smoke concentration is
     % time variant with multiple sources emitting smoke puffs that travel downwind at constant velocity.
     %
     % Note:
@@ -10,7 +10,7 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
     % in global coordinates.
     % qrsim.step(U);  where U = [vx; vy];
     %
-    % TaskPlumeSingleSourceGaussianPuffDispersion methods:
+    % TaskPlumeMultiSourceGaussianPuffDispersion methods:
     %   init()         - loads and returns the parameters for the various simulation objects
     %   reset()        - defines the starting state for the task
     %   updateReward() - updates the running costs (zero for this task)
@@ -20,7 +20,7 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
     properties (Constant)
         numUAVs = 1;
         startHeight = -10;
-        durationInSteps = 100;
+        durationInSteps = 10;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -47,13 +47,13 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
             %
             
             taskparams.dt = 1; % task timestep i.e. rate at which controls
-                               % are supplied and measurements are received
+            % are supplied and measurements are received
             
             taskparams.seed = 0; %set to zero to have a seed that depends on the system time
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;
+            taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
@@ -82,7 +82,7 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 1; 
+            taskparams.environment.gpsspacesegment.on = 1;
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
@@ -107,7 +107,7 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 1;  
+            taskparams.environment.wind.on = 1;
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = []; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
             taskparams.environment.wind.W6 = 3;  % velocity at 6m from ground in m/s
@@ -115,8 +115,8 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.numUAVs,
-                taskparams.platforms(i).configfile = 'pelican_config_plume_noisy_windy'; 
-            end            
+                taskparams.platforms(i).configfile = 'pelican_config_plume_noisy_windy';
+            end
         end
         
         function reset(obj)
@@ -131,7 +131,7 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
                 
                 obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
-                               
+                
                 obj.velPIDs{i} = VelocityHeightPID(obj.simState.DT);
             end
         end
@@ -155,14 +155,14 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
         
         function l = getLocations(obj)
             % return a list of x,y,z point for which the agent is
-            % expected to return predictions          
+            % expected to return predictions
             obj.locations = obj.simState.environment.area.getLocations();
             l = obj.locations;
         end
         
         function obj = setSamples(obj,samples)
             % used by the agent to pass back the concentration value
-            % computed at the points specified by getLocations()            
+            % computed at the points specified by getLocations()
             obj.receivedSamples = samples;
         end
         
@@ -178,17 +178,22 @@ classdef TaskPlumeMultiSourceGaussianPuffDispersion<Task
             end
             
             if(valid)
-                % true sampels from the environment
-                trueSamples = obj.simState.environment.area.getSamples(obj.locations);
-                
-                % the reward is simply the L2 norm (multiplied by -1 of course)
-                r = - norm(trueSamples-obj.receivedSamples)^2;
+                % the reward is simply the KL divergence (multiplied by -1 of course)
+                r = - kl(obj.simState.environment.area.getReferenceSamples(),obj.receivedSamples);
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. one the helicopters is out of the area, there was a
                 % collision or one of the helicoptera has crashed
                 r = - obj.PENALTY;
             end
+        end
+        
+        function spl = getSamplesPerLocation(obj)
+            spl = obj.simState.environment.area.getSamplesPerLocation();
+        end
+        
+        function rs = getReferenceSamples(obj)
+            rs = obj.simState.environment.area.getReferenceSamples();
         end
     end
     

@@ -174,12 +174,9 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
                 valid = valid &&  obj.simState.platforms{i}.isValid();
             end
             
-            if(valid)
-                % true sampels from the environment
-                trueSamples = obj.simState.environment.area.getSamples(obj.locations);
-                
+            if(valid)                
                 % the reward is simply the L2 norm (multiplied by -1 of course)
-                r = - norm(trueSamples-obj.receivedSamples)^2;
+                r = - norm(obj.simState.environment.area.getReferenceSamples()-obj.receivedSamples)^2;
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. one the helicopters is out of the area, there was a
@@ -187,6 +184,14 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
                 r = - obj.PENALTY;
             end
         end
+                        
+        function spl = getSamplesPerLocation(obj)
+           spl = obj.simState.environment.area.getSamplesPerLocation();
+        end
+                        
+        function rs = getReferenceSamples(obj)
+            rs = obj.simState.environment.area.getReferenceSamples();
+        end        
     end
     
 end
