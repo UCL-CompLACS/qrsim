@@ -76,8 +76,8 @@ classdef QRSim<handle
             
             % 3D visualization
             assert(isfield(obj.par,'display3d')&&isfield(obj.par.display3d,'on'),'qrsim:nodisplay3d','the task must define display3d.on');
-            if (obj.par.display3d.on == 1)
-                
+            obj.simState.display3dOn = obj.par.display3d.on;
+            if (obj.par.display3d.on == 1)                
                 assert((isfield(obj.par.display3d,'width')&&isfield(obj.par.display3d,'height')),...
                     'qrsim:nodisplay3dwidthorheight',['If the 3D display is on, the task must define width and height '...
                     'parameters of the rendering window']);
