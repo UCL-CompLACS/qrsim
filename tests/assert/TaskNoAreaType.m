@@ -23,7 +23,17 @@ classdef TaskNoAreaType<Task
             % 3D display parameters
             taskparams.display3d.on = 0;
             taskparams.display3d.width = 1000;
-            taskparams.display3d.height = 600;            
+            taskparams.display3d.height = 600;  
+                       
+            % GPS
+            % The space segment of the gps system
+            taskparams.environment.gpsspacesegment.on = 0;
+            taskparams.environment.gpsspacesegment.dt = 0.2;
+            
+            % Wind
+            % i.e. a steady omogeneous wind with a direction and magnitude
+            % this is common to all helicopters
+            taskparams.environment.wind.on = 0;
             
         end
         

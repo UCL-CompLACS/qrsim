@@ -31,6 +31,15 @@ classdef TaskNoAreaOriginUTMCoords<Task
             taskparams.environment.area.limits = [-10 20 -7 7 -20 0];
             taskparams.environment.area.type = 'BoxArea';
             
+            % GPS
+            % The space segment of the gps system
+            taskparams.environment.gpsspacesegment.on = 0;
+            taskparams.environment.gpsspacesegment.dt = 0.2;
+            
+            % Wind
+            % i.e. a steady omogeneous wind with a direction and magnitude
+            % this is common to all helicopters
+            taskparams.environment.wind.on = 0;
         end
         
         function reset(obj) 

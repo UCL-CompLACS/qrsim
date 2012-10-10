@@ -40,7 +40,15 @@ classdef TaskNoAreaGraphicsType<Task
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
 
-
+            % GPS
+            % The space segment of the gps system
+            taskparams.environment.gpsspacesegment.on = 0;
+            taskparams.environment.gpsspacesegment.dt = 0.2;
+            
+            % Wind
+            % i.e. a steady omogeneous wind with a direction and magnitude
+            % this is common to all helicopters
+            taskparams.environment.wind.on = 0;
         end
         
 
