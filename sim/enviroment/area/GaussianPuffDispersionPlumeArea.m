@@ -14,7 +14,9 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
     %
     
     properties (Constant)
-        NUMSAMPLES = 300;
+        NUM_REF_LOCATIONS = 300;
+        NUM_SAMPLES_PER_LOCATION = 1000;
+        TIME_BETWEEN_REF_SAMPLES = 60;
     end
     
     properties (Access=public)
@@ -35,6 +37,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         puffs;
         nextEmissionTimes;
         locations;
+        referenceSamples;
     end
     
     methods (Sealed,Access=public)
@@ -98,10 +101,94 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         function obj = reset(obj)
             % redraw a different plume pattern
             obj.init();
-            obj.locations=[];
         end
         
         function c = getSamples(obj,pos)
+            c = obj.getSamplesAtTime(pos,obj.simState.t);
+        end
+        
+        function locations = getLocations(obj)
+            
+            locations = obj.locations;
+        end
+        
+        function spl = getSamplesPerLocation(obj)
+            spl = obj.NUM_SAMPLES_PER_LOCATION;
+        end
+        
+        function rs = getReferenceSamples(obj)
+            rs = obj.referenceSamples;
+        end
+    end
+    
+    methods (Access=protected)
+        
+        function obj=init(obj)
+            % generate the dispersion rates and the position of the sources
+            
+            % number of sources
+            if (obj.numSourcesRange(2)~=obj.numSourcesRange(1))
+                obj.numSources=obj.numSourcesRange(1)+...
+                    randi(obj.simState.rStreams{obj.iPrngId},obj.numSourcesRange(2)-obj.numSourcesRange(1),1);
+            else
+                obj.numSources=obj.numSourcesRange(1);
+            end
+            obj.sources=zeros(3,obj.numSources);
+            
+            obj.cepsilon = 1e-5*obj.QRange(1);
+            
+            % sources position
+            limits = reshape(obj.limits,2,3)';
+            lph = 0.5*(limits(:,2)+limits(:,1));
+            lm = 0.8*(limits(:,2)-limits(:,1));
+            obj.sources = repmat(lph,1,obj.numSources)+repmat(lm,1,obj.numSources)...
+                .*(rand(obj.simState.rStreams{obj.iPrngId},3,obj.numSources)-0.5);
+            
+            % mean wind
+            obj.vmean = obj.simState.environment.wind.getLinear([0;0;-6;0;0;0]);
+            
+            % wind magnitude
+            obj.u = norm(obj.vmean);
+            assert((obj.u>0),'gaussianpuffdispersionplumearea:nopositivewind',...
+                'If using a GaussianPuffDispersionPlumeArea, the wind must be turned on ond obj.W6 must be positive');
+            
+            % rotation global to wind frame
+            obj.C=[obj.vmean(1),obj.vmean(2);-obj.vmean(2),obj.vmean(1)]./obj.u;
+            
+            % produce locations used for KL computatation
+            obj.computeLocations();
+            
+            % produce samples used as a reference for KL computatation
+            obj.computeReferenceSamples();
+            
+            % empty puffs lists
+            obj.puffs = [];
+            
+            %fprintf('starting with %d puffs\n',size(obj.puffs,1));
+            % generate the times at which we expect a new emission for each source
+            obj.nextEmissionTimes = obj.mu*(-log(rand(obj.simState.rStreams{obj.iPrngId},obj.numSources,1)));
+            
+        end
+        
+        function obj = update(obj, ~)
+            % takes care of updating/removing puffs
+            %
+            % Note:
+            %  this method is called automatically by the step() of the Steppable parent
+            %  class and should not be called directly.
+            %
+            
+            obj.propagateToTime(obj.simState.t);
+            
+            % refresh display
+            if(~isempty(obj.graphics))
+                values = obj.getSamples(obj.locations);
+                obj.graphics.update(obj.simState,obj.sources,obj.vmean,obj.locations,values);
+            end
+        end
+        
+        
+        function c = getSamplesAtTime(obj,pos,t)
             % compute the concentration at the requested locations
             
             c = zeros(1,size(pos,2));
@@ -116,15 +203,15 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
                     p(3,:)-obj.sources(3,s);...
                     p(3,:)+obj.sources(3,s)];
                 
-                dti = (obj.simState.t-obj.puffs(2,i));
+                dti = (t-obj.puffs(2,i));
                 den = (2*obj.a*p(1,:).^obj.b);
                 
                 ci = (obj.puffs(3,i)./((2*pi*den).^1.5)).*...
-                     exp(-(((p(1,:)-obj.u*dti).^2+p(2,:).^2)./den)).*...
-                     (exp(-((p(3,:).^2)./den))+exp(-((p(4,:).^2)./den)));
-
+                    exp(-(((p(1,:)-obj.u*dti).^2+p(2,:).^2)./den)).*...
+                    (exp(-((p(3,:).^2)./den))+exp(-((p(4,:).^2)./den)));
+                
                 % the model is not valid for negative x...
-                ci(p(1,:)<0)=0; 
+                ci(p(1,:)<0)=0;
                 ci(isnan(ci))=0;
                 c = c + ci;
             end
@@ -154,109 +241,11 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             end
         end
         
-        function locations = getLocations(obj)
-            % generate random locations within the support
-            % i.e. so that c(x,y,z)>epsilon            
-            if(isempty(obj.locations))                
-                obj.locations=zeros(3,obj.NUMSAMPLES);
-                
-                limits = reshape(obj.limits,2,3)';
-                lph = 0.5*(limits(:,2)+limits(:,1));
-                lm = (limits(:,2)-limits(:,1));
-                
-                n = obj.NUMSAMPLES;
-                while (n > 0)
-                    % generate n points within the area limits
-                    ll = repmat(lph,1,n)+repmat(lm,1,n)...
-                        .*(rand(obj.simState.rStreams{obj.iPrngId},3,n)-0.5);
-                    
-                    % compute average concentration at such points
-                    c = obj.getSamplesFromAverage(ll);
-                    
-                    % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
-                    csup = (c>=obj.cepsilon);
-                    ncsup = sum(csup);
-                    idf = obj.NUMSAMPLES - n;
-                    obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
-                    
-                    % update number of samples needed
-                    n = n - ncsup;
-                end                
-            end
-            locations = obj.locations;
-            
-        end
-    end
-    
-    methods (Access=protected)
-        
-        function obj=init(obj)
-            % generate the dispersion rates and the position of the sources
-            
-            % number of sources
-            if (obj.numSourcesRange(2)~=obj.numSourcesRange(1))
-                obj.numSources=obj.numSourcesRange(1)+...
-                    randi(obj.simState.rStreams{obj.iPrngId},obj.numSourcesRange(2)-obj.numSourcesRange(1),1);
-            else
-                obj.numSources=obj.numSourcesRange(1);
-            end
-            obj.sources=zeros(3,obj.numSources);
-            
-            obj.cepsilon = 0;
-            
-            % sources position
-            limits = reshape(obj.limits,2,3)';
-            lph = 0.5*(limits(:,2)+limits(:,1));
-            lm = 0.8*(limits(:,2)-limits(:,1));
-            obj.sources = repmat(lph,1,obj.numSources)+repmat(lm,1,obj.numSources)...
-                .*(rand(obj.simState.rStreams{obj.iPrngId},3,obj.numSources)-0.5);
-            
-            % empty puffs lists
-            obj.puffs = [];
-            
-%             % generate past puffs
-%             for i=1:obj.numSources
-%                 % generate how many past puffs for this source
-%                 nPastPuffi = randi(obj.simState.rStreams{obj.iPrngId},5);
-%                 
-%                 % previous puff time
-%                 t = 0;
-%                 for j=1:nPastPuffi
-%                     q = obj.QRange(1)+(obj.QRange(2)-obj.QRange(1))*rand(obj.simState.rStreams{obj.iPrngId});
-%                     t = t - obj.mu*(-log(rand(obj.simState.rStreams{obj.iPrngId})));
-%                     obj.puffs(:,end+1) = [i;t;q];
-%                 end
-%             end
-             
-            %fprintf('starting with %d puffs\n',size(obj.puffs,1));
-            % generate the times at which we expect a new emission for each source
-            obj.nextEmissionTimes = obj.mu*(-log(rand(obj.simState.rStreams{obj.iPrngId},obj.numSources,1)));
-            
-            % mean wind
-            obj.vmean = obj.simState.environment.wind.getLinear([0;0;-6;0;0;0]);
-            
-            % wind magnitude
-            obj.u = norm(obj.vmean);
-            assert((obj.u>0),'gaussianpuffdispersionplumearea:nopositivewind',...
-                'If using a GaussianPuffDispersionPlumeArea, the wind must be turned on ond obj.W6 must be positive');
-            
-            % rotation global to wind frame
-            obj.C=[obj.vmean(1),obj.vmean(2);-obj.vmean(2),obj.vmean(1)]./obj.u;
-
-        end
-        
-        function obj = update(obj, ~)
-            % takes care of updating/removing puffs
-            %
-            % Note:
-            %  this method is called automatically by the step() of the Steppable parent
-            %  class and should not be called directly.
-            %
-            
+        function obj = propagateToTime(obj,t)
             % remove puffs that are out of the flying area
             outside=[];
             for pi=1:size(obj.puffs,2)
-                ti=(obj.simState.t-obj.puffs(2,pi));
+                ti=(t-obj.puffs(2,pi));
                 % 1% width of the Gaussian blob.
                 w = sqrt(-log(0.01)*2*obj.a*(obj.u*ti)^obj.b);
                 p = obj.C'*[obj.u*ti-w;0] + obj.sources(1:2,obj.puffs(1,pi));
@@ -264,27 +253,73 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
                     outside=[outside,pi]; %#ok<AGROW>
                 end
             end
-            if(~isempty(outside))
             obj.puffs(:,outside)=[];
-            end
+            
             % add any newly emitted puff
             for s=1:obj.numSources,
                 %fprintf('t:%d, %d puffs\n',obj.simState.t,size(obj.puffs,2));
-                while(obj.nextEmissionTimes(s)<obj.simState.t)
+                while(obj.nextEmissionTimes(s)<t)
                     q = obj.QRange(1)+(obj.QRange(2)-obj.QRange(1))*rand(obj.simState.rStreams{obj.iPrngId});
                     % a puff is defined by source, time, and concentration
                     obj.puffs(:,end+1) = [s;obj.nextEmissionTimes(s);q];
-                    obj.nextEmissionTimes(s) = obj.nextEmissionTimes(s) + obj.mu*(-log(rand(obj.simState.rStreams{obj.iPrngId})));                    
-                    %fprintf('added puff@%f for source %d, next puff@%f\n',obj.puffs(2,end),s,obj.nextEmissionTimes(s)); 
+                    obj.nextEmissionTimes(s) = obj.nextEmissionTimes(s) + obj.mu*(-log(rand(obj.simState.rStreams{obj.iPrngId})));
+                    %fprintf('added puff@%f for source %d, next puff@%f\n',obj.puffs(2,end),s,obj.nextEmissionTimes(s));
                 end
             end
-            obj.cepsilon = 1e-5*obj.QRange(1);
+        end
+        
+        function obj = computeLocations(obj)
+            % generate random locations within the support
+            % i.e. so that c(x,y,z)>epsilon
+            obj.locations=zeros(3,obj.NUM_REF_LOCATIONS);
             
-            % refresh display
-            if(~isempty(obj.graphics))
-                locs = obj.getLocations();
-                values = obj.getSamples(locs);
-                obj.graphics.update(obj.simState,obj.sources,obj.vmean,locs,values);
+            limits = reshape(obj.limits,2,3)';
+            lph = 0.5*(limits(:,2)+limits(:,1));
+            lm = (limits(:,2)-limits(:,1));
+            
+            n = obj.NUM_REF_LOCATIONS;
+            while (n > 0)
+                % generate n points within the area limits
+                ll = repmat(lph,1,n)+repmat(lm,1,n)...
+                    .*(rand(obj.simState.rStreams{obj.iPrngId},3,n)-0.5);
+                
+                % compute average concentration at such points
+                c = obj.getSamplesFromAverage(ll);
+                
+                % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
+                csup = (c>=obj.cepsilon);
+                ncsup = sum(csup);
+                idf = obj.NUM_REF_LOCATIONS - n;
+                obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
+                
+                % update number of samples needed
+                n = n - ncsup;
+            end
+        end
+        
+        function obj = computeReferenceSamples(obj)
+            % produce the "true" samples against which the KL of the agent
+            % produced samples is evaluated to return a reward.
+            
+            % allocate reference samples
+            obj.referenceSamples = zeros(obj.NUM_SAMPLES_PER_LOCATION,obj.NUM_REF_LOCATIONS);
+            
+            % clean up puffs and emission times...
+            obj.puffs = [];
+            % generate the times at which we expect a new emission for each source
+            obj.nextEmissionTimes = obj.mu*(-log(rand(obj.simState.rStreams{obj.iPrngId},obj.numSources,1)));
+            
+            % get the locations at which we sample the concentration
+            locs = obj.getLocations();
+            
+            % propagate forward in time puff model and store samples at each
+            % time point
+            t = obj.TIME_BETWEEN_REF_SAMPLES;
+            for i=1:obj.NUM_SAMPLES_PER_LOCATION,
+                obj.propagateToTime(t);
+                obj.referenceSamples(i,:)=obj.getSamplesAtTime(locs,t);
+                t = t + obj.TIME_BETWEEN_REF_SAMPLES;
+                i
             end
         end
     end

@@ -7,23 +7,26 @@ classdef GaussianPlumeArea<PlumeArea
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
     %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
-    %           
+    %
     
     properties (Constant)
-       NUMSAMPLES = 1000;
+        NUM_REF_LOCATIONS = 300;
+        NUM_SAMPLES_PER_LOCATION = 1;
     end
     
     properties (Access=protected)
-       sigma;
-       invSigma;
-       detSigma;
-       source;
-       angle;
-       sigmaRange;
-       prngId;
-       Q0;
-       cepsilon;
-    end    
+        sigma;
+        invSigma;
+        detSigma;
+        source;
+        angle;
+        sigmaRange;
+        prngId;
+        Q0;
+        cepsilon;
+        locations;
+        referenceSamples;
+    end
     
     methods (Sealed,Access=public)
         function obj = GaussianPlumeArea(objparams)
@@ -32,12 +35,12 @@ classdef GaussianPlumeArea<PlumeArea
             % Example:
             %
             %   obj=GaussianPlumeArea(objparams)
-            %               objparams.limits - x,y,z limits of the area 
+            %               objparams.limits - x,y,z limits of the area
             %               objparams.originutmcoords - structure containing the origin in utm coord
-            %               objparams.graphics.type - class type for the graphics object 
+            %               objparams.graphics.type - class type for the graphics object
             %                                         (only needed if the 3D display is active)
             %               objparams.sourceSigmaRange - min,max values for the width of the Gaussian concentration
-            %                                         (with of the concentration along the principal axes is drawn 
+            %                                         (with of the concentration along the principal axes is drawn
             %                                          randomly with uniform probability from the specified range)
             %               objparams.state - handle to the simulator state
             %
@@ -52,7 +55,7 @@ classdef GaussianPlumeArea<PlumeArea
                 tmp.state = objparams.state;
                 if(isfield(objparams,'graphics') && isfield(objparams.graphics,'backgroundimage'))
                     tmp.backgroundimage = objparams.graphics.backgroundimage;
-                end                
+                end
                 
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
@@ -62,29 +65,70 @@ classdef GaussianPlumeArea<PlumeArea
             % redraw a different plume pattern
             obj.init();
             % modify plot
-            locations = obj.getLocations();
-            values = ((((2*pi)^3)*obj.detSigma)^0.5)*obj.getSamples(locations);
-            obj.graphics.update(obj.simState,obj.source,[0;0;0],locations,values);            
+            obj.graphics.update(obj.simState,obj.source,[0;0;0],obj.locations,obj.referenceSamples);
         end
         
         function samples = getSamples(obj,positions)
-            % compute the concentration at the requested locations            
-            rsource = repmat(obj.source,1,size(positions,2)); 
+            % compute the concentration at the requested locations
+            rsource = repmat(obj.source,1,size(positions,2));
             samples = obj.Q0*exp(-0.5*dot((positions-rsource),obj.invSigma*(positions-rsource),1));
         end
         
         function locations = getLocations(obj)
+            locations = obj.locations;
+        end
+        
+        function spl = getSamplesPerLocation(obj)
+            spl = obj.NUM_SAMPLES_PER_LOCATION;
+        end
+        
+        function rs = getReferenceSamples(obj)
+            rs = obj.referenceSamples;
+        end
+    end
+    
+    methods (Access=protected)
+        function obj=init(obj)
+            % generate the covariance matrix and the position of the source
+            
+            obj.angle = pi*rand(obj.simState.rStreams{obj.prngId});
+            ss = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId},3,1)*...
+                (obj.sigmaRange(2)-obj.sigmaRange(1));
+            
+            sqrts = (angleToDcm(obj.angle,0,0)')*diag(ss);
+            obj.sigma=sqrts*sqrts';
+            
+            obj.invSigma = inv(obj.sigma);
+            obj.detSigma = det(obj.sigma);
+            
+            obj.Q0 = (1/((((2*pi)^3)*obj.detSigma)^0.5));
+            obj.cepsilon = 1e-5*obj.Q0;
+            
+            % source position
+            limits = reshape(obj.limits,2,3)';
+            lph = 0.5*(limits(:,2)+limits(:,1));
+            lm = 0.8*(limits(:,2)-limits(:,1));
+            obj.source = lph+lm.*(rand(obj.simState.rStreams{obj.prngId},3,1)-0.5);
+            
+            % compute locations
+            obj.computeLocations();
+            
+            % compute reference samples
+            obj.computeReferenceSamples();
+        end
+        
+        function obj = computeLocations(obj)
             % generate locations locations within the support
             % i.e. so that c(x,y,z)>epsilon
-            locations=zeros(3,obj.NUMSAMPLES);
+            obj.locations=zeros(3,obj.NUM_REF_LOCATIONS);
             
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(:,2)+limits(:,1));
             lm = (limits(:,2)-limits(:,1));
             
-            n = obj.NUMSAMPLES;
+            n = obj.NUM_REF_LOCATIONS;
             while (n > 0)
-                % generate n points within the area limits                
+                % generate n points within the area limits
                 ll = repmat(lph,1,n)+repmat(lm,1,n)...
                     .*(rand(obj.simState.rStreams{obj.prngId},3,n)-0.5);
                 
@@ -94,37 +138,16 @@ classdef GaussianPlumeArea<PlumeArea
                 % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
                 csup = (c>obj.cepsilon);
                 ncsup = sum(csup);
-                idf = obj.NUMSAMPLES - n;
-                locations(:,idf+(1:ncsup)) = ll(:,csup);
+                idf = obj.NUM_REF_LOCATIONS - n;
+                obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
                 
                 % update number of samples needed
-                n = n - ncsup;                
+                n = n - ncsup;
             end
         end
-    end
-    
-    methods (Access=protected)
-        function obj=init(obj)
-            % generate the covariance matrix and the position of the source                       
-            
-            obj.angle = pi*rand(obj.simState.rStreams{obj.prngId});
-            ss = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId},3,1)*...
-                                   (obj.sigmaRange(2)-obj.sigmaRange(1));
-            
-            sqrts = (angleToDcm(obj.angle,0,0)')*diag(ss);
-            obj.sigma=sqrts*sqrts';
-            
-            obj.invSigma = inv(obj.sigma);
-            obj.detSigma = det(obj.sigma);
-            
-            obj.Q0 = (1/((((2*pi)^3)*obj.detSigma)^0.5));          
-            obj.cepsilon = 1e-5*obj.Q0;
-            
-            % source position
-            limits = reshape(obj.limits,2,3)';
-            lph = 0.5*(limits(:,2)+limits(:,1));
-            lm = 0.8*(limits(:,2)-limits(:,1));              
-            obj.source = lph+lm.*(rand(obj.simState.rStreams{obj.prngId},3,1)-0.5);            
+        
+        function obj = computeReferenceSamples(obj)
+            obj.referenceSamples = ((((2*pi)^3)*obj.detSigma)^0.5)*obj.getSamples(obj.locations);
         end
-    end    
+    end
 end

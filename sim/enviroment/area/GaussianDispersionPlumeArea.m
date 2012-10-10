@@ -12,7 +12,8 @@ classdef GaussianDispersionPlumeArea<PlumeArea
     %
     
     properties (Constant)
-        NUMSAMPLES = 1000;
+        NUM_REF_LOCATIONS = 300;
+        NUM_SAMPLES_PER_LOCATION = 1;
     end
     
     properties (Access=public)
@@ -30,6 +31,7 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         cepsilon;
         vmean;
         locations;
+        referenceSamples;
     end
     
     methods (Sealed,Access=public)
@@ -89,9 +91,9 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             % redraw a different plume pattern
             obj.init();
             % modify plot
-            locs = obj.getLocations();
-            values = obj.getSamples(locs);
-            obj.graphics.update(obj.simState,obj.sources,obj.vmean,locs,values);
+            obj.computeLocations();
+            obj.computeReferenceSamples();
+            obj.graphics.update(obj.simState,obj.sources,obj.vmean,obj.locations,obj.referenceSamples);
         end
         
         function c = getSamples(obj,pos)
@@ -119,36 +121,15 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         end
         
         function locations = getLocations(obj)
-            % generate random locations within the support
-            % i.e. so that c(x,y,z)>epsilon
-            
-            if(isempty(obj.locations))
-                obj.locations=zeros(3,obj.NUMSAMPLES);
-                
-                limits = reshape(obj.limits,2,3)';
-                lph = 0.5*(limits(:,2)+limits(:,1));
-                lm = (limits(:,2)-limits(:,1));
-                
-                n = obj.NUMSAMPLES;
-                while (n > 0)
-                    % generate n points within the area limits
-                    ll = repmat(lph,1,n)+repmat(lm,1,n)...
-                        .*(rand(obj.simState.rStreams{obj.iPrngId},3,n)-0.5);
-                    
-                    % compute concentration at such points
-                    c = obj.getSamples(ll);
-                    
-                    % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
-                    csup = (c>obj.cepsilon);
-                    ncsup = sum(csup);
-                    idf = obj.NUMSAMPLES - n;
-                    obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
-                    
-                    % update number of samples needed
-                    n = n - ncsup;
-                end
-            end            
             locations = obj.locations;
+        end
+        
+        function spl = getSamplesPerLocation(obj)
+            spl = obj.NUM_SAMPLES_PER_LOCATION;
+        end
+        
+        function rs = getReferenceSamples(obj)
+            rs = obj.referenceSamples;
         end
     end
     
@@ -189,6 +170,39 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             % rotation body to wind frame
             obj.C=[obj.vmean(1),obj.vmean(2);-obj.vmean(2),obj.vmean(1)]./obj.u;
             
+        end
+        
+        function obj=computeReferenceSamples(obj)
+            obj.referenceSamples = obj.getSamples(obj.locations);
+        end
+        
+        function obj=computeLocations(obj)
+            % generate random locations within the support
+            % i.e. so that c(x,y,z)>epsilon
+            obj.locations=zeros(3,obj.NUM_REF_LOCATIONS);
+            
+            limits = reshape(obj.limits,2,3)';
+            lph = 0.5*(limits(:,2)+limits(:,1));
+            lm = (limits(:,2)-limits(:,1));
+            
+            n = obj.NUM_REF_LOCATIONS;
+            while (n > 0)
+                % generate n points within the area limits
+                ll = repmat(lph,1,n)+repmat(lm,1,n)...
+                    .*(rand(obj.simState.rStreams{obj.iPrngId},3,n)-0.5);
+                
+                % compute concentration at such points
+                c = obj.getSamples(ll);
+                
+                % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
+                csup = (c>obj.cepsilon);
+                ncsup = sum(csup);
+                idf = obj.NUM_REF_LOCATIONS - n;
+                obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
+                
+                % update number of samples needed
+                n = n - ncsup;
+            end
         end
     end
 end
