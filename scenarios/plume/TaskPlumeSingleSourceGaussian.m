@@ -61,7 +61,8 @@ classdef TaskPlumeSingleSourceGaussian<Task
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-140 140 -140 140 -80 0];
             taskparams.environment.area.type = 'GaussianPlumeArea';
-            taskparams.environment.area.sourceSigmaRange = [3 20];
+            taskparams.environment.area.sourcesigmarange = [3 20];
+            taskparams.environment.area.numreflocations = 300; %number of reference locations in space used for reward computation
             
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and

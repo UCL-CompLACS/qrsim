@@ -20,7 +20,7 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
     properties (Constant)
         numUAVs = 1;
         startHeight = -10;
-        durationInSteps = 1000;
+        durationInSteps = 10;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -67,7 +67,9 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             taskparams.environment.area.b = 0.86; %dispersion parameter from [1]
             taskparams.environment.area.numSourcesRange = [1,1]; %range of number of sources
             taskparams.environment.area.mu = 5; % mean interemission time
-            taskparams.environment.area.QRange = [0.1,0.11]*1e-3; %range of emission quantities
+            taskparams.environment.area.QRange = [0.1,2.5];%*1e-3; %range of emission quantities
+            taskparams.environment.area.numreflocations = 100; %number of reference locations in space used for reward computation
+            taskparams.environment.area.numsamplesperlocations = 500; %number of samples for each reference location
             
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
@@ -178,7 +180,9 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             
             if(valid)
                 % the reward is simply the KL divergence (multiplied by -1 of course)
+                tic
                 r = - kl(obj.simState.environment.area.getReferenceSamples(),obj.receivedSamples);
+                fprintf('kl calculation took %f seconds\n', toc);
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. one the helicopters is out of the area, there was a

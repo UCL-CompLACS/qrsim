@@ -65,8 +65,9 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
             taskparams.environment.area.a = 0.33; %dispersion parameter from [1]
             taskparams.environment.area.b = 0.86; %dispersion parameter from [1]
             taskparams.environment.area.numSourcesRange = [1,5]; %range of number of sources
-            taskparams.environment.area.QRange = [0.1,2.5]*1e-3; %range of emission rates
-            
+            taskparams.environment.area.QRange = [0.1,2.5];%*1e-3; %range of emission rates
+            taskparams.environment.area.numreflocations = 300; %number of reference locations in space used for reward computation
+           
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
             % gpsspacesegment.svs need to be changed
