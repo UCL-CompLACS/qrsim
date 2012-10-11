@@ -6,14 +6,24 @@ d = size(P,2);
 m = size(P,1);
 n = size(Q,1);
 
+w = 0;
 sumlog = 0;
 for i=1:n,    
     rhoi = knnsearch(P(i,:),P,i);
     nui = knnsearch(P(i,:),Q);
        
-    sumlog = sumlog + log(nui/rhoi);
+    if((nui > 1e-20)&&(rhoi > 1e-20)) 
+       sumlog = sumlog + log(nui/rhoi);
+    else
+       w = w+1; 
+    end
 end
-klest = (d/n)*sumlog+log(m/(n-1));
+
+if(n==w)
+    klest = 0; 
+else    
+    klest = (d/(n-w))*sumlog+log((m-w)/(n-w-1));
+end
 
 end
 
