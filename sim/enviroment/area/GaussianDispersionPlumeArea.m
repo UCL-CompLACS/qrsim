@@ -11,11 +11,6 @@ classdef GaussianDispersionPlumeArea<PlumeArea
     %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
     %
     
-    properties (Constant)
-        NUM_REF_LOCATIONS = 300;
-        NUM_SAMPLES_PER_LOCATION = 1;
-    end
-    
     properties (Access=public)
         Qs;
         QRange;
@@ -28,10 +23,7 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         C;
         iPrngId;
         sPrngId;
-        cepsilon;
         vmean;
-        locations;
-        referenceSamples;
     end
     
     methods (Sealed,Access=public)
@@ -76,6 +68,10 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 'If using a GaussianDispersionPlumeArea, the task must define the dispersion parameter b');
             obj.b = objparams.b;
             
+            assert(~isfield(objparams,'numsamplesperlocations'),'gaussiandispersionplumearea:numsamplesperlocations',...
+                'If using a GaussianDispersionPlumeArea, the dispersion parameter numsamplesperlocations is not needed please remove it');            
+            obj.numSamplesPerLocation = 1; % fix to 1 since the concentration is static and determinstic
+            
             if(objparams.graphics.on)
                 tmp.limits = objparams.limits;
                 tmp.state = objparams.state;
@@ -119,18 +115,6 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 c = c+ci;
             end
         end
-        
-        function locations = getLocations(obj)
-            locations = obj.locations;
-        end
-        
-        function spl = getSamplesPerLocation(obj)
-            spl = obj.NUM_SAMPLES_PER_LOCATION;
-        end
-        
-        function rs = getReferenceSamples(obj)
-            rs = obj.referenceSamples;
-        end
     end
     
     methods (Access=protected)
@@ -150,7 +134,7 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             obj.Qs = obj.QRange(1)*ones(1,obj.numSources)+(obj.QRange(2)-...
                 obj.QRange(1))*rand(obj.simState.rStreams{obj.iPrngId},1,obj.numSources);
             
-            obj.cepsilon = 1e-5*min(obj.Qs);
+            obj.cepsilon = 1e-3*min(obj.Qs);
             
             % sources position
             limits = reshape(obj.limits,2,3)';
@@ -179,13 +163,13 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         function obj=computeLocations(obj)
             % generate random locations within the support
             % i.e. so that c(x,y,z)>epsilon
-            obj.locations=zeros(3,obj.NUM_REF_LOCATIONS);
+            obj.locations=zeros(3,obj.numRefLocations);
             
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(:,2)+limits(:,1));
             lm = (limits(:,2)-limits(:,1));
             
-            n = obj.NUM_REF_LOCATIONS;
+            n = obj.numRefLocations;
             while (n > 0)
                 % generate n points within the area limits
                 ll = repmat(lph,1,n)+repmat(lm,1,n)...
@@ -197,7 +181,7 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
                 csup = (c>obj.cepsilon);
                 ncsup = sum(csup);
-                idf = obj.NUM_REF_LOCATIONS - n;
+                idf = obj.numRefLocations - n;
                 obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
                 
                 % update number of samples needed

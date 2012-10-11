@@ -14,8 +14,6 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
     %
     
     properties (Constant)
-        NUM_REF_LOCATIONS = 300;
-        NUM_SAMPLES_PER_LOCATION = 1000;
         TIME_BETWEEN_REF_SAMPLES = 60;
     end
     
@@ -26,18 +24,14 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         u;
         numSources;
         sources;
-        sourcesW;
         numSourcesRange;
         C;
         iPrngId;
         sPrngId;
-        cepsilon;
         vmean;
         mu;
         puffs;
         nextEmissionTimes;
-        locations;
-        referenceSamples;
     end
     
     methods (Sealed,Access=public)
@@ -87,6 +81,10 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
                 'If using a GaussianPuffDispersionPlumeArea, the task must define the mean interemission time parameter mu');
             obj.mu = objparams.mu;
             
+            assert(isfield(objparams,'numsamplesperlocations'),'gaussianpuffdispersionplumearea:nonumsamplesperlocations',...
+                'If using a GaussianPuffDispersionPlumeArea, the task must define the dispersion parameter numsamplesperlocations');            
+            obj.numSamplesPerLocation = objparams.numsamplesperlocations;
+            
             if(objparams.graphics.on)
                 tmp.limits = objparams.limits;
                 tmp.state = objparams.state;
@@ -106,19 +104,6 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         function c = getSamples(obj,pos)
             c = obj.getSamplesAtTime(pos,obj.simState.t);
         end
-        
-        function locations = getLocations(obj)
-            
-            locations = obj.locations;
-        end
-        
-        function spl = getSamplesPerLocation(obj)
-            spl = obj.NUM_SAMPLES_PER_LOCATION;
-        end
-        
-        function rs = getReferenceSamples(obj)
-            rs = obj.referenceSamples;
-        end
     end
     
     methods (Access=protected)
@@ -135,7 +120,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             end
             obj.sources=zeros(3,obj.numSources);
             
-            obj.cepsilon = 1e-5*obj.QRange(1);
+            obj.cepsilon = 1e-3*obj.QRange(1);
             
             % sources position
             limits = reshape(obj.limits,2,3)';
@@ -271,13 +256,13 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         function obj = computeLocations(obj)
             % generate random locations within the support
             % i.e. so that c(x,y,z)>epsilon
-            obj.locations=zeros(3,obj.NUM_REF_LOCATIONS);
+            obj.locations=zeros(3,obj.numRefLocations);
             
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(:,2)+limits(:,1));
             lm = (limits(:,2)-limits(:,1));
             
-            n = obj.NUM_REF_LOCATIONS;
+            n = obj.numRefLocations;
             while (n > 0)
                 % generate n points within the area limits
                 ll = repmat(lph,1,n)+repmat(lm,1,n)...
@@ -289,7 +274,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
                 % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
                 csup = (c>=obj.cepsilon);
                 ncsup = sum(csup);
-                idf = obj.NUM_REF_LOCATIONS - n;
+                idf = obj.numRefLocations - n;
                 obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
                 
                 % update number of samples needed
@@ -300,9 +285,10 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         function obj = computeReferenceSamples(obj)
             % produce the "true" samples against which the KL of the agent
             % produced samples is evaluated to return a reward.
+            tic
             
             % allocate reference samples
-            obj.referenceSamples = zeros(obj.NUM_SAMPLES_PER_LOCATION,obj.NUM_REF_LOCATIONS);
+            obj.referenceSamples = zeros(obj.numSamplesPerLocation,obj.numRefLocations);
             
             % clean up puffs and emission times...
             obj.puffs = [];
@@ -315,12 +301,12 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             % propagate forward in time puff model and store samples at each
             % time point
             t = obj.TIME_BETWEEN_REF_SAMPLES;
-            for i=1:obj.NUM_SAMPLES_PER_LOCATION,
+            for i=1:obj.numSamplesPerLocation,
                 obj.propagateToTime(t);
                 obj.referenceSamples(i,:)=obj.getSamplesAtTime(locs,t);
                 t = t + obj.TIME_BETWEEN_REF_SAMPLES;
-                i
             end
+            fprintf('reference distribution generation took %f seconds\n', toc);
         end
     end
 end

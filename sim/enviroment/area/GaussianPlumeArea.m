@@ -9,11 +9,6 @@ classdef GaussianPlumeArea<PlumeArea
     %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
     %
     
-    properties (Constant)
-        NUM_REF_LOCATIONS = 300;
-        NUM_SAMPLES_PER_LOCATION = 1;
-    end
-    
     properties (Access=protected)
         sigma;
         invSigma;
@@ -23,9 +18,6 @@ classdef GaussianPlumeArea<PlumeArea
         sigmaRange;
         prngId;
         Q0;
-        cepsilon;
-        locations;
-        referenceSamples;
     end
     
     methods (Sealed,Access=public)
@@ -39,7 +31,7 @@ classdef GaussianPlumeArea<PlumeArea
             %               objparams.originutmcoords - structure containing the origin in utm coord
             %               objparams.graphics.type - class type for the graphics object
             %                                         (only needed if the 3D display is active)
-            %               objparams.sourceSigmaRange - min,max values for the width of the Gaussian concentration
+            %               objparams.sourcesigmarange - min,max values for the width of the Gaussian concentration
             %                                         (with of the concentration along the principal axes is drawn
             %                                          randomly with uniform probability from the specified range)
             %               objparams.state - handle to the simulator state
@@ -48,8 +40,15 @@ classdef GaussianPlumeArea<PlumeArea
             
             obj.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
-            obj.sigmaRange = objparams.sourceSigmaRange;
             
+            assert(isfield(objparams,'sourcesigmarange'),'gaussianplumearea:sourcesigmarange',...
+                'If using a GaussianPlumeArea, the task must define the parameter sourcesigmarange');                     
+            obj.sigmaRange = objparams.sourcesigmarange;
+            
+            assert(~isfield(objparams,'numsamplesperlocations'),'gaussianplumearea:numsamplesperlocations',...
+                'If using a GaussianPlumeArea, the dispersion parameter numsamplesperlocations is not needed please remove it');            
+            obj.numSamplesPerLocation = 1; % fix to 1 since the concentration is static and determinstic
+           
             if(objparams.graphics.on)
                 tmp.limits = objparams.limits;
                 tmp.state = objparams.state;
@@ -73,18 +72,6 @@ classdef GaussianPlumeArea<PlumeArea
             rsource = repmat(obj.source,1,size(positions,2));
             samples = obj.Q0*exp(-0.5*dot((positions-rsource),obj.invSigma*(positions-rsource),1));
         end
-        
-        function locations = getLocations(obj)
-            locations = obj.locations;
-        end
-        
-        function spl = getSamplesPerLocation(obj)
-            spl = obj.NUM_SAMPLES_PER_LOCATION;
-        end
-        
-        function rs = getReferenceSamples(obj)
-            rs = obj.referenceSamples;
-        end
     end
     
     methods (Access=protected)
@@ -102,7 +89,7 @@ classdef GaussianPlumeArea<PlumeArea
             obj.detSigma = det(obj.sigma);
             
             obj.Q0 = (1/((((2*pi)^3)*obj.detSigma)^0.5));
-            obj.cepsilon = 1e-5*obj.Q0;
+            obj.cepsilon = 1e-3*obj.Q0;
             
             % source position
             limits = reshape(obj.limits,2,3)';
@@ -120,13 +107,13 @@ classdef GaussianPlumeArea<PlumeArea
         function obj = computeLocations(obj)
             % generate locations locations within the support
             % i.e. so that c(x,y,z)>epsilon
-            obj.locations=zeros(3,obj.NUM_REF_LOCATIONS);
+            obj.locations=zeros(3,obj.numRefLocations);
             
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(:,2)+limits(:,1));
             lm = (limits(:,2)-limits(:,1));
             
-            n = obj.NUM_REF_LOCATIONS;
+            n = obj.numRefLocations;
             while (n > 0)
                 % generate n points within the area limits
                 ll = repmat(lph,1,n)+repmat(lm,1,n)...
@@ -138,7 +125,7 @@ classdef GaussianPlumeArea<PlumeArea
                 % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
                 csup = (c>obj.cepsilon);
                 ncsup = sum(csup);
-                idf = obj.NUM_REF_LOCATIONS - n;
+                idf = obj.numRefLocations - n;
                 obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
                 
                 % update number of samples needed
