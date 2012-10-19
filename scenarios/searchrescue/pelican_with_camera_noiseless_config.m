@@ -70,12 +70,14 @@ c.sensors.ahars.altimeter.SIGMA = 0.03;   % noise standard deviation
 
 c.sensors.camera.on = 1;             % should always be on with PelicanWithCamera
 c.sensors.camera.type = 'CameraWithClassifier';
+c.sensors.camera.dt = 1;
 c.sensors.camera.f = [2280; 2280];   % focal length
 c.sensors.camera.c = [640; 480];     % camera center
-c.sensors.camera.r = [0 0 pi];       % rotation between camera and body 
+c.sensors.camera.r = [0 0 pi/2];     % rotation between camera and body 
+c.sensors.camera.graphics.type = 'CameraGraphics';
 
 % Aerodynamic Turbulence
-c.aerodynamicturbulence.on = 1;
+c.aerodynamicturbulence.on = 0;
 c.aerodynamicturbulence.type = 'AerodynamicTurbulenceMILF8785';
 c.aerodynamicturbulence.direction = []; % mean wind direction, (rad clockwise from north set to [] to initialise randomly)
 c.aerodynamicturbulence.W6 = 2;  % velocity at 6m from ground in m/s
