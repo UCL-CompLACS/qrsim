@@ -3,23 +3,23 @@ function [ klest ] = kl(P,Q)
 %   Detailed explanation goes here
 
 d = size(P,2);
-m = size(P,1);
-n = size(Q,1);
+n = size(P,1);
+m = size(Q,1);
 
 w = 0;
 sumlog = 0;
 for i=1:n,    
-    rhoi = knnsearch(P(i,:),P,i);
-    nui = knnsearch(P(i,:),Q);
+    rhon_i = knnsearch(P(i,:),P,i);
+    num_i = knnsearch(P(i,:),Q,[]);
        
-    if((nui > 1e-20)&&(rhoi > 1e-20)) 
-       sumlog = sumlog + log(nui/rhoi);
+    if((num_i > 1e-20)&&(rhon_i > 1e-20)) 
+       sumlog = sumlog + log(num_i/rhon_i);
     else
        w = w+1; 
     end
 end
 
-if(n==w)
+if(m==w)
     klest = 0; 
 else    
     klest = (d/(n-w))*sumlog+log((m-w)/(n-w-1));
