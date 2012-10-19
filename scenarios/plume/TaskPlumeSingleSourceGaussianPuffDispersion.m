@@ -53,7 +53,7 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 1;
+            taskparams.display3d.on = 0;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
@@ -68,8 +68,8 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             taskparams.environment.area.numSourcesRange = [1,1]; %range of number of sources
             taskparams.environment.area.mu = 5; % mean interemission time
             taskparams.environment.area.QRange = [0.1,2.5];%*1e-3; %range of emission quantities
-            taskparams.environment.area.numreflocations = 100; %number of reference locations in space used for reward computation
-            taskparams.environment.area.numsamplesperlocations = 500; %number of samples for each reference location
+            taskparams.environment.area.numreflocations = 25; %number of reference locations in space used for reward computation
+            taskparams.environment.area.numsamplesperlocations = 3000; %number of samples for each reference location
             
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
@@ -112,7 +112,7 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
             taskparams.environment.wind.on = 1;  
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = []; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
-            taskparams.environment.wind.W6 = 3;  % velocity at 6m from ground in m/s
+            taskparams.environment.wind.W6 = 1;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
@@ -178,17 +178,17 @@ classdef TaskPlumeSingleSourceGaussianPuffDispersion<Task
                 valid = valid &&  obj.simState.platforms{i}.isValid();
             end
             
-            if(valid)
+           % if(valid)
                 % the reward is simply the KL divergence (multiplied by -1 of course)
                 tic
                 r = - kl(obj.simState.environment.area.getReferenceSamples(),obj.receivedSamples);
                 fprintf('kl calculation took %f seconds\n', toc);
-            else
+           % else
                 % returning a large penalty in case the state is not valid
                 % i.e. one the helicopters is out of the area, there was a
                 % collision or one of the helicoptera has crashed
-                r = - obj.PENALTY;
-            end
+           %     r = - obj.PENALTY;
+           % end
         end
                         
         function spl = getSamplesPerLocation(obj)
