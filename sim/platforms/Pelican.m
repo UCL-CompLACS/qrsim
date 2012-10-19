@@ -55,7 +55,6 @@ classdef Pelican<Steppable & Platform
         gpsreceiver; % handle to the gps receiver
         aerodynamicTurbulence;  % handle to the aerodynamic turbulence
         ahars ;      % handle to the attitude heading altitude reference system
-        camera;      % handle to the camera
         graphics;    % handle to the quadrotor graphics
         a;           % linear accelerations in body coordinates [ax;ay;az]
         collisionD;  % distance from any other object that defines a collision
@@ -66,6 +65,7 @@ classdef Pelican<Steppable & Platform
         X;           % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
         eX;          % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
         valid;       % the state of the platform is invalid
+        graphicsOn;
     end
     
     methods (Access = public)
@@ -154,8 +154,7 @@ classdef Pelican<Steppable & Platform
                 'the platform config file must define a gps receiver if not needed set gpsreceiver.on = 0');
             objparams.sensors.gpsreceiver.DT = objparams.DT;
             objparams.sensors.gpsreceiver.state = objparams.state;
-            if(objparams.sensors.gpsreceiver.on)
-                
+            if(objparams.sensors.gpsreceiver.on)                
                 assert(~strcmp(class(obj.simState.environment.gpsspacesegment),'GPSSpaceSegment'),...
                     'pelican:nogpsspacesegment','the task config file must define a gpsspacesegment if a gps receiver is in use');
                 
@@ -177,11 +176,12 @@ classdef Pelican<Steppable & Platform
             objparams.graphics.DT = objparams.DT;
             objparams.graphics.state = objparams.state;
             if(objparams.graphics.on)
+                obj.graphicsOn = 1;
                 assert(isfield(objparams.graphics,'type'),'pelican:nographicstype',...
                     'the platform config file must define a graphics.type');
                 obj.graphics=feval(objparams.graphics.type,objparams.graphics);
             else
-                obj.graphics=feval('QuadrotorGraphics',objparams.graphics);
+                obj.graphicsOn = 0;
             end
         end
         
@@ -279,7 +279,9 @@ classdef Pelican<Steppable & Platform
             obj.valid = 1;
             
             % clean the trajectory plot if any
-            obj.graphics.reset();
+            if(obj.graphicsOn)
+                obj.graphics.reset();
+            end
         end
         
         function obj = reset(obj)
@@ -292,7 +294,9 @@ classdef Pelican<Steppable & Platform
             obj.aerodynamicTurbulence.reset();
             obj.ahars.reset();
             obj.resetAdditional();
-            obj.graphics.reset();
+            if(obj.graphicsOn)
+                obj.graphics.reset();
+            end
             obj.valid = 1;
         end
         
@@ -385,6 +389,10 @@ classdef Pelican<Steppable & Platform
         function obj=updateAdditional(obj,U)
            % used by subclasses to update additional stuff 
         end
+         
+        function obj=updateAdditionalGraphics(obj,X)
+           % used by subclasses to update additional graphics stuff 
+        end
         
         function obj = update(obj,U)
             % updates the state of the platform and of its components
@@ -445,8 +453,11 @@ classdef Pelican<Steppable & Platform
                     
                     obj.updateAdditional(U);
                     
-                    % graphics
-                    obj.graphics.update(obj.X);
+                    % graphics      
+                    if(obj.graphicsOn)
+                        obj.graphics.update(obj.X);
+                        obj.updateAdditionalGraphics(obj.X);
+                    end
                     
                     obj.valid = 1;
                 else
