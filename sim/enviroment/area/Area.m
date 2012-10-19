@@ -12,6 +12,7 @@ classdef Area<Steppable & EnvironmentObject
         graphics;         % handle to the graphics object
         originUTMCoords;  % origin
         limits;           % are limits
+        graphicsOn;
     end
     
     methods (Sealed,Access=public)
@@ -47,14 +48,12 @@ classdef Area<Steppable & EnvironmentObject
             assert(isfield(objparams,'graphics')&&isfield(objparams.graphics,'on'),'area:nographics',['The task must define environment.area.graphics\n',...
                 ' this could be environment.area.graphics.on=0; if no graphics is needed']);
             if(objparams.graphics.on)
+                obj.graphicsOn = 1;
                 assert(isfield(objparams.graphics,'type'),'area:nographicstype','Since the display3d is on the task must define environment.area.graphics.type');
+            else
+                obj.graphicsOn = 0;
             end
         end
-        
-        function on = isGraphicsOn(obj)
-           % returns true if there is a graphics object associate with the area
-           on = ~isempty(obj.graphics); 
-        end 
         
         function coords = getOriginUTMCoords(obj)
             % returns origin

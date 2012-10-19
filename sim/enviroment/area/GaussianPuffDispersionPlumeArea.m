@@ -166,7 +166,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             obj.propagateToTime(obj.simState.t);
             
             % refresh display
-            if(~isempty(obj.graphics))
+            if(obj.graphicsOn)
                 values = obj.getSamples(obj.locations);
                 obj.graphics.update(obj.simState,obj.sources,obj.vmean,obj.locations,values);
             end
