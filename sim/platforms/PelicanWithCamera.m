@@ -62,7 +62,7 @@ classdef PelicanWithCamera<Pelican
             %                objparams.sensors.ahars - ahrs parameters
             %                objparams.sensors.gpsreceiver - gps receiver parameters
             %                objparams.graphics - graphics parameters
-            %                objparams.camera - camera parameters
+            %                objparams.sensors.camera - camera parameters
             %                objparams.stateLimits - 13 by 2 vector of allowed values of the state
             %                objparams.collisionDistance - distance from any other object that defines a collision
             %                objparams.dynNoise -  standard deviation of the noise dynamics
@@ -72,19 +72,12 @@ classdef PelicanWithCamera<Pelican
             obj=obj@Pelican(objparams);
             
             % camera
-            assert(isfield(objparams,'camera')&&isfield(objparams.camera,'on'),'pelican:nocamera',...
+            assert(isfield(objparams.sensors,'camera')&&isfield(objparams.sensors.camera,'on'),'pelicanwithcamera:nocamera',...
                 'the platform config file must define a camera parameter');
+            objparams.sensors.camera.graphics.on = objparams.graphics.on;
+            objparams.sensors.camera.state = objparams.state;
             obj.camera = feval(objparams.sensors.camera.type,objparams.sensors.camera);           
-        end
-        
-        function obj = resetAdditional(obj)
-            % resets all the platform specific subcomponents
-            %
-            % Example:
-            %   obj.reset();
-            %
-            obj.camera.reset();
-        end        
+        end   
         
         function o = getCameraOutput(obj)
             % return the last result from the camera, mind that this is
@@ -106,7 +99,21 @@ classdef PelicanWithCamera<Pelican
             obj.camera.step(obj.X);
                     
             obj.cameraOutput = obj.camera.getMeasurement(obj.X);
-        end          
+        end  
+        
+        function obj=updateAdditionalGraphics(obj,X)
+           % used by subclasses to update additional graphics stuff 
+           obj.camera.updateGraphics(X);
+        end
+        
+        function obj = resetAdditional(obj)
+            % resets additional platform subcomponents
+            %
+            % Example:
+            %   obj.reset();
+            %
+            obj.camera.reset();
+        end        
     end
 end
 
