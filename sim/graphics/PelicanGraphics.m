@@ -169,8 +169,7 @@ classdef PelicanGraphics<QuadrotorGraphics
                     end
                 end
             end
-            
-            
+                       
             if (obj.plotTrj)
                 s = max(1,length(obj.gHandle.trjData.x)-obj.trjLength);
                 if(isempty(obj.gHandle.trjData.x))
