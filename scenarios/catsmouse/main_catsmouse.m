@@ -1,5 +1,5 @@
 % bare bones example of use of the QRSim() simulator
-% with one of the the cats-mouse scenario
+% with one of the cats-mouse scenario
 %
 % as a quick remainder, in this task three quadrotors (cats) have to catch another
 % quadrotor (mouse) AT THE END of the allotted time for the task.
@@ -26,7 +26,7 @@ qrsim = QRSim();
 %state = qrsim.init('TaskCatsMouseNoisy');
 state = qrsim.init('TaskCatsMouseNoisyAndWindy');
 
-% remainder:
+% reminder:
 % platforms with id 1..state.task.Nc are cats
 % the last platform (i.e. with id state.task.Nc+1) is the mouse
 
