@@ -6,7 +6,6 @@ classdef GaussianPlumeArea<PlumeArea
     %    reset()                        - does nothing
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
-    %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
     %
     
     properties (Access=protected)

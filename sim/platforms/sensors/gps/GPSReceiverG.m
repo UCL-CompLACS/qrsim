@@ -97,7 +97,7 @@ classdef GPSReceiverG < GPSReceiver
             %   obj.reset()
             %
             
-            obj.nsv = obj.minmaxnumsv(1)+randi(obj.simState.rStreams{obj.sPrngId},obj.minmaxnumsv(2)-obj.minmaxnumsv(1));
+            obj.nsv = (obj.minmaxnumsv(1)-1)+randi(obj.simState.rStreams{obj.sPrngId},obj.minmaxnumsv(2)-obj.minmaxnumsv(1)+1);
             
             obj.svidx = zeros(1,obj.nsv);
             r = randperm(obj.simState.rStreams{obj.sPrngId},obj.totalnumsvs);

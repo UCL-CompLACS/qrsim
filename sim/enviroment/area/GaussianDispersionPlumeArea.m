@@ -8,7 +8,6 @@ classdef GaussianDispersionPlumeArea<PlumeArea
     %    reset()                        - does nothing
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
-    %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
     %
     
     properties (Access=public)
@@ -123,8 +122,8 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             
             % number of sources
             if (obj.numSourcesRange(2)~=obj.numSourcesRange(1))
-                obj.numSources=obj.numSourcesRange(1)+...
-                    randi(obj.simState.rStreams{obj.iPrngId},obj.numSourcesRange(2)-obj.numSourcesRange(1),1);
+                obj.numSources=(obj.numSourcesRange(1)-1)+...
+                    randi(obj.simState.rStreams{obj.iPrngId},obj.numSourcesRange(2)-obj.numSourcesRange(1)+1,1);
             else
                 obj.numSources=obj.numSourcesRange(1);
             end
