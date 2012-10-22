@@ -1,4 +1,4 @@
-classdef BoxAreaWithObstacles<Area
+classdef BoxWithObstaclesArea<Area
     % Defines a simple box shaped empty area in which the platforms can fly
     %
     % BoxArea Methods:
@@ -10,12 +10,12 @@ classdef BoxAreaWithObstacles<Area
     %           
     
     methods (Sealed,Access=public)
-        function obj = BoxAreaWithObstacles(objparams)
+        function obj = BoxWithObstaclesArea(objparams)
             % constructs the object
             %
             % Example:
             %
-            %   obj=BoxAreaWithObstacles(objparams)
+            %   obj=BoxWithObstaclesArea(objparams)
             %               objparams.limits - x,y,z limits of the area 
             %               objparams.originutmcoords - structure containing the origin in utm coord
             %               objparams.graphics.type - class type for thegraphics object 
@@ -31,7 +31,7 @@ classdef BoxAreaWithObstacles<Area
                 if(isfield(objparams,'graphics') && isfield(objparams.graphics,'backgroundimage'))
                     tmp.backgroundimage = objparams.graphics.backgroundimage;
                 end
-                assert(isfield(objparams,'obstacles'),'boxareawithobstacles:noobstacles','for this type of flight area the task must define obstacles environment.area.obstacles');
+                assert(isfield(objparams,'obstacles'),'boxwithobstaclesarea:noobstacles','for this type of flight area the task must define obstacles environment.area.obstacles');
                 tmp.obstacles = objparams.obstacles;
                 
                 obj.graphics=feval(objparams.graphics.type,tmp);
