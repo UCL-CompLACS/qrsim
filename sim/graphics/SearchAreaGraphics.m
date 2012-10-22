@@ -12,7 +12,7 @@ classdef SearchAreaGraphics<AreaGraphics
     end
     
     properties (Access = private)
-        p=obj.PERSONSIZE.*[cos(0:0.1:2*pi+0.1)' sin(0:0.1:2*pi+0.1)'];
+        p;
     end
     
     methods (Sealed)
@@ -25,7 +25,8 @@ classdef SearchAreaGraphics<AreaGraphics
             %        objparams.limits = [minx maxx miny maxy minz maxz]  meters
             %        objparams.backgroundimage = the image file to be used as background
             
-            obj=obj@AreaGraphics(objparams);            
+            obj=obj@AreaGraphics(objparams);       
+            obj.p = obj.PERSONSIZE.*[cos(0:0.3:2*pi+0.3)' sin(0:0.3:2*pi+0.3)'];
         end
         
         function obj = update(obj,state,persons,found)
@@ -38,7 +39,7 @@ classdef SearchAreaGraphics<AreaGraphics
             if(~isempty(persons))
                 if(~isfield(state.display3d,'persons'))
                     for i=1:size(persons,2),
-                        state.display3d.persons{i} = patch(persons(1,i)+obj.p(:,1),persons(2,i)+obj.p(:,2),'r','EdgeColor','r');
+                        state.display3d.persons{i} = patch(persons(1,i)+obj.p(:,1),persons(2,i)+obj.p(:,2),-0.02*ones(size(obj.p,1),1),'r','EdgeColor','r');
                     end
                 else
                     for i=1:size(persons,2),
