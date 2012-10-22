@@ -25,7 +25,6 @@ classdef TaskSearchRescueSingleNoiseless<Task
         numUAVs = 1;
         startHeight = -10;
         durationInSteps = 1000;
-        person = [0;0];
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -50,9 +49,9 @@ classdef TaskSearchRescueSingleNoiseless<Task
             %
             
             taskparams.dt = 0.02; % task timestep i.e. rate at which controls
-                               % are supplied and measurements are received
+                                  % are supplied and measurements are received
             
-            taskparams.seed = 0; %set to zero to have a seed that depends on the system time
+            taskparams.seed = 0;  % set to zero to have a seed that depends on the system time
             
             %%%%% visualization %%%%%
             % 3D display parameters
@@ -64,7 +63,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-140 140 -140 140 -40 0];
-            taskparams.environment.area.type = 'BoxArea';
+            taskparams.environment.area.type = 'BoxWithPersonsArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
@@ -74,7 +73,8 @@ classdef TaskSearchRescueSingleNoiseless<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.graphics.type = 'AreaGraphics';
+            taskparams.environment.area.numpersonsrange = [1,3]; % number of person selected at random between these limits
+            taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
             taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
             
             % GPS
@@ -113,7 +113,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             % Configuration and initial state for each of the platforms
             for i=1:obj.numUAVs,
                 taskparams.platforms(i).configfile = 'pelican_with_camera_noiseless_config';
-            end
+            end  
             
         end
         
@@ -132,6 +132,9 @@ classdef TaskSearchRescueSingleNoiseless<Task
                                
                 obj.velPIDs{i} = VelocityHeightPID(obj.simState.DT);
             end
+            
+            % persons randomly placed, but not too close to the edges of the area
+            %obj.simState.environment.area.reset();
         end
         
         function UU = step(obj,U)
@@ -162,12 +165,10 @@ classdef TaskSearchRescueSingleNoiseless<Task
             
             if(valid)
                 r = 0;
-                mousePos = obj.simState.platforms{obj.Nc+1}.getX(1:3);
-                for i=1:length(obj.Nc)
-                    catPos = obj.simState.platforms{i}.getX(1:3);
-                    e = max([0,norm(mousePos - catPos)-obj.trappedFactor*obj.simState.platforms{i}.getCollisionDistance()]);
-                    % accumulate square distance of mouse from cat i
-                    r = r - e^2;
+                for i=1:length(obj.numUAVs)
+                    justFound = obj.simState.environment.area.getPersonsJustFound(obj.simState.platforms{i}.getX());
+                    
+                    r = r + sum(justFound);
                 end
                 r = obj.currentReward + r;
             else
