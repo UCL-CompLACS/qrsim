@@ -54,8 +54,7 @@ classdef CameraWithClassifier < Sensor
         end
         
         function cameraMeasurement = getMeasurement(obj,~)
-            % returns a measurement estimate given the current noise free position
-            %
+            % returns a measurement estimate given the current noise free position            
             cameraMeasurement = obj.cameraMeasurements;
         end
         
@@ -97,6 +96,7 @@ classdef CameraWithClassifier < Sensor
         end
         
         function obj = updateGraphics(obj,X)
+            % update the camera related graphics 
             obj.graphics.update(X,obj.R,obj.f,obj.c);
         end
     end
@@ -107,8 +107,7 @@ classdef CameraWithClassifier < Sensor
             % generates a new noise sample and computes a position estimate
             % The method converts the current noiseless receiver position X(1:3), to ECEF
             
-            obj.simState.task;
-            
+            obj.simState.task;            
         end
     end
 end

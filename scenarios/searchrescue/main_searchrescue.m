@@ -55,8 +55,7 @@ for i=1:state.task.durationInSteps,
     % get plume measurement
     for j=1:state.task.numUAVs,
         state.platforms{j}.getCameraOutput();
-    end
-    
+    end    
     
     % wait so to run in real time
     % this can be commented out obviously
@@ -71,4 +70,4 @@ fprintf('final reward: %f\n',qrsim.reward());
 
 elapsed = toc(tstart);
 
-fprintf('running %d times real time\n',(qrsim.task.durationInSteps*state.DT)/elapsed);
+fprintf('running %d times real time\n',(state.task.durationInSteps*state.DT)/elapsed);
