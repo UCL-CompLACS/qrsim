@@ -31,6 +31,8 @@ t = [0;0;-50];
 angle = [0,0,pi/2];
 R = angle2dcm(angle(3),angle(2),angle(1),'ZYX');
 
+anglePlatform = [0.3,0,0.2];
+Rp = angle2dcm(anglePlatform(3),anglePlatform(2),anglePlatform(1),'ZYX');
 
 % points in front of the camera to
 % display field of view, the distance chosen
@@ -40,7 +42,7 @@ s=[  c(1)  c(1) -c(1) -c(1);
      f(1)  f(1)  f(1)  f(1)]./1000;
 
 % bring the chosen point to world coords
-ss = R'*s;
+ss = Rp'*R'*s;
 ss = ss+repmat(t,1,4);
 
 % compute intersection point of the camera field
@@ -102,7 +104,7 @@ plot3([gp3(1),gp1(1)],[gp3(2),gp1(2)],[gp3(3),gp1(3)],'-g');
 uv = [];
 
 for i=1:size(targets,2),    
-    uvi = cam_prj(R, t ,targets(:,i),f,c); 
+    uvi = cam_prj(R*Rp, t ,targets(:,i),f,c); 
     if(~isempty(uvi))
         uv=[uv,uvi];  %#ok<AGROW>
     end
