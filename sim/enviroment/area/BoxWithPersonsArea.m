@@ -7,16 +7,15 @@ classdef BoxWithPersonsArea<BoxArea
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
     %
-    properties (Constant)
-        DTHR = 1;   % distance threshold
-        STHR = 0.2; % speed threshold
-    end
     
     properties (Access=protected)
         prngId;
         numPersonsRange;
         persons;
         found;
+        dthr;   % distance threshold
+        sthr; % speed threshold
+        pjf;
     end
     
     methods (Sealed,Access=public)
@@ -41,9 +40,17 @@ classdef BoxWithPersonsArea<BoxArea
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
             
             assert(isfield(objparams,'numpersonsrange'),'boxwithpersonarea:numpersonsrange',...
-                'If using a GaussianPlumeArea, the task must define the parameter sourcesigmarange');                     
+                'If using a BoxWithPersonsArea, the task must define the parameter sourcesigmarange');
             obj.numPersonsRange = objparams.numpersonsrange;
-           
+            
+            assert(isfield(objparams,'personfounddistancethreshold'),'boxwithpersonarea:personfounddistancethreshold',...
+                'If using a BoxWithPersonsArea, the task must define the parameter personfounddistancethreshold');
+            obj.dthr = objparams.personfounddistancethreshold;
+            
+            assert(isfield(objparams,'personfoundspeedthreshold'),'boxwithpersonarea:numpersonsrange',...
+                'If using a BoxWithPersonsArea, the task must define the parameter personfoundspeedthreshold');
+            obj.sthr = objparams.personfoundspeedthreshold;
+            
             if(objparams.graphics.on)
                 tmp.limits = objparams.limits;
                 tmp.state = objparams.state;
@@ -62,24 +69,19 @@ classdef BoxWithPersonsArea<BoxArea
             obj.graphics.update(obj.simState,obj.persons,obj.found);
         end
         
-        function pjf = getPersonsJustFound(obj,X)
+        function pjf = getPersonsJustFound(obj)
             % figures out if the UAV is currently sitting over a person
             % in which case it will be deemed as found
-           
-            pjf = zeros(1,size(obj.persons,2));
-            for i = 1:size(obj.persons,2)
-                if((norm(obj.persons(:,i)-X(1:3)) <= obj.DTHR) && (norm(X(7:9))<= obj.STHR))
-                   pjf(i) = 1; 
-                end
-            end
             
-            obj.found = obj.found | pjf;
-        end        
-               
+            pjf = obj.pjf;
+            obj.pjf = zeros(length(obj.simState.platforms),size(obj.persons,2));
+        end
+        
         function pos = getPersonsPosition(obj)
             % returns position of persons
+            % only used for cheating
             pos = obj.persons;
-        end 
+        end
     end
     
     methods (Access=protected)
@@ -94,6 +96,40 @@ classdef BoxWithPersonsArea<BoxArea
             obj.persons = [repmat(lph,1,numPersons)+repmat(lm,1,numPersons).*(rand(obj.simState.rStreams{obj.prngId},2,numPersons)-0.5);zeros(1,numPersons)];
             
             obj.found = zeros(1,size(obj.persons,2));
+            obj.pjf = zeros(length(obj.simState.platforms),size(obj.persons,2));
+
+        end
+        
+        function obj = update(obj, ~)
+            % takes care of changing the colour of the person patch if
+            % found
+            %
+            % Note:
+            %  this method is called automatically by the step() of the Steppable parent
+            %  class and should not be called directly.
+            %
+                        
+            obj.pjf =  zeros(length(obj.simState.platforms),size(obj.persons,2));
+            for j = 1:length(obj.simState.platforms)
+                X = obj.simState.platforms{j}.getX();     
+
+                UV = [];
+                for i = 1:size(obj.persons,2)       
+                    %uv = obj.simState.platforms{j}.camera.cam_prj(X(1:3),dcm(X),obj.persons(:,i));
+                    %if(~isempty(uv))
+                    %    UV= [UV,uv];
+                    if((norm(obj.persons(:,i)-X(1:3)) <= obj.dthr) && (norm(X(7:9))<= obj.sthr))
+                        obj.pjf(j,i) = 1;
+                    end
+                end      
+            end
+            
+            obj.found = obj.found | (sum(obj.pjf,1)>0);
+            
+            if(any(obj.pjf) && obj.graphicsOn)
+                % modify plot
+                obj.graphics.update(obj.simState,obj.persons,obj.found);
+            end
         end
     end
 end
