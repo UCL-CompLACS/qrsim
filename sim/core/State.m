@@ -15,7 +15,7 @@ classdef State<handle
         environment_; % handle to hidden environment objects
         platforms;    % cell array containing handles to all the platforms
         task;         % handle to the current task
-        
+        camerascnt_;  % cameras counter
     end
 end
 
