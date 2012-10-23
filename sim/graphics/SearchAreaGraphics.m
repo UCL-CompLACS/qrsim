@@ -8,11 +8,11 @@ classdef SearchAreaGraphics<AreaGraphics
     %   SearchAreaGraphics(objparams) - constructs the object
     %
     properties (Constant)
-        PERSONSIZE = 0.5; % size in meters of the patch representing the person
+        PERSONSIZE = 0.30; % radius in meters of the patch representing the person
     end
     
     properties (Access = private)
-        p;
+        p; % person patch points
     end
     
     methods (Sealed)
@@ -26,7 +26,7 @@ classdef SearchAreaGraphics<AreaGraphics
             %        objparams.backgroundimage = the image file to be used as background
             
             obj=obj@AreaGraphics(objparams);       
-            obj.p = obj.PERSONSIZE.*[cos(0:0.3:2*pi+0.3)' sin(0:0.3:2*pi+0.3)'];
+            obj.p = obj.PERSONSIZE.*[cos(0:0.7:2*pi+0.7)' sin(0:0.7:2*pi+0.7)'];
         end
         
         function obj = update(obj,state,persons,found)
