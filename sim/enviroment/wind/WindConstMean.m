@@ -40,7 +40,7 @@ classdef WindConstMean<Wind
             %                objparams.zOrigin - origin reference Z coord
             %
             
-            objparams.dt = intmax*objparams.DT; % since this wind is constant
+            objparams.dt = 3600*objparams.DT; % since this wind is constant
             
             obj=obj@Wind(objparams);
                                                             

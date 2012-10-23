@@ -21,7 +21,7 @@ classdef Wind<Steppable & EnvironmentObject
             %                objparams.state - handle to the simulator state
             %                objparams.W6 - velocity at 6m from ground in m/s
                         
-            objparams.dt = intmax*objparams.DT; % since this wind is constant
+            objparams.dt = 3600*objparams.DT; % since this wind is constant
             
             obj=obj@Steppable(objparams);
             obj=obj@EnvironmentObject(objparams);
