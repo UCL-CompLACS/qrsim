@@ -48,7 +48,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             %          params - the task parameters
             %
             
-            taskparams.dt = 0.02; % task timestep i.e. rate at which controls
+            taskparams.dt = 1;    % task timestep i.e. rate at which controls
                                   % are supplied and measurements are received
             
             taskparams.seed = 0;  % set to zero to have a seed that depends on the system time
@@ -63,6 +63,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-140 140 -140 140 -40 0];
+            taskparams.environment.area.dt = 1;
             taskparams.environment.area.type = 'BoxWithPersonsArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -74,6 +75,8 @@ classdef TaskSearchRescueSingleNoiseless<Task
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
             taskparams.environment.area.numpersonsrange = [1,3]; % number of person selected at random between these limits
+            taskparams.environment.area.personfounddistancethreshold = 2;
+            taskparams.environment.area.personfoundspeedthreshold = 0.1;
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
             taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
             
@@ -124,7 +127,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
                 r = rand(obj.simState.rStreams{obj.prngId},2,1);
                 l = obj.simState.environment.area.getLimits();
                 
-                px = 0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
+                px =  0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
                 py = 0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
                 
                 obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);

@@ -7,7 +7,7 @@ classdef Area<Steppable & EnvironmentObject
     %    getOriginUTMCoords() - returns origin
     %    getLimits()          - returns limits
     %    isGraphicsOn()       - returns true if there is a graphics object associate with the area
-    %           
+    %
     properties (Access=protected)
         graphics;         % handle to the graphics object
         originUTMCoords;  % origin
@@ -22,23 +22,23 @@ classdef Area<Steppable & EnvironmentObject
             % Example:
             %
             %   obj=Area(objparams)
-            %               objparams.limits - x,y,z limits of the area 
+            %               objparams.limits - x,y,z limits of the area
             %               objparams.originutmcoords - structure containing the origin in utm coord
-            %               objparams.graphics.type - class type for thegraphics object 
+            %               objparams.graphics.type - class type for thegraphics object
             %                                         (only needed if the 3D displayis active)
             %               objparams.state - handle to the simulator state
             %
             
-            if(~isfield(objparams,'dt'))            
+            if(~isfield(objparams,'dt'))
                 % this is a static object
-                objparams.dt = intmax*objparams.DT; 
+                objparams.dt = 3600*objparams.DT;
             end
             objparams.on = 1;
             
             % call parents constructors
             obj=obj@Steppable(objparams);
             obj=obj@EnvironmentObject(objparams);
-                        
+            
             assert(isfield(objparams,'limits'),'area:nolimits','The task must define environment.area.limits');
             obj.limits = objparams.limits;
             
@@ -71,9 +71,9 @@ classdef Area<Steppable & EnvironmentObject
             % does nothing
         end
     end
-          
+    
     methods (Access=protected)
-
+        
         function obj = update(obj, ~)
             % no updates are carries out.
             %
