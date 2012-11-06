@@ -77,6 +77,8 @@ classdef TaskSearchRescueSingleNoiseless<Task
             taskparams.environment.area.numpersonsrange = [1,3]; % number of person selected at random between these limits
             taskparams.environment.area.personfounddistancethreshold = 2;
             taskparams.environment.area.personfoundspeedthreshold = 0.1;
+            taskparams.environment.area.personsize = 0.5;
+            taskparams.environment.area.terrain.type = 'PerlinTerrain';
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
             taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
             

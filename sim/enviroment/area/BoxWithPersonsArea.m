@@ -16,10 +16,8 @@ classdef BoxWithPersonsArea<BoxArea
         dthr;   % distance threshold
         sthr; % speed threshold
         pjf;
-    end
-    
-    properties (Constant)
-        personSize = 0.5;        
+        personSize;
+        terrain;
     end
     
     methods (Sealed,Access=public)
@@ -44,8 +42,12 @@ classdef BoxWithPersonsArea<BoxArea
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
             
             assert(isfield(objparams,'numpersonsrange'),'boxwithpersonarea:numpersonsrange',...
-                'If using a BoxWithPersonsArea, the task must define the parameter sourcesigmarange');
+                'If using a BoxWithPersonsArea, the task must define the parameter numpersonsrange');
             obj.numPersonsRange = objparams.numpersonsrange;
+            
+            assert(isfield(objparams,'personsize'),'boxwithpersonarea:personssize',...
+                'If using a BoxWithPersonsArea, the task must define the parameter personssize');
+            obj.personSize = objparams.personsize;
             
             assert(isfield(objparams,'personfounddistancethreshold'),'boxwithpersonarea:personfounddistancethreshold',...
                 'If using a BoxWithPersonsArea, the task must define the parameter personfounddistancethreshold');
@@ -54,10 +56,15 @@ classdef BoxWithPersonsArea<BoxArea
             assert(isfield(objparams,'personfoundspeedthreshold'),'boxwithpersonarea:numpersonsrange',...
                 'If using a BoxWithPersonsArea, the task must define the parameter personfoundspeedthreshold');
             obj.sthr = objparams.personfoundspeedthreshold;
+                        
+            assert(isfield(objparams,'terrain') && isfield(objparams.terrain,'type'),'boxwithpersonarea:terraintype',...
+                'If using a BoxWithPersonsArea, the task must define the parameter terrain.type');                
+            
+            tmp.limits = objparams.limits;
+            tmp.state = objparams.state;
+            obj.terrain = feval(objparams.terrain.type, tmp);
             
             if(objparams.graphics.on)
-                tmp.limits = objparams.limits;
-                tmp.state = objparams.state;
                 if(isfield(objparams,'graphics') && isfield(objparams.graphics,'backgroundimage'))
                     tmp.backgroundimage = objparams.graphics.backgroundimage;
                 end
@@ -71,6 +78,12 @@ classdef BoxWithPersonsArea<BoxArea
             obj.init();
             % modify plot
             obj.graphics.update(obj.simState,obj.persons,obj.found);
+            % reset terrain model;
+            obj.terrain.reset();
+        end
+        
+        function size = getPersonSize(obj)
+            size = obj.personSize;
         end
         
         function pjf = getPersonsJustFound(obj)
@@ -83,11 +96,21 @@ classdef BoxWithPersonsArea<BoxArea
         
         function pos = getPersonsPosition(obj)
             % returns position of persons
-            % only used for cheating
+            % mostly used for cheating
             pos = zeros(3,size(obj.persons));
             for i=1:length(obj.persons)
                 pos(:,i) = obj.persons{i}.center;
             end
+        end
+        
+        function pers = getPersons(obj)
+            % returns persons
+            pers = obj.persons;
+        end
+        
+        function tclass = getTerrainClass(obj,pts)
+            % returns persons
+            tclass = obj.terrain.getClass(pts);
         end
     end
     
@@ -124,7 +147,7 @@ classdef BoxWithPersonsArea<BoxArea
             for j = 1:length(obj.simState.platforms)
                 X = obj.simState.platforms{j}.getX();     
 
-                UV = [];
+                %UV = [];
                 for i = 1:length(obj.persons)       
                     %uv = obj.simState.platforms{j}.camera.cam_prj(X(1:3),dcm(X),obj.persons{i}.center));
                     %if(~isempty(uv))
