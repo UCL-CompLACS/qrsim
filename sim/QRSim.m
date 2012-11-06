@@ -38,7 +38,7 @@ classdef QRSim<handle
             
             idx = strfind(p,filesep);
             
-            obj.paths = obj.toPathArray(p(1:idx(end)));
+            obj.paths = [obj.toPathArray(p(1:idx(end)));obj.toPathArray([p(1:idx(end)-3),'3rdparty'])];
             
             addpath(obj.paths);
             
