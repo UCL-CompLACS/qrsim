@@ -18,6 +18,10 @@ classdef BoxWithPersonsArea<BoxArea
         pjf;
     end
     
+    properties (Constant)
+        personSize = 0.5;        
+    end
+    
     methods (Sealed,Access=public)
         function obj = BoxWithPersonsArea(objparams)
             % constructs the object
@@ -80,7 +84,10 @@ classdef BoxWithPersonsArea<BoxArea
         function pos = getPersonsPosition(obj)
             % returns position of persons
             % only used for cheating
-            pos = obj.persons;
+            pos = zeros(3,size(obj.persons));
+            for i=1:length(obj.persons)
+                pos(:,i) = obj.persons{i}.center;
+            end
         end
     end
     
@@ -93,10 +100,14 @@ classdef BoxWithPersonsArea<BoxArea
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(1:2,2)+limits(1:2,1));
             lm = 0.8*(limits(1:2,2)-limits(1:2,1));
-            obj.persons = [repmat(lph,1,numPersons)+repmat(lm,1,numPersons).*(rand(obj.simState.rStreams{obj.prngId},2,numPersons)-0.5);zeros(1,numPersons)];
+            centers = [repmat(lph,1,numPersons)+repmat(lm,1,numPersons).*(rand(obj.simState.rStreams{obj.prngId},2,numPersons)-0.5);zeros(1,numPersons)];
             
-            obj.found = zeros(1,size(obj.persons,2));
-            obj.pjf = zeros(length(obj.simState.platforms),size(obj.persons,2));
+            for i=1:numPersons,
+               obj.persons{i}=Person(centers(:,i),obj.personSize); 
+            end
+            
+            obj.found = zeros(1,numPersons);
+            obj.pjf = zeros(length(obj.simState.platforms),numPersons);
 
         end
         
@@ -109,16 +120,16 @@ classdef BoxWithPersonsArea<BoxArea
             %  class and should not be called directly.
             %
                         
-            obj.pjf =  zeros(length(obj.simState.platforms),size(obj.persons,2));
+            obj.pjf =  zeros(length(obj.simState.platforms),length(obj.persons));
             for j = 1:length(obj.simState.platforms)
                 X = obj.simState.platforms{j}.getX();     
 
                 UV = [];
-                for i = 1:size(obj.persons,2)       
-                    %uv = obj.simState.platforms{j}.camera.cam_prj(X(1:3),dcm(X),obj.persons(:,i));
+                for i = 1:length(obj.persons)       
+                    %uv = obj.simState.platforms{j}.camera.cam_prj(X(1:3),dcm(X),obj.persons{i}.center));
                     %if(~isempty(uv))
                     %    UV= [UV,uv];
-                    if((norm(obj.persons(:,i)-X(1:3)) <= obj.dthr) && (norm(X(7:9))<= obj.sthr))
+                    if((norm(obj.persons{i}.center-X(1:3)) <= obj.dthr) && (norm(X(7:9))<= obj.sthr))
                         obj.pjf(j,i) = 1;
                     end
                 end      

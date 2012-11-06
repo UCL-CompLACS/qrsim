@@ -11,10 +11,6 @@ classdef SearchAreaGraphics<AreaGraphics
         PERSONSIZE = 0.30; % radius in meters of the patch representing the person
     end
     
-    properties (Access = private)
-        p; % person patch points
-    end
-    
     methods (Sealed)
         
         function obj = SearchAreaGraphics(objparams)
@@ -25,8 +21,7 @@ classdef SearchAreaGraphics<AreaGraphics
             %        objparams.limits = [minx maxx miny maxy minz maxz]  meters
             %        objparams.backgroundimage = the image file to be used as background
             
-            obj=obj@AreaGraphics(objparams);       
-            obj.p = obj.PERSONSIZE.*[cos(0:0.7:2*pi+0.7)' sin(0:0.7:2*pi+0.7)'];
+            obj=obj@AreaGraphics(objparams); 
         end
         
         function obj = update(obj,state,persons,found)
@@ -39,12 +34,19 @@ classdef SearchAreaGraphics<AreaGraphics
             if(~isempty(persons))
                 if(~isfield(state.display3d,'persons'))
                     for i=1:size(persons,2),
-                        state.display3d.persons{i} = patch(persons(1,i)+obj.p(:,1),persons(2,i)+obj.p(:,2),-0.02*ones(size(obj.p,1),1),'r','EdgeColor','r');
+                        xdata = [persons{i}.bb(1,1:3)',persons{i}.bb(1,2:4)'];
+                        ydata = [persons{i}.bb(2,1:3)',persons{i}.bb(2,2:4)'];
+                        zdata = [persons{i}.bb(3,1:3)',persons{i}.bb(3,2:4)'];             
+                        state.display3d.persons{i} = patch(xdata,ydata,zdata,'r','EdgeColor','r');
                     end
                 else
                     for i=1:size(persons,2),
-                        set(state.display3d.persons{i},'XData',persons(1,i)+obj.p(:,1));
-                        set(state.display3d.persons{i},'YData',persons(2,i)+obj.p(:,2));
+                        xdata = [persons{i}.bb(1,1:3)',persons{i}.bb(1,2:4)'];
+                        ydata = [persons{i}.bb(2,1:3)',persons{i}.bb(2,2:4)'];
+                        zdata = [persons{i}.bb(3,1:3)',persons{i}.bb(3,2:4)'];  
+                        set(state.display3d.persons{i},'XData',xdata);
+                        set(state.display3d.persons{i},'YData',ydata);
+                        set(state.display3d.persons{i},'ZData',zdata);                        
                         if(found(i)==0)
                             set(state.display3d.persons{i},'EdgeColor','r');
                             set(state.display3d.persons{i},'FaceColor','r');
