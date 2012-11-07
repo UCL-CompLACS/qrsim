@@ -22,6 +22,7 @@ classdef CameraWithClassifier < Sensor
         lkr;
         wg;
         gridSize;
+        pg;
     end
     
     methods (Sealed,Access=public)
@@ -74,6 +75,8 @@ classdef CameraWithClassifier < Sensor
             obj.lkr=[];
             obj.wg=[];
             obj.gridSize=[];
+             % get real persons
+            obj.pg = obj.simState.environment.area.getPersons();
         end
         
         function obj = setState(obj,~)
@@ -142,9 +145,12 @@ classdef CameraWithClassifier < Sensor
             
             cg = obj.inv_cam_prjZ0(Rp,tp,obj.c(:));
             sz = obj.simState.environment.area.getPersonSize();
-            bbg = [cg(1)+sz cg(1)+sz cg(1)-sz cg(1)-sz;
-                   cg(2)-sz cg(2)+sz cg(2)-sz cg(2)+sz;
-                         0        0        0        0];
+            bb = [  sz sz -sz -sz;
+                   -sz sz -sz  sz];
+                 
+            bbg = [bb(1,:)+cg(1);
+                   bb(2,:)+cg(2);
+                      zeros(1,4)];
                      
             bbf = obj.cam_prj(tp, Rp ,bbg); 
             % very rough width of a person        
@@ -185,23 +191,21 @@ classdef CameraWithClassifier < Sensor
             % compute the terrain class for each patch center
             tclass = obj.simState.area.getTerrainClass(cg);
             
-            % get real persons
-            pg = obj.simState.environment.area.getPersons();
-            
             pcf=[]; %person centers
-            pid=[]; %person id
-            sigma=[]; % person's area
-            alphaBeta = []; % sperical coord of camera in target frame 
-            delta = cell(1,n);
-            for i=1:length(pg),                
+            %pid=[]; %person id
+            sigma=[]; % person's area 
+            inview = zeros(1,n);
+            k = 0;
+            for i=1:length(obj.pg),                
                 % reproject center to current frame
-                picf = obj.cam_prj(tp, Rp ,pg{i}.center);
+                picf = obj.cam_prj(tp, Rp ,obj.pg{i}.center);
                 % if visible, compute sigma, d, alpha, beta and 
-                % indicator variable delta 
+                % indicator variable inview 
                 if(~isempty(picf))
                     pcf=[pcf,picf];%#ok<AGROW>
-                    pid=[pid,i]; %#ok<AGROW>
-                    pibbf = obj.cam_prj(tp, Rp ,pg{i}.bb);
+                    k = k+1;
+                    %pid=[pid,i]; %#ok<AGROW>
+                    pibbf = obj.cam_prj(tp, Rp ,obj.pg{i}.bb);
                     sigma = [sigma,obj.area(pibbf)];%#ok<AGROW>
                     
                     % we use center corners and a few other mid points to
@@ -211,9 +215,16 @@ classdef CameraWithClassifier < Sensor
                     for j=1:size(pif,2)
                         % work out to what window point j belongs 
                         idx = floor((pif(:,j)-offf)./df)+[1;1];
-                        % add it to the list if not already present
-                        if(~any(delta{(idx(1)-1)*nf(1)+idx(2)})==i)
-                            delta{(idx(1)-1)*nf(1)+idx(2)}(end+1)=i;
+                        lidx = (idx(1)-1)*nf(1)+idx(2);
+                        
+                        % if this there is already a person for this window
+                        % overwrite it only of the current is closer to the
+                        % center
+                        curpid = inview(lidx);
+                        
+                        if((curpid==0) || ...
+                           (curpid~=0 && curpid~=k && (norm(cf(:,lidx)-pcf(:,k))<norm(cf(:,lidx)-pcf(:,curpid)))))
+                            inview(lidx) = k;                            
                         end
                     end    
                 end
@@ -221,24 +232,61 @@ classdef CameraWithClassifier < Sensor
             
             % build cell array with a vector for each wi, contanining
             % the input variables to the GPs, they would be
-            % [px,py,pz,tclass,d,sigma,alpha,beta]  if person is visible
-            % [px,py,pz,tclass]  if person is not visible
+            % [px,py,r,tclass,d,sigma,inc,sazi,cazi]  if person is visible
+            % [px,py,r,tclass]  if person is not visible
             xstar = cell(1,n);
+            xqueryp = zeros(8,n);
+            xqueryn = zeros(4,n);            
+           
             which = zeros(1,n);
-            for i=1:length(delta)
-                if(isempty(delta(i)))
-                    % no person is visible
-                    xstars(i) =
-                else
-                    xstars(i) =
+            % i runs through all the windows in the current frame
+            for i=1:length(inview)
+                % work out the position of the camera center
+                % in spherical coords wrt a NED frame located
+                % at the center of the ground patch
+                
+                % ray from camera center to ground patch center
+                tc = tp - cg(:,i);
+                
+                % radius in spherical coords
+                r = norm(tc);
+                
+                % inclination
+                inc = acos(-tc(3)./r);
+                
+                % azimuth express as it sin and cos to get
+                % around wrapping problems
+                sazi = tc(2)./norm(tc(1:2));
+                cazi = tc(1)./norm(tc(1:2));  
+                
+                % area that a person placed at the patch center 
+                % would have on the frame
+                bbg = [bb(1,:)+cg(1,i);
+                       bb(2,:)+cg(2,i);
+                            zeros(1,4)];
+                     
+                bbf = obj.cam_prj(tp, Rp ,bbg);      
+                sigmaf = obj.area(bbf);
+                                
+                xqueryp(1:3,i) = [X(1:2);r;tclass(i);0;sigmaf;inc;sazi;cazi];                
+                xqueryn(1:3,i) = [X(1:2);r;tclass(i)];
+                
+                if(inview(i)~=0)
+                    % one person is visible
+                    
+                    % distance in pixel coords
+                    d = norm(cf(:,i)-pcf(:,inview(i)));
+                    
+                    xstar(i) = [X(1:2);r;tclass(i);d;sigma(inview(i));inc;sazi;cazi];
                     which(i) = 1;
+                else
+                    % no person is visible
+                    xstar(i) = [X(1:2);r;tclass(i)];
                 end
             end
             
             % pass the input to the GP models to obtain classifiers scores
             ystar = obj.obsModel.sample(which, xstar);
-            
-            % compute positive and negative query points
             
             % compute likelihood ratio
             obj.lkr =  obj.obsModel.computeLikelihoodRatio(xqueryp, xqueryn, ystar);

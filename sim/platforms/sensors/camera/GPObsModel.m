@@ -63,10 +63,15 @@ classdef GPObsModel<handle
         function likr = computeLikelihoodRatio(obj, xqueryp, xqueryn, ystar)
             % compute the likelihood ratio for the locations
             % xstars and the measurements ystar
-            likp = obj.gpp.computeLikelihood(xqueryp,ystar);            
-            likn = obj.gpn.computeLikelihood(xqueryn,ystar);
+            n = size(ystar,2);
+            likr = zeros(1,n);
             
-            likr = likp./likn;
+            for i=1:n
+                likp = obj.gpp.computeLikelihood(xqueryp(:,i),ystar(:,i));            
+                likn = obj.gpn.computeLikelihood(xqueryn(:,i),ystar(:,i));
+            
+                likr(1,i)= likp./likn;
+            end
         end
         
         function obj = updatePosterior(obj)
