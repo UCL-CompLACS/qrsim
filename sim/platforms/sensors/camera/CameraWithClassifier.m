@@ -75,7 +75,8 @@ classdef CameraWithClassifier < Sensor
             obj.lkr=[];
             obj.wg=[];
             obj.gridSize=[];
-             % get real persons
+            
+            % get real persons
             obj.pg = obj.simState.environment.area.getPersons();
         end
         
