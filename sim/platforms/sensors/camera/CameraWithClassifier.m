@@ -48,7 +48,7 @@ classdef CameraWithClassifier < Sensor
             obj.c = objparams.c;
             assert(isfield(objparams,'r'),'camera:r','the platform config must define the camera.r parameters');
             obj.R =  angle2dcm(objparams.r(3),objparams.r(2),objparams.r(1),'ZYX');
-                        
+            
             if(isempty(obj.simState.camerascnt_))
                 obj.simState.camerascnt_ = 0;
             end
@@ -71,13 +71,11 @@ classdef CameraWithClassifier < Sensor
         
         function obj = reset(obj)
             % nothing to be reinitialized
-            obj.obsModel.reset(); 
+            obj.obsModel.reset();
             obj.lkr=[];
             obj.wg=[];
             obj.gridSize=[];
-            
-            % get real persons
-            obj.pg = obj.simState.environment.area.getPersons();
+
         end
         
         function obj = setState(obj,~)
@@ -100,17 +98,17 @@ classdef CameraWithClassifier < Sensor
             end
         end
         
-        function uvs = inv_cam_prjZ0(obj, tp, Rp ,uvs)
+        function points = inv_cam_prjZ0(obj, tp, Rp ,uvs)
             % project points from world coordinate to the camera frame.
             n = size(uvs,2);
             points = zeros(3,n);
             for i=1:n,
-                points(:,i) = inv_cam_prjZ0(Rp,tp,uvs(:,i), obj.c , obj.f, obj.R);
+                points(:,i) = inv_cam_prjZ0(tp,Rp,uvs(:,i), obj.c , obj.f, obj.R);
             end
-        end      
+        end
         
         function [wg,gridSize,lkr] = getMeasurement(obj,~)
-            % given a current state of the system 
+            % given a current state of the system
             % returns the patches on the ground visible by the camera
             % and the associated likelihood ratios computed by the
             % classifier.
@@ -134,7 +132,7 @@ classdef CameraWithClassifier < Sensor
             ac = bb(:,1)-bb(:,4);
             bd = bb(:,2)-bb(:,3);
             a = 0.5*abs(ac(1)*bd(2)-ac(2)*bd(1));
-        end    
+        end
     end
     
     methods (Sealed,Access=protected)
@@ -144,32 +142,45 @@ classdef CameraWithClassifier < Sensor
             tp = X(1:3);
             Rp = dcm(X);
             
-            cg = obj.inv_cam_prjZ0(Rp,tp,obj.c(:));
-            sz = obj.simState.environment.area.getPersonSize();
-            bb = [  sz sz -sz -sz;
-                   -sz sz -sz  sz];
-                 
-            bbg = [bb(1,:)+cg(1);
-                   bb(2,:)+cg(2);
-                      zeros(1,4)];
-                     
-            bbf = obj.cam_prj(tp, Rp ,bbg); 
-            % very rough width of a person        
-            sz = sqrt(obj.area(bbf));
+            fcg = obj.inv_cam_prjZ0(tp,Rp,obj.c(:));
+            set(0,'CurrentFigure',obj.simState.display3d.figure)
+            plot3(fcg(1),fcg(2),fcg(3),'m+');
+                                    
+            % get real persons
+            obj.pg = obj.simState.environment.area.getPersons();
+            
+            psz = obj.simState.environment.area.getPersonSize();
+            bb = [  psz psz -psz -psz;
+                -psz psz -psz  psz];
+            
+            bbg = [bb(1,:)+fcg(1);
+                bb(2,:)+fcg(2);
+                zeros(1,4)];
+            
+            bbf = obj.cam_prj(tp, Rp ,bbg);
+            % very rough width of a person
+            if(any(isempty(bbg)))
+                % we are so close that a person is larger than the frame
+                sz = obj.c(1)+obj.c(2);
+                sigmaf = 2*obj.c(1)*2*obj.c(2);
+            else
+                sigmaf = obj.area(cell2mat(bbf));
+                sz = sqrt(sigmaf);
+            end
             
             % given the mean of the two sides of the reprojected patch,
-            % define a grid of windows over the frame, 
-            % windows wi, centers cwi 
+            % define a grid of windows over the frame,
+            % windows wf, centers cf
             nf = round((2*obj.c(:))./sz);
             obj.gridSize = nf;
-            n = Nf(1)*nf(2);
+            n = nf(1)*nf(2);
             df = floor((2*obj.c(:))./nf);
             offf = floor(rem(2*obj.c(:),df)./2);
             
-            % we store windows corners row wise, left to right 
+            % we store windows corners row wise, left to right
             % and top to bottom, this means that the cornes of the
             % window i,j are wf(:,(i-1)*(nf(1)+1)+j+[0,1,nf(1)+1,nf(1)+2])
-            % similarly the centers of window i,j is wf(:,(i-1)*nf(1)+j))            
+            % similarly the centers of window i,j is wf(:,(i-1)*nf(1)+j))
             wf = zeros(2,(nf(1)+1)*(nf(2)+1));
             cf = zeros(2,n);
             for j=1:nf(2)+1,
@@ -180,66 +191,107 @@ classdef CameraWithClassifier < Sensor
             
             for j=1:nf(2),
                 for i=1:nf(1),
-                  cf(:,i+(j-1)*nf(1)) = offf+df./2+[(i-1)*df(1);(j-1)*df(2)];
+                    cf(:,i+(j-1)*nf(1)) = offf+df./2+[(i-1)*df(1);(j-1)*df(2)];
                 end
             end
+            
+            %figure(10);
+            %plot(wf(1,:),wf(2,:),'+');  hold on;
+            %plot(cf(1,:),cf(2,:),'.');
+            %axis([0 2*obj.c(1) 0 2*obj.c(2)]);
             
             % grounds patches W and ground centers Cw
             % they obviously are layed out as the one in the frame
             obj.wg = obj.inv_cam_prjZ0(tp, Rp ,wf);
-            cg = obj.inv_cam_prjZ0(tp, Rp ,cf); 
+            cg = obj.inv_cam_prjZ0(tp, Rp ,cf);
+            
+            %%%%%
+            %set(0,'CurrentFigure',obj.simState.display3d.figure)
+            %hwg = plot3(obj.wg(1,:),obj.wg(2,:),obj.wg(3,:),'y+');
+            %hcg = plot3(cg(1,:),cg(2,:),cg(3,:),'y.');
+            %%%%%
             
             % compute the terrain class for each patch center
-            tclass = obj.simState.area.getTerrainClass(cg);
+            tclass = obj.simState.environment.area.getTerrainClass(cg);
             
             pcf=[]; %person centers
             %pid=[]; %person id
-            sigma=[]; % person's area 
+            sigma=[]; % person's area
             inview = zeros(1,n);
             k = 0;
-            for i=1:length(obj.pg),                
+            %figure(10);
+            %hw1=plot(wf(1,:),wf(2,:),'+');
+            %hold on;
+            %hw2=plot(cf(1,:),cf(2,:),'*r');
+            for i=1:length(obj.pg),
                 % reproject center to current frame
-                picf = obj.cam_prj(tp, Rp ,obj.pg{i}.center);
-                % if visible, compute sigma, d, alpha, beta and 
-                % indicator variable inview 
+                picf = cell2mat(obj.cam_prj(tp, Rp ,obj.pg{i}.center));
+                % if visible, compute sigma, d, alpha, beta and
+                % indicator variable inview
                 if(~isempty(picf))
                     pcf=[pcf,picf];%#ok<AGROW>
                     k = k+1;
                     %pid=[pid,i]; %#ok<AGROW>
-                    pibbf = obj.cam_prj(tp, Rp ,obj.pg{i}.bb);
-                    sigma = [sigma,obj.area(pibbf)];%#ok<AGROW>
+                    pibbfc = obj.cam_prj(tp, Rp ,obj.pg{i}.bb);
+                    pok = logical(cellfun(@(x) size(x,2),pibbfc));
+                    pibbf = cell2mat(pibbfc(pok));
+                    npvalid = size(pibbf,2);
+                    if(npvalid==4)
+                        % compute area properly
+                        sigma = [sigma,obj.area(pibbf)];%#ok<AGROW>
+                    else
+                        % not completely in view, we make things up
+                        % assuming the patch is square
+                        tmp = pibbf-repmat(picf,1,npvalid);
+                        halfDiag = mean(sqrt(diag(tmp'*tmp)));
+                        sigma = [sigma,(sqrt(2)*halfDiag)^2]; %#ok<AGROW>
+                    end
                     
                     % we use center corners and a few other mid points to
-                    % work out what windows can see this person                    
-                    pif = [pibbf,picf,...
-                        0.25*(pibbf(:,[4,2,3,4])+pibbf(:,[3,1,1,2]))+0.5*repmat(picf,1,4)];
+                    % work out what windows can see this person
+                    pif = [picf,pibbf];
+                    if(pok(4)&&pok(3)), pif = [pif,(pibbfc{4}+pibbfc{3}+picf)./3]; end %#ok<AGROW>              
+                    if(pok(2)&&pok(1)), pif = [pif,(pibbfc{2}+pibbfc{1}+picf)./3]; end %#ok<AGROW>
+                    if(pok(3)&&pok(1)), pif = [pif,(pibbfc{3}+pibbfc{1}+picf)./3]; end %#ok<AGROW>
+                    if(pok(4)&&pok(2)), pif = [pif,(pibbfc{4}+pibbfc{2}+picf)./3]; end %#ok<AGROW>
+
+                    %hw3=plot(pif(1,:),pif(2,:),'.g');
+                    
                     for j=1:size(pif,2)
-                        % work out to what window point j belongs 
-                        idx = floor((pif(:,j)-offf)./df)+[1;1];
-                        lidx = (idx(1)-1)*nf(1)+idx(2);
+                        % work out to what window point j belongs
+                        idx = ceil((pif(:,j)-offf)./df);
+                        % due to offf things can still be in frame without
+                        % being on a border cell, we nudge those guys back in...
+                        idx(idx==0)=1;
+                        idx(idx(1)==nf(1))=nf(1);
+                        idx(idx(2)==nf(2))=nf(2);
+                        
+                        lidx = (idx(1)-1)*nf(2)+idx(2);
                         
                         % if this there is already a person for this window
                         % overwrite it only of the current is closer to the
                         % center
                         curpid = inview(lidx);
-                        
-                        if((curpid==0) || ...
-                           (curpid~=0 && curpid~=k && (norm(cf(:,lidx)-pcf(:,k))<norm(cf(:,lidx)-pcf(:,curpid)))))
-                            inview(lidx) = k;                            
+ 
+                        if((curpid==0) || (curpid~=0 && curpid~=k && ...
+                           (norm(cf(:,lidx)-pcf(:,k))<norm(cf(:,lidx)-pcf(:,curpid)))))
+                            inview(lidx) = k;
                         end
-                    end    
+                    end
+                    %delete(hw3)
                 end
+               
             end
             
             % build cell array with a vector for each wi, contanining
             % the input variables to the GPs, they would be
             % [px,py,r,tclass,d,sigma,inc,sazi,cazi]  if person is visible
             % [px,py,r,tclass]  if person is not visible
-            xstar = cell(1,n);
-            xqueryp = zeros(8,n);
-            xqueryn = zeros(4,n);            
-           
-            which = zeros(1,n);
+            xstar = cell(n,1);
+            xqueryp = zeros(n,9);
+            xqueryn = zeros(n,4);
+            
+            which = zeros(n,1);
             % i runs through all the windows in the current frame
             for i=1:length(inview)
                 % work out the position of the camera center
@@ -258,19 +310,14 @@ classdef CameraWithClassifier < Sensor
                 % azimuth express as it sin and cos to get
                 % around wrapping problems
                 sazi = tc(2)./norm(tc(1:2));
-                cazi = tc(1)./norm(tc(1:2));  
+                cazi = tc(1)./norm(tc(1:2));
                 
-                % area that a person placed at the patch center 
-                % would have on the frame
-                bbg = [bb(1,:)+cg(1,i);
-                       bb(2,:)+cg(2,i);
-                            zeros(1,4)];
-                     
-                bbf = obj.cam_prj(tp, Rp ,bbg);      
-                sigmaf = obj.area(bbf);
-                                
-                xqueryp(1:3,i) = [X(1:2);r;tclass(i);0;sigmaf;inc;sazi;cazi];                
-                xqueryn(1:3,i) = [X(1:2);r;tclass(i)];
+                % we approximate the area that a person placed 
+                % at the patch center would have as the area it has for the
+                % patch at the center of the frame
+                                                
+                xqueryp(i,:) = [cg(1:2,i)' r tclass(i) 0 sigmaf inc sazi cazi];
+                xqueryn(i,:) = [cg(1:2,i)' r tclass(i)];
                 
                 if(inview(i)~=0)
                     % one person is visible
@@ -278,22 +325,39 @@ classdef CameraWithClassifier < Sensor
                     % distance in pixel coords
                     d = norm(cf(:,i)-pcf(:,inview(i)));
                     
-                    xstar(i) = [X(1:2);r;tclass(i);d;sigma(inview(i));inc;sazi;cazi];
+                    xstar{i} = [cg(1:2,i)' r tclass(i) d sigma(inview(i)) inc sazi cazi];
                     which(i) = 1;
                 else
                     % no person is visible
-                    xstar(i) = [X(1:2);r;tclass(i)];
+                    xstar{i} = [cg(1:2,i)' r tclass(i)];
                 end
             end
             
+            %%%%%
+            %delete(hcg);
+            %delete(hwg);
+            %delete(hw1);
+            %delete(hw2);
+            %%%%%
+            
             % pass the input to the GP models to obtain classifiers scores
             ystar = obj.obsModel.sample(which, xstar);
+            
+            %%%%%
+            set(0,'CurrentFigure',obj.simState.display3d.figure);
+            
+            ystarmat = reshape(ystar,nf(1),nf(2));
+            xcgmat = reshape(cg(1,:),nf(1),nf(2));
+            ycgmat = reshape(cg(2,:),nf(1),nf(2));
+            hsamples = surf(xcgmat,ycgmat, -0.01*ones(size(xcgmat)),ystarmat);
+            set(hsamples,'EdgeColor','none');
+            %%%%%
             
             % compute likelihood ratio
             obj.lkr =  obj.obsModel.computeLikelihoodRatio(xqueryp, xqueryn, ystar);
             
             % update GP models
-            obj.obsModel.updatePosterior();            
+            obj.obsModel.updatePosterior();
         end
     end
 end
