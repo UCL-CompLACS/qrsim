@@ -38,7 +38,7 @@ classdef QRSim<handle
             
             idx = strfind(p,filesep);
             
-            obj.paths = [obj.toPathArray(p(1:idx(end)));obj.toPathArray([p(1:idx(end)-3),'3rdparty'])];
+            obj.paths = [obj.toPathArray(p(1:idx(end))),obj.toPathArray([p(1:idx(end)-4),'3rdparty'])];
             
             addpath(obj.paths);
             
@@ -84,6 +84,7 @@ classdef QRSim<handle
                 
                 obj.simState.display3d.figure = figure('Name','3D Window','NumberTitle','off','Position',...
                     [20,20,obj.par.display3d.width,obj.par.display3d.height]);
+                fcw(obj.simState.display3d.figure);
                 set(obj.simState.display3d.figure,'DoubleBuffer','on');
                 set(obj.simState.display3d.figure, 'Renderer', 'OpenGL');
             end
