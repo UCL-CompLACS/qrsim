@@ -23,7 +23,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
     %
     properties (Constant)
         numUAVs = 1;
-        startHeight = -10;
+        startHeight = -50;
         durationInSteps = 1000;
         PENALTY = 1000;      % penalty reward in case of collision
     end
@@ -62,7 +62,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-140 140 -140 140 -40 0];
+            taskparams.environment.area.limits = [-140 140 -140 140 -80 0];
             taskparams.environment.area.dt = 1;
             taskparams.environment.area.type = 'BoxWithPersonsArea';
             
@@ -74,13 +74,12 @@ classdef TaskSearchRescueSingleNoiseless<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.numpersonsrange = [1,3]; % number of person selected at random between these limits
+            taskparams.environment.area.numpersonsrange = [2,2]; % number of person selected at random between these limits
             taskparams.environment.area.personfounddistancethreshold = 2;
             taskparams.environment.area.personfoundspeedthreshold = 0.1;
             taskparams.environment.area.personsize = 0.5;
             taskparams.environment.area.terrain.type = 'PourTerrain';
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
-            taskparams.environment.area.graphics.backgroundimage = 'ucl-rvc-zoom.tif';
             
             % GPS
             % The space segment of the gps system
@@ -129,8 +128,8 @@ classdef TaskSearchRescueSingleNoiseless<Task
                 r = rand(obj.simState.rStreams{obj.prngId},2,1);
                 l = obj.simState.environment.area.getLimits();
                 
-                px =  0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
-                py = 0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
+                px = 0;% 0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
+                py = 0;%0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
                 
                 obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
@@ -139,7 +138,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             end
             
             % persons randomly placed, but not too close to the edges of the area
-            %obj.simState.environment.area.reset();
+            obj.simState.environment.area.reset();
         end
         
         function UU = step(obj,U)
