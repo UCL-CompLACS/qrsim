@@ -1,4 +1,4 @@
-classdef BoxWithPersonsArea<BoxArea
+classdef BoxWithPersonsArea<Area
     % Defines a simple box shaped area in which is present a plume with concentration described by a 3d Gaussian
     %
     % BoxWithPersonsArea Methods:
@@ -36,7 +36,7 @@ classdef BoxWithPersonsArea<BoxArea
             %                                          randomly with uniform probability from the specified range)
             %               objparams.state - handle to the simulator state
             %
-            obj=obj@BoxArea(objparams);
+            obj=obj@Area(objparams);
             
             obj.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
@@ -64,11 +64,8 @@ classdef BoxWithPersonsArea<BoxArea
             tmp.state = objparams.state;
             obj.terrain = feval(objparams.terrain.type, tmp);
             
-            if(objparams.graphics.on)
-                if(isfield(objparams,'graphics') && isfield(objparams.graphics,'backgroundimage'))
-                    tmp.backgroundimage = objparams.graphics.backgroundimage;
-                end
-                
+            [tmp.nr tmp.nc] = obj.terrain.getMapSize();
+            if(objparams.graphics.on)                
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
         end
@@ -76,10 +73,10 @@ classdef BoxWithPersonsArea<BoxArea
         function obj = reset(obj)
             % redraw a different plume pattern
             obj.init();
-            % modify plot
-            obj.graphics.update(obj.simState,obj.persons,obj.found);
             % reset terrain model;
             obj.terrain.reset();
+            % modify plot
+            obj.graphics.update(obj.simState,obj.persons,obj.found,obj.terrain.getMap());
         end
         
         function size = getPersonSize(obj)
@@ -124,14 +121,15 @@ classdef BoxWithPersonsArea<BoxArea
             lph = 0.5*(limits(1:2,2)+limits(1:2,1));
             lm = 0.8*(limits(1:2,2)-limits(1:2,1));
             centers = [repmat(lph,1,numPersons)+repmat(lm,1,numPersons).*(rand(obj.simState.rStreams{obj.prngId},2,numPersons)-0.5);zeros(1,numPersons)];
-            
+            centers(:,1)=[0;0;0];
+            centers(:,2)=[5;0;0];
+            obj.persons={};
             for i=1:numPersons,
                obj.persons{i}=Person(centers(:,i),obj.personSize); 
             end
             
             obj.found = zeros(1,numPersons);
             obj.pjf = zeros(length(obj.simState.platforms),numPersons);
-
         end
         
         function obj = update(obj, ~)
@@ -162,7 +160,7 @@ classdef BoxWithPersonsArea<BoxArea
             
             if(any(obj.pjf) && obj.graphicsOn)
                 % modify plot
-                obj.graphics.update(obj.simState,obj.persons,obj.found);
+                obj.graphics.update(obj.simState,obj.persons,obj.found,[]);
             end
         end
     end
