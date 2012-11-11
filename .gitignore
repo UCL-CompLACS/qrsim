@@ -33,3 +33,7 @@
 /doc/exercises.out
 /doc/scenarios.dvi
 /doc/scenarios.tex.backup
+/scenarios/searchrescue/tmp/speedtest.m
+/3rdparty/gpml/util/lbfgsb.mex
+/3rdparty/gpml/util/lbfgsb.mexa64
+/3rdparty/gpml/util/solve_chol.mexa64
