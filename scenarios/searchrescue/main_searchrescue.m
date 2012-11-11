@@ -9,7 +9,7 @@
 % than raw images the camera module provides higher-level data in the form of likelihood
 % ratios of the current image conditioned on the presence or absence of a target.
 
-%clear all
+clear all
 close all
 
 % include simulator
@@ -59,8 +59,8 @@ for i=1:state.task.durationInSteps,
     
     % wait so to run in real time
     % this can be commented out obviously
-    wait = max(0,state.task.dt-toc(tloop));
-    pause(wait);
+    %wait = max(0,state.task.dt-toc(tloop));
+    %pause(0.5);
 end
 
 % get final reward
@@ -70,4 +70,4 @@ fprintf('final reward: %f\n',qrsim.reward());
 
 elapsed = toc(tstart);
 
-fprintf('running %d times real time\n',(state.task.durationInSteps*state.DT)/elapsed);
+fprintf('running %d times real time\n',(state.task.durationInSteps*state.task.dt)/elapsed);

@@ -23,8 +23,8 @@ classdef TaskSearchRescueSingleNoiseless<Task
     %
     properties (Constant)
         numUAVs = 1;
-        startHeight = -50;
-        durationInSteps = 1000;
+        startHeight = -25;
+        durationInSteps = 20;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -55,14 +55,14 @@ classdef TaskSearchRescueSingleNoiseless<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 1;
+            taskparams.display3d.on = 0;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-140 140 -140 140 -80 0];
+            taskparams.environment.area.limits = [-50 50 -50 50 -80 0];
             taskparams.environment.area.dt = 1;
             taskparams.environment.area.type = 'BoxWithPersonsArea';
             
@@ -146,9 +146,9 @@ classdef TaskSearchRescueSingleNoiseless<Task
             UU=zeros(5,length(obj.simState.platforms));
             for i=1:length(obj.simState.platforms),
                 if(obj.simState.platforms{i}.isValid())
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-10,0);
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),obj.startHeight,0);
                 else
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],-10,0);
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],obj.startHeight,0);
                 end
             end
         end
@@ -168,12 +168,10 @@ classdef TaskSearchRescueSingleNoiseless<Task
             end
             
             if(valid)
-                r = 0;
-                for i=1:length(obj.numUAVs)
-                    justFound = obj.simState.environment.area.getPersonsJustFound(obj.simState.platforms{i}.getX());
-                    
-                    r = r + sum(justFound);
-                end
+                justFound = obj.simState.environment.area.getPersonsJustFound();
+                 
+                r = sum(sum(justFound));
+                 
                 r = obj.currentReward + r;
             else
                 % returning a large penalty in case the state is not valid
