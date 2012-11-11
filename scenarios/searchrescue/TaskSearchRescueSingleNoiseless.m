@@ -24,7 +24,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
     properties (Constant)
         numUAVs = 1;
         startHeight = -25;
-        durationInSteps = 20;
+        durationInSteps = 200;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     

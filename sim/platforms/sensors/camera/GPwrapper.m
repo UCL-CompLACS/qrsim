@@ -78,7 +78,7 @@ classdef GPwrapper< handle
                 ms = feval(obj.mf{:}, obj.hyp.mean, xstar);
                 m = ms + Ks'*obj.alpha;          % predictive means
                 V  = obj.L'\(repmat(obj.sW,1,size(xstar,1)).*Ks);
-                s2 = kss - V'*V + sn2*eye(sum(obj.id)); % predictive variances
+                s2 = kss - V'*V + sn2*eye(size(xstar,1)); % predictive variances
             end
             %fprintf([' predicted ',num2str(num2str(size(xstar,1))),'\n']);
             % generate samples

@@ -9,7 +9,7 @@
 % than raw images the camera module provides higher-level data in the form of likelihood
 % ratios of the current image conditioned on the presence or absence of a target.
 
-clear all
+%clear all
 close all
 
 % include simulator
