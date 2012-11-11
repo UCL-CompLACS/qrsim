@@ -1,176 +1,158 @@
 classdef GPwrapper< handle
     % handy class to wrap parameters of a GP
+    % note that we make hard assumptions about the correlations
+    % mostly depending ond ground distance to reduce computation
+    properties (Constant)
+        MAXIN = 500; % no matter what we never ever allow more than
+        % this number of inputs in computing predictions
+        MAXADD = 20; % no matter what we never ever allow more than
+        % this number of inputs to be added from a single frame
+    end
     
-    properties
+    properties (Access=private)
+        name;
         isFirst;
         mf;
-        hmean;
         cf;
-        hcov;
+        lf;
+        hyp;
         sn;
         
-        Kinv;
-        mu;
         x;
         y;
         
-        % temp
-        kbold;
-        k;
+        dCut;
         xstar;
         ystar;
-        mustar;
+        
+        L;
+        alpha;
+        sW;
+        id;
     end
     
     methods
-        function obj = GPwrapper(mf,hmean,cf,hcov,sn)
+        function obj = GPwrapper(mf,hmean,cf,hcov,lf,hlik,dCut,name)
             obj.mf=mf;
-            obj.hmean=hmean;
+            obj.hyp.mean=hmean;
             obj.cf=cf;
-            obj.hcov=hcov;
-            obj.sn=sn;
+            obj.hyp.cov=hcov;
+            obj.lf=lf;
+            obj.hyp.lik=hlik;
             obj.isFirst = 1;
+            obj.dCut = dCut;
+            obj.name = name;
         end
         
         function obj = reset(obj)
             obj.x = [];
             obj.y = [];
-            obj.Kinv = [];
-            obj.mu = [];
-            obj.clearTemp();
-            obj.isFirst = 1;
-        end
-        
-        function obj = clearTemp(obj)
-            obj.kbold = [];
-            obj.k = [];
             obj.xstar = [];
             obj.ystar = [];
-            obj.mustar = [];
+            obj.isFirst = 1;
+            obj.L = [];
+            obj.alpha = [];
+            obj.sW = [];
+            obj.id = [];
         end
         
-        function ystar = sample(obj,xstar,rndsample)
+        function ystar = sample(obj,xstar,xcstar,rndsample)
             % generate samples
             obj.xstar = xstar;
             
-            assert(isempty(obj.k)||isempty(obj.kbold)||isempty(obj.xstar)||isempty(obj.ystar),...
+            assert(isempty(obj.L)||isempty(obj.id)||isempty(obj.sW)||isempty(obj.alpha)||isempty(obj.xstar)||isempty(obj.ystar),...
                 'gpwrapper:sample','there should be no old data before a sampling!') % safety check
-            n = size(xstar,1);
             
+            %fprintf(['sample GP ',obj.name]);
+            sn2 = exp(2*obj.hyp.lik);
             % we keep the covariances and cross covariances to avoid
             % recomputing the when updating the posterior
             if(obj.isFirst)
-                obj.k = feval(obj.cf{:},obj.hcov,xstar);
-                
-                % k(x^p,x^q) = sf^2 * exp(-(x^p - x^q)'*inv(P)*(x^p - x^q)/2) 
-                %
-                % where the P matrix is ell^2 times the unit matrix and sf^2 is the signal
-                % variance. The hyperparameters are:
-                %
-                % hyp = [ log(ell)
-                %         log(sf)  ]
-                %mm = size(xstar,1);
-                %nn = size(xstar,2);
-                %kxx = zeros(mm);
-                %sf2 = exp(obj.hcov(2))^2;
-                %ell2 = exp(obj.hcov(1))^2;
-                %for ii=1:mm
-                %    for jj=1:mm
-                %        diff = (xstar(ii,:)-xstar(jj,:));
-                %        kxx(ii,jj)=sf2*exp((-diff*(eye(nn)./ell2)*diff')./2);
-                %    end
-                %end
-                
-                obj.mustar = feval(obj.mf{:},obj.hmean, xstar);
-                s2 = obj.k + obj.sn*obj.sn;
+                k = feval(obj.cf{:},obj.hyp.cov,xstar);
+                m = feval(obj.mf{:},obj.hyp.mean, xstar);
+                s2 = k + sn2*eye(size(xstar,1));
             else
-                obj.kbold  = feval(obj.cf{:},obj.hcov,obj.x,xstar);
-                obj.k = feval(obj.cf{:},obj.hcov,xstar);
-                ms = feval(obj.mf{:},obj.hmean, xstar);
-                
-                tmp = obj.kbold'*obj.Kinv;
-                obj.mustar = ms + tmp*(obj.y-obj.mu);
-                s2 = obj.k - tmp*obj.kbold + obj.sn*obj.sn;
+                obj.computeInvCovFactors(xcstar);                
+                kss = feval(obj.cf{:}, obj.hyp.cov, xstar);   % self-variance
+                Ks  = feval(obj.cf{:}, obj.hyp.cov, obj.x(obj.id,:), xstar);  % cross-covariances
+                ms = feval(obj.mf{:}, obj.hyp.mean, xstar);
+                m = ms + Ks'*obj.alpha;          % predictive means
+                V  = obj.L'\(repmat(obj.sW,1,size(xstar,1)).*Ks);
+                s2 = kss - V'*V + sn2*eye(sum(obj.id)); % predictive variances
             end
+            %fprintf([' predicted ',num2str(num2str(size(xstar,1))),'\n']);
             % generate samples
-            obj.ystar = obj.mustar + chol(s2)*rndsample;
+            obj.ystar = m + chol(s2)'*rndsample;
             ystar = obj.ystar;
         end
         
-        function lik = computeLogLikelihood(obj, xquery, ystar)
-            assert(size(xquery,1)==1,'logLikelihood of one sample athe the time only'); 
+        function obj = computeInvCovFactors(obj,xcstar)
+                % fetch input that are close to the centersample
+                obj.id = knnradiussearch(xcstar,obj.x(:,1:size(xcstar,2)),obj.dCut,[]);
+                % if still too many only the lucky ones remain
+                nidxclose = find(obj.id==1);
+                nclose = size(nidxclose,1);
+                %fprintf([' close points ',num2str(nclose)]);
+                if(nclose>obj.MAXIN)
+                    obj.id(nidxclose(randperm(nclose,nclose-obj.MAXIN)))=false;
+                end
+                n = sum(obj.id);
+                %fprintf([' used ',num2str(n)]);
+                K = feval(obj.cf{:},obj.hyp.cov,obj.x(obj.id,:));
+                m = feval(obj.mf{:},obj.hyp.mean,obj.x(obj.id,:));
+                sn2 = exp(2*obj.hyp.lik);
+                obj.L = chol(K/sn2+eye(n));
+                obj.alpha = solve_chol(obj.L,obj.y(obj.id)-m)/sn2;
+                obj.sW = ones(n,1)/sqrt(sn2);  % sqrt of noise precision vector
+        end            
+        
+        function [lik,m,s2] = computeLogLikelihood(obj,xquery,xcstar,ystar)
+            assert(size(xquery,1)==1,'logLikelihood of one sample at the time only!');
+            sn2 = exp(2*obj.hyp.lik);
             
             if(obj.isFirst)
-                k = feval(obj.cf{:},obj.hcov,xquery);%#ok<PROP>
-                m = feval(obj.mf{:}, obj.hmean, xquery);
-                s2 = k + obj.sn*obj.sn;%#ok<PROP>
+                k = feval(obj.cf{:},obj.hyp.cov,xquery);
+                m = feval(obj.mf{:}, obj.hyp.mean, xquery);
+                s2 = k + sn2;
             else
-                kbold  = feval(obj.cf{:},obj.hcov,obj.x,xquery);%#ok<PROP>
-                k = feval(obj.cf{:},obj.hcov,xquery);%#ok<PROP>
-                ms = feval(obj.mf{:}, obj.hmean, xquery);
-                
-                tmp = kbold'*obj.Kinv;%#ok<PROP>
-                m = ms + tmp*(obj.y-obj.mu);
-                s2 = k - tmp*kbold + obj.sn*obj.sn;%#ok<PROP>
+                if(isempty(obj.L)||isempty(obj.sW)||isempty(obj.id)||isempty(obj.alpha))
+                    obj.computeInvCovFactors(xcstar);  
+                end
+                kss = feval(obj.cf{:}, obj.hyp.cov, xquery);   % self-variance
+                Ks  = feval(obj.cf{:}, obj.hyp.cov, obj.x(obj.id,:), xquery);  % cross-covariances
+                ms = feval(obj.mf{:}, obj.hyp.mean, xquery);
+                m = ms + Ks'*obj.alpha;          % predictive means
+                V  = obj.L'\(repmat(obj.sW,1,size(xquery,1)).*Ks);
+                s2 = kss - V'*V + sn2;     % predictive variances
             end
-            
-            lik = log(1/(2*pi*sqrt(s2)))+(-(0.5/s2)*(ystar-m)^2);
+            lik = feval(obj.lf{:}, obj.hyp.lik, ystar, m,s2);
         end
         
         function obj = updatePosterior(obj)
-            
-            disp(size(obj.Kinv,1));
-
-            l = size(obj.xstar,1);
-            if(l>0)     
-                
-                assert((obj.isFirst)||((~isempty(obj.k)&&~isempty(obj.kbold)&&...
-                ~isempty(obj.ystar)&&~isempty(obj.xstar)&&~isempty(obj.mustar))),...
-                'gpwrapper:update','there should be data to do an update!') % safety check
-                
-                
+            %before = size(obj.x,1);
+            if(~isempty(obj.xstar))
                 if(obj.isFirst)
-                    obj.Kinv = inv(obj.k);
                     obj.isFirst = 0;
-                else
-                    n = size(obj.Kinv,1);
-                    tmp = zeros(l+n,l+n);
-                    M = inv(obj.k-obj.kbold'*obj.Kinv*obj.kbold + obj.sn*obj.sn*eye(l));
-                    tmp(1:n,1:n) = obj.Kinv + obj.Kinv*obj.kbold*M*obj.kbold'*obj.Kinv; %#ok<MINV>
-                    tmp(1:n,n+1:n+l) = -obj.Kinv*obj.kbold*M;%#ok<MINV>
-                    tmp(n+1:n+l,1:n) = tmp(1:n,n+1:n+l)';
-                    tmp(n+1:n+l,n+1:n+l) = M;
-                    obj.Kinv = tmp;                    
-
-%                   %alternative one row at the time version 
-%                     tmp(1:n,1:n) = obj.Kinv;
-%                     obj.Kinv = tmp;
-%                     for i=1:l
-%                         % following MacKay 45.35-45.43
-%                         if(i==1)
-%                             kbold = obj.kbold(:,i); %#ok<PROP>
-%                         else
-%                             kbold = [obj.kbold(:,i);obj.k(1:i-1,i)]; %#ok<PROP>
-%                         end
-%                         m = 1/(obj.k(i,i) - kbold'*obj.Kinv(1:n,1:n)*kbold + obj.sn*obj.sn); %#ok<PROP>
-%                         mbold = -m*obj.Kinv(1:n,1:n)*kbold; %#ok<PROP>
-%                         Mbold = obj.Kinv(1:n,1:n) + (1/m)*(mbold*mbold');
-%                         
-%                         obj.Kinv(1:n,1:n) = Mbold;
-%                         obj.Kinv(1:n,n+1) = mbold;
-%                         obj.Kinv(n+1,1:n) = mbold';
-%                         obj.Kinv(n+1,n+1) = m;
-%                         
-%                         n = n+1;
-%                     end
                 end
                 
-                obj.x = [obj.x;obj.xstar];
-                obj.y = [obj.y;obj.ystar];
-                obj.mu = [obj.mu;obj.mustar];
-                
-                obj.clearTemp();
+                n = size(obj.xstar,1);
+                if(n>obj.MAXADD)
+                    idx = randperm(n,obj.MAXADD);
+                    obj.x = [obj.x;obj.xstar(idx,:)];
+                    obj.y = [obj.y;obj.ystar(idx)];
+                else
+                    obj.x = [obj.x;obj.xstar];
+                    obj.y = [obj.y;obj.ystar];
+                end
+                obj.L = [];
+                obj.alpha = [];
+                obj.sW = [];
+                obj.id = [];
+                obj.xstar = [];
+                obj.ystar = [];
             end
+            %after = size(obj.x,1);
+            %fprintf(['update GP ',obj.name,' x=',num2str(after),' just added ',num2str(after-before),'\n']);
         end
     end
 end

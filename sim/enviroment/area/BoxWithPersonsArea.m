@@ -56,16 +56,16 @@ classdef BoxWithPersonsArea<Area
             assert(isfield(objparams,'personfoundspeedthreshold'),'boxwithpersonarea:numpersonsrange',...
                 'If using a BoxWithPersonsArea, the task must define the parameter personfoundspeedthreshold');
             obj.sthr = objparams.personfoundspeedthreshold;
-                        
+            
             assert(isfield(objparams,'terrain') && isfield(objparams.terrain,'type'),'boxwithpersonarea:terraintype',...
-                'If using a BoxWithPersonsArea, the task must define the parameter terrain.type');                
+                'If using a BoxWithPersonsArea, the task must define the parameter terrain.type');
             
             tmp.limits = objparams.limits;
             tmp.state = objparams.state;
             obj.terrain = feval(objparams.terrain.type, tmp);
             
             [tmp.nr tmp.nc] = obj.terrain.getMapSize();
-            if(objparams.graphics.on)                
+            if(objparams.graphics.on)
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
         end
@@ -75,15 +75,17 @@ classdef BoxWithPersonsArea<Area
             obj.init();
             % reset terrain model;
             obj.terrain.reset();
-            % modify plot
-            obj.graphics.update(obj.simState,obj.persons,obj.found,obj.terrain.getMap());
+            if(obj.graphicsOn)
+                % modify plot
+                obj.graphics.update(obj.simState,obj.persons,obj.found,obj.terrain.getMap());
+            end
         end
         
         function size = getPersonSize(obj)
             size = obj.personSize;
         end
         
-        function pjf = getPersonsJustFound(obj)
+        function pjf = getPersonsJustFound(obj,~)
             % figures out if the UAV is currently sitting over a person
             % in which case it will be deemed as found
             
@@ -125,7 +127,7 @@ classdef BoxWithPersonsArea<Area
             centers(:,2)=[5;0;0];
             obj.persons={};
             for i=1:numPersons,
-               obj.persons{i}=Person(centers(:,i),obj.personSize); 
+                obj.persons{i}=Person(centers(:,i),obj.personSize);
             end
             
             obj.found = zeros(1,numPersons);
@@ -140,20 +142,20 @@ classdef BoxWithPersonsArea<Area
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-                        
+            
             obj.pjf =  zeros(length(obj.simState.platforms),length(obj.persons));
             for j = 1:length(obj.simState.platforms)
-                X = obj.simState.platforms{j}.getX();     
-
+                X = obj.simState.platforms{j}.getX();
+                
                 %UV = [];
-                for i = 1:length(obj.persons)       
+                for i = 1:length(obj.persons)
                     %uv = obj.simState.platforms{j}.camera.cam_prj(X(1:3),dcm(X),obj.persons{i}.center));
                     %if(~isempty(uv))
                     %    UV= [UV,uv];
                     if((norm(obj.persons{i}.center-X(1:3)) <= obj.dthr) && (norm(X(7:9))<= obj.sthr))
                         obj.pjf(j,i) = 1;
                     end
-                end      
+                end
             end
             
             obj.found = obj.found | (sum(obj.pjf,1)>0);

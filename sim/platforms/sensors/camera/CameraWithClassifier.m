@@ -65,8 +65,8 @@ classdef CameraWithClassifier < Sensor
             
             prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
-            
-            obj.obsModel = GPObsModel(obj.simState, prngId);
+            psize = obj.simState.environment.area.getPersonSize();
+            obj.obsModel = GPObsModel(obj.simState, objparams.f, objparams.c, psize, prngId);
         end
         
         function obj = reset(obj)
@@ -143,15 +143,16 @@ classdef CameraWithClassifier < Sensor
             Rp = dcm(X);
             
             fcg = obj.inv_cam_prjZ0(tp,Rp,obj.c(:));
-            set(0,'CurrentFigure',obj.simState.display3d.figure)
-            plot3(fcg(1),fcg(2),fcg(3),'m+');
+            
+            %set(0,'CurrentFigure',obj.simState.display3d.figure)
+            %plot3(fcg(1),fcg(2),fcg(3),'m+');
                                     
             % get real persons
             obj.pg = obj.simState.environment.area.getPersons();
             
-            psz = obj.simState.environment.area.getPersonSize();
-            bb = [  psz psz -psz -psz;
-                -psz psz -psz  psz];
+            hpsz = 0.5*obj.simState.environment.area.getPersonSize();
+            bb = [  hpsz hpsz -hpsz -hpsz;
+                   -hpsz hpsz -hpsz  hpsz];
             
             bbg = [bb(1,:)+fcg(1);
                 bb(2,:)+fcg(2);
@@ -176,53 +177,60 @@ classdef CameraWithClassifier < Sensor
             n = nf(1)*nf(2);
             df = floor((2*obj.c(:))./nf);
             offf = floor(rem(2*obj.c(:),df)./2);
+                        
+            %%%%%           
+            %f10 = figure(10);            
+            %hold on;
+            %axis([0 2*obj.c(1) 0 2*obj.c(2)]);
+            %set(gca,'YDir','rev');             
+            %%%%%
             
-            % we store windows corners row wise, left to right
-            % and top to bottom, this means that the cornes of the
-            % window i,j are wf(:,(i-1)*(nf(1)+1)+j+[0,1,nf(1)+1,nf(1)+2])
-            % similarly the centers of window i,j is wf(:,(i-1)*nf(1)+j))
+            % we store windows corners column wise, top to bottom
+            % and left to right, this means that the cornes of the
+            % window i,j are wf(:,(j-1)*(nf(2)+1)+i+[0,1,nf(2)+1,nf(2)+2])
+            % similarly the centers of window i,j is wf(:,(j-1)*nf(2)+i))
             wf = zeros(2,(nf(1)+1)*(nf(2)+1));
             cf = zeros(2,n);
-            for j=1:nf(2)+1,
-                for i=1:nf(1)+1,
-                    wf(:,i+(j-1)*(nf(1)+1)) = offf+ [(i-1)*df(1);(j-1)*df(2)];
+            for j=1:nf(1)+1,
+                for i=1:nf(2)+1,
+                    wf(:,(j-1)*(nf(2)+1)+i) = offf + [(j-1)*df(1);(i-1)*df(2)];
+                    %idx = (j-1)*(nf(2)+1)+i
+                    %wf(:,idx)
+                    %plot(wf(1,idx),wf(2,idx),'+');
                 end
             end
             
-            for j=1:nf(2),
-                for i=1:nf(1),
-                    cf(:,i+(j-1)*nf(1)) = offf+df./2+[(i-1)*df(1);(j-1)*df(2)];
+            for j=1:nf(1),
+                for i=1:nf(2),
+                    cf(:,(j-1)*nf(2)+i) = offf+df./2+[(j-1)*df(1);(i-1)*df(2)];
+                    %idx = (j-1)*nf(1)+i
+                    %plot(cf(1,idx),cf(2,idx),'*r');
                 end
             end
             
-            %figure(10);
-            %plot(wf(1,:),wf(2,:),'+');  hold on;
-            %plot(cf(1,:),cf(2,:),'.');
-            %axis([0 2*obj.c(1) 0 2*obj.c(2)]);
+            %%%%%%
+            %hwf= plot(wf(1,:),wf(2,:),'+'); 
+            %hcf= plot(cf(1,:),cf(2,:),'.r');
+            %%%%%%            
             
             % grounds patches W and ground centers Cw
             % they obviously are layed out as the one in the frame
             obj.wg = obj.inv_cam_prjZ0(tp, Rp ,wf);
             cg = obj.inv_cam_prjZ0(tp, Rp ,cf);
             
-            %%%%%
-            %set(0,'CurrentFigure',obj.simState.display3d.figure)
-            %hwg = plot3(obj.wg(1,:),obj.wg(2,:),obj.wg(3,:),'y+');
-            %hcg = plot3(cg(1,:),cg(2,:),cg(3,:),'y.');
-            %%%%%
+            %%%%%%
+            %set(0,'CurrentFigure',obj.simState.display3d.figure);
+            %hcg = plot3(cg(1,:),cg(2,:),cg(3,:),'*r');
+            %hwg = plot3(obj.wg(1,:),obj.wg(2,:),obj.wg(3,:),'+y');
+            %%%%
             
             % compute the terrain class for each patch center
             tclass = obj.simState.environment.area.getTerrainClass(cg);
             
             pcf=[]; %person centers
-            %pid=[]; %person id
             sigma=[]; % person's area
             inview = zeros(1,n);
             k = 0;
-            %figure(10);
-            %hw1=plot(wf(1,:),wf(2,:),'+');
-            %hold on;
-            %hw2=plot(cf(1,:),cf(2,:),'*r');
             for i=1:length(obj.pg),
                 % reproject center to current frame
                 picf = cell2mat(obj.cam_prj(tp, Rp ,obj.pg{i}.center));
@@ -231,7 +239,7 @@ classdef CameraWithClassifier < Sensor
                 if(~isempty(picf))
                     pcf=[pcf,picf];%#ok<AGROW>
                     k = k+1;
-                    %pid=[pid,i]; %#ok<AGROW>
+
                     pibbfc = obj.cam_prj(tp, Rp ,obj.pg{i}.bb);
                     pok = logical(cellfun(@(x) size(x,2),pibbfc));
                     pibbf = cell2mat(pibbfc(pok));
@@ -254,9 +262,12 @@ classdef CameraWithClassifier < Sensor
                     if(pok(2)&&pok(1)), pif = [pif,(pibbfc{2}+pibbfc{1}+picf)./3]; end %#ok<AGROW>
                     if(pok(3)&&pok(1)), pif = [pif,(pibbfc{3}+pibbfc{1}+picf)./3]; end %#ok<AGROW>
                     if(pok(4)&&pok(2)), pif = [pif,(pibbfc{4}+pibbfc{2}+picf)./3]; end %#ok<AGROW>
-
-                    %hw3=plot(pif(1,:),pif(2,:),'.g');
                     
+                    %%%%%%
+                    %figure(10);
+                    %hpif=plot(pif(1,:),pif(2,:),'.g');
+                    %%%%%%
+            
                     for j=1:size(pif,2)
                         % work out to what window point j belongs
                         idx = ceil((pif(:,j)-offf)./df);
@@ -277,8 +288,12 @@ classdef CameraWithClassifier < Sensor
                            (norm(cf(:,lidx)-pcf(:,k))<norm(cf(:,lidx)-pcf(:,curpid)))))
                             inview(lidx) = k;
                         end
+                        %plot(cf(1,lidx),cf(2,lidx),'*k');
+                        %plot(pif(1,j),pif(2,j),'.k');
                     end
-                    %delete(hw3)
+                    %%%%%%
+                    %delete(hpif);
+                    %%%%%%
                 end
                
             end
@@ -336,25 +351,29 @@ classdef CameraWithClassifier < Sensor
             %%%%%
             %delete(hcg);
             %delete(hwg);
-            %delete(hw1);
-            %delete(hw2);
+            %delete(hcf);
+            %delete(hwf);
             %%%%%
             
             % pass the input to the GP models to obtain classifiers scores
-            ystar = obj.obsModel.sample(which, xstar);
-            
-            %%%%%
-            set(0,'CurrentFigure',obj.simState.display3d.figure);
-            
-            ystarmat = reshape(ystar,nf(1),nf(2));
-            xcgmat = reshape(cg(1,:),nf(1),nf(2));
-            ycgmat = reshape(cg(2,:),nf(1),nf(2));
-            hsamples = surf(xcgmat,ycgmat, -0.01*ones(size(xcgmat)),ystarmat);
-            set(hsamples,'EdgeColor','none');
-            %%%%%
+            ystar = obj.obsModel.sample(which, xstar, fcg(1:2)');
             
             % compute likelihood ratio
-            obj.lkr =  obj.obsModel.computeLikelihoodRatio(xqueryp, xqueryn, ystar);
+            obj.lkr =  obj.obsModel.computeLikelihoodRatio(xqueryp, xqueryn, fcg(1:2)', ystar);
+                        
+                        
+            %%%%%
+            %set(0,'CurrentFigure',obj.simState.display3d.figure);
+            
+            %ystarmat = reshape(ystar,nf(2),nf(1));
+            %xcgmat = reshape(cg(1,:),nf(2),nf(1));
+            %ycgmat = reshape(cg(2,:),nf(2),nf(1));
+            %if(isfield(obj.simState.display3d,'hsamples'))
+            %   delete(obj.simState.display3d.hsamples);
+            %end    
+            %obj.simState.display3d.hsamples = surf(xcgmat,ycgmat, -0.01*ones(size(xcgmat)),ystarmat);
+            %set(obj.simState.display3d.hsamples,'EdgeColor','none');
+            %%%%%
             
             % update GP models
             obj.obsModel.updatePosterior();
