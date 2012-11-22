@@ -60,14 +60,16 @@ classdef WindConstMean<Wind
             end
             obj.simState.numRStreams = obj.simState.numRStreams+1;
             obj.prngId = obj.simState.numRStreams;
+
+	    obj.bootstrapped = 0; 
         end
         
         function obj = reset(obj)
-            % reset wind direction if random;
-            
+            % reset wind direction if random;     
             if(obj.randDir)
                 obj.direction = 2*pi*rand(obj.simState.rStreams{obj.prngId},1,1);
             end
+            obj.bootstrapped = 1;
         end
         
         function v = getLinear(obj,X)

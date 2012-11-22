@@ -64,6 +64,7 @@ classdef GaussianPlumeArea<PlumeArea
             obj.init();
             % modify plot
             obj.graphics.update(obj.simState,obj.source,[0;0;0],obj.locations,obj.referenceSamples);
+	    obj.bootstrapped = 1;
         end
         
         function samples = getSamples(obj,positions)

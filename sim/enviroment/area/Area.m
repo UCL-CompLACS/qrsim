@@ -64,11 +64,15 @@ classdef Area<Steppable & EnvironmentObject
             % returns limits
             limits = obj.limits;
         end
+        
+        function on = isGraphicsOn(obj)
+            on = obj.graphicsOn;
+        end
     end
     
     methods (Access=public)
         function obj = reset(obj)
-            % does nothing
+	    obj.bootstrapped = 1; 
         end
     end
     

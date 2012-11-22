@@ -103,7 +103,7 @@ classdef TaskGotoWP<Task
 
 	end
 
-        function reset(obj) 
+        function reset(obj)
 	    % initial state
 	    obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
               

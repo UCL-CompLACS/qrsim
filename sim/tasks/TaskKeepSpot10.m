@@ -104,7 +104,7 @@ classdef TaskKeepSpot10<Task
             end
         end 
         
-        function reset(obj)
+        function reset(obj) 
             % initial state for each of the platforms
             for i=1:10,
                 obj.simState.platforms{i}.setX([-100+20*i;0;-10;0;0;0]);

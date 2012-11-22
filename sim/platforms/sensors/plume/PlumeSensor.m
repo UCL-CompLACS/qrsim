@@ -21,7 +21,8 @@ classdef PlumeSensor<Sensor
             %   obj=PlumeSensor(objparams)
             %                objparams.on - 0 to have this type of object
             %
-            obj = obj@Sensor(objparams);    
+            obj = obj@Sensor(objparams);   
+	    obj.bootstrapped = 0; 
         end
         
         function conc = getMeasurement(obj,~)
@@ -36,7 +37,7 @@ classdef PlumeSensor<Sensor
         end
         
         function obj = reset(obj)
-           % does nothing            
+	    obj.bootstrapped = 1;    
         end
 
     end

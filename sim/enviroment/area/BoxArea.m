@@ -31,6 +31,11 @@ classdef BoxArea<Area
                 end
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
+            obj.bootstrapped = 0;
+        end
+        
+        function obj = reset(obj)
+            obj.bootstrapped = 1;
         end
     end
 end

@@ -245,6 +245,7 @@ classdef Pelican<Steppable & Platform
             %           if the length of the X vector is 12, thrust is initialized automatically
             %           if the length of the X vector is 6, all the velocities are set to zero
             %
+            
             assert((size(X,1)==6)||(size(X,1)==12)||(size(X,1)==13),'pelican:wrongsetstate',...
                 'setState() on a pelican object requires an input of length 6, 12 or 13 instead we have %d',size(X,1));
             
@@ -263,11 +264,17 @@ classdef Pelican<Steppable & Platform
             
             % set things
             obj.gpsreceiver.setState(X);
-            obj.ahars.setState(X);
-            
+            obj.ahars.setState(X);            
             obj.aerodynamicTurbulence.setState(obj.X);
             
             obj.a  = zeros(3,1);
+            
+            
+            % now rest to make sure components are initialised correctly
+            obj.gpsreceiver.reset();
+            obj.aerodynamicTurbulence.reset();
+            obj.ahars.reset();
+            obj.resetAdditional();            
             
             % get measurements
             estimatedAHA = obj.ahars.getMeasurement([obj.X;obj.a]);
@@ -282,6 +289,8 @@ classdef Pelican<Steppable & Platform
             if(obj.graphicsOn)
                 obj.graphics.reset();
             end
+            
+            obj.bootstrapped = 1;
         end
         
         function obj = reset(obj)
@@ -290,14 +299,8 @@ classdef Pelican<Steppable & Platform
             % Example:
             %   obj.reset();
             %
-            obj.gpsreceiver.reset();
-            obj.aerodynamicTurbulence.reset();
-            obj.ahars.reset();
-            obj.resetAdditional();
-            if(obj.graphicsOn)
-                obj.graphics.reset();
-            end
-            obj.valid = 1;
+            assert(false,'pelican:rset',['A platform ca not be simply reset since that would its state undefined',...
+                ' use setX instead, that will take care of resetting what necessary']);
         end
         
         function d = getCollisionDistance(obj)

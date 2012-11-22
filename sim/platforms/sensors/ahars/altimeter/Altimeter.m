@@ -35,7 +35,15 @@ classdef Altimeter<Sensor
         end
                          
         function obj=reset(obj)
-            % does nothing            
+            obj.bootstrapped = 1;      
+        end
+        
+        function obj=setState(obj,X)
+            gvel = (dcm(X)')*X(7:9);                
+                
+            % crude init of past position
+            obj.estimatedAltAndAltDot = [-X(3);-gvel(3)];
+            obj.bootstrapped = 0;      
         end
     end
     

@@ -54,7 +54,7 @@ classdef GPSReceiverG < GPSReceiver
             %                objparams.R_SIGMA - receiver noise standard deviation
             %                objparams.delay - time delay in multiples of receiver's dt
             %
-
+            
             obj=obj@GPSReceiver(objparams);
             
             obj.nPrngId = obj.simState.numRStreams+1;
@@ -72,7 +72,7 @@ classdef GPSReceiverG < GPSReceiver
             assert(isfield(objparams,'minmaxnumsv'),'gpsreceiverg:nonumsvs','the platform config must define the gpsreceiver.minmaxnumsv parameter');
             obj.minmaxnumsv = objparams.minmaxnumsv;
             obj.totalnumsvs = obj.simState.environment.gpsspacesegment.getTotalNumSVS();
-        end        
+        end
         
         function estimatedPosVelNED = getMeasurement(obj,~)
             % returns a GPS estimate given the current noise free position
@@ -86,7 +86,7 @@ classdef GPSReceiverG < GPSReceiver
             %       ~pydot           [m/s]   y velocity from GPS (NED coordinates)
             %
             
-            estimatedPosVelNED = obj.estimatedPosVelNED;            
+            estimatedPosVelNED = obj.estimatedPosVelNED;
         end
         
         function obj = reset(obj)
@@ -96,14 +96,22 @@ classdef GPSReceiverG < GPSReceiver
             %
             %   obj.reset()
             %
-            
+
             obj.nsv = (obj.minmaxnumsv(1)-1)+randi(obj.simState.rStreams{obj.sPrngId},obj.minmaxnumsv(2)-obj.minmaxnumsv(1)+1);
             
             obj.svidx = zeros(1,obj.nsv);
             r = randperm(obj.simState.rStreams{obj.sPrngId},obj.totalnumsvs);
             obj.svidx = r(1:obj.nsv);
-            
             obj.receivernoise = obj.R_SIGMA*randn(obj.simState.rStreams{obj.nPrngId},obj.nsv,1);
+            
+            obj.pastEstimatedPosNED = obj.solveFromObservations(obj.pastEstimatedPosNED);            
+            obj.estimatedPosVelNED(1:3,1) = obj.solveFromObservations(obj.estimatedPosVelNED(1:3,1));           
+            obj.estimatedPosVelNED(4:5,1) = (obj.estimatedPosVelNED(1:2,1) - obj.pastEstimatedPosNED(1:2,1))./obj.dt;
+            
+            %estimatedPosVelNED = obj.estimatedPosVelNED
+            %pastEstimatedPosVelNED = obj.pastEstimatedPosVelNED
+            
+            obj.bootstrapped = obj.bootstrapped +1;
         end
         
         function obj = setState(obj,X)
@@ -114,9 +122,23 @@ classdef GPSReceiverG < GPSReceiver
             %   obj.setState(X)
             %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
             %
-            obj.reset();
-            obj.delayedPositionsNED = [];
-            obj.update(X);
+            %
+            % make up the delayed from the velocities
+            % assuming a constant velocity that is
+            
+            gvel = (dcm(X)')*X(7:9);
+            obj.estimatedPosVelNED = [X(1:3);gvel(1:2)];
+                        
+            obj.delayedPositionsNED = zeros(3,obj.delay);
+            for i=obj.delay:-1:1,
+                obj.delayedPositionsNED(:,i) = X(1:3) - gvel*(obj.delay-i)*obj.dt;
+            end  
+            obj.estimatedPosVelNED(1:3,1) = X(1:3) - gvel*obj.delay*obj.dt;
+            obj.estimatedPosVelNED(4:5,1) = gvel(1:2,1);
+            
+            obj.pastEstimatedPosNED = X(1:3) - gvel*(obj.delay+1)*obj.dt;
+            
+            obj.bootstrapped = 0;
         end
     end
     
@@ -166,28 +188,11 @@ classdef GPSReceiverG < GPSReceiver
             %  this method is called automatically by the step() of the Steppable parent
             %  class and should not be called directly.
             %
-
+            
             obj.receivernoise = obj.R_SIGMA*randn(obj.simState.rStreams{obj.nPrngId},obj.nsv,1);
             
             assert(isfield(obj.simState.environment_.gpsspacesegment,'svspos'), ...
                 'In order to run a GPSReceiver needs the corresponding space segment!');
-            
-            if(isempty(obj.delayedPositionsNED))
-                % make up the delayed from the velocities
-                % assuming a constant velocity that is
-                
-                obj.delayedPositionsNED = zeros(3,obj.delay);
-                
-                gvel = (dcm(X)')*X(7:9);
-                
-                for i=1:obj.delay,
-                    obj.delayedPositionsNED(:,1+obj.delay-i) = X(1:3) - gvel*i*obj.dt;
-                end
-                
-                obj.pastEstimatedPosNED = X(1:3);
-                obj.pastEstimatedPosNED = obj.solveFromObservations(X(1:3) - gvel*(obj.delay+2)*obj.dt);
-                obj.estimatedPosVelNED(1:3,1) = obj.solveFromObservations(X(1:3) - gvel*(obj.delay+1)*obj.dt);
-            end
             
             % delay chain
             obj.delayedPositionsNED = [obj.delayedPositionsNED,X(1:3)];
@@ -197,8 +202,7 @@ classdef GPSReceiverG < GPSReceiver
             estimatedPosNED = obj.solveFromObservations(delayedPos);
             
             obj.pastEstimatedPosNED = obj.estimatedPosVelNED(1:3);
-            obj.estimatedPosVelNED(1:3) =  estimatedPosNED;
-            
+            obj.estimatedPosVelNED(1:3) =  estimatedPosNED;            
             obj.estimatedPosVelNED(4:5) = (estimatedPosNED(1:2) - obj.pastEstimatedPosNED(1:2))/obj.dt;
         end
     end

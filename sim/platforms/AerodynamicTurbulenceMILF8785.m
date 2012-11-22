@@ -114,8 +114,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         end
         
         function obj = reset(obj)            
-            % resets the state of the model
-                        
+            % resets the state of the model                     
+
             if(obj.randDir)
                 obj.direction = 2*pi*rand(obj.simState.rStreams{obj.prngIds(4)},1,1);
             end
@@ -140,12 +140,14 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
                 % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)
                 obj.vgust_windframe =  (1-(Vfts*obj.dt)./L).*obj.vgust_windframe+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
             end
+            
+            obj.bootstrapped = obj.bootstrapped +1;
         end
         
         function obj = setState(obj,X)
             % setting the object state           
             obj.X = X;
-            obj.reset();
+            obj.bootstrapped = 0;
         end
     end
     

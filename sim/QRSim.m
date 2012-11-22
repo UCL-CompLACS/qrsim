@@ -24,6 +24,7 @@ classdef QRSim<handle
         par         % task parameters
         paths =[];  % paths
         simState;
+        bootstrapped;
     end
     
     methods (Sealed,Access=public)
@@ -118,16 +119,18 @@ classdef QRSim<handle
             end
             
             % reset task
+            % note that this will also reset all the platforms states to their initial value 
             obj.simState.task.reset();
+                        
+            % reset all platforms
+            %for i=1:length(obj.simState.platforms)
+            %    obj.simState.platforms{i}.reset();
+            %end
             
-            % reset all platforms objects
-            if(isfield(obj.par.platforms(1),'X'))
-                for i=1:length(obj.simState.platforms)
-                    obj.simState.platforms{i}.setX(obj.par.platforms(i).X);
-                end
-            end
-            
+            % reset reward
             obj.simState.task.resetReward();
+            
+            obj.bootstrapped = 1;
         end
         
         function obj = resetSeed(obj,varargin)
@@ -155,6 +158,8 @@ classdef QRSim<handle
                     obj.simState.rStreams = RandStream.create('mrg32k3a','seed',sum(100*clock),'NumStreams',obj.simState.numRStreams,'CellOutput',1);
                 end
             end
+            
+            obj.bootstrapped = 0;
         end
         
         function obj=step(obj,U)
@@ -165,6 +170,8 @@ classdef QRSim<handle
             %     U - 5 by m matrix of control inputs for each of the m platforms
             %
             
+            assert((obj.bootstrapped==1),'qrsim:ntbootsrapped','after resetting the simulation seed, qrsim.reset() must be called to reinitilize all the simulation objects');
+                       
             for j=1:obj.simState.task.dt/obj.DT,
                 % update time
                 obj.simState.t=obj.simState.t+obj.simState.DT;
@@ -282,7 +289,8 @@ classdef QRSim<handle
                 p = loadPlatformConfig(obj.par.platforms(i).configfile, obj.par);
                 p.DT = obj.DT;
                 
-                assert(~isfield(obj.par.platforms(i),'X'),'qrsim:platformsx','platforms(i).X is not used any longher to define the initial platform state, for that purpouse use the reset() method of your task');
+                assert(~isfield(obj.par.platforms(i),'X'),'qrsim:platformsx',['platforms(i).X is not used any longher to define the initial platform state,',...
+                    'for that purpouse call platforms{i}.setX within the reset() method of your task']);
                 
                 p.graphics.on = obj.par.display3d.on;
                 p.state = obj.simState;

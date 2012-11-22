@@ -25,6 +25,8 @@ classdef Wind<Steppable & EnvironmentObject
             
             obj=obj@Steppable(objparams);
             obj=obj@EnvironmentObject(objparams);
+	
+     	    obj.bootstrapped = 0;
         end
     end
     
@@ -54,7 +56,7 @@ classdef Wind<Steppable & EnvironmentObject
         end
         
         function obj = reset(obj)
-            % does nothing
+            obj.bootstrapped = 1;
         end
     end
     

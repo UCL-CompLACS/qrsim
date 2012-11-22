@@ -3,7 +3,7 @@ def_graphic_ext=eps
 img_extIsRegExp=false
 img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif
 kileprversion=2
-kileversion=2.1.0
+kileversion=2.1.2
 lastDocument=master.tex
 masterDocument=
 name=qrsim
@@ -38,10 +38,10 @@ order=-1
 
 [item:master.tex]
 archive=true
-column=24
+column=51
 encoding=UTF-8
 highlight=LaTeX
-line=135
+line=141
 mode=LaTeX
 open=true
 order=0
@@ -57,7 +57,7 @@ open=false
 order=-1
 
 [view-settings,view=0,item:master.tex]
-CursorColumn=24
-CursorLine=135
+CursorColumn=51
+CursorLine=141
 JumpList=
 ViMarks=

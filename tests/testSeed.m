@@ -66,7 +66,7 @@ for i=1:N
     eX(21:23,i) = state.platforms{1}.getA();
     X(:,i) = state.platforms{1}.getX();
     
-    if(mod(i,1000)==0)
+    if(mod(i,10)==0)
         fprintf('.');
     end
 end

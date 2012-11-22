@@ -29,7 +29,9 @@ classdef PlumeSensorG<PlumeSensor
                     'for a PlumeSensorG the noise standard deviation SIGMA must be defined');
             obj.SIGMA = objparams.SIGMA;
             obj.sPrngId = obj.simState.numRStreams+1;
-            obj.simState.numRStreams = obj.simState.numRStreams + 1;            
+            obj.simState.numRStreams = obj.simState.numRStreams + 1;    
+	    
+            obj.bootstrapped = 0;        
         end
         
         function conc = getMeasurement(obj,~)
@@ -45,7 +47,7 @@ classdef PlumeSensorG<PlumeSensor
         end
         
         function obj = reset(obj)
-           % does nothing            
+            obj.bootstrapped = 1;           
         end
 
     end

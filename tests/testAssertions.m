@@ -4,7 +4,7 @@ function [ e ] = testAssertions()
 
 addpath('assert');
 
-clear all;
+%clear all;
 
 e = 0;
 
@@ -116,7 +116,7 @@ try
     
     e = e || state.environment.area.isGraphicsOn();
     e = e || (~ischar('state.environment.area.graphics'));
-    e = e || (strcmp(class(state.platforms{1}.getGraphics()),'QuadrotorGraphics')~=1); %#ok<STISA>
+    e = e || (strcmp(class(state.platforms{1}.getGraphics()),'QuadrotorGraphics')==1); %#ok<STISA>
 
     % do a few steps to make sure things actually work
     for i=1:10

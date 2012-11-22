@@ -29,7 +29,7 @@ classdef GPSSpaceSegment < Steppable & EnvironmentObject
     
     methods  (Access=public)   
         function obj = reset(obj)
-           % does nothing because this is not an active space segment 
+	    obj.bootstrapped = 1;
         end
     end
     

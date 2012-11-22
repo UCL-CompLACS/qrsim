@@ -83,7 +83,7 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
                 
         function obj = reset(obj)
             % reinitialize the noise model
-            
+
             [b,e] = obj.simState.environment_.gpsspacesegment.stdPe.tValidLimits();
             
             if(obj.randomTStart)
@@ -111,6 +111,8 @@ classdef GPSSpaceSegmentGM < GPSSpaceSegment
                 obj.simState.environment_.gpsspacesegment.svspos(:,j) = getSatCoord(obj.simState.environment_.gpsspacesegment.stdPe,...
                     obj.simState.environment_.gpsspacesegment.svs(j),(obj.tStart+obj.simState.t));
             end
+
+	    obj.bootstrapped = 1;
         end
                         
         function n = getTotalNumSVS(~)

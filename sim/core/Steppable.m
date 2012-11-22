@@ -22,6 +22,7 @@ classdef Steppable<handle
     properties (Access=protected)
         dt;          % timestep of this object
         simState;    % handle to the simulator state
+        bootstrapped;
     end
     
     methods (Sealed,Access=public)
@@ -57,6 +58,7 @@ classdef Steppable<handle
             else
                 error('dt must be a multiple of the simulation timestep %fs',objparams.DT);
             end
+            obj.bootstrapped = 0;
         end
         
         function obj=step(obj,args)
@@ -68,7 +70,10 @@ classdef Steppable<handle
             %
             %   obj.step(args);
             %       args - passed directly to update, see the update method
-            %            
+            %       
+            
+            assert((obj.bootstrapped==1),'steppable:ntbootsrapped','this object of class %s was initialized %d times instead of 1',class(obj),obj.bootstrapped);
+            
             r = rem(obj.simState.t,obj.dt);
             if(((r<obj.TOL)||((obj.dt-r)<obj.TOL)))
                 obj.update(args);

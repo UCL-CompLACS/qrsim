@@ -31,7 +31,8 @@ classdef PelicanForTesting<Pelican
         end
     end
     
-     methods (Access=protected)
+     methods (Access=protected) 
+        
         function obj = update(obj,U)
             % updates the state of the platform and of its components
             %
@@ -90,8 +91,13 @@ classdef PelicanForTesting<Pelican
                     obj.eX = [estimatedPosNED(1:3);estimatedAHA(1:3);zeros(3,1);...
                         estimatedAHA(4:6);0;estimatedAHA(7:10);estimatedPosNED(4:5);estimatedAHA(11)];
                     
-                    % graphics
-                    obj.graphics.update(obj.X);
+                    obj.updateAdditional(U);
+                    
+                    % graphics      
+                    if(obj.graphicsOn)
+                        obj.graphics.update(obj.X);
+                        obj.updateAdditionalGraphics(obj.X);
+                    end
                     
                     obj.valid = 1;
                 else

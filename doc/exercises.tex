@@ -140,12 +140,18 @@ We have seen how changing the initial platform state in the \texttt{pelican\_con
 The platform objects expose a set of methods designed to make setting and resetting of the state very easy:
 \begin{itemize}
 \item \texttt{state.platforms{1}.getX()}, returns the true platform state. We have seen this method already, saving a state is simply a matter of storing the returned state in an appropriate variable.
-\item \texttt{state.platforms{1}.setX(X)}, set the true platform state to the passed value. Note that in addition to overwriting the object's state this call also make sure that any other internal variable (e.g. noise model states) is appropriately set/reset. In this way running the platform forward in time will produce a state trajectory statistically independent from the ones previously obtained (even in the presence of the same control) unless the user specified a fix seed for the pseudorandom number generator.
+\item \texttt{state.platforms{1}.setX(X)}, set the true platform state to the passed value. Note that in addition to overwriting the object's state this call also make sure that any other internal variable (e.g. noise model states) is appropriately set/reset. In this way running the platform forward in time will produce a state trajectory statistically independent from the ones previously obtained (even in the presence of the same control input).
+It is worth stressing that since the platform dynamics depends also on the environment objects (e.g. wind), specifying a fix seed for the pseudorandom number generator does not imply that calling \texttt{state.platforms{1}.setX(X)} with the same initial state will produce identical trajectories.
+To obtain identical runs, not only the platforms but also the environment objects need to be reset the next section explains how to do so.
 \end{itemize}
 
-The main QRSim object also exposes a reset method 
+The main QRSim object also exposes a reset and a resetSeed methods 
 \begin{itemize}
-\item \texttt{qrsim.reset()} resets the simulator to the initial state specified by the task. This also resets the task reward to zero, and calls the method \texttt{reset()} of the task which re-initializes the platforms state. 
+\item \texttt{qrsim.reset()} resets the simulator to the initial state specified by the task. This calls the method \texttt{reset()} of the task which takes care of re-initializing the platforms state, it also resets the task reward to zero.  
+Calling \texttt{qrsim.reset()} will not reinitialize the random number generator.
+
+\item \texttt{qrsim.resetSeed()} resets the seed of the pseudorandom number generator to the value specified in the task (or to a random value if in the task the seed is set to $0$). After calling \texttt{qrsim.resetSeed()} is necessary to call \texttt{qrsim.reset()} in order to reinitialise all the platforms and environment objects.
+Running repeatedly a task with a fixed seed followed by the two \texttt{qrsim.resetSeed()} and \texttt{qrsim.()} calls will lead to identical runs.
 \end{itemize}
 
 With those concepts clear in mind modify \texttt{main.m} as follows:

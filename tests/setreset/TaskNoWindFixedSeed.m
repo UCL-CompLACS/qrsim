@@ -61,7 +61,7 @@ classdef TaskNoWindFixedSeed<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 1;
+            taskparams.environment.wind.on = 0;
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = 0; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
             taskparams.environment.wind.W6 = 0.1;  %velocity at 6m from ground in m/s
@@ -73,8 +73,9 @@ classdef TaskNoWindFixedSeed<Task
         end
 
         function reset(obj) 
-	    % initial state
-	    obj.simState.platforms{1}.setX([1;2;3;0;0;pi;0;0;0;0;0;0]);
+            fprintf('TaskNoWindFixSeed reset\n');
+            % initial state
+            obj.simState.platforms{1}.setX([1;2;3;0;0;pi;0;0;0;0;0;0]);
         end
         
         function r=reward(~) 

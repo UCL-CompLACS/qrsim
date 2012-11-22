@@ -101,7 +101,7 @@ classdef TaskKeepVel<Task
             taskparams.platforms(1).configfile = 'pelican_config';
 	end
 
-        function reset(obj) 
+        function reset(obj)
 	    % initial state
 	    obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
             obj.v = [0;0;0];

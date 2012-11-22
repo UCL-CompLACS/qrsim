@@ -48,12 +48,16 @@ classdef GPSReceiver<Sensor
         end
         
         function obj = reset(obj)
-           % does nothing            
+	        obj.bootstrapped = obj.bootstrapped +1;
         end
-
+                
+        function obj=setState(obj,X)
+            obj.update(X);
+            obj.bootstrapped = 0;
+        end
     end
     
-    methods (Access=protected)        
+    methods (Access=protected)    
         function obj=update(obj,X)
             % simply stores the state to be used by getMeasurement()
             %

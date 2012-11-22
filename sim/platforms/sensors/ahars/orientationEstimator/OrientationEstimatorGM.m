@@ -49,6 +49,7 @@ classdef OrientationEstimatorGM<OrientationEstimator
             assert(isfield(objparams,'SIGMA'),'orientationestimatorgm:nosigma',...
                 'the platform config file a must define orientationEstimator.SIGMA parameter');
             obj.SIGMA = objparams.SIGMA;  % noise standard deviation
+	    obj.bootstrapped = 0;
         end
         
         function estimatedOrientation = getMeasurement(obj,~)
@@ -62,11 +63,10 @@ classdef OrientationEstimatorGM<OrientationEstimator
             %
             estimatedOrientation = obj.estimatedOrientation;
         end
-        
-                
+                        
         function obj=reset(obj)
             % reinitializes the noise state
-            
+ 
             obj.n = zeros(3,1);
             for i=1:randi(obj.simState.rStreams{obj.rPrngId},1000)
                 eta = [randn(obj.simState.rStreams{obj.nPrngIds(1)},1,1);
@@ -74,6 +74,13 @@ classdef OrientationEstimatorGM<OrientationEstimator
                        randn(obj.simState.rStreams{obj.nPrngIds(3)},1,1)];
                 obj.n = obj.n.*exp(-obj.BETA*obj.dt) + obj.SIGMA.*sqrt((1-exp(-2*obj.BETA*obj.dt))./(2*obj.BETA)).*eta;
             end
+            obj.estimatedOrientation = obj.estimatedOrientation + obj.n;
+            obj.bootstrapped = obj.bootstrapped +1;
+        end
+        
+        function obj = setState(obj,X)
+            obj.estimatedOrientation = X(4:6);
+            obj.bootstrapped = 0;   
         end
     end
     

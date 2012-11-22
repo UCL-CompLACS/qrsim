@@ -89,6 +89,8 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             obj.computeLocations();
             obj.computeReferenceSamples();
             obj.graphics.update(obj.simState,obj.sources,obj.vmean,obj.locations,obj.referenceSamples);
+
+	    obj.bootstrapped = 1;
         end
         
         function c = getSamples(obj,pos)

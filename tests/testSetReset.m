@@ -4,9 +4,10 @@ function e = testSetReset()
 clear all;
 
 cd('setreset');
+e = 0;
 
 % after a setState X should be what was set
-e = simpleSetState();
+e = e | simpleSetState();
 
 % with random seed
 % init should give different eX than an init + reset but the same X
@@ -16,6 +17,9 @@ e = e | loudTest('initAndResetFromRandomSeed','init and reset with random seed')
 % init should give same eX and X than an init + reset
 e = e | loudTest('initAndResetFromFixedSeed','init and reset with fixed seed');
 
+% with fix seed, no wind no GPS:
+e = e | loudTest('initAndResetFromFixedSeedNoiseless','init and reset with fixed seed no wind no GPS');
+
 % with random seed:
 % two setState to the same state should give the same X but different eX
 e = e | loudTest('setAndRunFromRandomSeed','set and run twice with random seed');
@@ -24,24 +28,36 @@ e = e | loudTest('setAndRunFromRandomSeed','set and run twice with random seed')
 % two setSate should give the same X and same eX
 e = e | loudTest('setAndRunFromFixedSeed','set and run twice with fixed seed');
 
+% with fix seed, no wind no GPS:
+% two setSate should give the same X and same eX
+e = e | loudTest('setAndRunNoiselessFromFixedSeed','set and run twice with fixed seed no wind no GPS');
+
 % with random seed:
 % two reset of qrsim should give the same X but different eX
-e = e | loudTest('doubleQRSimResetWithRandomSeed','double qrsim reset with random seed');
+e = e | loudTest('doubleQRSimResetWithRandomSeed','double qrsim reset with random seed','TaskNoWindRandomSeed');
+e = e | loudTest('doubleQRSimResetWithRandomSeed','double qrsim reset with random seed windy','TaskWindRandomSeed');
 
 % with fix seed:
 % two reset of qrsim should give the same X and same eX
-e = e | loudTest('doubleQRSimResetWithFixedSeed','double qrsim reset with fixed seed');
+e = e | loudTest('doubleQRSimResetWithFixedSeed','double qrsim reset with fixed seed','TaskNoWindFixedSeed');
+e = e | loudTest('doubleQRSimResetWithFixedSeed','double qrsim reset with fixed seed windy','TaskWindFixedSeed');
+
+% with random seed:
+% two reset of qrsim should give the same X but different eX
+e = e | loudTest('initAndQRSimResetWithRandomSeed','init vs reset qrsim with random seed','TaskNoWindRandomSeed');
+e = e | loudTest('initAndQRSimResetWithRandomSeed','init vs reset qrsim with random seed windy','TaskWindRandomSeed');
 
 % with fix seed:
 % the init E and eX and the ones after a reset of qrsim should be the same
-e = e | loudTest('initAndQRSimResetWithFixedSeed','init vs reset qrsim with fixed seed');
+e = e | loudTest('initAndQRSimResetWithFixedSeed','init vs reset qrsim with fixed seed','TaskNoWindFixedSeed');
+e = e | loudTest('initAndQRSimResetWithFixedSeed','init vs reset qrsim with fixed seed windy','TaskWindFixedSeed');
 
 cd('..');
 
 end
 
 
-function e = initAndQRSimResetWithFixedSeed()
+function e = initAndQRSimResetWithFixedSeed(tsk)
 
 e = 0;
 
@@ -51,7 +67,7 @@ U = [0;0;0.59004353928;0;11];
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-state = qrsim.init('TaskNoWindFixedSeed');
+state = qrsim.init(tsk);
 
 for i=1:50
     qrsim.step(U);
@@ -74,9 +90,7 @@ clear state;
 
 end
 
-
-
-function e = doubleQRSimResetWithRandomSeed()
+function e = initAndQRSimResetWithRandomSeed(tsk)
 
 e = 0;
 
@@ -86,7 +100,40 @@ U = [0;0;0.59004353928;0;11];
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-state = qrsim.init('TaskNoWindRandomSeed');
+state = qrsim.init(tsk);
+
+for i=1:50
+    qrsim.step(U);
+end
+X1 = state.platforms{1}.getX();
+eX1 = state.platforms{1}.getEX();
+
+qrsim.resetSeed();
+qrsim.reset();
+for i=1:50
+    qrsim.step(U);
+end
+X2 = state.platforms{1}.getX();
+eX2 = state.platforms{1}.getEX();
+
+e = e || ~all(X1==X2) || all(eX1==eX2);
+
+% clear the state
+clear state;
+
+end
+
+function e = doubleQRSimResetWithRandomSeed(tsk)
+
+e = 0;
+
+U = [0;0;0.59004353928;0;11];
+
+% create simulator object
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+state = qrsim.init(tsk);
 
 qrsim.resetSeed();
 qrsim.reset();
@@ -113,7 +160,7 @@ end
 
 
 
-function e = doubleQRSimResetWithFixedSeed()
+function e = doubleQRSimResetWithFixedSeed(tsk)
 
 e = 0;
 
@@ -123,7 +170,7 @@ U = [0;0;0.59004353928;0;11];
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-state = qrsim.init('TaskNoWindFixedSeed');
+state = qrsim.init(tsk);
 
 qrsim.resetSeed();
 qrsim.reset();
@@ -136,7 +183,7 @@ eX1 = state.platforms{1}.getEX();
 qrsim.resetSeed();
 qrsim.reset();
 for i=1:50
-    qrsim.step(U);
+   qrsim.step(U);
 end
 X2 = state.platforms{1}.getX();
 eX2 = state.platforms{1}.getEX();
@@ -203,6 +250,39 @@ state.t=0;
 state.rStreams = RandStream.create('mrg32k3a','seed',12345,'NumStreams',state.numRStreams,'CellOutput',1);
 state.environment.gpsspacesegment.reset();
 
+state.platforms{1}.setX(setX);
+
+X2 = state.platforms{1}.getX();
+eX2 = state.platforms{1}.getEX();
+
+e = e || ~all(X1==X2) || ~all(eX1==eX2);
+
+% clear the state
+clear state;
+
+end
+
+
+function e = initAndResetFromFixedSeedNoiseless()
+
+e = 0;
+
+setX = [1;2;3;0;0;pi;0;0;0;0;0;0];
+
+% create simulator object
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+state = qrsim.init('TaskNoiselessGPSNoWindFixedSeed');
+
+
+state.platforms{1}.setX(setX);
+
+X1 = state.platforms{1}.getX();
+eX1 = state.platforms{1}.getEX();
+
+qrsim.resetSeed();
+qrsim.reset();
 state.platforms{1}.setX(setX);
 
 X2 = state.platforms{1}.getX();
@@ -298,6 +378,45 @@ clear state;
 end
 
 
+function e = setAndRunNoiselessFromFixedSeed()
+
+e = 0;
+
+U = [0;0;0.59004353928;0;11];
+setX = [1;2;3;0;0;pi;0;0;0;0;0;0];
+
+% create simulator object
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+state = qrsim.init('TaskNoiselessGPSNoWindFixedSeed');
+
+state.platforms{1}.setX(setX);
+
+for i=1:50
+    qrsim.step(U);
+end
+
+X1 = state.platforms{1}.getX();
+eX1 = state.platforms{1}.getEX();
+
+qrsim.resetSeed();
+qrsim.reset();
+state.platforms{1}.setX(setX);
+
+for i=1:50
+    qrsim.step(U);
+end
+
+X2 = state.platforms{1}.getX();
+eX2 = state.platforms{1}.getEX();
+
+e = e || ~all(X1==X2) || ~all(eX1==eX2);
+
+% clear the state
+clear state;
+
+end
 
 function e = simpleSetState()
 
@@ -395,14 +514,15 @@ end
 function [ e ] = loudTest(fun,msg,varargin)
 %LOUDTEST run a test function an print result in console
 
-if(size(varargin,2)==3)
-    e = feval(fun,varargin{1},varargin{2},varargin{3});
-else
-    if(size(varargin,2)==2)
+switch size(varargin,2)
+    case 3
+        e = feval(fun,varargin{1},varargin{2},varargin{3});
+    case 2
         e = feval(fun,varargin{1},varargin{2});
-    else
+    case 1
+        e = feval(fun,varargin{1});
+    otherwise    
         e = feval(fun);
-    end
 end
 
 if(e)

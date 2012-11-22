@@ -89,12 +89,14 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
             obj.simState.environment_.gpsspacesegment.betas2 = (1/obj.PR_BETA2)*ones(obj.simState.environment_.gpsspacesegment.nsv,1);
             obj.simState.environment_.gpsspacesegment.betas1 = (1/obj.PR_BETA1)*ones(obj.simState.environment_.gpsspacesegment.nsv,1);
             obj.simState.environment_.gpsspacesegment.w = obj.PR_SIGMA*ones(obj.simState.environment_.gpsspacesegment.nsv,1);
+
+            obj.bootstrapped = 0;
         end
         
         function obj = reset(obj)
             % reinitializes the noise model
             
-            [b,e] = obj.simState.environment_.gpsspacesegment.stdPe.tValidLimits();
+	    [b,e] = obj.simState.environment_.gpsspacesegment.stdPe.tValidLimits();
             
             if(obj.randomTStart)
                 obj.tStart=b+rand(obj.simState.rStreams{obj.sPrngId},1,1)*(e-b-obj.TBEFOREEND);
@@ -125,6 +127,8 @@ classdef GPSSpaceSegmentGM2 < GPSSpaceSegment
                 obj.simState.environment_.gpsspacesegment.svspos(:,j) = getSatCoord(obj.simState.environment_.gpsspacesegment.stdPe,...
                     obj.simState.environment_.gpsspacesegment.svs(j),(obj.tStart+obj.simState.t));
             end
+            
+            obj.bootstrapped = 1;
         end
         
         function n = getTotalNumSVS(obj)

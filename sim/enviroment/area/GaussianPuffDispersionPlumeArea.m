@@ -93,11 +93,13 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
                 
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
+	    obj.bootstrapped = 0;
         end
         
         function obj = reset(obj)
             % redraw a different plume pattern
-            obj.init();
+            obj.init(); 
+            obj.bootstrapped = 1;
         end
         
         function c = getSamples(obj,pos)

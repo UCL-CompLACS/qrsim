@@ -102,11 +102,11 @@ classdef TaskKeepSpotWithReward<Task
             taskparams.platforms(1).configfile = 'pelican_config';
         end
         
-	    function reset(obj)
-	       % defines the platform initial state
-	       obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
-           obj.initialX = obj.simState.platforms{1}.getX();
-	    end
+	function reset(obj)
+	    % defines the platform initial state
+	    obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
+            obj.initialX = obj.simState.platforms{1}.getX();
+	end
 
         function updateReward(obj,U)
            % updates reward

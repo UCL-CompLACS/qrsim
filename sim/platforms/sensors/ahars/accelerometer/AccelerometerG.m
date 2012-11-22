@@ -52,10 +52,19 @@ classdef AccelerometerG<Accelerometer
             measurementAcceleration = obj.measurementAcceleration;
         end 
         
+        function obj = reset(obj)
+            obj.n = obj.SIGMA.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
+                                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+            obj.measurementAcceleration = obj.measurementAcceleration + obj.n;
+            
+            obj.bootstrapped = obj.bootstrapped +1;
+        end
+        
         function obj = setState(obj,a)
             % sets the current acceleration and resets
             obj.measurementAcceleration = a;
-            obj.reset();
+            obj.bootstrapped = 0;
         end
     end
     

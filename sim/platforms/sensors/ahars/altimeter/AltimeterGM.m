@@ -67,11 +67,18 @@ classdef AltimeterGM<Altimeter
         
         function obj=reset(obj)
             % reinitialize the noise state
+
             obj.n = 0;
-            
+            nm1 = 0;
             for i=1:randi(obj.simState.rStreams{obj.rPrngId},1000),
+                nm1 = obj.n;
                 obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(obj.simState.rStreams{obj.nPrngId},1,1);
             end
+            
+            obj.estimatedAltAndAltDot(1,1) = obj.estimatedAltAndAltDot(1,1) + obj.n;  %altitude not Z     
+            obj.estimatedAltAndAltDot(2,1) = obj.estimatedAltAndAltDot(2,1) + (obj.n-nm1)./obj.dt;  
+            
+            obj.bootstrapped = obj.bootstrapped +1;
         end       
                         
         function obj = setState(obj,X)
@@ -82,9 +89,15 @@ classdef AltimeterGM<Altimeter
            %   obj.setState(X)
            %       X - platform noise free state vector [px,py,pz,phi,theta,psi,u,v,w,p,q,r,thrust]
            %
-           obj.reset();
-           obj.estimatedAltAndAltDot = [];
-           obj.update(X);
+         
+           % velocity in global frame
+           gvel = (dcm(X)')*X(7:9);                
+                
+           % crude init of past position
+           obj.estimatedAltAndAltDot(1,1) = - X(3);
+           obj.estimatedAltAndAltDot(2,1) = gvel(3);
+           
+           obj.bootstrapped = 0;          
         end
     end
     
@@ -93,15 +106,7 @@ classdef AltimeterGM<Altimeter
         function obj=update(obj,X)
             % updates the altimeter noise state
             % Note: this method is called by step() if the time is a multiple
-            % of this object dt, therefore it should not be called directly.
-            
-            if(isempty(obj.estimatedAltAndAltDot))                
-                % velocity in global frame
-                gvel = (dcm(X)')*X(7:9);                
-                
-                % crude init of past position
-                obj.estimatedAltAndAltDot(1) = obj.n -X(3) + gvel(3)*obj.dt;
-            end                
+            % of this object dt, therefore it should not be called directly.               
                         
             obj.n = obj.n.*exp(-obj.TAU*obj.dt) + obj.SIGMA.*randn(obj.simState.rStreams{obj.nPrngId},1,1);
             

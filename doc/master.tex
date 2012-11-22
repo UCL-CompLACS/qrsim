@@ -67,7 +67,8 @@ At any point in time the simulator must maintain the state of all the objects ta
 A handle to a object of this type is returned during the initialisation of the simulator and can be used to reference the various objects part of the simulation. For instance the fields \texttt{environment} and \texttt{platforms} store respectively the handles to all the environment objects and to the cell array of platforms objects. 
 Given such a structure accessing the state of objects is trivial, for instance \texttt{state.platforms{1}.getX()} gives access to the state variables of the first platform, while \texttt{state.environment.area.getLimits()} returns the size of the flying area. 
 
-When meaningful, the \texttt{Platform} and \texttt{EnvironmentObject} classes define methods to retrieve the object state (e.g. \texttt{getX()} in the case of a platform\footnote{In addition to \texttt{getX()} platforms define \texttt{getEX()} to return the estimated state and \texttt{getEXasX()} which returns the estimated state with the same format of \texttt{getX()}; we refer to the matlab API for more details.}), to reset the state to its initial value defined by the task (see section \ref{sec:createtask}) and to set the object state (e.g. \texttt{setX(X)} in the case of a platform)\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set.}.
+When meaningful, the \texttt{Platform} and \texttt{EnvironmentObject} classes define methods to retrieve the object state (e.g. \texttt{getX()} in the case of a platform\footnote{In addition to \texttt{getX()} platforms define \texttt{getEX()} to return the estimated state and \texttt{getEXasX()} which returns the estimated state with the same format of \texttt{getX()}; we refer to the matlab API for more details.}), to reset the state to its initial value defined by the task (see section \ref{sec:createtask}) and to set the object state (e.g. \texttt{setX(X)} in the case of a platform)\footnote{In addition to overwriting the object's state these calls also make sure that any other internal variable (e.g. noise model states) is appropriately set. It is worth stressing that simply using \texttt{setX(X)} will not allow to produce identical trajectories even when a fix seed for the pseudorandom number generator is specified, this is because the platform dynamics depends also on the environment objects. Refer to section  
+\ref{sec:qrobj} for how to produce identical runs.}.
 
 The \texttt{State} structure stores also other important variables:
 \begin{itemize}
@@ -94,7 +95,7 @@ The abstract class \texttt{Task} provides a way to derive task objects that spec
 
 \begin{itemize}
  \item \texttt{init()} allows the user to define the type of each of the environment objects (i.e. the class name) and of each platform and sensor. Along with the object type, a specification of all the class specific parameters is also needed.
- \item \texttt{updateReward(U)} allows for defining an instantaneous reward for the task which is integrated as the task progresses (e.g. this could be used to include a control or state cost). Thiss method is called by qrsim after a step; its content depends on how the task is defined.
+ \item \texttt{updateReward(U)} allows for defining an instantaneous reward for the task which is integrated as the task progresses (e.g. this could be used to include a control or state cost). This method is called by qrsim after a step; its content depends on how the task is defined.
  \item \texttt{reward()} allows for defining the total reward for the task (e.g. the sum of the integrated instantaneous reward plus a final reward). The design of a reward function is again very task specific but most often the user will rely on the \texttt{state} data structure in order to compute such a reward. 
  \item \texttt{reset()}\footnote{Introduced in version 1.2.0.} for defines initial states of the platforms and any other task specific object.
  \item \texttt{step(U)}\footnote{Introduced in version 1.2.0.} \textit{(optional)} allows for defining a method that handles inputs in a format specific to the task (i.e. not the standard U=[$u_{pt};u_{rl};u_{th};u_{ya}$]), or for triggering any other task specific updates. 
@@ -125,7 +126,8 @@ The object \snamettt allows to initialize, set up and control the simulator as a
 \snamettt exposes three main methods:
 \begin{itemize}
  \item \texttt{init('task\_name')}, initializes the platforms the environment objects and the task according to what specified by the task \texttt{'task\_name'} (see section \ref{sec:createtask}) and creates the \texttt{state} data structure. This is generally the first command called soon after the creation of the \snamettt object and must be called only once.
- \item \texttt{reset()}, resets the simulator to the initial state specified by the task\footnote{This also resets the task reward to zero.}. This is generally called after a learning episode in order to restore the state of the simulator. 
+\item \texttt{qrsim.reset()} resets the simulator to the initial state specified by the task. This calls the method \texttt{reset()} of the task which takes care of re-initializing the platforms state, it also resets the task reward to zero. This method is generally called after a learning episode in order to restore the state of the simulator. Note however that \texttt{reset()} will not reinitialize the random number generator\footnote{The rationale for this is that in general is useful to generate statistically independent runs with the same initial state as opposed to identical runs.}.
+\item \texttt{qrsim.resetSeed()} resets the seed of the pseudorandom number generator to the value specified in the task (or to a random value if in the task the seed is set to $0$). After calling \texttt{resetSeed()} is necessary to call \texttt{reset()} in order to reinitialise all the platforms and environment objects. Running repeatedly a task with a fixed seed followed by the two \texttt{resetSeed()} and \texttt{reset()} calls will lead to identical runs.   
  \item \texttt{step(U)}, steps forward in time all the environment objects and all the platforms . This command accepts a matrix of control inputs \texttt{U} (i.e. one column array for each platform) and calls the \texttt{step()} method for each of the objects. Listing~\ref{lst:step} shows the implementation of the method.
 
 The sequence of operations executed during a step is straightforward, first the simulation time \texttt{obj.simState.t} is updated\footnote{This is the only statement that updates the simulation time.}, then all the environment objects are propagated and only later each of the platforms is stepped forward. At this point the new state of the platforms can be accessed as described in section \ref{sec:state}. Line 13 shows how if any task specific computation of the platforms controls is defined using the task method \texttt{step} (see section \ref{sec:task}), this takes precedence to the controls \texttt{U}.
@@ -181,7 +183,7 @@ This can be done using the menu \textsf{File \textgreater ~Set Path} from the Ma
 >> addpath([pwd,filesep,'sim']);
 \end{verbatim} 
 
-You now have all that is needed to run the basic exampls \texttt{main.m} and \texttt{main10.m}. 
+You now have all that is needed to run the basic examples \texttt{main.m} and \texttt{main10.m}. 
 To do so navigate to the \texttt{example} directory (i.e. \texttt{\textasciitilde/qrsim/example}) and then simply run the \texttt{main.m} script.
 If \texttt{main.m} fails with the message 
 \begin{verbatim}??? Undefined function or variable 'QRSim'\end{verbatim}
@@ -270,14 +272,14 @@ The number of sensors and parameters present in a platform would make defining s
 
 Lastly we see the \texttt{taskparams.display3d} parameters which allow to specify if the 3D visualization is active and the size of the window used for its rendering. 
 
-The second of the mathods that is necessary to define in a task is the method \texttt{reset()}.
+The second of the methods that is necessary to define in a task is the method \texttt{reset()}.
 \begin{lstlisting}[float=ht!bp,caption=TaskKeepSpot reset() method,language=Matlab,frame=lines,label=lst:reset,numbers=left,basicstyle=\small]   
 function reset(obj)
   % defines the platform initial state
   obj.simState.platforms{1}.setX([0;0;-10;0;0;0]); 
 end
 \end{lstlisting}
-In such method\footnote{Prior to version 1.2.0 the syntax \texttt{taskparams.platforms(1).X} was used within the init method to set the platform initial state, such syntax is now meaningless.} the user specifies that starting state of each platform and also of any other task specific objects.
+In such method\footnote{Prior to version 1.2.0 the syntax \texttt{taskparams.platforms(1).X} was used within the init method to set the platform initial state; such syntax is now meaningless and if used a runtime error will prompt the user to conform to the new API.} the user specifies that starting state of each platform and also of any other task specific objects.
 This method is called after \texttt{init()} but also every time \texttt{qrsim} itself is reset; it is therefore possible for instance to have different randomly generated position for the platform at every reset of teh task. 
 
 As already explained, a task must also define the \texttt{updateReward(U)} and \texttt{reward()} functions. For the TaskKeepSpot task a straightforward update reward can be defined as a quadratic cost of the control inputs (see listing \ref{lst:updatereward}) in order to penalize large controls. An appropriate total reward can be defined adding the current reward to a final reward computed as the square of the distance to the quadrotor initial position (see listing \ref{lst:reward}). Such a function gives higher rewards to a policy that at the end of the task gets the quadrotor close to the starting point.
@@ -308,7 +310,7 @@ end
 The complete listing for this task can be found in the file \texttt{TaskKeepSpotWithReward.m}.  
 
 \section{Example Main}
-To clarify the use of the simulator through the \snamettt object, we shall present a simple example of use\footnote{Source code in the directory \texttt{example}}; namely we will use a manually designed PID controller to achieve the behavior required by the \texttt{TaskKeepSpot} task\footnote{We want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very conservative controller and its performance are suboptimal. This said it might still be useful as a baseline for comparisons.}.
+To clarify the use of the simulator through the \snamettt object, we shall present a simple example of use\footnote{Source code in the directory \texttt{example}}; namely we will use a manually designed PID controller to achieve the behaviour required by the \texttt{TaskKeepSpot} task\footnote{We want to clarify that the PID controller was chosen exclusively for its simplicity, in facts it is a very conservative controller and its performance are suboptimal. This said it might still be useful as a baseline for comparisons.}.
 
 Listing \ref{lst:main} shows the code of this bare bone example. 
 
@@ -380,7 +382,7 @@ An additional example called \texttt{main10.m} is also present in the example di
 
 \section{Controllers}
 
-The directory \texttt{/controllers} contain baseline implementations of simple controllers\footnote{We believe these contollers to be qualitatively similar to the ones implemented in the Pelican helicopter, however at present no quantitative comparison has been carried out.} that are often useful in a variety of tasks. Generally such controllers can be used to compute the set of control inputs \texttt{U} given the current state of the platform and a waypoint or velocity that the UAV is meant to reach. 
+The directory \texttt{/controllers} contain baseline implementations of simple controllers\footnote{We believe these controllers to be qualitatively similar to the ones implemented in the Pelican helicopter, however at present no quantitative comparison has been carried out.} that are often useful in a variety of tasks. Generally such controllers can be used to compute the set of control inputs \texttt{U} given the current state of the platform and a waypoint or velocity that the UAV is meant to reach. 
 
 Currently the following controllers are available:
 \begin{itemize}
@@ -390,7 +392,7 @@ Currently the following controllers are available:
 \item \texttt{AnglesHeightPID} Simple controller that computes the throttle and yaw imput necessary to maintain a specified height and heading. The roll and pitch angle control are left to the user.
 \end{itemize}
 
-To use one or more of such controllers simply add the directory \texttt{controllers} to the matlab path.
+To use one or more of such controllers simply add the directory \texttt{controllers} to the Matlab path.
 
 \section{Multiple Simulations}
 
@@ -445,7 +447,7 @@ The input is expressed in terms of angles and throttle command so it is directly
 \subsection{Server}
 The server code is constituted by a Matlab function (\texttt{qrsim/tcp-linux/matlab/QRSimTCPServer.m}) that takes care of setting up and executing command in the quadrotor simulator and a Java class (\texttt{qrsim/tcp-linux/java/qrsimsrvcli/QRSimTCPServer.java}) which manages the TCP connection and the data serialization.
 
-In general a user of the client library does not need to modify the server code, but this needs to be compiled\footnote{Google protocol buffer serialization tightly depends on the version of the protocol buffer library so shipping a precompiled server library is not a viable option.} and installed (see section \ref{comp} and \ref{inst}) on the machine that will run the quadrotor simulation.
+In general a user of the client library does not need to modify the server code, but this needs to be compiled\footnote{Google protocol buffer serialization tightly depends on the version of the protocol buffer library so shipping a pre-compiled server library is not a viable option.} and installed (see section \ref{comp} and \ref{inst}) on the machine that will run the quadrotor simulation.
 
 \subsection{Compilation and Installation}
 
@@ -610,7 +612,7 @@ Given that the low level dynamics of the quadrotor is not our primary interest (
 We learn the parameter of such a model directly from flight data in order to match as accurately as possible the characteristics of our flight machine.
 
 \subsubsection{Rotational Dynamics}
-For the translational dynamics we use a more standard model that consider the forces acting on the center of mass of the flight machine but we learn from data the relationship between the throttle control input and the generated thrust force. This is known to be very much dependent on the type of motors and propellers, learning it ensures we tch the characteristics of our platform.
+For the translational dynamics we use a more standard model that consider the forces acting on the center of mass of the flight machine but we learn from data the relationship between the throttle control input and the generated thrust force. This is known to be very much dependent on the type of motors and propellers, learning it ensures we capture the characteristics of our platform.
 
 In the case of the pitch and roll motion the Pelican platform accepts as control input the angles that the platform should maintain ($u_{pt}$ and $u_{rl}$ respectively); our model needs to map such controls into the rate of change of the corresponding rotational velocities $q$ and $p$. 
 From flight tests data we deemed that a second order model can provide a good representation of the dynamic response of the state variable $\theta$ and $\phi$ to changes in control. It was also evident that the low level controller drives the propellers so to limit the maximum rotational velocity (a common precaution that ensure to not exceed the sensing and/or control envelope). 

@@ -53,6 +53,20 @@ classdef GyroscopeG<Gyroscope
             %
             measurementAngularVelocity = obj.measurementAngularVelocity;
         end
+        
+        function obj = reset(obj)
+            obj.n = obj.SIGMA.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
+                                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+            obj.measurementAngularVelocity = obj.measurementAngularVelocity + obj.n;
+            
+            obj.bootstrapped = obj.bootstrapped +1;
+        end
+        
+        function obj = setState(obj,X)
+            obj.measurementAngularVelocity = X(10:12);
+            obj.bootstrapped = 0;
+        end
     end
     
     methods (Sealed,Access=protected)

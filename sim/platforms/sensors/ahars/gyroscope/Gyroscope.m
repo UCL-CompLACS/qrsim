@@ -40,7 +40,12 @@ classdef Gyroscope<Sensor
          end
                  
         function obj=reset(obj)
-            % does nothing            
+            obj.bootstrapped = 1;       
+        end
+        
+        function obj = setState(obj,X)
+            obj.measurementAngularVelocity = X(10:12);
+            obj.bootstrapped = 0;
         end
     end
     

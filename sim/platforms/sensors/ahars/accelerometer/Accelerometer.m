@@ -39,13 +39,13 @@ classdef Accelerometer<Sensor
         end
         
         function obj=reset(obj)
-            % does nothing            
+            obj.bootstrapped = obj.bootstrapped +1;     
         end
         
         function obj = setState(obj,a)
             % sets the current acceleration and resets
             obj.measurementAcceleration = a;
-            obj.reset();
+	        obj.bootstrapped = 0;
         end
     end
     

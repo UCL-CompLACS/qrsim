@@ -79,6 +79,7 @@ classdef BoxWithPersonsArea<Area
                 % modify plot
                 obj.graphics.update(obj.simState,obj.persons,obj.found,obj.terrain.getMap());
             end
+	    obj.bootstrapped = 1;
         end
         
         function size = getPersonSize(obj)

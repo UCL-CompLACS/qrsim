@@ -75,11 +75,11 @@ classdef CameraWithClassifier < Sensor
             obj.lkr=[];
             obj.wg=[];
             obj.gridSize=[];
-
+	    obj.bootstrapped = obj.bootstrapped +1;
         end
         
-        function obj = setState(obj,~)
-            % this object has no state
+        function obj = setState(obj,~)            
+	    obj.bootstrapped = 0;
         end
         
         function obj = updateGraphics(obj,X)
