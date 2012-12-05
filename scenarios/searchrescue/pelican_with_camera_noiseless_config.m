@@ -73,8 +73,10 @@ c.sensors.camera.type = 'CameraWithClassifier';
 c.sensors.camera.dt = 1;
 c.sensors.camera.f = [2280; 2280];            % focal length
 c.sensors.camera.c = [640; 480];              % camera center
-c.sensors.camera.r = [0 0 pi/2];              % rotation between camera and body 
+c.sensors.camera.r = [0 0 pi/2];              % rotation between camera and body
+c.sensors.camera.obsmodeltype = 'IndepObsModel'; % type of observation model
 c.sensors.camera.graphics.type = 'CameraGraphics';
+c.sensors.camera.graphics.renderobservations = 1;
 c.sensors.camera.graphics.renderframe = 0;
 
 % Aerodynamic Turbulence

@@ -19,10 +19,12 @@ classdef CameraWithClassifier < Sensor
         graphics;
         cId;
         obsModel;
-        lkr;
+        llkd;
         wg;
-        gridSize;
+        cg;
+        gridDims;
         pg;
+        displayObservations;
     end
     
     methods (Sealed,Access=public)
@@ -39,6 +41,8 @@ classdef CameraWithClassifier < Sensor
             %                objparams.f - focal length
             %                objparams.c - principal point
             %                objparams.r - rotation between camera and body in Euler angles
+            %                objparams.displayobservations - if 1 displays a patch with colors 
+            %                                                based on the log likelihood difference
             %
             obj=obj@Sensor(objparams);
             
@@ -63,19 +67,25 @@ classdef CameraWithClassifier < Sensor
                 obj.graphics=feval(objparams.graphics.type,objparams.graphics);
             end
             
-            prngId = obj.simState.numRStreams+1;
+            assert(isfield(objparams,'obsmodeltype'),'camera:obsmodeltype','the platform config must define the camera.obsmodeltype parameter');
+            
+            obsmodelparams.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
-            psize = obj.simState.environment.area.getPersonSize();
-            obj.obsModel = GPObsModel(obj.simState, objparams.f, objparams.c, psize, prngId);
+            obsmodelparams.psize = obj.simState.environment.area.getPersonSize();
+            obsmodelparams.f = objparams.f;
+            obsmodelparams.c = objparams.c;
+            obsmodelparams.simState = obj.simState;
+            obj.obsModel = feval(objparams.obsmodeltype, obsmodelparams);
         end
         
         function obj = reset(obj)
             % nothing to be reinitialized
             obj.obsModel.reset();
-            obj.lkr=[];
+            obj.llkd=[];
             obj.wg=[];
-            obj.gridSize=[];
-	    obj.bootstrapped = obj.bootstrapped +1;
+            obj.gridDims=[];
+            obj.cg=[];
+	        obj.bootstrapped = obj.bootstrapped +1;
         end
         
         function obj = setState(obj,~)            
@@ -84,7 +94,7 @@ classdef CameraWithClassifier < Sensor
         
         function obj = updateGraphics(obj,X)
             % update the camera related graphics
-            obj.graphics.update(X,obj.R,obj.f,obj.c);
+            obj.graphics.update(X,obj.R,obj.f,obj.c,obj.llkd,obj.cg,obj.gridDims);
         end
         
         function uvs = cam_prj(obj, tp, Rp ,points)
@@ -107,7 +117,7 @@ classdef CameraWithClassifier < Sensor
             end
         end
         
-        function [wg,gridSize,lkr] = getMeasurement(obj,~)
+        function m = getMeasurement(obj,~)
             % given a current state of the system
             % returns the patches on the ground visible by the camera
             % and the associated likelihood ratios computed by the
@@ -115,14 +125,15 @@ classdef CameraWithClassifier < Sensor
             %
             % Note:
             % the corner points of the ground patches are layed out in a regular
-            % gridSize(1) x gridSize(2) grid pattern, we return them stored in a
-            % 3*N matrix obtained scanning the grid left to right and top to bottom.
+            % gridDims(1) x gridDims(2) grid pattern, we return them stored in a
+            % 3*N matrix (i.e. each point has x;y;z coordinates) obtained 
+            % scanning the grid left to right and top to bottom.
             % this means that the 4 cornes of window i,j
-            % are wg(:,(i-1)*(nf(1)+1)+j+[0,1,nf(1)+1,nf(1)+2])
-            
-            gridSize = obj.gridSize;
-            lkr = obj.lkr;
-            wg = obj.wg;
+            % are wg(:,(i-1)*(gridDims(1)+1)+j+[0,1,gridDims(1)+1,gridDims(1)+2])
+            m = CameraObservation();
+            m.llkd = obj.llkd;
+            m.wg = obj.wg;
+            m.gridDims = obj.gridDims;
         end
     end
     
@@ -173,7 +184,7 @@ classdef CameraWithClassifier < Sensor
             % define a grid of windows over the frame,
             % windows wf, centers cf
             nf = round((2*obj.c(:))./sz);
-            obj.gridSize = nf;
+            obj.gridDims = nf;
             n = nf(1)*nf(2);
             df = floor((2*obj.c(:))./nf);
             offf = floor(rem(2*obj.c(:),df)./2);
@@ -216,16 +227,16 @@ classdef CameraWithClassifier < Sensor
             % grounds patches W and ground centers Cw
             % they obviously are layed out as the one in the frame
             obj.wg = obj.inv_cam_prjZ0(tp, Rp ,wf);
-            cg = obj.inv_cam_prjZ0(tp, Rp ,cf);
+            obj.cg = obj.inv_cam_prjZ0(tp, Rp ,cf);
             
             %%%%%%
             %set(0,'CurrentFigure',obj.simState.display3d.figure);
-            %hcg = plot3(cg(1,:),cg(2,:),cg(3,:),'*r');
+            %hcg = plot3(obj.cg(1,:),obj.cg(2,:),obj.cg(3,:),'*r');
             %hwg = plot3(obj.wg(1,:),obj.wg(2,:),obj.wg(3,:),'+y');
             %%%%
             
             % compute the terrain class for each patch center
-            tclass = obj.simState.environment.area.getTerrainClass(cg);
+            tclass = obj.simState.environment.area.getTerrainClass(obj.cg);
             
             pcf=[]; %person centers
             sigma=[]; % person's area
@@ -314,7 +325,7 @@ classdef CameraWithClassifier < Sensor
                 % at the center of the ground patch
                 
                 % ray from camera center to ground patch center
-                tc = tp - cg(:,i);
+                tc = tp - obj.cg(:,i);
                 
                 % radius in spherical coords
                 r = norm(tc);
@@ -331,8 +342,8 @@ classdef CameraWithClassifier < Sensor
                 % at the patch center would have as the area it has for the
                 % patch at the center of the frame
                                                 
-                xqueryp(i,:) = [cg(1:2,i)' r tclass(i) 0 sigmaf inc sazi cazi];
-                xqueryn(i,:) = [cg(1:2,i)' r tclass(i)];
+                xqueryp(i,:) = [obj.cg(1:2,i)' r tclass(i) 0 sigmaf inc sazi cazi];
+                xqueryn(i,:) = [obj.cg(1:2,i)' r tclass(i)];
                 
                 if(inview(i)~=0)
                     % one person is visible
@@ -340,11 +351,11 @@ classdef CameraWithClassifier < Sensor
                     % distance in pixel coords
                     d = norm(cf(:,i)-pcf(:,inview(i)));
                     
-                    xstar{i} = [cg(1:2,i)' r tclass(i) d sigma(inview(i)) inc sazi cazi];
+                    xstar{i} = [obj.cg(1:2,i)' r tclass(i) d sigma(inview(i)) inc sazi cazi];
                     which(i) = 1;
                 else
                     % no person is visible
-                    xstar{i} = [cg(1:2,i)' r tclass(i)];
+                    xstar{i} = [obj.cg(1:2,i)' r tclass(i)];
                 end
             end
             
@@ -359,23 +370,9 @@ classdef CameraWithClassifier < Sensor
             ystar = obj.obsModel.sample(which, xstar, fcg(1:2)');
             
             % compute likelihood ratio
-            obj.lkr =  obj.obsModel.computeLikelihoodRatio(xqueryp, xqueryn, fcg(1:2)', ystar);
+            obj.llkd =  obj.obsModel.computeLogLikelihoodDifference(xqueryp, xqueryn, fcg(1:2)', ystar);
                         
-                        
-            %%%%%
-            %set(0,'CurrentFigure',obj.simState.display3d.figure);
-            
-            %ystarmat = reshape(ystar,nf(2),nf(1));
-            %xcgmat = reshape(cg(1,:),nf(2),nf(1));
-            %ycgmat = reshape(cg(2,:),nf(2),nf(1));
-            %if(isfield(obj.simState.display3d,'hsamples'))
-            %   delete(obj.simState.display3d.hsamples);
-            %end    
-            %obj.simState.display3d.hsamples = surf(xcgmat,ycgmat, -0.01*ones(size(xcgmat)),ystarmat);
-            %set(obj.simState.display3d.hsamples,'EdgeColor','none');
-            %%%%%
-            
-            % update GP models
+            % update models
             obj.obsModel.updatePosterior();
         end
     end

@@ -46,19 +46,20 @@ classdef GPObsModel<handle
     end
     
     methods 
-        function obj = GPObsModel(simState, f, c, psize, prngId)
+        function obj = GPObsModel(objparams)
+            
             % initialize the GPs
-            obj.simState = simState;
-            obj.prngId = prngId;
-            obj.camParams.f = f;
-            obj.camParams.c = c;
-            obj.personSize = psize;
+            obj.simState = objparams.simState;
+            obj.prngId = objparams.prngId;
+            obj.camParams.f = objparams.f;
+            obj.camParams.c = objparams.c;
+            obj.personSize = objparams.psize;
             % all the observations farther away than 1.5 times the frame diagonal
             % when at the max height at which persons are detectable are assumed
             % to be uncorrelated 
             
-            maxDetectHeight = (f(1)*obj.personSize)/sqrt(obj.minDetectArea);            
-            obj.groundDistHardCut = 1.5*norm(2*maxDetectHeight*c./f);
+            maxDetectHeight = (objparams.f(1)*obj.personSize)/sqrt(obj.minDetectArea);            
+            obj.groundDistHardCut = 1.5*norm(2*maxDetectHeight*objparams.c./objparams.f);
             
             obj.gpp = GPwrapper(obj.meanfuncP,obj.hypPmean,obj.covfuncP,obj.hypPcov,obj.likfuncP, obj.hypPlik,obj.groundDistHardCut,'P');
             obj.gpn = GPwrapper(obj.meanfuncN,obj.hypNmean,obj.covfuncN,obj.hypNcov,obj.likfuncN, obj.hypNlik,obj.groundDistHardCut,'N');
@@ -94,17 +95,17 @@ classdef GPObsModel<handle
             end
         end
         
-        function likr = computeLikelihoodRatio(obj, xqueryp, xqueryn, xcstar, ystar)
+        function llikd = computeLogLikelihoodDifference(obj, xqueryp, xqueryn, xcstar, ystar)
             % compute the likelihood ratio for the locations
             % xstars and the measurements ystar
             n = size(ystar,1);
-            likr = zeros(n,1);
+            llikd = zeros(n,1);
             
             for i=1:n
                 llikp = obj.gpp.computeLogLikelihood(xqueryp(i,:), xcstar,ystar(i,:));
                 llikn = obj.gpn.computeLogLikelihood(xqueryn(i,:), xcstar,ystar(i,:));
                 
-                likr(i)=  exp(llikp-llikn);
+                llikd(i)=  llikp-llikn;
             end
         end
         
