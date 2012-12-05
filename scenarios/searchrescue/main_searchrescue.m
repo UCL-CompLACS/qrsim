@@ -9,7 +9,7 @@
 % than raw images the camera module provides higher-level data in the form of likelihood
 % ratios of the current image conditioned on the presence or absence of a target.
 
-%clear all
+clear all
 close all
 
 % include simulator
@@ -37,30 +37,44 @@ u = zeros(2,state.task.numUAVs);
 for i=1:state.task.durationInSteps,
     tloop=tic;
     
-    % a basic policy in which the helicopter(s) moves around
-    % at the max velocity changing direction every once in a while
-    
+    % a basic randon search policy in which the helicopter(s) moves around
+    % at a fixed velocity changing direction every once in a while    
     if(rem(i-1,10)==0)
         for j=1:state.task.numUAVs,            
             % random velocity direction
             u(:,j) = rand(2,1)-[0.5;0.5];
             % scale by the max allowed velocity
-            U(:,j) = state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));
+            U(:,j) = 0.5*(u(:,j)/norm(u(:,j)));
         end
     end
     
     % step simulator
     qrsim.step(U);
     
-    % get plume measurement
+    % get camera measurement
+    % Note:
+    % the output is an object of type CemeraObservation, i.e.
+    % a simple structure containing the fields:
+    % llkd      log-likelihood difference for each gound patch
+    % wg        list of corner points for the ground patches
+    % gridDims  dimensions of the grid of measurements
+    %
+    % the corner points wg of the ground patches are layed out in a regular
+    % gridDims(1) x gridDims(2) grid pattern, we return them stored in a
+    % 3*N matrix (i.e. each point has x;y;z coordinates) obtained
+    % scanning the grid left to right and top to bottom.
+    % this means that the 4 cornes of window i,j
+    % are wg(:,(i-1)*(gridDims(1)+1)+j+[0,1,gridDims(1)+1,gridDims(1)+2])
     for j=1:state.task.numUAVs,
-        state.platforms{j}.getCameraOutput();
+        m = state.platforms{j}.getCameraOutput();
     end    
     
-    % wait so to run in real time
-    % this can be commented out obviously
-    %wait = max(0,state.task.dt-toc(tloop));
-    %pause(0.5);
+    if(state.display3dOn)
+        % wait so to run in real time
+        % this can be commented out obviously
+        wait = max(0,state.task.dt-toc(tloop));
+        pause(wait);
+    end
 end
 
 % get final reward

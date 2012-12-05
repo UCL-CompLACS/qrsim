@@ -82,6 +82,21 @@ classdef PelicanWithCamera<Pelican
         function o = getCameraOutput(obj)
             % return the last result from the camera, mind that this is
             % updated at the camera frame rate
+            %
+            % the output is an object of type CemeraObservation, i.e.
+            % a simple structure containing the fields:
+            % llkd      log-likelihood difference for each gound patch
+            % wg        list of corner points for the ground patches
+            % gridDims  dimensions of the grid of measurements
+            %
+            % Note:
+            % the corner points wg of the ground patches are layed out in a regular
+            % gridDims(1) x gridDims(2) grid pattern, we return them stored in a
+            % 3*N matrix (i.e. each point has x;y;z coordinates) obtained scanning
+            % the grid left to right and top to bottom.
+            % this means that the 4 cornes of window i,j
+            % are wg(:,(i-1)*(gridDims(1)+1)+j+[0,1,gridDims(1)+1,gridDims(1)+2])
+            
             o = obj.cameraOutput; 
         end    
     end
