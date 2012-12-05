@@ -11,6 +11,7 @@ classdef CameraGraphics<handle
         simState;
         gHandle;
         renderFrame = 0;
+        renderObservations = 0;
     end
     
     methods (Sealed)
@@ -21,20 +22,29 @@ classdef CameraGraphics<handle
             if(isfield(objparams,'renderframe'))
                 obj.renderFrame = objparams.renderframe;
             end
-            
-            % set(0,'CurrentFigure',obj.simState.display3d.figure)
+            if(isfield(objparams,'renderobservations'))
+                obj.renderObservations = objparams.renderobservations;
+            end
+            set(0,'CurrentFigure',obj.simState.display3d.figure);
+            hold on;
             obj.gHandle.trjData.x = 0;
             obj.gHandle.trjData.y = 0;
             obj.gHandle.trjData.z = 0;
             obj.gHandle.frustum = line('XData',obj.gHandle.trjData.x,'YData',obj.gHandle.trjData.y,...
                 'ZData',obj.gHandle.trjData.z);
+                        
+            if(obj.renderObservations)                
+                 obj.gHandle.frameObs = surf(zeros(4),zeros(4), -0.05*ones(4),zeros(4));
+                 set(obj.gHandle.frameObs,'EdgeColor','none');
+                 caxis([-10 10]);
+            end
             
             if(obj.renderFrame)
                 obj.simState.display3d.camFigure{objparams.id} = figure(10+objparams.id);
                 obj.gHandle.frame = plot(0,0,'*r');
                 axis equal;
                 axis([0 1280 0 960]);
-                title(['image fre of uav ' num2str(objparams.id)]);
+                title(['image frame of uav ' num2str(objparams.id)]);
                 % image origin on the top left
                 % of the frame, x positive in the right
                 % and y positive downwards
@@ -53,7 +63,7 @@ classdef CameraGraphics<handle
     end
     
     methods
-        function obj = update(obj,X,R,f,c)
+        function obj = update(obj,X,R,f,c,llkd,cg,gridDims)
             % translation
             t = X(1:3);
             
@@ -105,6 +115,21 @@ classdef CameraGraphics<handle
                     set(obj.gHandle.frame,'YData',[]);
                 end
             end
+            
+            if(obj.renderObservations)
+                if(size(llkd,1)>=4)
+                    llkdmat = reshape(llkd,gridDims(2),gridDims(1));
+                    xcgmat = reshape(cg(1,:),gridDims(2),gridDims(1));
+                    ycgmat = reshape(cg(2,:),gridDims(2),gridDims(1));
+                    
+                    set(obj.gHandle.frameObs,'XData',xcgmat);
+                    set(obj.gHandle.frameObs,'YData',ycgmat);
+                    set(obj.gHandle.frameObs,'ZData',-0.05*ones(size(xcgmat)));
+                    set(obj.gHandle.frameObs,'CData',llkdmat);
+                    caxis([-10 10]);
+                end
+            end
+
         end
         
         function obj = reset(obj)

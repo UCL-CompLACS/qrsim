@@ -11,6 +11,10 @@ classdef SearchAreaGraphics<handle
         PERSONSIZE = 0.30; % radius in meters of the patch representing the person
     end
     
+    properties
+       gHandle; 
+    end    
+        
     methods (Sealed)
         
         function obj = SearchAreaGraphics(objparams)
@@ -30,9 +34,10 @@ classdef SearchAreaGraphics<handle
             xx = repmat(objparams.limits(1)+(0:xstep:(objparams.nr-1)*xstep)',1,objparams.nc);
             yy = repmat(objparams.limits(3)+(0:ystep:(objparams.nc-1)*ystep),objparams.nr,1);
             
-            objparams.state.display3d.ground = pcolor(xx,yy,zeros(objparams.nr,objparams.nc));
-            set(objparams.state.display3d.ground,'EdgeColor','none');
-            set(objparams.state.display3d.ground,'FaceAlpha',0.5);
+            obj.gHandle = pcolor(xx,yy,zeros(objparams.nr,objparams.nc));
+            set(obj.gHandle,'EdgeColor','none');
+            set(obj.gHandle,'FaceAlpha',0.5);
+            caxis([-10 10]);
             
             %invert axis to be coherent with NED
             set(gca,'ZDir','rev');
@@ -62,9 +67,10 @@ classdef SearchAreaGraphics<handle
             % red for persons to be found blue for persons already found
             
             set(0,'CurrentFigure',state.display3d.figure)
-            hold on;
+            %hold on;
             if(~isempty(map))
-                set(state.display3d.ground,'CData',map);
+                set(obj.gHandle,'CData',map);
+                caxis([-10 10]);
             end
             
             if(~isempty(persons))
