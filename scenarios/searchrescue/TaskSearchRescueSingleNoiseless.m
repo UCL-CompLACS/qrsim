@@ -128,8 +128,8 @@ classdef TaskSearchRescueSingleNoiseless<Task
                 r = rand(obj.simState.rStreams{obj.prngId},2,1);
                 l = obj.simState.environment.area.getLimits();
                 
-                px = 0;% 0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
-                py = 0;%0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
+                px = 0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
+                py = 0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
                 
                 obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
