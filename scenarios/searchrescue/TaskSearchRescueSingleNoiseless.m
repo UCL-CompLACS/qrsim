@@ -40,7 +40,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             obj = obj@Task(state);
         end
         
-        function taskparams=init(obj) %#ok<MANU>
+        function taskparams=init(obj) 
             % loads and returns the parameters for the various simulation objects
             %
             % Example:
@@ -83,7 +83,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 1; %% NO GPS NOISE!!!
+            taskparams.environment.gpsspacesegment.on = 0; %% NO GPS NOISE!!!
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';

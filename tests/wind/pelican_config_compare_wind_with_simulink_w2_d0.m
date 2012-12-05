@@ -8,10 +8,13 @@
 %
 %  platform  = loadConfig('pelican_config');
 %  n = Pelican(platform);
+% 
+% note: generally the loading is performed automatically by qrsim
+%
 %
 % GENERAL NOTES:
-% - if the on flag is zero, the NOISELESS version of the object is loaded instead
-% - the step dt MUST be always specified eve if on=0
+% - if the on flag is zero, a NOISELESS version of the object is loaded instead
+% - the parameter dt MUST be always specified even if on=0
 %
     
 if(~exist('params','var'))

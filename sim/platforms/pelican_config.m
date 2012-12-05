@@ -8,6 +8,9 @@
 %
 %  platform  = loadConfig('pelican_config');
 %  n = Pelican(platform);
+% 
+% note: generally the loading is performed automatically by qrsim
+%
 %
 % GENERAL NOTES:
 % - if the on flag is zero, a NOISELESS version of the object is loaded instead
@@ -66,7 +69,7 @@ c.sensors.ahars.altimeter.on = 1; % if off the altimeter returns the noiseless a
 c.sensors.ahars.altimeter.type = 'AltimeterGM';
 c.sensors.ahars.altimeter.dt = 0.02;
 c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
-c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
+c.sensors.ahars.altimeter.SIGMA = 0.003;       % noise standard deviation
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 1;
