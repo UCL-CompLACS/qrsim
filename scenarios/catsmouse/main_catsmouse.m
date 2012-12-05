@@ -69,10 +69,12 @@ for i=1:state.task.durationInSteps,
     % step simulator
     qrsim.step(U);
     
-    % wait so to run in real time
-    % this can be commented out obviously
-    wait = max(0,state.task.dt-toc(tloop));
-    pause(wait);
+    if(state.display3dOn)
+        % wait so to run in real time
+        % this can be commented out obviously
+        wait = max(0,state.task.dt-toc(tloop));
+        pause(wait);
+    end
 end
 
 % get final reward
