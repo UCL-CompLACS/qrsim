@@ -51,14 +51,6 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             obj.sPrngId = obj.simState.numRStreams+2;
             obj.simState.numRStreams = obj.simState.numRStreams + 2;
             
-            assert(isfield(objparams,'numSourcesRange'),'gaussiandispersionplumearea:nonumsourcesrange',...
-                'If using a GaussianDispersionPlumeArea, the task must define the parameter numSourcesRange');
-            obj.numSourcesRange = objparams.numSourcesRange;
-            
-            assert(isfield(objparams,'QRange'),'gaussiandispersionplumearea:nonqrange',...
-                'If using a GaussianDispersionPlumeArea, the task must define the parameter QRange');
-            obj.QRange = objparams.QRange;
-            
             assert(isfield(objparams,'a'),'gaussiandispersionplumearea:noa',...
                 'If using a GaussianDispersionPlumeArea, the task must define the dispersion parameter a');
             obj.a = objparams.a;
@@ -67,8 +59,14 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 'If using a GaussianDispersionPlumeArea, the task must define the dispersion parameter b');
             obj.b = objparams.b;
             
-            assert(~isfield(objparams,'numsamplesperlocations'),'gaussiandispersionplumearea:numsamplesperlocations',...
-                'If using a GaussianDispersionPlumeArea, the dispersion parameter numsamplesperlocations is not needed please remove it');            
+            assert(isfield(objparams,'numSourcesRange'),'gaussiandispersionplumearea:nonumsourcesrange',...
+                'If using a GaussianDispersionPlumeArea, the task must define the parameter numSourcesRange');
+            obj.numSourcesRange = objparams.numSourcesRange;
+            
+            assert(isfield(objparams,'QRange'),'gaussiandispersionplumearea:nonqrange',...
+                'If using a GaussianDispersionPlumeArea, the task must define the parameter QRange');
+            obj.QRange = objparams.QRange;
+            
             obj.numSamplesPerLocation = 1; % fix to 1 since the concentration is static and determinstic
             
             if(objparams.graphics.on)

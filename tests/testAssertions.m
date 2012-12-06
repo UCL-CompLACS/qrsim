@@ -120,6 +120,22 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraNumPersonsRange','boxwithper
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraTerrainType','boxwithpersonarea:noterraintype','missing camera terrain type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraTerrainP','pourterrain:nop','missing camera terrain percentages');
 
+e = e | loadBadlySpecifiedTask('TaskNoGaussianDispersionA','gaussiandispersionplumearea:noa','missing a parameter in GaussianDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianDispersionB','gaussiandispersionplumearea:nob','missing b parameter in GaussianDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianDispersionNumSourcesRange','gaussiandispersionplumearea:nonumsourcesrange','missing numsourcesrange parameter in GaussianDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianDispersionQRange','gaussiandispersionplumearea:nonqrange','missing qrange parameter in GaussianDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianDispersionNumRefLocations','plumearea:nonumreflocations','missing numreflocations parameter in GaussianDispersionModel');
+
+e = e | loadBadlySpecifiedTask('TaskNoGaussianPuffDispersionA','gaussianpuffdispersionplumearea:noa','missing a parameter in GaussianPuffDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianPuffDispersionB','gaussianpuffdispersionplumearea:nob','missing b parameter in GaussianPuffDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianPuffDispersionNumsourcesRange','gaussianpuffdispersionplumearea:nonumsourcesrange','missing numsourcesrange parameter in GaussianPuffDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianPuffDispersionMu','gaussianpuffdispersionplumearea:nomu','missing mu parameter in GaussianPuffDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianPuffDispersionQRange','gaussianpuffdispersionplumearea:nonqrange','missing qrange parameter in GaussianPuffDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianPuffDispersionNumRefLocations','plumearea:nonumreflocations','missing numreflocations parameter in GaussianPuffDispersionModel');
+e = e | loadBadlySpecifiedTask('TaskNoGaussianPuffDispersionNumSamplesPerLocation','gaussianpuffdispersionplumearea:nonumsamplesperlocations','missing numsamplesperlocations parameter in GaussianPuffDispersionModel');
+
+e = e | loadBadlySpecifiedTask('TaskNoSourceGaussianSourceSigmaRange','gaussianplumearea:sourcesigmarange','missing sourcesigmarange parameter in GaussianSourceModel');
+e = e | loadBadlySpecifiedTask('TaskNoSourceGaussianNumRefLocations','plumearea:nonumreflocations','missing numreflocations parameter in GaussianSourceModel');
 rmpath('assert');
 
 end
@@ -206,13 +222,13 @@ e = 0;
 
 try
     state = qrsim.init(task); %#ok<NASGU>
-    e = 1;
- catch exception
-   if(~strcmp(exception.identifier,id))
-       e = 1;
-       fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
-   end
- end
+   e = 1;
+catch exception
+  if(~strcmp(exception.identifier,id))
+      e = 1;
+      fprintf('\nUNEXPECTED EXCEPTION:%s instead of %s\nMESSAGE:%s\n',exception.identifier,id,exception.message);
+  end
+end
 clear('state');
 clear('qrsim');
 close('all');

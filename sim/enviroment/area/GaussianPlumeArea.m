@@ -44,8 +44,6 @@ classdef GaussianPlumeArea<PlumeArea
                 'If using a GaussianPlumeArea, the task must define the parameter sourcesigmarange');                     
             obj.sigmaRange = objparams.sourcesigmarange;
             
-            assert(~isfield(objparams,'numsamplesperlocations'),'gaussianplumearea:numsamplesperlocations',...
-                'If using a GaussianPlumeArea, the dispersion parameter numsamplesperlocations is not needed please remove it');            
             obj.numSamplesPerLocation = 1; % fix to 1 since the concentration is static and determinstic
            
             if(objparams.graphics.on)

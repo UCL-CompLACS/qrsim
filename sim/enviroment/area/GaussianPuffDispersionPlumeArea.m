@@ -59,15 +59,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             obj.iPrngId = obj.simState.numRStreams+1;
             obj.sPrngId = obj.simState.numRStreams+2;
             obj.simState.numRStreams = obj.simState.numRStreams + 2;
-            
-            assert(isfield(objparams,'numSourcesRange'),'gaussianpuffdispersionplumearea:nonumsourcesrange',...
-                'If using a GaussianPuffDispersionPlumeArea, the task must define the parameter numSourcesRange');
-            obj.numSourcesRange = objparams.numSourcesRange;
-            
-            assert(isfield(objparams,'QRange'),'gaussianpuffdispersionplumearea:nonqrange',...
-                'If using a GaussianPuffDispersionPlumeArea, the task must define the parameter QRange');
-            obj.QRange = objparams.QRange;
-            
+                        
             assert(isfield(objparams,'a'),'gaussianpuffdispersionplumearea:noa',...
                 'If using a GaussianPuffDispersionPlumeArea, the task must define the dispersion parameter a');
             obj.a = objparams.a;
@@ -76,12 +68,20 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
                 'If using a GaussianPuffDispersionPlumeArea, the task must define the dispersion parameter b');
             obj.b = objparams.b;
             
+            assert(isfield(objparams,'numSourcesRange'),'gaussianpuffdispersionplumearea:nonumsourcesrange',...
+                'If using a GaussianPuffDispersionPlumeArea, the task must define the parameter numSourcesRange');
+            obj.numSourcesRange = objparams.numSourcesRange;
+                        
             assert(isfield(objparams,'mu'),'gaussianpuffdispersionplumearea:nomu',...
-                'If using a GaussianPuffDispersionPlumeArea, the task must define the mean interemission time parameter mu');
+                'If using a GaussianPuffDispersionPlumeArea, the task must define the mean inter-emission time parameter mu');
             obj.mu = objparams.mu;
             
+            assert(isfield(objparams,'QRange'),'gaussianpuffdispersionplumearea:nonqrange',...
+                'If using a GaussianPuffDispersionPlumeArea, the task must define the parameter QRange');
+            obj.QRange = objparams.QRange;
+            
             assert(isfield(objparams,'numsamplesperlocations'),'gaussianpuffdispersionplumearea:nonumsamplesperlocations',...
-                'If using a GaussianPuffDispersionPlumeArea, the task must define the dispersion parameter numsamplesperlocations');            
+                'If using a GaussianPuffDispersionPlumeArea, the task must define the parameter numsamplesperlocations');            
             obj.numSamplesPerLocation = objparams.numsamplesperlocations;
             
             if(objparams.graphics.on)
