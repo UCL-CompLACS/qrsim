@@ -60,10 +60,12 @@ classdef BoxWithPersonsArea<Area
             assert(isfield(objparams,'terrain') && isfield(objparams.terrain,'type'),'boxwithpersonarea:noterraintype',...
                 'If using a BoxWithPersonsArea, the task must define the parameter terrain.type');
             
+            objparams.terrain.limits = objparams.limits;
+            objparams.terrain.state = objparams.state;
+            obj.terrain = feval(objparams.terrain.type, objparams.terrain);
+            
             tmp.limits = objparams.limits;
             tmp.state = objparams.state;
-            obj.terrain = feval(objparams.terrain.type, tmp);
-            
             [tmp.nr tmp.nc] = obj.terrain.getMapSize();
             if(objparams.graphics.on)
                 obj.graphics=feval(objparams.graphics.type,tmp);

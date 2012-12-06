@@ -62,10 +62,11 @@ classdef TaskNoPlatformCameraType<Task
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
             taskparams.environment.area.numpersonsrange = [2,2]; % number of person selected at random between these limits
+            taskparams.environment.area.personsize = 0.5;
             taskparams.environment.area.personfounddistancethreshold = 2;
             taskparams.environment.area.personfoundspeedthreshold = 0.1;
-            taskparams.environment.area.personsize = 0.5;
             taskparams.environment.area.terrain.type = 'PourTerrain';
+            taskparams.environment.area.terrain.p = [0.2,0.05]; %terrain classes percentages
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
             
             % GPS
