@@ -1,31 +1,32 @@
 classdef PourTerrain < handle
-    % very simple model that implements a grid to store the terrain class
-    
-    properties 
-       p = [0.2 , 0.05]; % 20% clutter, 5% occlusion
-    end    
+    % very simple model that implements a grid to store the terrain class 
     
     properties (Access=private)
-        map;
-        prngId;
+        map; 
+        prngId; 
         simState;
         nr;
         nc;
         limits;
+        p; % array of percentage of each terrain class, note that 1-sum(p)
+           % will be the percentage of the class 0
     end
     
     methods (Access=public)
-        function obj = PourTerrain(objparams)
-            obj.simState = objparams.state;
-            
+        function obj = PourTerrain(objparams)            
+            assert(isfield(objparams,'p'),'pourterrain:nop',...
+                'If using a terrain of type PourTerrain, the config file must define the array p');            
+            obj.simState = objparams.state;            
             obj.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
             obj.limits = objparams.limits;
             obj.nr = ceil(objparams.limits(2)-objparams.limits(1));
-            obj.nc = ceil(objparams.limits(4)-objparams.limits(3));  
+            obj.nc = ceil(objparams.limits(4)-objparams.limits(3));             
         end
         
         function map = getMap(obj)
+            % return the map, each cell in the matrix is the class of the
+            % corresponding 1mx1m ground patch
             map = obj.map;
         end
         

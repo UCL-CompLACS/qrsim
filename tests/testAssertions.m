@@ -113,6 +113,13 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraR','camerawithclassifier:nor
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraObsModelType','camerawithclassifier:noobsmodeltype','missing camera observation model type parameter');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraGraphicsType','camerawithclassifier:nographicstype','missing camera graphics type');
 
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraPersonFoundDistanceThreshold','boxwithpersonarea:nopersonfounddistancethreshold','missing person found distance threshold');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraPersonFoundSpeedThreshold','boxwithpersonarea:nopersonfoundspeedthreshold','missing person found speed threshold');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraPersonSize','boxwithpersonarea:nopersonssize','missing person size');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraNumPersonsRange','boxwithpersonarea:nonumpersonsrange','missing person number range');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraTerrainType','boxwithpersonarea:noterraintype','missing camera terrain type');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraTerrainP','pourterrain:nop','missing camera terrain percentages');
+
 rmpath('assert');
 
 end
@@ -199,13 +206,13 @@ e = 0;
 
 try
     state = qrsim.init(task); %#ok<NASGU>
-   e = 1;
-catch exception
-  if(~strcmp(exception.identifier,id))
-      e = 1;
-      fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
-  end
-end
+    e = 1;
+ catch exception
+   if(~strcmp(exception.identifier,id))
+       e = 1;
+       fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+   end
+ end
 clear('state');
 clear('qrsim');
 close('all');

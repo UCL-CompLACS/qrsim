@@ -41,23 +41,23 @@ classdef BoxWithPersonsArea<Area
             obj.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
             
-            assert(isfield(objparams,'numpersonsrange'),'boxwithpersonarea:numpersonsrange',...
+            assert(isfield(objparams,'numpersonsrange'),'boxwithpersonarea:nonumpersonsrange',...
                 'If using a BoxWithPersonsArea, the task must define the parameter numpersonsrange');
             obj.numPersonsRange = objparams.numpersonsrange;
             
-            assert(isfield(objparams,'personsize'),'boxwithpersonarea:personssize',...
+            assert(isfield(objparams,'personsize'),'boxwithpersonarea:nopersonssize',...
                 'If using a BoxWithPersonsArea, the task must define the parameter personssize');
             obj.personSize = objparams.personsize;
             
-            assert(isfield(objparams,'personfounddistancethreshold'),'boxwithpersonarea:personfounddistancethreshold',...
+            assert(isfield(objparams,'personfounddistancethreshold'),'boxwithpersonarea:nopersonfounddistancethreshold',...
                 'If using a BoxWithPersonsArea, the task must define the parameter personfounddistancethreshold');
             obj.dthr = objparams.personfounddistancethreshold;
             
-            assert(isfield(objparams,'personfoundspeedthreshold'),'boxwithpersonarea:numpersonsrange',...
+            assert(isfield(objparams,'personfoundspeedthreshold'),'boxwithpersonarea:nopersonfoundspeedthreshold',...
                 'If using a BoxWithPersonsArea, the task must define the parameter personfoundspeedthreshold');
             obj.sthr = objparams.personfoundspeedthreshold;
             
-            assert(isfield(objparams,'terrain') && isfield(objparams.terrain,'type'),'boxwithpersonarea:terraintype',...
+            assert(isfield(objparams,'terrain') && isfield(objparams.terrain,'type'),'boxwithpersonarea:noterraintype',...
                 'If using a BoxWithPersonsArea, the task must define the parameter terrain.type');
             
             tmp.limits = objparams.limits;
@@ -97,8 +97,8 @@ classdef BoxWithPersonsArea<Area
         function pos = getPersonsPosition(obj)
             % returns position of persons
             % mostly used for cheating
-            pos = zeros(3,size(obj.persons));
-            for i=1:length(obj.persons)
+            pos = zeros(3,size(obj.persons,2));
+            for i=1:size(obj.persons,2),
                 pos(:,i) = obj.persons{i}.center;
             end
         end
@@ -124,8 +124,8 @@ classdef BoxWithPersonsArea<Area
             lph = 0.5*(limits(1:2,2)+limits(1:2,1));
             lm = 0.8*(limits(1:2,2)-limits(1:2,1));
             centers = [repmat(lph,1,numPersons)+repmat(lm,1,numPersons).*(rand(obj.simState.rStreams{obj.prngId},2,numPersons)-0.5);zeros(1,numPersons)];
-            centers(:,1)=[0;0;0];
-            centers(:,2)=[5;0;0];
+            centers(:,1)=[0.01;0.02;0.03];
+            centers(:,2)=[5;0.04;0.05];
             obj.persons={};
             for i=1:numPersons,
                 obj.persons{i}=Person(centers(:,i),obj.personSize);
@@ -161,7 +161,7 @@ classdef BoxWithPersonsArea<Area
             
             obj.found = obj.found | (sum(obj.pjf,1)>0);
             
-            if(any(obj.pjf) && obj.graphicsOn)
+            if(any(any(obj.pjf)) && obj.graphicsOn)
                 % modify plot
                 obj.graphics.update(obj.simState,obj.persons,obj.found,[]);
             end
