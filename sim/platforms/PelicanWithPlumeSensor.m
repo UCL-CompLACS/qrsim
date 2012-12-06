@@ -72,10 +72,12 @@ classdef PelicanWithPlumeSensor<Pelican
             obj=obj@Pelican(objparams);
             
             % plumesensor
-            assert(isfield(objparams.sensors,'plumesensor')&&isfield(objparams.sensors.plumesensor,'on'),'pelican:noplumesensor',...
-                'the platform config file must define a plumesensor parameter');
+            assert(isfield(objparams.sensors,'plumesensor')&&isfield(objparams.sensors.plumesensor,'on'),'pelicanwithplumesensor:noplumesensor',...
+                'since the platform is of type PelicanWithPlumeSensor the config file must define the plume sensor parameters');
             objparams.sensors.plumesensor.state = objparams.state;
             if(objparams.sensors.plumesensor.on)
+                assert(isfield(objparams.sensors.plumesensor,'type'),'pelicanwithplumesensor:noplumesensortype',...
+                'if the plume sensor is on a the platform config file must specify plumesensor.type');
                 obj.plumeSensor = feval(objparams.sensors.plumesensor.type,objparams.sensors.plumesensor);    
             else
                 obj.plumeSensor = feval('PlumeSensor', objparams.sensors.plumesensor);

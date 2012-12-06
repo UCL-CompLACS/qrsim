@@ -33,7 +33,7 @@ classdef Sensor<Steppable
     
     methods (Abstract)
         obj = setState(obj,X);
-        % re-initialise the state to a new value 
+        % re-initialise the state to a new (generally noiseless) value 
 
         meas=getMeasurement(obj,X);
         % given a current state of the system returns a measurement or an estimate 

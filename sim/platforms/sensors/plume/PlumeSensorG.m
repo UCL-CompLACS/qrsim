@@ -45,11 +45,16 @@ classdef PlumeSensorG<PlumeSensor
 
             conc = obj.estimatedConc;
         end
+                        
+        function obj = setState(obj,X)
+            % re-initialise the state to a new value 
+            obj.estimatedConc = obj.simState.environment.area.getSamples(X(1:3)); 
+            obj.bootstrapped = 0; 
+        end
         
         function obj = reset(obj)
             obj.bootstrapped = 1;           
         end
-
     end
     
     methods (Access=protected)        

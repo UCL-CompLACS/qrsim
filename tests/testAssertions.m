@@ -98,6 +98,12 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformOrientationEstimatorSigma','orient
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGraphicsType','pelican:nographicstype','missing graphics type');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformGraphicsParams','pelicangraphics:nopar','missing graphics parameter');
 
+e = e | loadBadlySpecifiedTask('TaskNoPlatformPlumeSensor','pelicanwithplumesensor:noplumesensor','missing plume sensor when the platform is of type PelicanWithPlumeSensor');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformPlumeSensorType','pelicanwithplumesensor:noplumesensortype','missing plume sensor type parameter');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformPlumeSensorDt','steppable:nodt','missing plume sensor dt parameter');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformPlumeSensorSigma','plumesensorg:nosigma','missing plume sensor sigma parameter');
+
+
 rmpath('assert');
 
 end
@@ -184,12 +190,12 @@ e = 0;
 
 try
     state = qrsim.init(task); %#ok<NASGU>
-    e = 1;
+   e = 1;
 catch exception
-   if(~strcmp(exception.identifier,id))
-       e = 1;
-       fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
-   end
+  if(~strcmp(exception.identifier,id))
+      e = 1;
+      fprintf('\nUNEXPECTED EXCEPTION:%s \nMESSAGE:%s\n',exception.identifier,exception.message);
+  end
 end
 clear('state');
 clear('qrsim');
