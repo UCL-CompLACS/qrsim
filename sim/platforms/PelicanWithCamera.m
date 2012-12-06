@@ -73,9 +73,16 @@ classdef PelicanWithCamera<Pelican
             
             % camera
             assert(isfield(objparams.sensors,'camera')&&isfield(objparams.sensors.camera,'on'),'pelicanwithcamera:nocamera',...
-                'the platform config file must define a camera parameter');
+                'if the platform is of type PelicanWithCamera the platform config file must define camera parameters');
             objparams.sensors.camera.graphics.on = objparams.graphics.on;
             objparams.sensors.camera.state = objparams.state;
+            
+            assert(isfield(objparams.sensors.camera,'on'),'pelicanwithcamera:nocameraon',...
+                'if the platform is of type PelicanWithCamera the camera sensor must be considered as on');
+            
+            assert(isfield(objparams.sensors.camera,'type'),'pelicanwithcamera:notype',...
+                'if the platform is of type PelicanWithCamera the platform config file must define camera type');
+            
             obj.camera = feval(objparams.sensors.camera.type,objparams.sensors.camera);           
         end   
         

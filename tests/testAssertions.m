@@ -103,6 +103,15 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformPlumeSensorType','pelicanwithplume
 e = e | loadBadlySpecifiedTask('TaskNoPlatformPlumeSensorDt','steppable:nodt','missing plume sensor dt parameter');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformPlumeSensorSigma','plumesensorg:nosigma','missing plume sensor sigma parameter');
 
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCamera','pelicanwithcamera:nocamera','missing camera when the platform is of type PelicanWithCamera');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraOn','pelicanwithcamera:nocamera','missing camera on the platform is of type PelicanWithCamera');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraType','pelicanwithcamera:notype','missing camera type the platform is of type PelicanWithCamera');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraDt','steppable:nodt','missing camera dt if the platform is of type PelicanWithCamera');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraF','camerawithclassifier:nof','missing camera f parameter');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraC','camerawithclassifier:noc','missing camera c parameter');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraR','camerawithclassifier:nor','missing camera r parameter');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraObsModelType','camerawithclassifier:noobsmodeltype','missing camera observation model type parameter');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraGraphicsType','camerawithclassifier:nographicstype','missing camera graphics type');
 
 rmpath('assert');
 

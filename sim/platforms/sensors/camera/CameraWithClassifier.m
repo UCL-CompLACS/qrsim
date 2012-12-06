@@ -46,11 +46,11 @@ classdef CameraWithClassifier < Sensor
             %
             obj=obj@Sensor(objparams);
             
-            assert(isfield(objparams,'f'),'camera:f','the platform config must define the camera.f parameters');
+            assert(isfield(objparams,'f'),'camerawithclassifier:nof','the platform config must define the camera.f parameters');
             obj.f = objparams.f;
-            assert(isfield(objparams,'c'),'camera:c','the platform config must define the camera.c parameters');
+            assert(isfield(objparams,'c'),'camerawithclassifier:noc','the platform config must define the camera.c parameters');
             obj.c = objparams.c;
-            assert(isfield(objparams,'r'),'camera:r','the platform config must define the camera.r parameters');
+            assert(isfield(objparams,'r'),'camerawithclassifier:nor','the platform config must define the camera.r parameters');
             obj.R =  angle2dcm(objparams.r(3),objparams.r(2),objparams.r(1),'ZYX');
             
             if(isempty(obj.simState.camerascnt_))
@@ -67,7 +67,7 @@ classdef CameraWithClassifier < Sensor
                 obj.graphics=feval(objparams.graphics.type,objparams.graphics);
             end
             
-            assert(isfield(objparams,'obsmodeltype'),'camera:obsmodeltype','the platform config must define the camera.obsmodeltype parameter');
+            assert(isfield(objparams,'obsmodeltype'),'camerawithclassifier:noobsmodeltype','the platform config must define the camera.obsmodeltype parameter');
             
             obsmodelparams.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
