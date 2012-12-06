@@ -1,6 +1,7 @@
 #include <QRSimTCPClient.h>
 #include <iostream>
 #include <cmath>
+#include <unistd.h>
 
 /// constructor
 QRSimTCPClient::QRSimTCPClient()
