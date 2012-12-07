@@ -121,13 +121,12 @@ classdef BoxWithPersonsArea<Area
             % generate the number and positions of the persons
             numPersons =  (obj.numPersonsRange(1)-1)+randi(obj.simState.rStreams{obj.prngId},obj.numPersonsRange(2)-obj.numPersonsRange(1)+1);
             
-            % source position
+            % persons position
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(1:2,2)+limits(1:2,1));
             lm = 0.8*(limits(1:2,2)-limits(1:2,1));
             centers = [repmat(lph,1,numPersons)+repmat(lm,1,numPersons).*(rand(obj.simState.rStreams{obj.prngId},2,numPersons)-0.5);zeros(1,numPersons)];
-            centers(:,1)=[0.01;0.02;0.03];
-            centers(:,2)=[5;0.04;0.05];
+
             obj.persons={};
             for i=1:numPersons,
                 obj.persons{i}=Person(centers(:,i),obj.personSize);

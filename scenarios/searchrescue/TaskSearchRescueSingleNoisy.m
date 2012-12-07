@@ -1,4 +1,4 @@
-classdef TaskSearchRescueSingleNoiseless<Task
+classdef TaskSearchRescueSingleNoisy<Task
     % Simple task in which targets (people) are lost/injured on 
     % the ground in a landscape and need to be located and rescued. 
     % A single helicopter agent is equipped with a camera/classification module
@@ -32,11 +32,12 @@ classdef TaskSearchRescueSingleNoiseless<Task
         prngId;   % id of the prng stream used to select the initial positions
         velPIDs;  % pid used to control the uavs
         initialX;
+        headings;
     end
     
     methods (Sealed,Access=public)
         
-        function obj = TaskSearchRescueSingleNoiseless(state)
+        function obj = TaskSearchRescueSingleNoisy(state)
             obj = obj@Task(state);
         end
         
@@ -55,14 +56,14 @@ classdef TaskSearchRescueSingleNoiseless<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;
+            taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            D = sqrt(obj.durationInSteps*25*3);  % simple heuristic that scales the terrain size so that the agent 
+            D = sqrt(obj.durationInSteps*25*3*obj.numUAVs);  % simple heuristic that scales the terrain size so that the agent 
                                                  % won't have enough time to simply scan the area in lawn mower fashion
             taskparams.environment.area.limits = [-D D -D D -80 0];
             taskparams.environment.area.dt = 1;
@@ -76,12 +77,13 @@ classdef TaskSearchRescueSingleNoiseless<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.numpersonsrange = [2,2]; % number of person selected at random between these limits
-            taskparams.environment.area.personfounddistancethreshold = 2;
+            taskparams.environment.area.numpersonsrange = [1,5]; % number of person selected at random between these limits
+            taskparams.environment.area.personfounddistancethreshold = 5;
             taskparams.environment.area.personfoundspeedthreshold = 0.1;
             taskparams.environment.area.personsize = 0.5;
-            taskparams.environment.area.terrain.type = 'PourTerrain';
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
+            taskparams.environment.area.terrain.type = 'PourTerrain';
+            taskparams.environment.area.terrain.p = [0.2,0.05];  % 20% clutter, 5% occlusion
             
             % GPS
             % The space segment of the gps system
@@ -124,7 +126,10 @@ classdef TaskSearchRescueSingleNoiseless<Task
         end
         
         function reset(obj)           
-            % uav randomly placed, but not too close to the edges of the area
+            % uav randomly placed, but not too close to the edges of the area         
+            
+            obj.headings = pi*rand(obj.numUAVs,1);
+            
             for i=1:obj.numUAVs,
                 
                 r = rand(obj.simState.rStreams{obj.prngId},2,1);
@@ -133,10 +138,10 @@ classdef TaskSearchRescueSingleNoiseless<Task
                 px = 0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
                 py = 0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
                 
-                obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
+                obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;obj.headings(i)]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
                                
-                obj.velPIDs{i} = VelocityHeightPID(obj.simState.DT);
+                obj.velPIDs{i} = VelocityPID(obj.simState.DT);
             end
             
             % persons randomly placed, but not too close to the edges of the area
@@ -148,9 +153,9 @@ classdef TaskSearchRescueSingleNoiseless<Task
             UU=zeros(5,length(obj.simState.platforms));
             for i=1:length(obj.simState.platforms),
                 if(obj.simState.platforms{i}.isValid())
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),obj.startHeight,0);
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),obj.headings(i));
                 else
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],obj.startHeight,0);
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0;0],obj.headings(i));
                 end
             end
         end

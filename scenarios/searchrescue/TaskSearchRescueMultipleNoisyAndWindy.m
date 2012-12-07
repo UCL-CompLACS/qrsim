@@ -1,4 +1,4 @@
-classdef TaskSearchRescueSingleNoiseless<Task
+classdef TaskSearchRescueMultipleNoisyAndWindy<Task
     % Simple task in which targets (people) are lost/injured on 
     % the ground in a landscape and need to be located and rescued. 
     % A single helicopter agent is equipped with a camera/classification module
@@ -22,9 +22,9 @@ classdef TaskSearchRescueSingleNoiseless<Task
     %   step()         - computes pitch, roll, yaw, throttle  commands from the user dVn,dVe commands
     %
     properties (Constant)
-        numUAVs = 1;
-        startHeight = -45;
-        durationInSteps = 200; % steps are generally 1s
+        numUAVs = 3;
+        startHeight = -25;
+        durationInSteps = 200;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -37,7 +37,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
     
     methods (Sealed,Access=public)
         
-        function obj = TaskSearchRescueSingleNoiseless(state)
+        function obj = TaskSearchRescueMultipleNoisyAndWindy(state)
             obj = obj@Task(state);
         end
         
@@ -87,7 +87,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 0; %% NO GPS NOISE!!!
+            taskparams.environment.gpsspacesegment.on = 1; 
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
@@ -112,15 +112,15 @@ classdef TaskSearchRescueSingleNoiseless<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 0;  %% NO WIND!!!
+            taskparams.environment.wind.on = 1;  %% NO WIND!!!
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = degsToRads(45); %mean wind direction, rad clockwise from north set to [] to initialise it randomly
-            taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
+            taskparams.environment.wind.W6 = 2;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.numUAVs,
-                taskparams.platforms(i).configfile = 'pelican_with_camera_noiseless_config';
+                taskparams.platforms(i).configfile = 'pelican_with_camera_noisy_windy_config';
             end  
             
         end

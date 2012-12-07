@@ -20,15 +20,15 @@ addpath(['..',filesep,'..',filesep,'controllers']);
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-state = qrsim.init('TaskSearchRescueSingleNoiseless');
+%state = qrsim.init('TaskSearchRescueSingleNoiseless');
 %state = qrsim.init('TaskSearchRescueSingleNoisy');
 %state = qrsim.init('TaskSearchRescueMultipleNoiseless');
-%state = qrsim.init('TaskSearchRescueMultipleNoisyAndWindy');
+state = qrsim.init('TaskSearchRescueMultipleNoisyAndWindy');
 
 
-% create a 2 x helicopters matrix of control inputs
-% column i will contain the 2D NED velocity [vx;vy] in m/s for helicopter i
-U = zeros(2,state.task.numUAVs);
+% create a 3 x helicopters matrix of control inputs
+% column i will contain the 2D NED velocity [vx;vy;vz] in m/s for helicopter i
+U = zeros(3,state.task.numUAVs);
 tstart = tic;
 
 % run the scenario and at every timestep generate a control
@@ -44,7 +44,7 @@ for i=1:state.task.durationInSteps,
             % random velocity direction
             u(:,j) = rand(2,1)-[0.5;0.5];
             % scale by the max allowed velocity
-            U(:,j) = 0.5*(u(:,j)/norm(u(:,j)));
+            U(:,j) = [0.5*(u(:,j)/norm(u(:,j)));0];
         end
     end
     
@@ -67,7 +67,11 @@ for i=1:state.task.durationInSteps,
     % are wg(:,(i-1)*(gridDims(1)+1)+j+[0,1,gridDims(1)+1,gridDims(1)+2])
     for j=1:state.task.numUAVs,
         m = state.platforms{j}.getCameraOutput();
-    end    
+    end   
+    
+    % fetch reward (1 as soon as we hovering close enough to a person, soon
+    % after the person disappears)
+    r = qrsim.reward();
     
     if(state.display3dOn)
         % wait so to run in real time
@@ -75,13 +79,9 @@ for i=1:state.task.durationInSteps,
         wait = max(0,state.task.dt-toc(tloop));
         pause(wait);
     end
+    pause(0.1);
 end
 
-% get final reward
-% reminder: a large negative final reward (-1000) is returned in case of
-% collisions or in case of any uav going outside the flight area
-fprintf('final reward: %f\n',qrsim.reward());
 
 elapsed = toc(tstart);
-
 fprintf('running %d times real time\n',(state.task.durationInSteps*state.task.dt)/elapsed);

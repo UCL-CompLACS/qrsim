@@ -83,7 +83,10 @@ classdef SearchAreaGraphics<handle
                     end
                 else
                     if(size(persons,2)~=size(state.display3d.persons))
-                        clear(state.display3d.persons);
+                        for i=1:size(state.display3d.persons,2),
+                            delete(state.display3d.persons{1,i});
+                        end
+                        state.display3d.persons={};
                         for i=1:size(persons,2),
                             xdata = [persons{i}.bb(1,1:3)',persons{i}.bb(1,2:4)'];
                             ydata = [persons{i}.bb(2,1:3)',persons{i}.bb(2,2:4)'];

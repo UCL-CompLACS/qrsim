@@ -1,4 +1,4 @@
-classdef TaskSearchRescueSingleNoiseless<Task
+classdef TaskSearchRescueMultipleNoiseless<Task
     % Simple task in which targets (people) are lost/injured on 
     % the ground in a landscape and need to be located and rescued. 
     % A single helicopter agent is equipped with a camera/classification module
@@ -22,7 +22,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
     %   step()         - computes pitch, roll, yaw, throttle  commands from the user dVn,dVe commands
     %
     properties (Constant)
-        numUAVs = 1;
+        numUAVs = 3;
         startHeight = -45;
         durationInSteps = 200; % steps are generally 1s
         PENALTY = 1000;      % penalty reward in case of collision
@@ -37,7 +37,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
     
     methods (Sealed,Access=public)
         
-        function obj = TaskSearchRescueSingleNoiseless(state)
+        function obj = TaskSearchRescueMultipleNoiseless(state)
             obj = obj@Task(state);
         end
         
