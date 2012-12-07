@@ -15,7 +15,8 @@ classdef PourTerrain < handle
     methods (Access=public)
         function obj = PourTerrain(objparams)            
             assert(isfield(objparams,'p'),'pourterrain:nop',...
-                'If using a terrain of type PourTerrain, the config file must define the array p');            
+                'If using a terrain of type PourTerrain, the config file must define the array p'); 
+            obj.p=objparams.p;
             obj.simState = objparams.state;            
             obj.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;

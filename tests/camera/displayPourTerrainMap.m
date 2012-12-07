@@ -1,18 +1,15 @@
 clear all;
 
+Nr= 250;
+Nc = 153;
 
-Nr= 150;
-Nc = 150;
+p = [0.2;0.05];
 
-p = [0.3;0.05];
-
-rnd = rand(Nr*Nc*length(p),1);
+rnd = rand(50*50*length(p),1);
 tic
 map = pourMap(Nr,Nc,p,rnd);
 toc
+
 figure(1);
 pcolor(map);
-
-
-
 

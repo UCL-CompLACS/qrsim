@@ -55,7 +55,7 @@ classdef TaskSearchRescueSingleNoiseless<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 0;
+            taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
@@ -78,8 +78,9 @@ classdef TaskSearchRescueSingleNoiseless<Task
             taskparams.environment.area.personfounddistancethreshold = 2;
             taskparams.environment.area.personfoundspeedthreshold = 0.1;
             taskparams.environment.area.personsize = 0.5;
-            taskparams.environment.area.terrain.type = 'PourTerrain';
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
+            taskparams.environment.area.terrain.type = 'PourTerrain';
+            taskparams.environment.area.terrain.p = [0.2,0.05];  % 20% clutter, 5% occlusion
             
             % GPS
             % The space segment of the gps system

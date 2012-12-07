@@ -1,17 +1,19 @@
-function map = pourMap(Nr,Nc,p,rnd)
+function map = pourMap(NNr,NNc,p,rnd)
 % given map size, build a map where with regions that
 % belongs to one of the length(p)+1 classes (ground beiong always a class)
 % the number of pixel for region i is roughly proportional to the probability
 % p(i) for that region, hence sum(p)< 1 and P(ground) = 1-sum(p)
 
-% the map
-map = zeros(Nr,Nc);
+% the small map
+nr = 50;
+nc = 50;
+smap = zeros(nr,nc);
 
 % number of different classes
 numClasses = length(p);
 
 % rough number of squares for each class
-N = p.*Nr*Nc;
+N = p.*nr*nc;
 
 % spread directions
 D = [1 0 -1  0 ;
@@ -29,8 +31,8 @@ n = zeros(numClasses,1);
 
 % for each class 
 for c=1:numClasses,    
-    x = randi(Nr,1);
-    y = randi(Nc,1);
+    x = randi(nr,1);
+    y = randi(nc,1);
     while n(c)<N(c)
         % Exponential jumps between pour locations
         %d = 4*(-log(rand()));
@@ -41,8 +43,8 @@ for c=1:numClasses,
         alpha = 2*pi*rnd(rcnt);
         rcnt = rcnt+1;
         if(rcnt>nrnd), rcnt=1; end        
-        x = mod(x+round(d*sin(alpha)),Nr)+1;
-        y = mod(y-round(d*cos(alpha)),Nc)+1;
+        x = mod(x+round(d*sin(alpha)),nr)+1;
+        y = mod(y-round(d*cos(alpha)),nc)+1;
         
         % random amound of pouring
         %nn = 10+randi(100,1);
@@ -56,16 +58,16 @@ for c=1:numClasses,
             yy = y;
             while 1
                 % pour a drop of color c at location x,y
-                if(map(xx,yy)~=c)
-                    map(xx,yy)=c;
+                if(smap(xx,yy)~=c)
+                    smap(xx,yy)=c;
                     n(c)=n(c)+1;
                     break
                 end                
                 % othrwise drift to the frontier
-                if(xx==1 || xx==Nr || yy==1 || yy==Nc)
+                if(xx==1 || xx==nr || yy==1 || yy==nc)
                     xD = xx+D1;
                     yD = yy+D2;
-                    mask = ((xD>0)&(xD<=Nr)&(yD>0)&(yD<=Nc));
+                    mask = ((xD>0)&(xD<=nr)&(yD>0)&(yD<=nc));
                     %k = randi(sum(mask),1);
                     k = ceil(sum(mask)*rnd(rcnt));
                     rcnt = rcnt+1;
@@ -85,3 +87,7 @@ for c=1:numClasses,
         end
     end    
 end
+
+[X,Y] = meshgrid(0:NNc/(nc-1):NNc,0:NNr/(nr-1):NNr);
+[x,y] = meshgrid(0:NNc/(NNc-1):NNc,0:NNr/(NNr-1):NNr);
+map = interp2(X,Y,smap,x,y,'nearest');
