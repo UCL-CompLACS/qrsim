@@ -81,7 +81,7 @@ classdef BoxWithPersonsArea<Area
                 % modify plot
                 obj.graphics.update(obj.simState,obj.persons,obj.found,obj.terrain.getMap());
             end
-	    obj.bootstrapped = 1;
+	        obj.bootstrapped = 1;
         end
         
         function size = getPersonSize(obj)
@@ -155,14 +155,14 @@ classdef BoxWithPersonsArea<Area
                     %uv = obj.simState.platforms{j}.camera.cam_prj(X(1:3),dcm(X),obj.persons{i}.center));
                     %if(~isempty(uv))
                     %    UV= [UV,uv];
-                    if((norm(obj.persons{i}.center-X(1:3)) <= obj.dthr) && (norm(X(7:9))<= obj.sthr))
+                    if(~obj.found(i) && (norm(obj.persons{i}.center-X(1:3)) <= obj.dthr) && (norm(X(7:9))<= obj.sthr))
                         obj.pjf(j,i) = 1;
                     end
                 end
             end
             
             obj.found = obj.found | (sum(obj.pjf,1)>0);
-            
+
             if(any(any(obj.pjf)) && obj.graphicsOn)
                 % modify plot
                 obj.graphics.update(obj.simState,obj.persons,obj.found,[]);
