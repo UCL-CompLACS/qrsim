@@ -23,8 +23,8 @@ classdef TaskSearchRescueSingleNoiseless<Task
     %
     properties (Constant)
         numUAVs = 1;
-        startHeight = -25;
-        durationInSteps = 200;
+        startHeight = -45;
+        durationInSteps = 200; % steps are generally 1s
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -62,7 +62,9 @@ classdef TaskSearchRescueSingleNoiseless<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-50 50 -50 50 -80 0];
+            D = sqrt(obj.durationInSteps*25*3);  % simple heuristic that scales the terrain size so that the agent 
+                                                 % won't have enough time to simply scan the area in lawn mower fashion
+            taskparams.environment.area.limits = [-D D -D D -80 0];
             taskparams.environment.area.dt = 1;
             taskparams.environment.area.type = 'BoxWithPersonsArea';
             
