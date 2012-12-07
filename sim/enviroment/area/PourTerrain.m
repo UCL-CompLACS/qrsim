@@ -49,7 +49,7 @@ classdef PourTerrain < handle
             points(1,points(1,:)<obj.limits(1)) = obj.limits(1)+1e-15;
             points(1,points(1,:)>obj.limits(2)) = obj.limits(2)-1e-15;           
             points(2,points(2,:)<obj.limits(3)) = obj.limits(3)+1e-15;
-            points(2,points(2,:)>obj.limits(4)) = obj.limits(4)+1e-15;                         
+            points(2,points(2,:)>obj.limits(4)) = obj.limits(4)-1e-15;                         
             tclass = obj.map( ceil(points(1,:)-obj.limits(1))' + size(obj.map,1)*(ceil(points(2,:)-obj.limits(3))'-1));            
         end
     end    
