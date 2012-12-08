@@ -18,6 +18,7 @@ classdef BoxWithPersonsArea<Area
         pjf;
         personSize;
         terrain;
+        pInClass;
     end
     
     methods (Sealed,Access=public)
@@ -59,7 +60,14 @@ classdef BoxWithPersonsArea<Area
             
             assert(isfield(objparams,'terrain') && isfield(objparams.terrain,'type'),'boxwithpersonarea:noterraintype',...
                 'If using a BoxWithPersonsArea, the task must define the parameter terrain.type');
+                                    
+            assert(isfield(objparams,'personinclassprob'),'boxwithpersonarea:nopersoninclassprob',...
+                'If using a terrain of type PourTerrain, the config file must define the array personincalssprob'); 
             
+            assert(sum(objparams.personinclassprob)<=1,'boxwithpersonarea:badpersoninclassprob',...
+                'the sum of the terrain classpercentages parameters must be <=1 since they are probabilities');
+            
+            obj.pInClass = objparams.personinclassprob;
             objparams.terrain.limits = objparams.limits;
             objparams.terrain.state = objparams.state;
             obj.terrain = feval(objparams.terrain.type, objparams.terrain);
@@ -73,10 +81,10 @@ classdef BoxWithPersonsArea<Area
         end
         
         function obj = reset(obj)
-            % redraw a different plume pattern
-            obj.init();
-            % reset terrain model;
+            % redraw terrain model;
             obj.terrain.reset();
+            % redraw set of persons positions
+            obj.init();            
             if(obj.graphicsOn)
                 % modify plot
                 obj.graphics.update(obj.simState,obj.persons,obj.found,obj.terrain.getMap());
@@ -125,11 +133,31 @@ classdef BoxWithPersonsArea<Area
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(1:2,2)+limits(1:2,1));
             lm = 0.8*(limits(1:2,2)-limits(1:2,1));
-            centers = [repmat(lph,1,numPersons)+repmat(lm,1,numPersons).*(rand(obj.simState.rStreams{obj.prngId},2,numPersons)-0.5);zeros(1,numPersons)];
-
+            
+            % for each of the person work out their class an then do rej
+            % sampling to generate center
+            pacc = triu(toeplitz(ones(size(obj.pInClass)))) * obj.pInClass';
+            
+            
             obj.persons={};
-            for i=1:numPersons,
-                obj.persons{i}=Person(centers(:,i),obj.personSize);
+            for i=1:numPersons
+                % randomly generate a terrain class according to the specified probabilities 
+                tclass = find(pacc<rand(obj.simState.rStreams{obj.prngId},1,1),1,'first');
+                if(~isempty(tclass))
+                    tclass = tclass - 1;
+                else
+                    tclass = size(obj.pInClass,2);
+                end
+                
+                % draw a person location and keep drawing until we do not
+                % get the desired terrain class
+                center = [lph+lm.*(rand(obj.simState.rStreams{obj.prngId},2,1)-0.5);0];
+                while(obj.terrain.getClass(center)~=tclass)
+                    center = [lph+lm.*(rand(obj.simState.rStreams{obj.prngId},2,1)-0.5);0];
+                end
+                
+                % add the person to the array
+                obj.persons{i}=Person(center,obj.personSize);
             end
             
             obj.found = zeros(1,numPersons);

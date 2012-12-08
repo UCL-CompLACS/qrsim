@@ -1,20 +1,7 @@
-classdef TaskSearchRescueMultipleNoisyAndWindy<Task
-    % Simple task in which targets (people) are lost/injured on 
-    % the ground in a landscape and need to be located and rescued. 
-    % A single helicopter agent is equipped with a camera/classification module
-    % for predicting the position of targets in its field of vision, but the quality of predictions
-    % depend upon the geometry between helicopter and ground (e.g. the distance). Rather
-    % than raw images the camera module provides higher-level data in the form of likelihood
-    % ratios of the current image conditioned on the presence or absence of a target.
-    % Finally in this task all the sensors are noiseless and the wind is
-    % turned off.
+classdef TaskBadPlatformCameraPersonsInClass<Task
+    % Task to test camera parameters assertions
     %
-    % Note:
-    % This task accepts control inputs (for each uav) in terms of 2D velocities,
-    % in global coordinates. So in the case of three cats one would use
-    % qrsim.step(U);  where U = [vx_1,vx_2,vx_3; vy_1,vy_2,vy_3];
-    %
-    % TaskCatsMouseNoiseless methods:
+    % TaskNoPlatformCamera methods:
     %   init()         - loads and returns the parameters for the various simulation objects
     %   reset()        - defines the starting state for the task
     %   updateReward() - updates the running costs (zero for this task)
@@ -22,7 +9,7 @@ classdef TaskSearchRescueMultipleNoisyAndWindy<Task
     %   step()         - computes pitch, roll, yaw, throttle  commands from the user dVn,dVe commands
     %
     properties (Constant)
-        numUAVs = 3;
+        numUAVs = 1;
         startHeight = -25;
         durationInSteps = 200;
         PENALTY = 1000;      % penalty reward in case of collision
@@ -32,12 +19,11 @@ classdef TaskSearchRescueMultipleNoisyAndWindy<Task
         prngId;   % id of the prng stream used to select the initial positions
         velPIDs;  % pid used to control the uavs
         initialX;
-        headings;
     end
     
     methods (Sealed,Access=public)
         
-        function obj = TaskSearchRescueMultipleNoisyAndWindy(state)
+        function obj = TaskBadPlatformCameraPersonsInClass(state)
             obj = obj@Task(state);
         end
         
@@ -56,19 +42,27 @@ classdef TaskSearchRescueMultipleNoisyAndWindy<Task
             
             %%%%% visualization %%%%%
             % 3D display parameters
-            taskparams.display3d.on = 1;
+            taskparams.display3d.on = 0;
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            D = sqrt(obj.durationInSteps*25*3*obj.numUAVs);  % simple heuristic that scales the terrain size so that the agent 
-                                                 % won't have enough time to simply scan the area in lawn mower fashion
-            taskparams.environment.area.limits = [-D D -D D -80 0];
+            taskparams.environment.area.limits = [-50 50 -50 50 -80 0];
             taskparams.environment.area.dt = 1;
             taskparams.environment.area.type = 'BoxWithPersonsArea';
-            
+            taskparams.environment.area.numpersonsrange = [5,10]; % number of person selected at random between these limits
+            taskparams.environment.area.personfounddistancethreshold = 5;
+            taskparams.environment.area.personfoundspeedthreshold = 0.1;
+            taskparams.environment.area.personsize = 0.5;
+            taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
+            taskparams.environment.area.terrain.type = 'PourTerrain';
+            taskparams.environment.area.terrain.classpercentages = [0.2,0.05];  % 20% clutter, 5% occlusion => 75% no clutter & no occlusions 
+            taskparams.environment.area.personinclassprob = [0.9,0.3];  % prob 0 of person being in terrain of class clutter
+                                                                        % prob 0 of person being in terrain of class occlusion
+                                                                        % prob 1 of person being in terrain of class no clutter & no occlusions            
+
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
             % gpsspacesegment.svs need to be changed
@@ -77,20 +71,11 @@ classdef TaskSearchRescueMultipleNoisyAndWindy<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.numpersonsrange = [5,10]; % number of person selected at random between these limits
-            taskparams.environment.area.personfounddistancethreshold = 5;
-            taskparams.environment.area.personfoundspeedthreshold = 0.1;
-            taskparams.environment.area.personsize = 0.5;
-            taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
-            taskparams.environment.area.terrain.type = 'PourTerrain';
-            taskparams.environment.area.terrain.classpercentages = [0.2,0.05];  % 20% clutter, 5% occlusion => 75% no clutter & no occlusions 
-            taskparams.environment.area.personinclassprob = [0.0,0.0];  % prob 0 of person being in terrain of class clutter
-                                                                        % prob 0 of person being in terrain of class occlusion
-                                                                        % prob 1 of person being in terrain of class no clutter & no occlusions            
+            
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 1; 
+            taskparams.environment.gpsspacesegment.on = 0; %% NO GPS NOISE!!!
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
@@ -115,24 +100,21 @@ classdef TaskSearchRescueMultipleNoisyAndWindy<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 1;  %% NO WIND!!!
+            taskparams.environment.wind.on = 0;  %% NO WIND!!!
             taskparams.environment.wind.type = 'WindConstMean';
             taskparams.environment.wind.direction = degsToRads(45); %mean wind direction, rad clockwise from north set to [] to initialise it randomly
-            taskparams.environment.wind.W6 = 2;  % velocity at 6m from ground in m/s
+            taskparams.environment.wind.W6 = 0.5;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.numUAVs,
-                taskparams.platforms(i).configfile = 'pelican_with_camera_noisy_windy_config';
+                taskparams.platforms(i).configfile = 'pelican_with_camera_ok';
             end  
             
         end
         
         function reset(obj)           
             % uav randomly placed, but not too close to the edges of the area
-            
-            obj.headings = pi*rand(obj.numUAVs,1);
-            
             for i=1:obj.numUAVs,
                 
                 r = rand(obj.simState.rStreams{obj.prngId},2,1);
@@ -141,10 +123,10 @@ classdef TaskSearchRescueMultipleNoisyAndWindy<Task
                 px = 0.5*(l(2)+l(1)) + (r(1)-0.5)*0.9*(l(2)-l(1));
                 py = 0.5*(l(4)+l(3)) + (r(2)-0.5)*0.9*(l(4)-l(3));
                 
-                obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;obj.headings(i)]);
+                obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
                                
-                obj.velPIDs{i} = VelocityPID(obj.simState.DT);
+                obj.velPIDs{i} = VelocityHeightPID(obj.simState.DT);
             end
             
             % persons randomly placed, but not too close to the edges of the area
@@ -156,9 +138,9 @@ classdef TaskSearchRescueMultipleNoisyAndWindy<Task
             UU=zeros(5,length(obj.simState.platforms));
             for i=1:length(obj.simState.platforms),
                 if(obj.simState.platforms{i}.isValid())
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),obj.headings(i));
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),obj.startHeight,0);
                 else
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0;0],obj.headings(i));
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],obj.startHeight,0);
                 end
             end
         end

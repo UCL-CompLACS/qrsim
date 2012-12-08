@@ -4,7 +4,7 @@ function [ e ] = testAssertions()
 
 addpath('assert');
 
-%clear all;
+clear all;
 
 e = 0;
 
@@ -117,8 +117,11 @@ e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraPersonFoundDistanceThreshold
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraPersonFoundSpeedThreshold','boxwithpersonarea:nopersonfoundspeedthreshold','missing person found speed threshold');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraPersonSize','boxwithpersonarea:nopersonssize','missing person size');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraNumPersonsRange','boxwithpersonarea:nonumpersonsrange','missing person number range');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraPersonsInClass','boxwithpersonarea:nopersoninclassprob','missing person in class probabilities');
+e = e | loadBadlySpecifiedTask('TaskBadPlatformCameraPersonsInClass','boxwithpersonarea:badpersoninclassprob','bad person in class probabilities');
 e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraTerrainType','boxwithpersonarea:noterraintype','missing camera terrain type');
-e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraTerrainP','pourterrain:nop','missing camera terrain percentages');
+e = e | loadBadlySpecifiedTask('TaskNoPlatformCameraTerrainClassPercentages','pourterrain:noclasspercentages','missing camera terrain percentages');
+e = e | loadBadlySpecifiedTask('TaskBadPlatformCameraTerrainClassPercentages','pourterrain:badclasspercentages','bad camera terrain percentages');
 
 e = e | loadBadlySpecifiedTask('TaskNoGaussianDispersionA','gaussiandispersionplumearea:noa','missing a parameter in GaussianDispersionModel');
 e = e | loadBadlySpecifiedTask('TaskNoGaussianDispersionB','gaussiandispersionplumearea:nob','missing b parameter in GaussianDispersionModel');

@@ -14,9 +14,13 @@ classdef PourTerrain < handle
     
     methods (Access=public)
         function obj = PourTerrain(objparams)            
-            assert(isfield(objparams,'p'),'pourterrain:nop',...
-                'If using a terrain of type PourTerrain, the config file must define the array p'); 
-            obj.p=objparams.p;
+            assert(isfield(objparams,'classpercentages'),'pourterrain:noclasspercentages',...
+                'If using a terrain of type PourTerrain, the config file must define the array classpercentages'); 
+
+            assert(sum(objparams.classpercentages)<1,'pourterrain:badclasspercentages',...
+                'the sum of the terrain classpercentages parameters must be <1 since they are probabilities');
+            
+            obj.p=objparams.classpercentages;
             obj.simState = objparams.state;            
             obj.prngId = obj.simState.numRStreams+1;
             obj.simState.numRStreams = obj.simState.numRStreams + 1;
