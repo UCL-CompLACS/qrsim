@@ -18,7 +18,6 @@ state = qrsim.init('TaskSearchRescueTest');
 % create a 2 x helicopters matrix of control inputs
 % column i will contain the 3D NED velocity [vx;vy;vy] in m/s for helicopter i
 U = zeros(3,state.task.numUAVs);
-tstart = tic;
 
 % given that this is a test we know the person location
 % an the helicopter start location
