@@ -65,16 +65,16 @@ c.sensors.ahars.orientationEstimator.dt = 0.02;
 c.sensors.ahars.orientationEstimator.BETA = [1/100;1/100;1/100];       % noise time constant
 c.sensors.ahars.orientationEstimator.SIGMA = [0.0005;0.0005;0.0005];   % noise standard deviation
    
-c.sensors.ahars.altimeter.on = 1;         % if off the altimeter returns the noiseless altitude
+c.sensors.ahars.altimeter.on = 1;           % if off the altimeter returns the noiseless altitude
 c.sensors.ahars.altimeter.type = 'AltimeterGM';
 c.sensors.ahars.altimeter.dt = 0.02;
-c.sensors.ahars.altimeter.TAU = 300;      % noise time constant
-c.sensors.ahars.altimeter.SIGMA = 0.03;   % noise standard deviation
+c.sensors.ahars.altimeter.TAU = 300;        % noise time constant
+c.sensors.ahars.altimeter.SIGMA = 0.03;     % noise standard deviation
 
-c.sensors.plumesensor.on = 1;             % should always be on with PelicanWithPlumeSensor
-c.sensors.plumesensor.type = 'PlumeSensorG';
-c.sensors.plumesensor.dt = 0.5;
-c.sensors.plumesensor.SIGMA = 0.01;   % noise variance
+c.sensors.plumesensor.on = 1;               % should always be on with PelicanWithPlumeSensor
+c.sensors.plumesensor.type = 'PlumeSensorG';% type of plume sensor
+c.sensors.plumesensor.dt = 0.5;             % update rate of the plume sensor
+c.sensors.plumesensor.SIGMA = 0.01;         % noise variance
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 1;

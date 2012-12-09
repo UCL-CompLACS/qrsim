@@ -3,16 +3,18 @@ classdef GaussianPlumeArea<PlumeArea
     %
     % GaussianPlumeArea Methods:
     %    GaussianPlumeArea(objparams)   - constructs the object
-    %    reset()                        - does nothing
+    %    reset()                        - reset the model
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
-    %
-    
+    %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
+    %    getSamples(positions)          - returns concentration at positions
+    %    getLocations()                 - returns array of locations at which the prediction must be made
+    %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
+    %    
     properties (Access=protected)
         sigma;
         invSigma;
         detSigma;
-        source;
         angle;
         sigmaRange;
         prngId;
@@ -30,6 +32,8 @@ classdef GaussianPlumeArea<PlumeArea
             %               objparams.originutmcoords - structure containing the origin in utm coord
             %               objparams.graphics.type - class type for the graphics object
             %                                         (only needed if the 3D display is active)
+            %               objparams.graphics.backgroundimage - background image            
+            %               objparams.numreflocations - number of reference locations in space used for reward computation
             %               objparams.sourcesigmarange - min,max values for the width of the Gaussian concentration
             %                                         (with of the concentration along the principal axes is drawn
             %                                          randomly with uniform probability from the specified range)
@@ -61,13 +65,13 @@ classdef GaussianPlumeArea<PlumeArea
             % redraw a different plume pattern
             obj.init();
             % modify plot
-            obj.graphics.update(obj.simState,obj.source,[0;0;0],obj.locations,obj.referenceSamples);
+            obj.graphics.update(obj.simState,obj.sources,[0;0;0],obj.locations,obj.referenceSamples);
 	    obj.bootstrapped = 1;
         end
         
         function samples = getSamples(obj,positions)
             % compute the concentration at the requested locations
-            rsource = repmat(obj.source,1,size(positions,2));
+            rsource = repmat(obj.sources,1,size(positions,2));
             samples = obj.Q0*exp(-0.5*dot((positions-rsource),obj.invSigma*(positions-rsource),1));
         end
     end
@@ -93,7 +97,8 @@ classdef GaussianPlumeArea<PlumeArea
             limits = reshape(obj.limits,2,3)';
             lph = 0.5*(limits(:,2)+limits(:,1));
             lm = 0.8*(limits(:,2)-limits(:,1));
-            obj.source = lph+lm.*(rand(obj.simState.rStreams{obj.prngId},3,1)-0.5);
+            obj.numSources = 1;
+            obj.sources = lph+lm.*(rand(obj.simState.rStreams{obj.prngId},3,1)-0.5);
             
             % compute locations
             obj.computeLocations();
@@ -132,6 +137,7 @@ classdef GaussianPlumeArea<PlumeArea
         end
         
         function obj = computeReferenceSamples(obj)
+            % compute samples from the underlying model
             obj.referenceSamples = ((((2*pi)^3)*obj.detSigma)^0.5)*obj.getSamples(obj.locations);
         end
     end

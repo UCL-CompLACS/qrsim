@@ -1,15 +1,17 @@
-classdef TaskPlumeSingleSourceGaussian<Task
-    % Simple task in which only one helicopter is used for the sampling,
-    % its dynamic is deterministic, the state returned is the true platform
-    % state, the smoke concentration is static and has the form or a three dimensional
-    % Gaussian centered at the source
+classdef TestTaskPlumeSingleSourceGaussianDispersion<Task
+    % Plume mapping task in which only one helicopter is used
+    % for the sampling, its dynamics is stochastic and affected by wind disturbances
+    % (following a wind model), the state returned is a noisy estimate of the platform
+    % state (i.e. with additional correlated noise) and the smoke concentration is static
+    % and has the form specified by what is commonly called a Gaussian dispersion
+    % model.
     %
     % Note:
     % This task accepts control inputs in terms of 2D velocities,
     % in global coordinates.
     % qrsim.step(U);  where U = [vx; vy];
     %
-    % TaskPlumeSingleSourceGaussian methods:
+    % TaskPlumeSingleSourceGaussianDispersion methods:
     %   init()         - loads and returns the parameters for the various simulation objects
     %   reset()        - defines the starting state for the task
     %   updateReward() - updates the running costs (zero for this task)
@@ -22,7 +24,7 @@ classdef TaskPlumeSingleSourceGaussian<Task
     properties (Constant)
         numUAVs = 1;
         startHeight = -10;
-        durationInSteps = 1000;
+        durationInSteps = 100;
         PENALTY = 1000;      % penalty reward in case of collision
     end
     
@@ -36,11 +38,11 @@ classdef TaskPlumeSingleSourceGaussian<Task
     
     methods (Sealed,Access=public)
         
-        function obj = TaskPlumeSingleSourceGaussian(state)
+        function obj = TestTaskPlumeSingleSourceGaussianDispersion(state)
             obj = obj@Task(state);
         end
         
-        function taskparams=init(obj)
+        function taskparams=init(obj) 
             % loads and returns the parameters for the various simulation objects
             %
             % Example:
@@ -63,10 +65,13 @@ classdef TaskPlumeSingleSourceGaussian<Task
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
             taskparams.environment.area.limits = [-140 140 -140 140 -80 0];
-            taskparams.environment.area.type = 'GaussianPlumeArea';
-            taskparams.environment.area.sourcesigmarange = [3 20];
+            taskparams.environment.area.type = 'GaussianDispersionPlumeAreaForTesting';
+            taskparams.environment.area.a = 0.33; %dispersion parameter from [1]
+            taskparams.environment.area.b = 0.86; %dispersion parameter from [1]
+            taskparams.environment.area.numSourcesRange = [1,1]; %range of number of sources
+            taskparams.environment.area.QRange = [0.1,2.5];%*1e-3; %range of emission rates
             taskparams.environment.area.numreflocations = 100; %number of reference locations in space used for reward computation
-            
+           
             % originutmcoords is the location of the RVC (our usual flying site)
             % generally when this is changed gpsspacesegment.orbitfile and
             % gpsspacesegment.svs need to be changed
@@ -80,7 +85,7 @@ classdef TaskPlumeSingleSourceGaussian<Task
             
             % GPS
             % The space segment of the gps system
-            taskparams.environment.gpsspacesegment.on = 0; %% NO GPS NOISE!!!
+            taskparams.environment.gpsspacesegment.on = 1; 
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
@@ -105,14 +110,16 @@ classdef TaskPlumeSingleSourceGaussian<Task
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
-            taskparams.environment.wind.on = 0;  %% NO WIND!!!
+            taskparams.environment.wind.on = 1;  
+            taskparams.environment.wind.type = 'WindConstMean';
+            taskparams.environment.wind.direction = []; %mean wind direction, rad clockwise from north set to [] to initialise it randomly
+            taskparams.environment.wind.W6 = 3;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             for i=1:obj.numUAVs,
-                taskparams.platforms(i).configfile = 'pelican_config_plume_noiseless'; 
-            end
-            
+                taskparams.platforms(i).configfile = 'pelican_config_plume_noisy'; 
+            end            
         end
         
         function reset(obj)
@@ -162,9 +169,8 @@ classdef TaskPlumeSingleSourceGaussian<Task
         end
         
         function r=reward(obj)
-            % returns the total reward for this task
-            
-            assert(~isempty(obj.receivedSamples),'TaskPlumeSingleSourceGaussian:nosamples',...
+            % returns the total reward for this task            
+            assert(~isempty(obj.receivedSamples),'TaskPlumeSingleSourceGaussianDispersion:nosamples',...
                 'Before asking for a task reward, return a set of sample concentrations using setConcentrations(s)');
             
             valid = 1;
@@ -192,7 +198,9 @@ classdef TaskPlumeSingleSourceGaussian<Task
             % returns true samples from the underlying model
             % this should be used only for debugging 
             rs = obj.simState.environment.area.getReferenceSamples();
-        end
-    end
-    
+        end        
+    end    
 end
+
+%[1] JOHN M. STOCKIE  The Mathematics of Atmospheric Dispersion Modeling SIAM REVIEW Vol. 53, No. 2, pp. 349–372
+

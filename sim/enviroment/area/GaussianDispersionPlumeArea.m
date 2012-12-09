@@ -2,12 +2,15 @@ classdef GaussianDispersionPlumeArea<PlumeArea
     % Defines a simple box shaped area in which is present a plume that is emitted at constant rate
     % the resulting concentration is described by a cone like concentration pattern oriented downwind
     %
-    %
     % GaussianDispersionPlumeArea Methods:
     %    GaussianDispersionPlumeArea(objparams)   - constructs the object
-    %    reset()                        - does nothing
+    %    reset()                        - reset the model
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
+    %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
+    %    getSamples(positions)          - returns concentration at positions
+    %    getLocations()                 - returns array of locations at which the prediction must be made
+    %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
     %
     
     properties (Access=public)
@@ -16,8 +19,6 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         a;
         b;
         u;
-        numSources;
-        sources;
         numSourcesRange;
         C;
         iPrngId;
@@ -36,6 +37,8 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             %               objparams.originutmcoords - structure containing the origin in utm coord
             %               objparams.graphics.type - class type for the graphics object
             %                                         (only needed if the 3D display is active)
+            %               objparams.graphics.backgroundimage - background image
+            %               objparams.numreflocations - number of reference locations in space used for reward computation
             %               objparams.sourceSigmaRange - min,max values for the width of the Gaussian concentration
             %                                         (with of the concentration along the principal axes is drawn
             %                                          randomly with uniform probability from the specified range)
@@ -88,11 +91,11 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             obj.computeReferenceSamples();
             obj.graphics.update(obj.simState,obj.sources,obj.vmean,obj.locations,obj.referenceSamples);
 
-	    obj.bootstrapped = 1;
+            obj.bootstrapped = 1;
         end
         
         function c = getSamples(obj,pos)
-            % compute the concentration at the requested locations
+            % returns the concentration at the requested locations
             
             n = size(pos,2);
             c = zeros(1,n);
@@ -151,11 +154,11 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 'If using a GaussianDispersionPlumeArea, the wind must be turned on ond obj.W6 must be positive');
             
             % rotation body to wind frame
-            obj.C=[obj.vmean(1),obj.vmean(2);-obj.vmean(2),obj.vmean(1)]./obj.u;
-            
+            obj.C=[obj.vmean(1),obj.vmean(2);-obj.vmean(2),obj.vmean(1)]./obj.u;            
         end
         
         function obj=computeReferenceSamples(obj)
+            % computes a set of samples from the model used by the simulator
             obj.referenceSamples = obj.getSamples(obj.locations);
         end
         

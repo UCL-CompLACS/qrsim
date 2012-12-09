@@ -16,6 +16,9 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
     %   updateReward() - updates the running costs (zero for this task)
     %   reward()       - computes the final reward for this task
     %   step()         - computes pitch, roll, yaw, throttle  commands from the user dVn,dVe commands
+    %   getLocations()                 - returns array of locations at which the prediction must be made
+    %   getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
+    %   setSamples()        - returns the predictions to the task so that a reward can be computed
     %
     properties (Constant)
         numUAVs = 3;
@@ -38,7 +41,7 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
             obj = obj@Task(state);
         end
         
-        function taskparams=init(obj) %#ok<MANU>
+        function taskparams=init(obj) 
             % loads and returns the parameters for the various simulation objects
             %
             % Example:
@@ -131,7 +134,7 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
                 obj.simState.platforms{i}.setX([px;py;obj.startHeight;0;0;0]);
                 obj.initialX{i} = obj.simState.platforms{i}.getX();
                                
-                obj.velPIDs{i} = VelocityHeightPID(obj.simState.DT);
+                obj.velPIDs{i} = VelocityPID(obj.simState.DT);
             end
         end
         
@@ -140,9 +143,9 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
             UU=zeros(5,length(obj.simState.platforms));
             for i=1:length(obj.simState.platforms),
                 if(obj.simState.platforms{i}.isValid())
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-10,0);
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),0);
                 else
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],-10,0);
+                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0;0],0);
                 end
             end
         end
@@ -187,10 +190,13 @@ classdef TaskPlumeMultiHeliMultiSourceGaussianDispersion<Task
         end
                         
         function spl = getSamplesPerLocation(obj)
-           spl = obj.simState.environment.area.getSamplesPerLocation();
+            % returns the number of samples to be returned for each of the locations             
+            spl = obj.simState.environment.area.getSamplesPerLocation();
         end
                         
         function rs = getReferenceSamples(obj)
+            % returns true samples from the underlying model
+            % this should be used only for debugging
             rs = obj.simState.environment.area.getReferenceSamples();
         end        
     end

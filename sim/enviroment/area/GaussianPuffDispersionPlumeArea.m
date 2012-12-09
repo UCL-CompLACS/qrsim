@@ -7,11 +7,14 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
     %
     % GaussianPuffDispersionPlumeArea Methods:
     %    GaussianPuffDispersionPlumeArea(objparams)   - constructs the object
-    %    reset()                        - does nothing
+    %    reset()                        - reset the model
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
-    %
-    
+    %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
+    %    getSamples(positions)          - returns concentration at positions
+    %    getLocations()                 - returns array of locations at which the prediction must be made
+    %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
+    %    
     properties (Constant)
         TIME_BETWEEN_REF_SAMPLES = 60;
     end
@@ -21,8 +24,6 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         a;
         b;
         u;
-        numSources;
-        sources;
         numSourcesRange;
         C;
         iPrngId;
@@ -44,6 +45,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             %               objparams.originutmcoords - structure containing the origin in utm coord
             %               objparams.graphics.type - class type for the graphics object
             %                                         (only needed if the 3D display is active)
+            %               objparams.graphics.backgroundimage - background image            
             %               objparams.sourceSigmaRange - min,max values for the width of the Gaussian concentration
             %                                         (with of the concentration along the principal axes is drawn
             %                                          randomly with uniform probability from the specified range)
@@ -53,6 +55,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             %               objparams.b - diffusion paramter
             %               objparams.state - handle to the simulator state
             %               objparams.mu - mean interemission time
+            %               objparams.numsamplesperlocations - number of samples to be returned for each of the locations
             %
             obj=obj@PlumeArea(objparams);
             

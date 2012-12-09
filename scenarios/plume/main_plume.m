@@ -6,6 +6,10 @@
 % The plume follows a known model but with unknown parameter values.
 % The objective is to provide a smoke concentration estimate cT at some prespecified time T
 
+
+% REMINDER:
+% to turn of visualization set the task parameter taskparams.display3d.on to 0
+
 clear all
 close all
 
@@ -19,84 +23,72 @@ qrsim = QRSim();
 % load task parameters and do housekeeping
 %state = qrsim.init('TaskPlumeSingleSourceGaussian');
 %state = qrsim.init('TaskPlumeSingleSourceGaussianDispersion');
-state = qrsim.init('TaskPlumeMultiSourceGaussianDispersion');
+%state = qrsim.init('TaskPlumeMultiSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeMultiHeliMultiSourceGaussianDispersion');
-%state = qrsim.init('TaskPlumeSingleSourceGaussianPuffDispersion');
+state = qrsim.init('TaskPlumeSingleSourceGaussianPuffDispersion');
 %state = qrsim.init('TaskPlumeMultiSourceGaussianPuffDispersion');
 %state = qrsim.init('TaskPlumeMultiHeliMultiSourceGaussianPuffDispersion');
 
 
-% create a 2 x helicopters matrix of control inputs
-% column i will contain the 2D NED velocity [vx;vy] in m/s for helicopter i
-U = zeros(2,state.task.numUAVs);
+% create a 3 x helicopters matrix of control inputs
+% column i will contain the 3D NED velocity [vx;vy;vz] in m/s for helicopter i
+U = zeros(3,state.task.numUAVs);
 tstart = tic;
 
-hf = figure(2);
-hp = plot(0,0);
-
+% allocate up a matrix to store all the concentration measuremenst
 plumeMeas = zeros(state.task.numUAVs,state.task.durationInSteps);
 
-if(state.display3dOn)
-    fprintf('Note:by default when the display is on, the task run at real time speed\n');
-    fprintf('in order to allow matlab some time to run its plot refresh thread\n');
-end
-
+% get from the task the list of location the agent needs to return
+% precdictions at.
 positions = state.task.getLocations();
+
+% numbero of predictions the agent needs to return for each location,
+% this will be > 1 only if the concentration is time variant i.e. a puff
+% model
 samplesPerLocation = state.task.getSamplesPerLocation();
-samples = zeros(samplesPerLocation,size(positions,2));
+
+
+% allocate temporary array for control inputs
+u = zeros(2,state.task.numUAVs);
 
 % run the scenario and at every timestep generate a control
-% input for each of the helicopters
-
-u = zeros(2,state.task.numUAVs);
-if(samplesPerLocation==1)
-    nn = state.task.durationInSteps;
-else
-    nn = samplesPerLocation;
-end
-
-for i=1:nn,
-    tloop=tic;
+% input for each of the uavs
+% note: the duration of the task might need changing depending
+% on the way the learning is carried out
+for i=1:state.task.durationInSteps,
+    tloop=tic; 
     
     % a basic policy in which the helicopter(s) moves around
-    % at the max velocity changing direction every once in a while
-    
+    % at a fix velocity changing direction every once in a while    
+    % to make our life easier vz is always 0.
     if(rem(i-1,10)==0)
-        for j=1:state.task.numUAVs,            
-            if(i<2)
+        for j=1:state.task.numUAVs,
+            
+            % one should alway make sure that the uav is valid 
+            % i.e. no collision or out of area event happened
+            if(state.platforms{j}.isValid())                
                 % random velocity direction
                 u(:,j) = rand(2,1)-[0.5;0.5];
-            else
-                if(plumeMeas(j,i-2)> plumeMeas(j,i-1))
-                    u(:,j) = -u(:,j);
-                else
-                    u(:,j) = rand(2,1)-[0.5;0.5];
-                end
-            end                       
-            % scale by the max allowed velocity
-            U(:,j) = state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));
+            
+                % scale by the max allowed velocity
+                U(:,j) = [0.5*state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));0];
+                                
+                % if the uav is going astray we point it back to the center
+                p = state.platforms{j}.getEX(1:2);
+                if(norm(p)>100)
+                    U(:,j) = [-0.8*state.task.velPIDs{j}.maxv*p/norm(p);0];
+                end    
+            end
         end
     end
     
     % step simulator
     qrsim.step(U);
-    
-    samples(i,:)=state.environment.area.getSamples(positions);
+
     % get plume measurement
     for j=1:state.task.numUAVs,
         plumeMeas(j,i)=state.platforms{j}.getPlumeSensorOutput();
     end
-    
-    %     positions = state.task.getLocations();
-    %     samples = state.environment.area.getSamples(positions);
-    %     set(0,'CurrentFigure',hf)
-    %     t = (1:size(positions,2));
-    %     set(hp,'Xdata',t);
-    %     set(hp,'Ydata',samples);
-    %     axis([0 300 0 2]);
-    t = (1:i)*state.task.dt;
-    set(hp,'Xdata',t);
-    set(hp,'Ydata',plumeMeas(1,1:i));
     
     if(state.display3dOn)
         % wait so to run in real time
@@ -106,47 +98,22 @@ for i=1:nn,
     end
 end
 
-% query at what locations we need to make predictions of concentration
-positions = state.task.getLocations();
-
-% query how many samples we need per location
-samplesPerLocation = state.task.getSamplesPerLocation();
+% allocate a matrix to store all the predictions made by the agent
+samples = zeros(samplesPerLocation,size(positions,2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% for the purpouse of demonstration, we CHEAT and use samples
-%%% generated by the environment itself (i.e. perfect estimation)
-%samples = zeros(samplesPerLocation,size(positions,2));
-refSamples = state.environment.area.getReferenceSamples();
+%%% generated by the environment itself (i.e. perfect estimations)
+samples = state.environment.area.getReferenceSamples();
 %%% in a real experiment getReferenceSamples should not be used and
 %%% the samples should come from the and model that the agent has
 %%% somehow estimated
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-figure(3);
-m = sqrt(size(positions,2));
-for r=1:m,
-    for c=1:m,
-        n = (r-1)*m+c;
-        h = subplot(m,m,n);
-        Y = samples(:,n);
-        hist(h,Y);
-    end
-end
-
-figure(4);
-for r=1:m,
-    for c=1:m,
-        n = (r-1)*m+c;
-        h = subplot(m,m,n);
-        Y = refSamples(:,n);
-        hist(h,Y);
-    end
-end
-
-% set the samples so that the task can compute a reward
+% pass the sample to the task so that a reward can compute a reward
 state.task.setSamples(samples);
 
-% get final reward, this works only after the samples have been set.
+% get final reward (mnote: this works only after the samples have been set!).
 % reminder: a large negative final reward (-1000) is returned in case of
 % collisions or in case of any uav going outside the flight area
 fprintf('final reward: %f\n',qrsim.reward());

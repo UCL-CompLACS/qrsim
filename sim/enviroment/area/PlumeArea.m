@@ -8,14 +8,17 @@ classdef PlumeArea<Area
     %    getLimits()                    - returns limits
     %    isGraphicsOn()                 - returns true if there is a graphics objec associate with the area
     %    getSamples(positions)          - returns concentration at positions
+    %    getLocations()                 - returns array of locations at which the prediction must be made
+    %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
     %
-    
     properties (Access=protected)  
         cepsilon;
         locations;
         referenceSamples;
         numRefLocations;
         numSamplesPerLocation;
+        sources;
+        numSources;
     end
     
     methods (Sealed,Access=public)
@@ -39,21 +42,33 @@ classdef PlumeArea<Area
         end         
         
         function locations = getLocations(obj)
+            % returns array of locations at which the prediction
+            % must be made
             locations = obj.locations;
         end
         
         function spl = getSamplesPerLocation(obj)
+            % return the number of samples to be returned for each of the
+            % locations
             spl = obj.numSamplesPerLocation;
         end
         
         function rs = getReferenceSamples(obj)
+            % returns a set of samples from the model used by the simulator
+            % i.e. correct samples. This is used only for debugging
             rs = obj.referenceSamples;
+        end
+        
+        function sources = getSources(obj)
+            % returns the position of the sources
+            % this is used only for debugging
+            sources = obj.sources;
         end
     end   
     
     methods (Abstract,Access=public)            
         samples = getSamples(obj,positions)
-        % returns concentration at positions
+        % returns concentration at the specified positions
     end
     
     methods (Abstract,Access=protected)
