@@ -11,6 +11,9 @@
 % (within reason) around the mouse; the mouse moves at a constant (max) speed
 % and uses a predefined control law which pays more heed to cats that are close by.
 
+% REMINDER:
+% to turn of visualization set the task parameter taskparams.display3d.on to 0
+
 clear all
 close all
 
@@ -36,14 +39,16 @@ U = zeros(2,state.task.Nc);
 tstart = tic;
 
 % run the scenario and at every timestep generate a control
-% input for each of the cats
+% input for each of the uavs
+% note: the duration of the task might need changing depending
+% on the way the learning is carried out
 for i=1:state.task.durationInSteps,
     tloop=tic;
     
     % get the mouse position (note id state.task.Nc+1)
     mousePos = state.platforms{state.task.Nc+1}.getEX(1:2);
     
-    % a quick and easy way of computing velocity controls for each cat (which almost never works); 
+    % as example we use a quick and easy way of computing velocity controls for each cat; 
     % REPLACE IT with your control/learning algorithm.
     % (Note that for simplicity this control law tries to catch the mouse
     % as soon as possible and not simply at the end of the allotted time.)
@@ -56,9 +61,13 @@ for i=1:state.task.durationInSteps,
         
         % keep away from other cats if closer than 2*collisionDistance
         for k = 1:state.task.Nc,
-            d = state.platforms{j}.getEX(1:2) - state.platforms{k}.getEX(1:2);
-            if((k~=j)&&(norm(d)<2*state.platforms{j}.getCollisionDistance()))
-                u = u + (1/(norm(d)-state.platforms{j}.getCollisionDistance()))*(d/norm(d));
+            % one should alway make sure that the uav is valid 
+            % i.e. no collision or out of area event happened
+            if(state.platforms{k}.isValid())                  
+                d = state.platforms{j}.getEX(1:2) - state.platforms{k}.getEX(1:2);
+                if((k~=j)&&(norm(d)<2*state.platforms{j}.getCollisionDistance()))
+                    u = u + (1/(norm(d)-state.platforms{j}.getCollisionDistance()))*(d/norm(d));
+                end
             end
         end
         

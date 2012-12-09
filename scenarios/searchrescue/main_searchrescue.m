@@ -9,7 +9,10 @@
 % than raw images the camera module provides higher-level data in the form of likelihood
 % ratios of the current image conditioned on the presence or absence of a target.
 
-% clear all
+% REMINDER:
+% to turn of visualization set the task parameter taskparams.display3d.on to 0
+
+clear all
 close all
 
 % include simulator
@@ -27,24 +30,38 @@ state = qrsim.init('TaskSearchRescueMultipleNoisyAndWindy');
 
 
 % create a 3 x helicopters matrix of control inputs
-% column i will contain the 2D NED velocity [vx;vy;vz] in m/s for helicopter i
+% column i will contain the 3D NED velocity [vx;vy;vz] in m/s for helicopter i
 U = zeros(3,state.task.numUAVs);
 tstart = tic;
 
+% allocate temporary array for control inputs
+u = zeros(2,state.task.numUAVs);
+
 % run the scenario and at every timestep generate a control
 % input for each of the uavs
-u = zeros(2,state.task.numUAVs);
+% note: the duration of the task might need changing depending
+% on the way the learning is carried out
 for i=1:state.task.durationInSteps,
     tloop=tic;
     
-    % a basic randon search policy in which the helicopter(s) moves around
+    % as example we have a random search policy in which the helicopter(s) moves around
     % at a fixed velocity changing direction every once in a while    
     if(rem(i-1,10)==0)
-        for j=1:state.task.numUAVs,            
-            % random velocity direction
-            u(:,j) = rand(2,1)-[0.5;0.5];
-            % scale by the max allowed velocity
-            U(:,j) = [0.5*(u(:,j)/norm(u(:,j)));0];
+        for j=1:state.task.numUAVs,     
+            % one should alway make sure that the uav is valid 
+            % i.e. no collision or out of area event happened
+            if(state.platforms{j}.isValid()) 
+                % random velocity direction
+                u(:,j) = rand(2,1)-[0.5;0.5];
+                % fixed velocity 0.5 times max allowed velocity
+                U(:,j) = [0.5*state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));0];
+                
+                % if the uav is going astray we point it back to the center
+                p = state.platforms{j}.getEX(1:2);
+                if(norm(p)>100)
+                    U(:,j) = [-0.8*state.task.velPIDs{j}.maxv*p/norm(p);0];
+                end
+            end
         end
     end
     
@@ -74,14 +91,11 @@ for i=1:state.task.durationInSteps,
     r = qrsim.reward();
     
     if(state.display3dOn)
-        % wait so to run in real time
-        % this can be commented out obviously
+        % wait so to run in real time if the rendering is on
         wait = max(0,state.task.dt-toc(tloop));
         pause(wait);
     end
-    pause(0.1);
 end
-
 
 elapsed = toc(tstart);
 fprintf('running %d times real time\n',(state.task.durationInSteps*state.task.dt)/elapsed);
