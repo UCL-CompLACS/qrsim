@@ -2,7 +2,7 @@ function e = testPIDs() %#ok<*AGROW>
 %TESTPIDS Summary of this function goes here
 %   Detailed explanation goes here
 
-plots = 1;
+plots = 0;
 
 cd('pids');
 
@@ -25,7 +25,7 @@ tola = pi/36;
 
 e = 0;
 
-addpath('../../controllers');
+addpath(['..',filesep,'..',filesep,'controllers']);
 
 % number of steps we run the simulation for
 N = 600;
@@ -183,7 +183,7 @@ tola = 0.1;
 
 e = 0;
 
-addpath('../../controllers');
+addpath(['..',filesep,'..',filesep,'controllers']);
 
 % number of steps we run the simulation for
 N = 400;
@@ -341,7 +341,7 @@ tola = 0.1;
 
 e = 0;
 
-addpath('../../controllers');
+addpath(['..',filesep,'..',filesep,'controllers']);
 
 
 % create simulator object
@@ -507,7 +507,7 @@ tola = 0.1;
 
 e = 0;
 
-addpath('../../controllers');
+addpath(['..',filesep,'..',filesep,'controllers']);
 
 % number of steps we run the simulation for
 N = 700;

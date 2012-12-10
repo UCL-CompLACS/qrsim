@@ -1,27 +1,33 @@
 classdef AnglesHeightPID<handle
-    %  AnglesHeightPID simple nested loops PID controller that can fly a quadrotor
-    %  given a target height and a reference heading.
-    
+    % simple nested loops PID controller that can fly a quadrotor
+    % given a target height and a reference heading.
+    % The platform axes are considered decoupled.
+    %
+    % AnglesHeightPID methods:
+    %   computeU(obj,X,desAngles,desZ,desPsi) - computes the control signals given the current state, 
+    %                                           desired angles, heading and altitude
+    %   reset()                               - reset controller
+    %
     properties (Access=protected)
         iz;  % altitude controller integrator state
         ez;  % altitude error
         wp;  % current waypoint
         DT;  % control timestep
+        sp;  % previous set point
     end
     
     properties (Constant)
-        Kv = 0.09;
-        maxtilt = 0.34;
-        Kya = 6;
-        maxyawrate = 4.4;
-        Kiz = 0.0008;
-        Kpz = 0.03;
-        Kdz = 0.04;
-        th_hover = 0.59;
+        Kv = 0.09;        % xy velocity proportional constant 
+        maxtilt = 0.34;   % max pitch/roll angle
+        Kya = 6;          % yaw proportional constant
+        maxyawrate = 4.4; % max allowed yaw rate
+        Kiz = 0.0008;     % altitude integrative constant
+        Kpz = 0.03;       % altitude proportional constant     
+        Kdz = 0.04;       % altitude derivative constant
+        th_hover = 0.59;  % throttle hover offset
     end
     
-    methods (Access = public)
-        
+    methods (Access = public)        
         function obj = AnglesHeightPID(DT)
             %  Creates a AnglesHeightPID object:
             %      
@@ -32,7 +38,8 @@ classdef AnglesHeightPID<handle
             obj.DT = DT;
             obj.iz = 0;
             obj.ez = 0;
-            obj.wp = [0,0,0,0];
+            obj.wp = seros(4,1);
+            obj.sp = seros(4,1);
         end
         
         function U = computeU(obj,X,desAngles,desZ,desPsi)
@@ -54,7 +61,13 @@ classdef AnglesHeightPID<handle
             %       desZ - desired altitude (negative upwards)
             %       desPsi - desired platform heading (psi)
             %       U  - computed controls [pt;rl;th;ya;vb]
-            %  
+            %                                             
+            if(~all(obj.sp==[desAngles;desZ;desPsi]))
+                spChange=1;
+                obj.sp = [desAngles;desZ;desPsi];
+            else
+                spChange = 0;
+            end
             
             psi = X(6);
            
@@ -64,7 +77,7 @@ classdef AnglesHeightPID<handle
             ez_ = -(desZ - z);
             
             obj.iz = obj.iz + ez_ *obj.DT;
-            if(~wpChange)
+            if(~spChange)
                 de_ = (ez_ - obj.ez)/obj.DT;
             else
                 %disp('wp change');
@@ -85,10 +98,20 @@ classdef AnglesHeightPID<handle
             U(5,1) = 12; % set the voltage to a level that will not trigger saturations
         end
         
+        function obj = reset(obj)
+            % reset controller
+            %
+            % use:
+            %  pid.reset();
+            %
+            obj.iz = 0;
+            obj.sp = zeros(4,1);
+        end
     end
     
     methods (Static)
         function v = limit(v, minval, maxval)
+            % constrain value between minval and maxval
             if(v<minval)
                 v = minval;
             elseif (v>maxval)

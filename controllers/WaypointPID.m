@@ -1,7 +1,13 @@
 classdef WaypointPID<handle
-    %  WaypointPID simple nested loops PID controller that can fly a quadrotor
-    %  given a target waypoint (wp). The platform axes are considered decoupled.
-    
+    % simple nested loops PID controller that can fly a quadrotor
+    % given a target waypoint (wp). 
+    % The platform axes are considered decoupled.
+    %
+    % WaypointPID methods:
+    %   computeU(obj,X,wp,desPsi)    - computes the control signals given the current state, 
+    %                                  desired destibnation and heading
+    %   reset()                      - reset controller
+    %
     properties (Access=protected)
         iz;  % altitude controller integrator state
         ez;  % altitude error
@@ -10,15 +16,16 @@ classdef WaypointPID<handle
     end
     
     properties (Constant)
-        Kxy =0.9;
-        Kv = 0.09;
-        maxtilt = 0.34;
-        Kya = 6;
-        maxyawrate = 4.4;
-        Kiz = 0.0008;
-        Kpz = 0.03;
-        Kdz = 0.04;
-        th_hover = 0.59;
+        Kxy = 0.9;          % position proportional constant
+        Kv = 0.09;          % velocity proportional constant   
+        Kiz = 0.0008;       % altitude integrative constant
+        Kpz = 0.03;         % altitude proportional constant   
+        Kdz = 0.04;         % altitude derivative constant        
+        th_hover = 0.59;    % throttle hover offset
+        maxtilt = 0.34;     % max pitch/roll angle
+        Kya = 6;            % yaw proportional constant
+        maxyawrate = 4.4;   % max allowed yaw rate
+        maxv = 3;           % max allowed xy velocity
     end
     
     methods (Access = public)
@@ -132,6 +139,11 @@ classdef WaypointPID<handle
         end
         
         function obj = reset(obj)
+            % reset controller
+            %
+            % use:
+            %  pid.reset();
+            %
             obj.iz = 0;
             obj.ez = 0;
             obj.wp = [0;0;0];           
@@ -140,6 +152,7 @@ classdef WaypointPID<handle
     
     methods (Static)
         function v = limit(v, minval, maxval)
+            % constrain value between minval and maxval
             if(v<minval)
                 v = minval;
             elseif (v>maxval)

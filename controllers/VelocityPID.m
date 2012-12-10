@@ -1,27 +1,32 @@
 classdef VelocityPID<handle
-    % VelocityPID simple nested loops PID controller that can fly a quadrotor
+    % simple nested loops PID controller that can fly a quadrotor
     % given a 3D target velocity vector in global coordinates (NED).
     % The platform axes are considered decoupled.
-    
+    %
+    % VelocityPID methods:
+    %   computeU(obj,X,desVelNED,desPsi) - computes the control signals given the current state, 
+    %                                      desired velocity, heading and altitude
+    %   reset()                          - reset controller
+    %
     properties (Access=protected)
-        DT;  % control timestep
-        ei;
-        ePast;
-        sp;
+        DT;    % control timestep
+        ei;    % integrator state
+        ePast; % past error state  
+        sp;    % past set point  
     end
     
     properties (Constant)
-        Kvp = 0.25;
-        Kvi = 0.003; 
-        Kvd = 0.05;
-        Kwp = -0.2;
-        Kwi = -0.002;
-        Kwd = -0.0;
-        maxtilt = 0.34;
-        th_hover = 0.59;
-        Kya = 6;
-        maxyawrate = 4.4; 
-        maxv = 3;
+        Kvp = 0.25;         % xy velocity proportional constant 
+        Kvi = 0.003;        % xy velocity integrative constant 
+        Kvd = 0.05;         % xy velocity derivative constant
+        Kwp = -0.2;         % z velocity proportional constant 
+        Kwi = -0.002;       % z velocity integrative constant 
+        Kwd = -0.0;         % z velocity derivative constant
+        th_hover = 0.59;    % throttle hover offset
+        maxtilt = 0.34;     % max pitch/roll angle
+        Kya = 6;            % yaw proportional constant
+        maxyawrate = 4.4;   % max allowed yaw rate
+        maxv = 3;           % max allowed xy velocity
     end
     
     methods (Access = public)
@@ -132,6 +137,11 @@ classdef VelocityPID<handle
         end     
         
         function obj = reset(obj)
+            % reset controller
+            %
+            % use:
+            %  pid.reset();
+            %
             obj.ei = zeros(3,1);
             obj.ePast = zeros(3,1);
             obj.sp = zeros(3,1);
@@ -140,6 +150,7 @@ classdef VelocityPID<handle
     
     methods (Static)
         function v = limit(v, minval, maxval)
+            % constrain value between minval and maxval
             if(v<minval)
                 v = minval;
             elseif (v>maxval)

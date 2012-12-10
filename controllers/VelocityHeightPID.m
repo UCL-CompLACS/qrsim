@@ -1,30 +1,34 @@
 classdef VelocityHeightPID<handle
-    %  VelocityHeightPID simple nested loops PID controller that can fly a quadrotor
-    %  given a target 2D velocity and a reference height and heading.
-    
+    % simple nested loops PID controller that can fly a quadrotor
+    % given a target 2D velocity and a reference height and heading.
+    % The platform axes are considered decoupled.
+    %
+    % VelocityHeightPID methods:
+    %   computeU(obj,X,desVelNE,desZ,desPsi) - computes the control signals given the current state, 
+    %                                          desired velocity, heading and altitude
+    %   reset()                              - reset controller
+    %
     properties (Access=protected)
-        DT;  % control timestep
-        ei;
-        ePast;           
-        iz;
-        ez;
-        sp;
+        DT;    % control timestep
+        ei;    % integrator state
+        ePast; % past error state          
+        iz;    % altitude integrator state
+        ez;    % past altitude error 
+        sp;    % past set point     
     end
     
     properties (Constant)
-        Kvp = 0.25;
-        Kvi = 0.003; 
-        Kvd = 0.05;
-        
-        Kiz = 0.0008;
-        Kpz = 0.03;
-        Kdz = 0.04;
-        th_hover = 0.59;
-        
-        maxtilt = 0.34;
-        Kya = 6;
-        maxyawrate = 4.4; 
-        maxv = 3;
+        Kvp = 0.25;         % xy velocity proportional constant 
+        Kvi = 0.003;        % xy velocity integrative constant 
+        Kvd = 0.05;         % xy velocity derivative constant          
+        Kiz = 0.0008;       % altitude integrative constant
+        Kpz = 0.03;         % altitude proportional constant   
+        Kdz = 0.04;         % altitude derivative constant
+        th_hover = 0.59;    % throttle hover offset
+        maxtilt = 0.34;     % max pitch/roll angle
+        Kya = 6;            % yaw proportional constant
+        maxyawrate = 4.4;   % max allowed yaw rate
+        maxv = 3;           % max allowed xy velocity
     end
     
     methods (Access = public)
@@ -143,6 +147,11 @@ classdef VelocityHeightPID<handle
         end     
         
         function obj = reset(obj)
+            % reset controller
+            %
+            % use:
+            %  pid.reset();
+            %
             obj.ei = zeros(3,1);
             obj.ePast = zeros(3,1);
             obj.iz = 0;
@@ -153,6 +162,7 @@ classdef VelocityHeightPID<handle
     
     methods (Static)
         function v = limit(v, minval, maxval)
+            % constrain value between minval and maxval
             if(v<minval)
                 v = minval;
             elseif (v>maxval)
