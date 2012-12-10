@@ -22,7 +22,7 @@ classdef Steppable<handle
     properties (Access=protected)
         dt;          % timestep of this object
         simState;    % handle to the simulator state
-        bootstrapped;
+        bootstrapped;% one if the object has been created and reset appropriately
     end
     
     methods (Sealed,Access=public)

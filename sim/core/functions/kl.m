@@ -1,6 +1,7 @@
 function [ klest ] = kl(P,Q)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%KLEST Estimates KL divergence
+% estimates the KL divergence between two distributions P and Q represented
+% as a set of samples
 
 d = size(P,2);
 n = size(P,1);
