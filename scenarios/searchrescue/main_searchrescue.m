@@ -4,7 +4,7 @@
 % as a quick remainder, in this task targets (people) are lost/injured on 
 % the ground in a landscape and need to be located and rescued. 
 % A helicopter agent is equipped with a camera/classification module
-% for predicting the position of targets in its field of vision, but the quality of predictions
+% for observing the position of targets in its field of vision, but the quality of observations
 % depend upon the geometry between helicopter and ground (e.g. the distance). Rather
 % than raw images the camera module provides higher-level data in the form of likelihood
 % ratios of the current image conditioned on the presence or absence of a target.
@@ -87,7 +87,7 @@ for i=1:state.task.durationInSteps,
     end   
     
     % fetch reward (1 as soon as we hovering close enough to a person, soon
-    % after the person disappears)
+    % after the person will disappear)
     r = qrsim.reward();
     
     if(state.display3dOn)

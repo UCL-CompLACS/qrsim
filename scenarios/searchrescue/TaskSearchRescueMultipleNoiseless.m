@@ -1,38 +1,40 @@
 classdef TaskSearchRescueMultipleNoiseless<Task
     % Simple task in which targets (people) are lost/injured on 
     % the ground in a landscape and need to be located and rescued. 
-    % A single helicopter agent is equipped with a camera/classification module
-    % for predicting the position of targets in its field of vision, but the quality of predictions
-    % depend upon the geometry between helicopter and ground (e.g. the distance). Rather
-    % than raw images the camera module provides higher-level data in the form of likelihood
+    % Several helicopter agents are equipped with a camera/classification module
+    % for observing the position of targets in its field of vision, but the
+    % quality of observation depends upon the geometry between helicopter and ground (e.g. the distance).
+    % Rather than raw images the camera module provides higher-level data in the form of likelihood
     % ratios of the current image conditioned on the presence or absence of a target.
-    % Finally in this task all the sensors are noiseless and the wind is
-    % turned off.
+    % Finally in this task all the sensors are noiseless and the wind is turned off.
     %
     % Note:
-    % This task accepts control inputs (for each uav) in terms of 2D velocities,
-    % in global coordinates. So in the case of three cats one would use
+    % This task accepts control inputs (for each uav) in terms of 3D velocities,
+    % in global coordinates. So in the case of three uavs one would use
     % qrsim.step(U);  where U = [vx_1,vx_2,vx_3; vy_1,vy_2,vy_3];
     %
-    % TaskCatsMouseNoiseless methods:
+    % TaskSearchRescueMultipleNoiseless methods:
     %   init()         - loads and returns the parameters for the various simulation objects
     %   reset()        - defines the starting state for the task
-    %   updateReward() - updates the running costs (zero for this task)
-    %   reward()       - computes the final reward for this task
-    %   step()         - computes pitch, roll, yaw, throttle  commands from the user dVn,dVe commands
+    %   updateReward() - updates the running costs (empy method since the reward is not episodic)
+    %   reward()       - returns the current reward for this task
+    %   step()         - computes pitch, roll, yaw, throttle  commands from the user commands
     %
     properties (Constant)
-        numUAVs = 3;
-        startHeight = -45;
+        numUAVs = 3;           % number of uavs
+        startHeight = -45;     % initial uav height
         durationInSteps = 200; % steps are generally 1s
-        PENALTY = 1000;      % penalty reward in case of collision
+        PENALTY = 1000;        % penalty reward in case of collision
     end
     
     properties (Access=public)
-        prngId;   % id of the prng stream used to select the initial positions
         velPIDs;  % pid used to control the uavs
-        initialX;
-        headings;
+    end
+    
+    properties (Access=private)
+        prngId;   % id of the prng stream used to select the initial positions
+        initialX; % pid used to control the uavs
+        headings; % random uav headings
     end
     
     methods (Sealed,Access=public)
@@ -129,8 +131,13 @@ classdef TaskSearchRescueMultipleNoiseless<Task
         end
         
         function reset(obj)           
-            % uav randomly placed, but not too close to the edges of the area
-            
+            % initializes the task, generating new positions for persons and
+            % new initial positions fo the uavs
+            %
+            % note: this is generally called automatically by qrsim 
+            %
+
+            % uav randomly placed, but not too close to the edges of the area            
             obj.headings = pi*rand(obj.numUAVs,1);
             
             for i=1:obj.numUAVs,
@@ -152,7 +159,10 @@ classdef TaskSearchRescueMultipleNoiseless<Task
         end
         
         function UU = step(obj,U)
-            % compute the UAVs controls from the velocity inputs    
+            % computes the UAVs controls from the velocity inputs 
+            %
+            % note: this is generally called automatically by qrsim 
+            % 
             UU=zeros(5,length(obj.simState.platforms));
             for i=1:length(obj.simState.platforms),
                 if(obj.simState.platforms{i}.isValid())
@@ -163,14 +173,19 @@ classdef TaskSearchRescueMultipleNoiseless<Task
             end
         end
         
-        function updateReward(~,~)
-            % updates reward
+        function updateReward(obj,~)
+            % no reward update since the reward is not episodic
+            obj.currentReward = 0;
         end
         
         function r=reward(obj)
-            % returns the total reward for this task
-            % in this case simply the sum of the squared distances of the
-            % cats to the mouse (multiplied by -1)
+            % returns the reward at the current timestep
+            % in this case it is 1 if a person was found, and 
+            % -1/durationInSteps otherwise
+            %
+            % usage:
+            %   qrsi.reward();
+            %
             
             valid = 1;
             for i=1:length(obj.simState.platforms)
@@ -181,8 +196,10 @@ classdef TaskSearchRescueMultipleNoiseless<Task
                 justFound = obj.simState.environment.area.getPersonsJustFound();
                  
                 r = sum(sum(justFound));
-                 
-                r = obj.currentReward + r;
+                
+                if(r==0)
+                    r = -1/obj.durationInSteps;
+                end
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. one the helicopters is out of the area, there was a

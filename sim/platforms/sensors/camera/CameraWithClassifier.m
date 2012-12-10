@@ -291,7 +291,7 @@ classdef CameraWithClassifier < Sensor
                         lidx = (idx(1)-1)*nf(2)+idx(2);
                         
                         % if this there is already a person for this window
-                        % overwrite it only of the current is closer to the
+                        % overwrite it only if the current is closer to the
                         % center
                         curpid = inview(lidx);
  

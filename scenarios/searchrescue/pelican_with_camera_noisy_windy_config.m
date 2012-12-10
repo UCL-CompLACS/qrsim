@@ -1,4 +1,5 @@
 % This script defines all the typical parameters of an AscTec pelican quadrotor
+% in this case a camera is present and both sensor noise and wind are enabled
 % 
 % These paramters must be loaded using the function loadConfig and are then
 % passed to the platform constructor, which will take care of propagating the correct 
