@@ -27,12 +27,15 @@ tstart = tic;
 
 for i=1:N,
     tloop=tic;
-    % compute controls
-    U = pid.computeU(state.platforms{1}.getEX(),wp,0);
-    %U = [0;0.02;0.595;0;12];
-    % step simulator
-    qrsim.step(U);
-    
+    % one should alway make sure that the uav is valid
+    % i.e. no collision or out of area event happened
+    if(state.platforms{1}.isValid())
+        % compute controls
+        U = pid.computeU(state.platforms{1}.getEX(),wp,0);
+        %U = [0;0.02;0.595;0;12];
+        % step simulator
+        qrsim.step(U);
+    end
     % wait so to run in real time
     wait = max(0,state.task.dt-toc(tloop));
     pause(wait);

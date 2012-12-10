@@ -66,10 +66,16 @@ pid_real = VelocityHeightPID(state_real.DT);
 pid_sim = VelocityHeightPID(state_sim.DT);
 
 for i=1:N,
-    
+    % one should alway make sure that the uav is valid 
+    % i.e. no collision or out of area event happened
+    if(~state.platforms{1}.isValid()) 
+        disp('collision or out of bounds, stopping');
+        break;
+    end
     % get the "real world" platform state
     p1_state_real = state_real.platforms{1}.getEXasX();
     
+                
     % dumb exaustive search over possible actions
     max_reward = -Inf; best_action_idx = -1;    
     for j=1:size(dwp,1)
