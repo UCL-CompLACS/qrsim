@@ -69,7 +69,7 @@ c.sensors.ahars.altimeter.on = 1; % if off the altimeter returns the noiseless a
 c.sensors.ahars.altimeter.type = 'AltimeterGM';
 c.sensors.ahars.altimeter.dt = 0.02;
 
-c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
+c.sensors.ahars.altimeter.SIGMA = 0.003;       % noise standard deviation
 
 % Aerodynamic Turbulence
 c.aerodynamicturbulence.on = 0;

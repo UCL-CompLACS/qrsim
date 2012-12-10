@@ -69,7 +69,7 @@ c.sensors.ahars.altimeter.on = 0;             % if off the altimeter returns the
 c.sensors.ahars.altimeter.type = 'AltimeterGM';
 c.sensors.ahars.altimeter.dt = 0.02;
 c.sensors.ahars.altimeter.TAU = 300;          % noise time constant
-c.sensors.ahars.altimeter.SIGMA = 0.03;       % noise standard deviation
+c.sensors.ahars.altimeter.SIGMA = 0.003;       % noise standard deviation
 
 c.sensors.camera.on = 1;                      % should always be on with PelicanWithCamera
 c.sensors.camera.type = 'CameraWithClassifier';

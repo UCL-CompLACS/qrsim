@@ -69,7 +69,7 @@ c.sensors.ahars.altimeter.on = 1;           % if off the altimeter returns the n
 c.sensors.ahars.altimeter.type = 'AltimeterGM';
 c.sensors.ahars.altimeter.dt = 0.02;
 c.sensors.ahars.altimeter.TAU = 300;        % noise time constant
-c.sensors.ahars.altimeter.SIGMA = 0.03;     % noise standard deviation
+c.sensors.ahars.altimeter.SIGMA = 0.003;     % noise standard deviation
 
 c.sensors.plumesensor.on = 1;               % should always be on with PelicanWithPlumeSensor
 c.sensors.plumesensor.dt = 0.5;             % update rate of the plume sensor
