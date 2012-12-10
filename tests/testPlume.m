@@ -1,3 +1,4 @@
+function e = testPlume()
 % bare bone test for the plume scenario
 
 clear all
@@ -116,7 +117,9 @@ state.task.setSamples(samples);
 % get final reward, this works only after the samples have been set.
 if( qrsim.reward()<1e-6)
     disp('test plume scenario [PASSED]');
+    e = 0;
 else
     disp('test plume scenario [FAILED]');
+    e = 1;
 end
 
