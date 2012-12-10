@@ -3,23 +3,27 @@ classdef VelocityHeightPID<handle
     %  given a target 2D velocity and a reference height and heading.
     
     properties (Access=protected)
-        iz;  % altitude controller integrator state
-        ez;  % altitude error
-        wp;  % current waypoint
         DT;  % control timestep
-        lastDesZ;  % last "waypoint"
+        ei;
+        ePast;           
+        iz;
+        ez;
+        sp;
     end
     
     properties (Constant)
-        Kv = 0.15;
-        maxLim = [0.34;0.34;4.4]; %pitch, roll, yaw rate
-        Kya = 6;
-        maxtilt = 0.34;
-        maxyawrate = 4.4;
+        Kvp = 0.25;
+        Kvi = 0.003; 
+        Kvd = 0.05;
+        
         Kiz = 0.0008;
         Kpz = 0.03;
         Kdz = 0.04;
         th_hover = 0.59;
+        
+        maxtilt = 0.34;
+        Kya = 6;
+        maxyawrate = 4.4; 
         maxv = 3;
     end
     
@@ -33,10 +37,11 @@ classdef VelocityHeightPID<handle
             %      DT - control timestep (i.e. inverse of the control rate)
             %
             obj.DT = DT;
+            obj.ei = zeros(3,1);
+            obj.ePast = zeros(3,1);
             obj.iz = 0;
             obj.ez = 0;
-            obj.wp = [0,0,0,0];
-            obj.lastDesZ = 0;
+            obj.sp = [0;0;0];
         end
         
         function U = computeU(obj,X,desVelNE,desZ,desPsi)
@@ -59,89 +64,100 @@ classdef VelocityHeightPID<handle
             %       desZ - desired altitude (negatitive upwards)
             %       desPsi - desired platform heading (psi)
             %       U  - computed controls [pt;rl;th;ya;vb]
-            %
+            %       
             
-            if(~(obj.lastDesZ==desZ))
-                zChange=1;
-                obj.lastDesZ = desZ;
+            if(~all(obj.sp==[desVelNE;desZ]))
+                spChange=1;
+                obj.sp = [desVelNE;desZ];
             else
-                zChange = 0;
+                spChange = 0;
             end
             
             Cbn = dcm(X);
             
             if(length(X)==13)
-                uvp = [X(7:8);X(6)];
-                %u = X(7);
-                %v = X(8);
-                z = X(3);
+                % the input is X 
+                u = X(7);
+                v = X(8);                
+                z = X(3);                                                
             else
-                uvw = Cbn * X(18:20);
-                %u = uvw(1);
-                %v = uvw(2);
-                uvp = [uvw(1:2);X(6)];
-                z = -X(17);
+                % the input is eX
+                uvw = Cbn * [X(18:19);-X(20)];
+                u = uvw(1);
+                v = uvw(2); 
+                z = -X(17);            
             end
             
             % convert desired velocity to body frame.
-            vt = Cbn*[desVelNE;0];
-            desuvp=zeros(3,1);
-            for i=1:2
-                if(abs(vt(i))<obj.maxv)
-                    desuvp(i) = vt(i);
-                else
-                    desuvp(i) = sign(vt(i))*obj.maxv;
-                end
+            vt = Cbn*[desVelNE;0]; 
+            psi = X(6);
+            
+            despxdot = obj.limit( vt(1),-obj.maxv,obj.maxv);
+            e = (-(despxdot - u));
+            if(~spChange)
+                de = (e-obj.ePast(1))/obj.DT;
+            else
+                de =  0;
             end
-            desuvp(3)=desPsi;
+            desTheta = obj.Kvp*e+obj.Kvi*obj.ei(1)+obj.Kvd*de;
+            obj.ei(1) = obj.ei(1)+e;
+            obj.ePast(1) = e;
+            desTheta = obj.limit(desTheta,-obj.maxtilt,obj.maxtilt);
             
-            %psi = X(6);
+            despydot = obj.limit( vt(2),-obj.maxv,obj.maxv);
+            e = (despydot - v);
+            if(~spChange)
+                de = (e-obj.ePast(2))/obj.DT;
+            else
+                de =  0;
+            end
+            desPhi = obj.Kvp*e+obj.Kvi*obj.ei(2)+obj.Kvd*de;
+            obj.ei(2) = obj.ei(2)+e;
+            obj.ePast(2) = e;
+            desPhi = obj.limit(desPhi,-obj.maxtilt,obj.maxtilt);
             
-            % simple P controller on velocity with a cap on the max velocity and
-            % maxtilt
-            %desTheta = obj.Kv*(-(vt(1) - u));            
-            %desTheta = obj.limit(desTheta,-obj.maxtilt,obj.maxtilt);            
-            %desPhi = obj.Kv*(vt(2) - v);
-            %desPhi = obj.limit(desPhi,-obj.maxtilt,obj.maxtilt);
-            %ya = obj.limit(obj.Kya * (desPsi - psi),-obj.maxyawrate,obj.maxyawrate);  
-            
-            desTPY = [-obj.Kv;obj.Kv;obj.Kya].*(desuvp-uvp);
-                       
-            for i=1:3
-                if(abs(desTPY(i))>obj.maxLim(i))
-                    desTPY(i) = sign(desTPY(i))*obj.maxLim(i);
-                end
-            end            
+            ya = obj.limit(obj.Kya * (desPsi - psi),-obj.maxyawrate,obj.maxyawrate);
             
             % vertical controller is a full PID
             ez_ = -(desZ - z);
             
             obj.iz = obj.iz + ez_ *obj.DT;
-            if(~zChange)
+            if(~spChange)
                 de_ = (ez_ - obj.ez)/obj.DT;
             else
-                %disp('z change');
                 de_ =  0;
             end
             obj.ez = ez_;
             
             desth = obj.th_hover + obj.Kpz * ez_ + obj.Kiz * obj.iz + de_ * obj.Kdz;
-            if(desth<0)
-               th = 0;
-            elseif(desth>1)
-               th = 1;
-            else
-               th = desth; 
-            end
+            th = obj.limit(desth,0,1);
             
             % anti windup
-            obj.iz = obj.iz - (desth-th)*2;
+            obj.iz = obj.iz - (desth-th)*2;       
             
-            U(1:2,1) = desTPY(1:2);
+            U(1,1) = desTheta;
+            U(2,1) = desPhi;
             U(3,1) = th;
-            U(4,1) = desTPY(3);
+            U(4,1) = ya;
             U(5,1) = 12; % set the voltage to a level that will not trigger saturations
-        end
+        end     
         
+        function obj = reset(obj)
+            obj.ei = zeros(3,1);
+            obj.ePast = zeros(3,1);
+            obj.iz = 0;
+            obj.ez = 0;
+            obj.sp = [0;0;0];
+        end    
+    end
+    
+    methods (Static)
+        function v = limit(v, minval, maxval)
+            if(v<minval)
+                v = minval;
+            elseif (v>maxval)
+                v = maxval;
+            end
+        end
     end
 end

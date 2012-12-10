@@ -1,15 +1,22 @@
-classdef VelocityPID
+classdef VelocityPID<handle
     % VelocityPID simple nested loops PID controller that can fly a quadrotor
     % given a 3D target velocity vector in global coordinates (NED).
     % The platform axes are considered decoupled.
     
     properties (Access=protected)
         DT;  % control timestep
+        ei;
+        ePast;
+        sp;
     end
     
     properties (Constant)
-        Kv = 0.15;
-        Kw = -0.2;
+        Kvp = 0.25;
+        Kvi = 0.003; 
+        Kvd = 0.05;
+        Kwp = -0.2;
+        Kwi = -0.002;
+        Kwd = -0.0;
         maxtilt = 0.34;
         th_hover = 0.59;
         Kya = 6;
@@ -27,6 +34,9 @@ classdef VelocityPID
             %      DT - control timestep (i.e. inverse of the control rate)
             %
             obj.DT = DT;
+            obj.ei = zeros(3,1);
+            obj.ePast = zeros(3,1);
+            obj.sp = zeros(3,1);
         end
         
         function U = computeU(obj,X,desVelNED,desPsi)
@@ -50,6 +60,13 @@ classdef VelocityPID
             %       U  - computed controls [pt;rl;th;ya;vb]
             %           
             
+            if(~all(obj.sp==desVelNED))
+                spChange=1;
+                obj.sp = desVelNED;
+            else
+                spChange = 0;
+            end
+            
             Cbn = dcm(X);
             
             if(length(X)==13)
@@ -68,17 +85,41 @@ classdef VelocityPID
             % convert desired velocity to body frame.
             vt = Cbn*desVelNED; 
             psi = X(6);
-             
+            
             despxdot = obj.limit( vt(1),-obj.maxv,obj.maxv);
-            desTheta = obj.Kv*(-(despxdot - u));
+            e = (-(despxdot - u));            
+            if(~spChange)
+                de = (e-obj.ePast(1))/obj.DT;
+            else
+                de =  0;
+            end
+            desTheta = obj.Kvp*e+obj.Kvi*obj.ei(1)+obj.Kvd*de;
+            obj.ei(1) = obj.ei(1)+e;
+            obj.ePast(1) = e;
             desTheta = obj.limit(desTheta,-obj.maxtilt,obj.maxtilt);
             
             despydot = obj.limit( vt(2),-obj.maxv,obj.maxv);
-            desPhi = obj.Kv*(despydot - v);
+            e = (despydot - v);            
+            if(~spChange)
+                de = (e-obj.ePast(2))/obj.DT;            
+            else
+                de =  0;
+            end
+            desPhi = obj.Kvp*e+obj.Kvi*obj.ei(2)+obj.Kvd*de;
+            obj.ei(2) = obj.ei(2)+e;
+            obj.ePast(2) = e;
             desPhi = obj.limit(desPhi,-obj.maxtilt,obj.maxtilt);
-            
+                        
             despzdot = obj.limit( vt(3),-obj.maxv,obj.maxv);
-            desth = obj.th_hover + obj.Kw*(despzdot - w);
+            e = (despzdot - w);            
+            if(~spChange)
+                de = (e-obj.ePast(3))/obj.DT;            
+            else
+                de =  0;
+            end
+            desth = obj.th_hover + obj.Kwp*e+obj.Kwi*obj.ei(3)+obj.Kwd*de;
+            obj.ei(3) = obj.ei(3)+e;
+            obj.ePast(3) = e;
             th = obj.limit(desth,0,1);
             
             ya = obj.limit(obj.Kya * (desPsi - psi),-obj.maxyawrate,obj.maxyawrate);            
@@ -88,8 +129,13 @@ classdef VelocityPID
             U(3,1) = th;
             U(4,1) = ya;
             U(5,1) = 12; % set the voltage to a level that will not trigger saturations
-        end
+        end     
         
+        function obj = reset(obj)
+            obj.ei = zeros(3,1);
+            obj.ePast = zeros(3,1);
+            obj.sp = zeros(3,1);
+        end    
     end
     
     methods (Static)

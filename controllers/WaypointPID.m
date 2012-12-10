@@ -131,6 +131,11 @@ classdef WaypointPID<handle
             U(5,1) = 12; % set the voltage to a level that will not trigger saturations
         end
         
+        function obj = reset(obj)
+            obj.iz = 0;
+            obj.ez = 0;
+            obj.wp = [0;0;0];           
+        end    
     end
     
     methods (Static)

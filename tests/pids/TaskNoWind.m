@@ -28,7 +28,7 @@ classdef TaskNoWind<Task
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
             % note that the lowest Z limit is the refence for the computation of wind shear and turbulence effects
-            taskparams.environment.area.limits = [-20 20 -20 20 -20 20];
+            taskparams.environment.area.limits = [-200 200 -200 200 -200 200];
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
@@ -65,6 +65,9 @@ classdef TaskNoWind<Task
             % i.e. a steady omogeneous wind with a direction and magnitude
             % this is common to all helicopters
             taskparams.environment.wind.on = 0;
+            taskparams.environment.wind.type = 'WindConstMean';
+            taskparams.environment.wind.direction = degsToRads(45); %mean wind direction, rad clockwise from north set to [] to initialise it randomly
+            taskparams.environment.wind.W6 = 2.5;  % velocity at 6m from ground in m/s
             
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
@@ -73,8 +76,8 @@ classdef TaskNoWind<Task
         end
         
         function reset(obj) 
-	    % initial state
-	    obj.simState.platforms{1}.setX([0;0;0;0;0;0]);
+            % initial state
+            obj.simState.platforms{1}.setX([0;0;0;0;0;0]);
         end
         
         function r=reward(~) 
