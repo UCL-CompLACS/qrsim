@@ -111,7 +111,7 @@ function e = testFlyingOutOfBounds(msg)
 
 e = 0;
 
-addpath('../../controllers');
+addpath(['..',filesep,'..',filesep,'controllers']);
 
 % number of steps we run the simulation for
 N = 600;
