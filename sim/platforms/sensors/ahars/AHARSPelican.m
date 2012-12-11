@@ -166,9 +166,9 @@ classdef AHARSPelican<AHARS
             obj.accelerometer.setState(zeros(3,1));
             obj.gyroscope.setState(X);
             obj.altimeter.setState(X);
-            obj.orientationEstimator.setState(X);    
-	    
-            obj.bootstrapped = 0;       
+            obj.orientationEstimator.setState(X);
+            
+            obj.bootstrapped = 0;
         end
         
         function obj = reset(obj)
@@ -177,13 +177,13 @@ classdef AHARSPelican<AHARS
             % Example:
             %   obj.reset();
             %
-
+            
             obj.accelerometer.reset();
             obj.gyroscope.reset();
             obj.altimeter.reset();
             obj.orientationEstimator.reset();
-
-	    obj.bootstrapped = obj.bootstrapped +1;
+            
+            obj.bootstrapped = obj.bootstrapped +1;
         end
         
     end

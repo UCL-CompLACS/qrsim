@@ -80,10 +80,10 @@ classdef TaskSearchRescueSingleNoiseless<Task
             taskparams.environment.area.originutmcoords.N = N;
             taskparams.environment.area.originutmcoords.h = h;
             taskparams.environment.area.originutmcoords.zone = zone;
-            taskparams.environment.area.numpersonsrange = [5,10]; % number of person selected at random between these limits
-            taskparams.environment.area.personfounddistancethreshold = 5;
-            taskparams.environment.area.personfoundspeedthreshold = 0.1;
-            taskparams.environment.area.personsize = 0.5;
+            taskparams.environment.area.numpersonsrange = [5,10];         % number of person selected at random between these limits
+            taskparams.environment.area.personfounddistancethreshold = 5; % distance within which a person is deemed as found [m]
+            taskparams.environment.area.personfoundspeedthreshold = 0.1;  % speed lower than which the uav has to travel when close to a person to deem it found [m/s]
+            taskparams.environment.area.personsize = 0.5;                 % size of the edge of the square patch representing a person [m]
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
             taskparams.environment.area.terrain.type = 'PourTerrain';
             taskparams.environment.area.terrain.classpercentages = [0.2,0.05];  % 20% clutter, 5% occlusion => 75% no clutter & no occlusions 

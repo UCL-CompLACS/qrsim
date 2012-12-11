@@ -5,10 +5,6 @@ classdef AltimeterGM<Altimeter
     % - the accelerometer refrence frame concides wih the body reference frame
     % - no time delays
     %
-    % AltimeterGM Properties:
-    %   TAU                       - noise time constant
-    %   SIGMA                      - noise standard deviation
-    %
     % AltimeterGM Methods:
     %   AltimeterGM(objparams)     - constructs the object
     %   getMeasurement(X)          - returns a noisy altitude measurement

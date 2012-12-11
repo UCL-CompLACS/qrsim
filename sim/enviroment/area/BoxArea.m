@@ -17,10 +17,12 @@ classdef BoxArea<Area
             %   obj=BoxArea(objparams)
             %               objparams.limits - x,y,z limits of the area 
             %               objparams.originutmcoords - structure containing the origin in utm coord
-            %               objparams.graphics.type - class type for thegraphics object 
-            %                                         (only needed if the 3D displayis active)
+            %               objparams.graphics.type - class type for the graphics object
+            %                                         (only needed if the 3D display is active)
+            %               objparams.graphics.backgroundimage - background image
             %               objparams.state - handle to the simulator state
             %
+            
             obj=obj@Area(objparams);
             
             if(objparams.graphics.on)
@@ -34,7 +36,9 @@ classdef BoxArea<Area
             obj.bootstrapped = 0;
         end
         
-        function obj = reset(obj)
+        function obj = reset(obj) 
+            % reset area parameters
+            % in this case nothing needs to be done
             obj.bootstrapped = 1;
         end
     end

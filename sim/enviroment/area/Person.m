@@ -1,14 +1,14 @@
 classdef Person<handle
-    %PERSON Summary of this class goes here
-    %   Detailed explanation goes here
+    %Container class for person's attributes
     
     properties
-        center;
-        bb; % bounding box defined columnwise in, tl,tr,bl,br
+        center;   % [x;y;z;] coordinates of the person center
+        bb;       % bounding box defined columnwise in, tl,tr,bl,br
     end
     
     methods (Access = public)
         function obj = Person(center,psize)
+            % constructor
             obj.center = center;
             obj.bb = repmat(center,1,4)+0.5*[ psize psize -psize -psize;
                 -psize psize -psize  psize;
@@ -16,6 +16,7 @@ classdef Person<handle
         end
         
         function obj = setCenter(obj,center)
+            % updates the cneter without changing the bounding box
             obj.bb = obj.bb - repmat(obj.center,1,4);
             obj.center = center;
             obj.bb = repmat(center,1,4)+obj.bb;

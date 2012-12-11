@@ -1,12 +1,9 @@
 classdef AccelerometerG<Accelerometer
     % Simple accelerometer noise model.
     % The following assumptions are made:
-    % - the noise is modelled as additive white Gaussian 
+    % - the noise is modelled as additive white Gaussian
     % - the accelerometer refrence frame concides wih the body reference frame
-    % - no time delays 
-    %
-    % AccelerometerG Properties:
-    %   SIGMA                            - noise standard deviation
+    % - no time delays
     %
     % AccelerometerG Methods:
     %   AccelerometerG(objparams)        - constructs the object
@@ -14,7 +11,7 @@ classdef AccelerometerG<Accelerometer
     %   update(a)                        - updates the accelerometer sensor noise state
     %   reset()                          - reinitialize noise terms
     %   setState(a)                      - sets the current acceleration and resets
-    %  
+    %
     properties (Access = protected)
         SIGMA;                           % noise standard deviation
         n = zeros(3,1);                  % noise sample at current timestep
@@ -50,19 +47,26 @@ classdef AccelerometerG<Accelerometer
             %       a  - 3 by 1 vector of "noisy" acceleration in body frame [~ax;~ay;~az] m/s^2
             %
             measurementAcceleration = obj.measurementAcceleration;
-        end 
+        end
         
         function obj = reset(obj)
+            % reset the object
             obj.n = obj.SIGMA.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
             obj.measurementAcceleration = obj.measurementAcceleration + obj.n;
             
             obj.bootstrapped = obj.bootstrapped +1;
         end
         
         function obj = setState(obj,a)
-            % sets the current acceleration and resets
+            % re-initialise the state to a new value
+            %
+            % Example:
+            %
+            %   obj.setState(a)
+            %       a - acceleration
+            %
             obj.measurementAcceleration = a;
             obj.bootstrapped = 0;
         end
@@ -73,14 +77,12 @@ classdef AccelerometerG<Accelerometer
             % updates the accelerometer noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-
+            
             obj.n = obj.SIGMA.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
             obj.measurementAcceleration = obj.n + a(1:3);
         end
-        
     end
-    
 end
 

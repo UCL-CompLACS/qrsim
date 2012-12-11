@@ -33,17 +33,25 @@ classdef Altimeter<Sensor
             % returns noiseless altitude
             altAndAltDot = obj.estimatedAltAndAltDot;
         end
-                         
+        
         function obj=reset(obj)
-            obj.bootstrapped = 1;      
+            % reset
+            obj.bootstrapped = 1;
         end
         
         function obj=setState(obj,X)
-            gvel = (dcm(X)')*X(7:9);                
-                
+            % re-initialise the state to a new value
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - platform state
+            %
+            gvel = (dcm(X)')*X(7:9);
+            
             % crude init of past position
             obj.estimatedAltAndAltDot = [-X(3);-gvel(3)];
-            obj.bootstrapped = 0;      
+            obj.bootstrapped = 0;
         end
     end
     
@@ -53,7 +61,7 @@ classdef Altimeter<Sensor
             % stores altitude
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-                        
+            
             % velocity in global frame
             gvel = (dcm(X)')*X(7:9);
             obj.estimatedAltAndAltDot = [-X(3);-gvel(3)];

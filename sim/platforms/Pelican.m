@@ -65,7 +65,7 @@ classdef Pelican<Steppable & Platform
         X;           % state [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
         eX;          % estimated state  [~px;~py;~pz;~phi;~theta;~psi;0;0;0;~p;~q;~r;0;~ax;~ay;~az;~h;~pxdot;~pydot;~hdot]
         valid;       % the state of the platform is invalid
-        graphicsOn;
+        graphicsOn;  % true if graphics is on
     end
     
     methods (Access = public)

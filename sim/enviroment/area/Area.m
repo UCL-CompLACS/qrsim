@@ -11,8 +11,8 @@ classdef Area<Steppable & EnvironmentObject
     properties (Access=protected)
         graphics;         % handle to the graphics object
         originUTMCoords;  % origin
-        limits;           % are limits
-        graphicsOn;
+        limits;           % area limits
+        graphicsOn;       % true if there is a graphics object associate with the area
     end
     
     methods (Sealed,Access=public)
@@ -24,8 +24,9 @@ classdef Area<Steppable & EnvironmentObject
             %   obj=Area(objparams)
             %               objparams.limits - x,y,z limits of the area
             %               objparams.originutmcoords - structure containing the origin in utm coord
-            %               objparams.graphics.type - class type for thegraphics object
-            %                                         (only needed if the 3D displayis active)
+            %               objparams.graphics.type - class type for the graphics object
+            %                                         (only needed if the 3D display is active)
+            %               objparams.graphics.backgroundimage - background image
             %               objparams.state - handle to the simulator state
             %
             
@@ -56,28 +57,30 @@ classdef Area<Steppable & EnvironmentObject
         end
         
         function coords = getOriginUTMCoords(obj)
-            % returns origin
+            % returns area origin
             coords = obj.originUTMCoords ;
         end
         
         function limits = getLimits(obj)
-            % returns limits
+            % returns area limits
             limits = obj.limits;
         end
         
         function on = isGraphicsOn(obj)
+            % returns true if the 3D graphics is on
             on = obj.graphicsOn;
         end
     end
     
     methods (Access=public)
         function obj = reset(obj)
-	    obj.bootstrapped = 1; 
+            % reset area parameters
+            % in this case nothing needs to be done
+            obj.bootstrapped = 1; 
         end
     end
     
-    methods (Access=protected)
-        
+    methods (Access=protected)        
         function obj = update(obj, ~)
             % no updates are carries out.
             %

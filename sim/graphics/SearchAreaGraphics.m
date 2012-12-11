@@ -11,8 +11,8 @@ classdef SearchAreaGraphics<handle
         PERSONSIZE = 0.30; % radius in meters of the patch representing the person
     end
     
-    properties
-       gHandle; 
+    properties (Access = protected)
+       gHandle; % graphics handle
     end    
         
     methods (Sealed)

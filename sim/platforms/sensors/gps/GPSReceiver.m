@@ -9,7 +9,7 @@ classdef GPSReceiver<Sensor
     %    setState(X)                - re-initialise the state to a new value
     %
     properties (Access=protected)
-        estimatedPosVelNED; 
+        estimatedPosVelNED;   % estimated pose
     end
     
     methods (Access=public)
@@ -48,10 +48,12 @@ classdef GPSReceiver<Sensor
         end
         
         function obj = reset(obj)
+            % reset model
 	        obj.bootstrapped = obj.bootstrapped +1;
         end
                 
         function obj=setState(obj,X)
+            % set new state from platform state
             obj.update(X);
             obj.bootstrapped = 0;
         end

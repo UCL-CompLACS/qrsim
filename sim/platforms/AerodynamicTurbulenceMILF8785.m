@@ -113,9 +113,9 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             v=zeros(3,1);
         end
         
-        function obj = reset(obj)            
-            % resets the state of the model                     
-
+        function obj = reset(obj)
+            % resets the state of the model
+            
             if(obj.randDir)
                 obj.direction = 2*pi*rand(obj.simState.rStreams{obj.prngIds(4)},1,1);
             end
@@ -134,8 +134,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             for i=0:1000
                 % noise samples
                 eta = [randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
-                       randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
-                       randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+                    randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                    randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
                 
                 % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)
                 obj.vgust_windframe =  (1-(Vfts*obj.dt)./L).*obj.vgust_windframe+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
@@ -145,7 +145,7 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
         end
         
         function obj = setState(obj,X)
-            % setting the object state           
+            % setting the object state
             obj.X = X;
             obj.bootstrapped = 0;
         end
@@ -172,8 +172,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             
             % noise samples
             eta = [randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
-                   randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
-                   randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
             
             % turbulence in relative wind coordinates  (i.e. u aligned with wind mean direction)
             obj.vgust_windframe =  (1-(Vfts*obj.dt)./L).*obj.vgust_windframe+sqrt((2*Vfts*obj.dt)./L).*sigma.*eta;
@@ -181,8 +181,8 @@ classdef AerodynamicTurbulenceMILF8785<AerodynamicTurbulence
             % by definition the turbulence is aligned with the main turbulence direction,
             % we transform it to body coordinates
             Cte = [cos(obj.direction) sin(obj.direction) 0;
-                  -sin(obj.direction) cos(obj.direction) 0;
-                                    0                  0 1];
+                -sin(obj.direction) cos(obj.direction) 0;
+                0                  0 1];
             
             obj.vgust = dcm(X)*Cte*ftToM(-obj.vgust_windframe);
         end

@@ -93,7 +93,7 @@ classdef PelicanWithPlumeSensor<Pelican
     
     methods (Access=protected)
         function obj = updateAdditional(obj,~)
-            % updates the component that are not standard
+            % updates the plume sensor 
             %
             % Note:
             %  this method is called automatically by update() of the
@@ -107,7 +107,7 @@ classdef PelicanWithPlumeSensor<Pelican
         end         
                 
         function obj = resetAdditional(obj)
-            % resets additional platform subcomponents
+            % resets plume sensor subcomponents
             %
             % Example:
             %   obj.reset();

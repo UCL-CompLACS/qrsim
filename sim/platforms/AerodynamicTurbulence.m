@@ -51,13 +51,14 @@ classdef AerodynamicTurbulence<Steppable
             v=zeros(3,1);
         end
         
-        function obj = reset(obj) 
-	        obj.bootstrapped = obj.bootstrapped+1;
+        function obj = reset(obj)
+            % reset
+            obj.bootstrapped = obj.bootstrapped+1;
         end
         
         function obj = setState(obj,~)
-            % nothing to be done            
-	    obj.bootstrapped = 0;
+            % nothing to be done
+            obj.bootstrapped = 0;
         end
     end
     

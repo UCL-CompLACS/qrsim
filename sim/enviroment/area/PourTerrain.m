@@ -1,6 +1,12 @@
 classdef PourTerrain < handle
-    % very simple model that implements a grid to store the terrain class 
-    
+    % very simple class that implements a grid in which each cell stores the terrain class 
+    %
+    % PourTerrain methods:
+    %   reset()            - generates a new map
+    %   getMap()           - returns the map, each cell in the matrix is the class of the corresponding 1mx1m ground patch
+    %   getMapSize()       - returns the map size
+    %   getClass(points)   - returns the terrain class at each point 
+            
     properties (Access=private)
         map; 
         prngId; 
@@ -13,7 +19,15 @@ classdef PourTerrain < handle
     end
     
     methods (Access=public)
-        function obj = PourTerrain(objparams)            
+        function obj = PourTerrain(objparams)   
+            % constructs the object
+            %
+            % Example:
+            %
+            %   obj=PourTerrain(objparams)
+            %               objparams.classpercentages - array of percentages for each of the classes of terrain
+            %          
+            
             assert(isfield(objparams,'classpercentages'),'pourterrain:noclasspercentages',...
                 'If using a terrain of type PourTerrain, the config file must define the array classpercentages'); 
 
@@ -30,26 +44,27 @@ classdef PourTerrain < handle
         end
         
         function map = getMap(obj)
-            % return the map, each cell in the matrix is the class of the
+            % returns the map, each cell in the matrix is the class of the
             % corresponding 1mx1m ground patch
             map = obj.map;
         end
         
         function [nr nc] = getMapSize(obj)
+            % returns the map size
             nr = obj.nr;
             nc = obj.nc;            
         end
         
         function obj = reset(obj)
+            % generates a new map
             % 1mx1m cells  
             rnd = rand(obj.simState.rStreams{obj.prngId},obj.nr*obj.nc*length(obj.p),1);  
             obj.map = pourMap(obj.nr,obj.nc,obj.p,rnd);            
         end
         
         function tclass = getClass(obj,points)
-            %if(any(points(1,:)<obj.limits(1))||any(points(2,:)<obj.limits(3))||any(points(1,:)>obj.limits(2))||any(points(2,:)>obj.limits(4)))                
-            %    keyboard
-            %end
+            % returns the terrain class at each point 
+            
             points(1,points(1,:)<obj.limits(1)) = obj.limits(1)+1e-15;
             points(1,points(1,:)>obj.limits(2)) = obj.limits(2)-1e-15;           
             points(2,points(2,:)<obj.limits(3)) = obj.limits(3)+1e-15;

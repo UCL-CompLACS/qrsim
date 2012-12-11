@@ -6,26 +6,27 @@ classdef TaskKeepVel<Task
     %   init()   - loads and returns all the parameters for the various simulator objects
     %   reward() - returns the instantateous reward for this task
     %
-    % 
+    %
     % GENERAL NOTES:
     % - if the on flag is zero, the NOISELESS version of the object is loaded instead
     % - the step dt MUST be always specified eve if on=0
     %
     properties (Constant)
-        PENALTY = 1000;        
-        U_NEUTRAL = [0;0;0.59;0];
-        R = diag([2/pi, 2/pi, 0.5, 1]); %very rough scaling factors       
-        Q = eye(3); %unit scaling factors
-    end  
+        PENALTY = 1000;                 % penalty in case of collision or out of bounds
+        U_NEUTRAL = [0;0;0.59;0];       % neutral control values
+        R = diag([2/pi, 2/pi, 0.5, 1]); % very rough scaling factors
+        Q = eye(3);                     % unit scaling factors
+    end
     
     properties (Access=private)
-       v; %velocity target
+        v; %velocity target
     end
     
     methods (Sealed,Access=public)
-                
+        
         function obj = TaskKeepVel(state)
-           obj = obj@Task(state);             
+            % constructor
+            obj = obj@Task(state);
         end
         
         function taskparams=init(obj) %#ok<MANU>
@@ -37,7 +38,7 @@ classdef TaskKeepVel<Task
             %
             
             taskparams.dt = 0.02; % task timestep i.e. rate at which controls
-                               % are supplied and measurements are received
+            % are supplied and measurements are received
             
             taskparams.seed = 0; %set to zero to have a seed that depends on the system time
             
@@ -45,7 +46,7 @@ classdef TaskKeepVel<Task
             % 3D display parameters
             taskparams.display3d.on = 1;
             taskparams.display3d.width = 1000;
-            taskparams.display3d.height = 600;            
+            taskparams.display3d.height = 600;
             
             %%%%% environment %%%%%
             % these need to follow the conventions of axis(), they are in m, Z down
@@ -54,7 +55,7 @@ classdef TaskKeepVel<Task
             taskparams.environment.area.type = 'BoxArea';
             
             % originutmcoords is the location of the RVC (our usual flying site)
-            % generally when this is changed gpsspacesegment.orbitfile and 
+            % generally when this is changed gpsspacesegment.orbitfile and
             % gpsspacesegment.svs need to be changed
             [E N zone h] = llaToUtm([51.71190;-0.21052;0]);
             taskparams.environment.area.originutmcoords.E = E;
@@ -70,10 +71,10 @@ classdef TaskKeepVel<Task
             taskparams.environment.gpsspacesegment.dt = 0.2;
             % real satellite orbits from NASA JPL
             taskparams.environment.gpsspacesegment.orbitfile = 'ngs15992_16to17.sp3';
-            % simulation start in GPS time, this needs to agree with the sp3 file above, 
+            % simulation start in GPS time, this needs to agree with the sp3 file above,
             % alternatively it can be set to 0 to have a random initialization
-            %taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0); 
-            taskparams.environment.gpsspacesegment.tStart = 0;             
+            %taskparams.environment.gpsspacesegment.tStart = Orbits.parseTime(2010,8,31,16,0,0);
+            taskparams.environment.gpsspacesegment.tStart = 0;
             % id number of visible satellites, the one below are from a typical flight day at RVC
             % these need to match the contents of gpsspacesegment.orbitfile
             taskparams.environment.gpsspacesegment.svs = [3,5,6,7,13,16,18,19,20,22,24,29,31];
@@ -83,10 +84,10 @@ classdef TaskKeepVel<Task
             %taskparams.environment.gpsspacesegment.PR_SIGMA = 0.1746;  % process standard deviation
             % the following model was instead designed to match measurements of real
             % data, it appears more relistic than the above
-            taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';            
+            taskparams.environment.gpsspacesegment.type = 'GPSSpaceSegmentGM2';
             taskparams.environment.gpsspacesegment.PR_BETA2 = 4;       % process time constant
-            taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;  % process time constant   
-            taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;   % process standard deviation            
+            taskparams.environment.gpsspacesegment.PR_BETA1 =  1.005;  % process time constant
+            taskparams.environment.gpsspacesegment.PR_SIGMA = 0.003;   % process standard deviation
             
             % Wind
             % i.e. a steady omogeneous wind with a direction and magnitude
@@ -99,26 +100,26 @@ classdef TaskKeepVel<Task
             %%%%% platforms %%%%%
             % Configuration and initial state for each of the platforms
             taskparams.platforms(1).configfile = 'pelican_config';
-	end
-
+        end
+        
         function reset(obj)
-	    % initial state
-	    obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
+            % initial state
+            obj.simState.platforms{1}.setX([0;0;-10;0;0;0]);
             obj.v = [0;0;0];
         end
         
         function updateReward(obj,U)
-           % updates reward
-           % in this simple example we only have a quadratic control
-           % cost
-           
-           for i=1:size(U,2)
-               u = (U(1:4,i)-obj.U_NEUTRAL);
-               e = (dcm(obj.simState.platforms{i}.getX())'*obj.simState.platforms{i}.getX(7:9))-obj.v;
-               control_cost = (obj.R*u)'*(obj.R*u);
-               state_cost = (obj.Q*e)'*(obj.Q*e);
-               obj.currentReward = obj.currentReward - (control_cost+state_cost)*obj.simState.DT;
-           end
+            % updates reward
+            % in this simple example we only have a quadratic control
+            % cost
+            
+            for i=1:size(U,2)
+                u = (U(1:4,i)-obj.U_NEUTRAL);
+                e = (dcm(obj.simState.platforms{i}.getX())'*obj.simState.platforms{i}.getX(7:9))-obj.v;
+                control_cost = (obj.R*u)'*(obj.R*u);
+                state_cost = (obj.Q*e)'*(obj.Q*e);
+                obj.currentReward = obj.currentReward - (control_cost+state_cost)*obj.simState.DT;
+            end
         end
         
         function setTargetVelocity(obj,v)
@@ -126,7 +127,7 @@ classdef TaskKeepVel<Task
             obj.v = v;
         end
         
-        function r=reward(obj) 
+        function r=reward(obj)
             % returns the total reward for this task
             %
             % Example:
@@ -136,13 +137,13 @@ classdef TaskKeepVel<Task
             
             if(obj.simState.platforms{1}.isValid())
                 % no end cost
-                r = obj.currentReward; 
+                r = obj.currentReward;
             else
                 % returning a large penalty in case the state is not valid
                 % i.e. the helicopter is out of the area, there was a
-                % collision or the helicopter has crashed 
+                % collision or the helicopter has crashed
                 r = - obj.PENALTY;
-            end                
+            end
         end
     end
     

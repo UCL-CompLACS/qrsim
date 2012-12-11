@@ -9,7 +9,7 @@ classdef PlumeSensor<Sensor
     %    setState(X)                - re-initialise the state to a new value
     %
     properties (Access=protected)
-        estimatedConc; 
+        estimatedConc;  % current estimated concentration
     end
     
     methods (Access=public)
@@ -21,7 +21,7 @@ classdef PlumeSensor<Sensor
             %   obj=PlumeSensor(objparams)
             %                objparams.on - 0 to have this type of object
             %
-            obj = obj@Sensor(objparams);  
+            obj = obj@Sensor(objparams);
         end
         
         function conc = getMeasurement(obj,~)
@@ -36,24 +36,25 @@ classdef PlumeSensor<Sensor
         end
         
         function obj = setState(obj,X)
-            % re-initialise the state to a new value 
-            obj.estimatedConc = obj.simState.environment.area.getSamples(X(1:3)); 
-            obj.bootstrapped = 0; 
+            % re-initialise the state to a new value
+            obj.estimatedConc = obj.simState.environment.area.getSamples(X(1:3));
+            obj.bootstrapped = 0;
         end
         
         function obj = reset(obj)
-            obj.bootstrapped = 1;    
+            % reset
+            obj.bootstrapped = 1;
         end
-
+        
     end
     
-    methods (Access=protected)        
+    methods (Access=protected)
         function obj=update(obj,X)
             % simply stores the concentration to be used by getMeasurement()
             %
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-                        
+            
             obj.estimatedConc = obj.simState.environment.area.getSamples(X(1:3));
         end
     end

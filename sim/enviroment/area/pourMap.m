@@ -1,7 +1,7 @@
 function map = pourMap(NNr,NNc,p,rnd)
-% given map size, build a map where with regions that
-% belongs to one of the length(p)+1 classes (ground beiong always a class)
-% the number of pixel for region i is roughly proportional to the probability
+% given map size, build a map where regions belongs to one of the length(p)+1 
+% classes (ground being always the class 1).
+% The number of pixel for region i is roughly proportional to the probability
 % p(i) for that region, hence sum(p)< 1 and P(ground) = 1-sum(p)
 
 % the small map

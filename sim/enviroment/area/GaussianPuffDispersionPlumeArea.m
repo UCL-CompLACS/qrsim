@@ -1,7 +1,7 @@
 classdef GaussianPuffDispersionPlumeArea<PlumeArea
     % Defines a simple box shaped area in which is present a plume that is
-    % emitted in puffs with esponential interemission time
-    % the resulting concentration is roghly described by blob like
+    % emitted in puffs with esponential inter-emission times
+    % the resulting concentration is roughly described by blob like
     % puffs travelling downwind an expanding as the move away from the source
     %
     %
@@ -19,19 +19,19 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         TIME_BETWEEN_REF_SAMPLES = 60;
     end
     
-    properties (Access=public)
-        QRange;
-        a;
-        b;
-        u;
-        numSourcesRange;
-        C;
-        iPrngId;
-        sPrngId;
-        vmean;
-        mu;
-        puffs;
-        nextEmissionTimes;
+    properties (Access=private)
+        QRange;           % min max source rate
+        a;                    % diffusion parameter
+        b;                    % diffusion parameter
+        u;                    % wind speed
+        numSourcesRange;      % min max num sources
+        C;                    % global to wind axis transformation
+        iPrngId;              % prng id
+        sPrngId;              % prng id
+        vmean;                % mean wind velocity
+        mu;                   % average time between puffs
+        puffs;                % array of current puffs
+        nextEmissionTimes;    % times at which the new puffs will be emitted
     end
     
     methods (Sealed,Access=public)
@@ -106,6 +106,7 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
         end
         
         function c = getSamples(obj,pos)
+            % get samples at the current time.
             c = obj.getSamplesAtTime(pos,obj.simState.t);
         end
     end
@@ -176,9 +177,8 @@ classdef GaussianPuffDispersionPlumeArea<PlumeArea
             end
         end
         
-        
         function c = getSamplesAtTime(obj,pos,t)
-            % compute the concentration at the requested locations
+            % compute the concentration at the requested locations and time
             
             c = zeros(1,size(pos,2));
             

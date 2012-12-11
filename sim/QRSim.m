@@ -21,10 +21,10 @@ classdef QRSim<handle
     end
     
     properties (Access=private)
-        par         % task parameters
-        paths =[];  % paths
-        simState;
-        bootstrapped;
+        par           % task parameters
+        paths =[];    % paths
+        simState;     % handle to the state structure
+        bootstrapped; % true if the object is boostrapped and valid
     end
     
     methods (Sealed,Access=public)
@@ -78,7 +78,7 @@ classdef QRSim<handle
             % 3D visualization
             assert(isfield(obj.par,'display3d')&&isfield(obj.par.display3d,'on'),'qrsim:nodisplay3d','the task must define display3d.on');
             obj.simState.display3dOn = obj.par.display3d.on;
-            if (obj.par.display3d.on == 1)                
+            if (obj.par.display3d.on == 1)
                 assert((isfield(obj.par.display3d,'width')&&isfield(obj.par.display3d,'height')),...
                     'qrsim:nodisplay3dwidthorheight',['If the 3D display is on, the task must define width and height '...
                     'parameters of the rendering window']);
@@ -119,9 +119,9 @@ classdef QRSim<handle
             end
             
             % reset task
-            % note that this will also reset all the platforms states to their initial value 
+            % note that this will also reset all the platforms states to their initial value
             obj.simState.task.reset();
-                        
+            
             % reset all platforms
             %for i=1:length(obj.simState.platforms)
             %    obj.simState.platforms{i}.reset();
@@ -171,7 +171,7 @@ classdef QRSim<handle
             %
             
             assert((obj.bootstrapped==1),'qrsim:ntbootsrapped','after resetting the simulation seed, qrsim.reset() must be called to reinitilize all the simulation objects');
-                       
+            
             for j=1:obj.simState.task.dt/obj.DT,
                 % update time
                 obj.simState.t=obj.simState.t+obj.simState.DT;
@@ -196,7 +196,7 @@ classdef QRSim<handle
                 
                 for i=1:length(obj.simState.platforms)
                     obj.simState.platforms{i}.step(UU(:,i));
-                end                
+                end
             end
             
             % update the task reward
@@ -210,6 +210,7 @@ classdef QRSim<handle
         end
         
         function r = reward(obj)
+            % returns the task reward
             r = obj.simState.task.reward();
         end
     end
@@ -237,7 +238,7 @@ classdef QRSim<handle
             %%%% NOTE:
             %%%% the order in which the objects are created (i.e. added to
             %%%% the environment structure), is also the order in which
-            %%%% they will be reset and updated.            
+            %%%% they will be reset and updated.
             
             % space segment of GPS
             assert(isfield(obj.par.environment,'gpsspacesegment')&&isfield(obj.par.environment.gpsspacesegment,'on'),...
@@ -263,7 +264,7 @@ classdef QRSim<handle
             if(obj.par.environment.wind.on)
                 assert(isfield(obj.par.environment.wind,'type'),...
                     'qrsim:nowindtype','the task must define environment.wind.type');
-               
+                
                 assert(isfield(obj.par.environment.area,'limits'),...
                     'qrsim:noarealimits','the task must define environment.area.limits');
                 
@@ -274,7 +275,7 @@ classdef QRSim<handle
                 obj.simState.environment.wind = feval('Wind', obj.par.environment.wind);
             end
             
-            % flying area           
+            % flying area
             assert(isfield(obj.par,'environment')&&isfield(obj.par.environment,'area')&&isfield(obj.par.environment.area,'type'),'qrsim:noareatype','A task must always define an enviroment.area.type ');
             obj.par.environment.area.graphics.on = obj.par.display3d.on;
             obj.par.environment.area.DT = obj.DT;
@@ -306,7 +307,7 @@ classdef QRSim<handle
     
     methods (Static,Access=private)
         function paths = toPathArray(p)
-            % build a list of subpaths path recursively removing versioning subdirs
+            % builds a list of subpaths path recursively removing versioning subdirs
             ps = genpath(p);
             
             cps = textscan(ps,'%s','Delimiter',pathsep);

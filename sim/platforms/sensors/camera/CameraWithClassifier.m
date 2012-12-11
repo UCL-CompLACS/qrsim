@@ -6,25 +6,25 @@ classdef CameraWithClassifier < Sensor
     %
     % CameraWithClassifier Methods:
     %    CameraWithClassifier(objparams)    - constructor
-    %    getMeasurement(X)          - return
+    %    getMeasurement(X)          - return log likelihoood difference
     %    update(X)                  - generates a new noise sample
     %    setState(X)                - nothing
     %    reset()                    - nothing
+    %    updateGraphics(X)          - update the camera graphics given the current state
     %
-    
     properties (Access=public)
-        R;  % rotation from platform to camera frame
-        f;  % focal length
-        c;  % principal point
-        graphics;
-        cId;
-        obsModel;
-        llkd;
-        wg;
-        cg;
-        gridDims;
-        pg;
-        displayObservations;
+        R;                   % rotation from platform to camera frame
+        f;                   % focal length
+        c;                   % principal point
+        graphics;            % handle to graphic object
+        cId;                 % camera ID
+        obsModel;            % handle to observation model
+        llkd;                % log likelihood difference
+        wg;                  % ground patches
+        cg;                  % ground centers
+        gridDims;            % ground grid dimensions
+        pg;                  % person position on the ground
+        displayObservations; % dispaly observation flag
     end
     
     methods (Sealed,Access=public)
@@ -35,14 +35,16 @@ classdef CameraWithClassifier < Sensor
             %
             % Example:
             %
-            %   obj=CameraClassifier(objparams)
+            %   obj=CameraWithClassifier(objparams)
             %                objparams.dt - timestep of this object
             %                objparams.on - 1 if the object is active
             %                objparams.f - focal length
             %                objparams.c - principal point
             %                objparams.r - rotation between camera and body in Euler angles
-            %                objparams.displayobservations - if 1 displays a patch with colors 
+            %                objparams.displayobservations - if 1 displays a patch with colors
             %                                                based on the log likelihood difference
+            %                objparams.graphics.type - graphics object type
+            %                objparams.obsmodeltype - observation model type
             %
             obj=obj@Sensor(objparams);
             
@@ -79,23 +81,46 @@ classdef CameraWithClassifier < Sensor
         end
         
         function obj = reset(obj)
-            % nothing to be reinitialized
+            % clear data structures and intialize observation model
             obj.obsModel.reset();
-            obj.llkd=[];
-            obj.wg=[];
-            obj.gridDims=[];
-            obj.cg=[];
-	        obj.bootstrapped = obj.bootstrapped +1;
+            obj.llkd = [];
+            obj.wg = [];
+            obj.gridDims = zeros(1,2);
+            obj.cg = [];
+            obj.bootstrapped = obj.bootstrapped +1;
         end
         
-        function obj = setState(obj,~)            
-	    obj.bootstrapped = 0;
+        function obj = setState(obj,~)
+            % no state to be set
+            obj.bootstrapped = 0;
         end
-        
+                
         function obj = updateGraphics(obj,X)
             % update the camera related graphics
             obj.graphics.update(X,obj.R,obj.f,obj.c,obj.llkd,obj.cg,obj.gridDims);
         end
+                
+        function m = getMeasurement(obj,~)
+            % given a current state of the system
+            % returns the patches on the ground visible by the camera
+            % and the associated likelihood ratios computed by the
+            % classifier.
+            %
+            % Note:
+            % the corner points of the ground patches are layed out in a regular
+            % gridDims(1) x gridDims(2) grid pattern, we return them stored in a
+            % 3*N matrix (i.e. each point has x;y;z coordinates) obtained
+            % scanning the grid left to right and top to bottom.
+            % this means that the 4 cornes of window i,j
+            % are wg(:,(i-1)*(gridDims(1)+1)+j+[0,1,gridDims(1)+1,gridDims(1)+2])
+            m = CameraObservation();
+            m.llkd = obj.llkd;
+            m.wg = obj.wg;
+            m.gridDims = obj.gridDims;
+        end
+    end
+    
+    methods (Sealed,Access=private)
         
         function uvs = cam_prj(obj, tp, Rp ,points)
             % project points from world coordinate to the camera frame.
@@ -115,25 +140,6 @@ classdef CameraWithClassifier < Sensor
             for i=1:n,
                 points(:,i) = inv_cam_prjZ0(tp,Rp,uvs(:,i), obj.c , obj.f, obj.R);
             end
-        end
-        
-        function m = getMeasurement(obj,~)
-            % given a current state of the system
-            % returns the patches on the ground visible by the camera
-            % and the associated likelihood ratios computed by the
-            % classifier.
-            %
-            % Note:
-            % the corner points of the ground patches are layed out in a regular
-            % gridDims(1) x gridDims(2) grid pattern, we return them stored in a
-            % 3*N matrix (i.e. each point has x;y;z coordinates) obtained 
-            % scanning the grid left to right and top to bottom.
-            % this means that the 4 cornes of window i,j
-            % are wg(:,(i-1)*(gridDims(1)+1)+j+[0,1,gridDims(1)+1,gridDims(1)+2])
-            m = CameraObservation();
-            m.llkd = obj.llkd;
-            m.wg = obj.wg;
-            m.gridDims = obj.gridDims;
         end
     end
     
@@ -157,13 +163,13 @@ classdef CameraWithClassifier < Sensor
             
             %set(0,'CurrentFigure',obj.simState.display3d.figure)
             %plot3(fcg(1),fcg(2),fcg(3),'m+');
-                                    
+            
             % get real persons
             obj.pg = obj.simState.environment.area.getPersons();
             
             hpsz = 0.5*obj.simState.environment.area.getPersonSize();
             bb = [  hpsz hpsz -hpsz -hpsz;
-                   -hpsz hpsz -hpsz  hpsz];
+                -hpsz hpsz -hpsz  hpsz];
             
             bbg = [bb(1,:)+fcg(1);
                 bb(2,:)+fcg(2);
@@ -188,12 +194,12 @@ classdef CameraWithClassifier < Sensor
             n = nf(1)*nf(2);
             df = floor((2*obj.c(:))./nf);
             offf = floor(rem(2*obj.c(:),df)./2);
-                        
-            %%%%%           
-            %f10 = figure(10);            
+            
+            %%%%%
+            %f10 = figure(10);
             %hold on;
             %axis([0 2*obj.c(1) 0 2*obj.c(2)]);
-            %set(gca,'YDir','rev');             
+            %set(gca,'YDir','rev');
             %%%%%
             
             % we store windows corners column wise, top to bottom
@@ -220,9 +226,9 @@ classdef CameraWithClassifier < Sensor
             end
             
             %%%%%%
-            %hwf= plot(wf(1,:),wf(2,:),'+'); 
+            %hwf= plot(wf(1,:),wf(2,:),'+');
             %hcf= plot(cf(1,:),cf(2,:),'.r');
-            %%%%%%            
+            %%%%%%
             
             % grounds patches W and ground centers Cw
             % they obviously are layed out as the one in the frame
@@ -250,7 +256,7 @@ classdef CameraWithClassifier < Sensor
                 if(~isempty(picf))
                     pcf=[pcf,picf];%#ok<AGROW>
                     k = k+1;
-
+                    
                     pibbfc = obj.cam_prj(tp, Rp ,obj.pg{i}.bb);
                     pok = logical(cellfun(@(x) size(x,2),pibbfc));
                     pibbf = cell2mat(pibbfc(pok));
@@ -269,7 +275,7 @@ classdef CameraWithClassifier < Sensor
                     % we use center corners and a few other mid points to
                     % work out what windows can see this person
                     pif = [picf,pibbf];
-                    if(pok(4)&&pok(3)), pif = [pif,(pibbfc{4}+pibbfc{3}+picf)./3]; end %#ok<AGROW>              
+                    if(pok(4)&&pok(3)), pif = [pif,(pibbfc{4}+pibbfc{3}+picf)./3]; end %#ok<AGROW>
                     if(pok(2)&&pok(1)), pif = [pif,(pibbfc{2}+pibbfc{1}+picf)./3]; end %#ok<AGROW>
                     if(pok(3)&&pok(1)), pif = [pif,(pibbfc{3}+pibbfc{1}+picf)./3]; end %#ok<AGROW>
                     if(pok(4)&&pok(2)), pif = [pif,(pibbfc{4}+pibbfc{2}+picf)./3]; end %#ok<AGROW>
@@ -278,7 +284,7 @@ classdef CameraWithClassifier < Sensor
                     %figure(10);
                     %hpif=plot(pif(1,:),pif(2,:),'.g');
                     %%%%%%
-            
+                    
                     for j=1:size(pif,2)
                         % work out to what window point j belongs
                         idx = ceil((pif(:,j)-offf)./df);
@@ -294,9 +300,9 @@ classdef CameraWithClassifier < Sensor
                         % overwrite it only if the current is closer to the
                         % center
                         curpid = inview(lidx);
-
+                        
                         if((curpid==0) || (curpid~=0 && curpid~=k && ...
-                           (norm(cf(:,lidx)-pcf(:,k))<norm(cf(:,lidx)-pcf(:,curpid)))))
+                                (norm(cf(:,lidx)-pcf(:,k))<norm(cf(:,lidx)-pcf(:,curpid)))))
                             inview(lidx) = k;
                         end
                         %plot(cf(1,lidx),cf(2,lidx),'*k');
@@ -306,7 +312,7 @@ classdef CameraWithClassifier < Sensor
                     %delete(hpif);
                     %%%%%%
                 end
-               
+                
             end
             
             % build cell array with a vector for each wi, contanining
@@ -338,10 +344,10 @@ classdef CameraWithClassifier < Sensor
                 sazi = tc(2)./norm(tc(1:2));
                 cazi = tc(1)./norm(tc(1:2));
                 
-                % we approximate the area that a person placed 
+                % we approximate the area that a person placed
                 % at the patch center would have as the area it has for the
                 % patch at the center of the frame
-                                                
+                
                 xqueryp(i,:) = [obj.cg(1:2,i)' r tclass(i) 0 sigmaf inc sazi cazi];
                 xqueryn(i,:) = [obj.cg(1:2,i)' r tclass(i)];
                 
@@ -371,7 +377,7 @@ classdef CameraWithClassifier < Sensor
             
             % compute likelihood ratio
             obj.llkd =  obj.obsModel.computeLogLikelihoodDifference(xqueryp, xqueryn, fcg(1:2)', ystar);
-                        
+            
             % update models
             obj.obsModel.updatePosterior();
         end

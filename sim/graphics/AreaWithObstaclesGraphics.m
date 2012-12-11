@@ -1,10 +1,12 @@
 classdef AreaWithObstaclesGraphics<handle
-    % Class that handles the 3D visualization of the working area of the simulator
+    % Class that handles the 3D visualization a the working area of the simulator
+    % in which are present some cylinder like objects.
     % This implementation is very basic but has the advantage of not depending on any
     % additional toolbox
     %
-    % AreaGraphics methos:
-    %   AreaGraphics(objparams) - constructs the object
+    % AreaWithObstaclesGraphics methos:
+    %   AreaWithObstaclesGraphics(objparams) - constructs the object
+    %                    objparams.obstacles - obstacles
     %
     methods (Sealed)
         

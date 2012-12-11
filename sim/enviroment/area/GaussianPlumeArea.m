@@ -1,5 +1,5 @@
 classdef GaussianPlumeArea<PlumeArea
-    % Defines a simple box shaped area in which is present a plume with concentration described by a 3d Gaussian
+    % Defines a simple box shaped area in which is present a plume with concentration described by a 3D Gaussian
     %
     % GaussianPlumeArea Methods:
     %    GaussianPlumeArea(objparams)   - constructs the object
@@ -12,13 +12,13 @@ classdef GaussianPlumeArea<PlumeArea
     %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
     %    
     properties (Access=protected)
-        sigma;
-        invSigma;
-        detSigma;
-        angle;
-        sigmaRange;
-        prngId;
-        Q0;
+        sigma;         % covariance matrix
+        invSigma;      % inverse covariance matrix
+        detSigma;      % covariance matrix dteterminant
+        angle;         % orientation of the plume
+        sigmaRange;    % min max value for the std of the ellipsoid 
+        prngId;        % prng id
+        Q0;            % source concentration
     end
     
     methods (Sealed,Access=public)
@@ -62,7 +62,9 @@ classdef GaussianPlumeArea<PlumeArea
         end
         
         function obj = reset(obj)
-            % redraw a different plume pattern
+            % reset object
+            
+            % redraws a different plume pattern
             obj.init();
             % modify plot
             obj.graphics.update(obj.simState,obj.sources,[0;0;0],obj.locations,obj.referenceSamples);
@@ -70,7 +72,7 @@ classdef GaussianPlumeArea<PlumeArea
         end
         
         function samples = getSamples(obj,positions)
-            % compute the concentration at the requested locations
+            % computes the concentration at the requested locations
             rsource = repmat(obj.sources,1,size(positions,2));
             samples = obj.Q0*exp(-0.5*dot((positions-rsource),obj.invSigma*(positions-rsource),1));
         end
@@ -78,7 +80,7 @@ classdef GaussianPlumeArea<PlumeArea
     
     methods (Access=protected)
         function obj=init(obj)
-            % generate the covariance matrix and the position of the source
+            % generates new covariance matrix and new position of the source
             
             obj.angle = pi*rand(obj.simState.rStreams{obj.prngId});
             ss = obj.sigmaRange(1)+rand(obj.simState.rStreams{obj.prngId},3,1)*...
@@ -90,7 +92,7 @@ classdef GaussianPlumeArea<PlumeArea
             obj.invSigma = inv(obj.sigma);
             obj.detSigma = det(obj.sigma);
             
-            obj.Q0 = (1/((((2*pi)^3)*obj.detSigma)^0.5));
+            obj.Q0 = 1;%(1/((((2*pi)^3)*obj.detSigma)^0.5));
             obj.cepsilon = 1e-3*obj.Q0;
             
             % source position
@@ -108,8 +110,10 @@ classdef GaussianPlumeArea<PlumeArea
         end
         
         function obj = computeLocations(obj)
-            % generate locations locations within the support
+            % generate locations within the support
             % i.e. so that c(x,y,z)>epsilon
+            % at which the agent must make predictions
+            
             obj.locations=zeros(3,obj.numRefLocations);
             
             limits = reshape(obj.limits,2,3)';

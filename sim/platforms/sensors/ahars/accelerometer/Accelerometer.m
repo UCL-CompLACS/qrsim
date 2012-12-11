@@ -7,10 +7,10 @@ classdef Accelerometer<Sensor
     %   update(a)                        - stores the current accelerations
     %   reset()                          - does nothing
     %   setState(a)                      - sets the current acceleration and resets
-    %   
-    properties (Access=protected)       
-        measurementAcceleration = zeros(3,1);% measurement at last valid timestep 
-    end    
+    %
+    properties (Access=protected)
+        measurementAcceleration = zeros(3,1);% measurement at last valid timestep
+    end
     
     methods (Sealed,Access=public)
         function obj = Accelerometer(objparams)
@@ -34,18 +34,25 @@ classdef Accelerometer<Sensor
             %   ma = obj.getMeasurement(a)
             %       a - 3 by 1 vector of noise free acceleration in body frame [ax;ay;az] m/s^2
             %       ma  - 3 by 1 vector of noise free acceleration in body frame [ax;ay;az] m/s^2
-            % 
+            %
             measurementAcceleration = obj.measurementAcceleration;
         end
         
         function obj=reset(obj)
-            obj.bootstrapped = obj.bootstrapped +1;     
+            % reset object
+            obj.bootstrapped = obj.bootstrapped +1;
         end
         
         function obj = setState(obj,a)
-            % sets the current acceleration and resets
+            % re-initialise the state to a new value
+            %
+            % Example:
+            %
+            %   obj.setState(a)
+            %       a - acceleration
+            %
             obj.measurementAcceleration = a;
-	        obj.bootstrapped = 0;
+            obj.bootstrapped = 0;
         end
     end
     

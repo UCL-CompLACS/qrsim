@@ -1,13 +1,14 @@
 classdef BoxWithObstaclesArea<Area
-    % Defines a simple box shaped empty area in which the platforms can fly
+    % Defines a simple box shaped area in which the platforms can fly and
+    % in which there are column like object at prespecified positions.
     %
-    % BoxArea Methods:
-    %    BoxAreaWithObstacles(objparams)   - constructs the object
+    % BoxWithObstaclesArea Methods:
+    %    BoxWithObstaclesArea(objparams)   - constructs the object
     %    reset()              - does nothing
     %    getOriginUTMCoords() - returns origin
     %    getLimits()          - returns limits
     %    isGraphicsOn()       - returns true if there is a graphics objec associate with the area
-    %           
+    %
     
     methods (Sealed,Access=public)
         function obj = BoxWithObstaclesArea(objparams)
@@ -16,13 +17,15 @@ classdef BoxWithObstaclesArea<Area
             % Example:
             %
             %   obj=BoxWithObstaclesArea(objparams)
-            %               objparams.limits - x,y,z limits of the area 
+            %               objparams.limits - x,y,z limits of the area
             %               objparams.originutmcoords - structure containing the origin in utm coord
-            %               objparams.graphics.type - class type for thegraphics object 
-            %                                         (only needed if the 3D displayis active)
-            %               objparams.state - handle to the simulator state 
-            %               objparams.obstacles - the set of obstacles
+            %               objparams.graphics.type - class type for the graphics object
+            %                                         (only needed if the 3D display is active)
+            %               objparams.graphics.backgroundimage - background image
+            %               objparams.state - handle to the simulator state
+            %               objparams.obstacles - the array of obstacles
             %
+            
             obj=obj@Area(objparams);
             
             if(objparams.graphics.on)
@@ -36,6 +39,12 @@ classdef BoxWithObstaclesArea<Area
                 
                 obj.graphics=feval(objparams.graphics.type,tmp);
             end
+        end
+        
+        function obj = reset(obj)
+            % reset area parameters
+            % in this case nothing needs to be done
+            obj.bootstrapped = 1;
         end
     end
 end

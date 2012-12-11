@@ -13,17 +13,17 @@ classdef GaussianDispersionPlumeArea<PlumeArea
     %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
     %
     
-    properties (Access=public)
-        Qs;
-        QRange;
-        a;
-        b;
-        u;
-        numSourcesRange;
-        C;
-        iPrngId;
-        sPrngId;
-        vmean;
+    properties (Access=private)
+        Qs;                   % source rate
+        QRange;               % min max source rate
+        a;                    % diffusion parameter
+        b;                    % diffusion parameter
+        u;                    % wind speed
+        numSourcesRange;      % min max num sources
+        C;                    % global to wind axis transformation
+        iPrngId;              % prng id
+        sPrngId;              % prng id
+        vmean;                % mean wind velocity
     end
     
     methods (Sealed,Access=public)
@@ -44,8 +44,8 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             %                                          randomly with uniform probability from the specified range)
             %               objparams.numSourcesRange - min,max number of sources in the area
             %               objparams.QRange - min,max emission rate of a source
-            %               objparams.a - diffusion paramter
-            %               objparams.b - diffusion paramter
+            %               objparams.a - diffusion parameter
+            %               objparams.b - diffusion parameter
             %               objparams.state - handle to the simulator state
             %
             obj=obj@PlumeArea(objparams);
@@ -84,6 +84,8 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         end
         
         function obj = reset(obj)
+            % reset the object 
+            
             % redraw a different plume pattern
             obj.init();
             % modify plot
@@ -121,6 +123,9 @@ classdef GaussianDispersionPlumeArea<PlumeArea
     
     methods (Access=protected)
         function obj=init(obj)
+            % initialize the area object by generating new number new positions
+            % and rates for the sources.
+            
             % generate the dispersion rates and the position of the sources
             
             % number of sources
@@ -163,8 +168,9 @@ classdef GaussianDispersionPlumeArea<PlumeArea
         end
         
         function obj=computeLocations(obj)
-            % generate random locations within the support
+            % generates random locations within the support
             % i.e. so that c(x,y,z)>epsilon
+            % at which the agent has to return predictions
             obj.locations=zeros(3,obj.numRefLocations);
             
             limits = reshape(obj.limits,2,3)';

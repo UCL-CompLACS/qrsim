@@ -1,24 +1,32 @@
 classdef BoxWithPersonsArea<Area
-    % Defines a simple box shaped area in which is present a plume with concentration described by a 3d Gaussian
+    % Defines a simple box shaped area in which the ground is split in
+    % areas of different classes and there are persons present at randomly
+    % generated locations.
     %
     % BoxWithPersonsArea Methods:
-    %    BoxWithPersonsArea(objparams)   - constructs the object
+    %    BoxWithPersonsArea(objparams)  - constructs the object
     %    reset()                        - does nothing
     %    getOriginUTMCoords()           - returns origin
     %    getLimits()                    - returns limits
-    %
+    %    getPersonSize()                - returns size of the person patch 
+    %    getPersonsJustFound()          - returns an array of size equal to the number of persons containing 
+    %                                     a one if the person was found in the current timestep
+    %    getPersons()                   - returns the array of persons objects
+    %    getPersonsPosition()           - returns the position of persons
+    %    getTerrainClass(pts)           - returns the terrain class at the specified gound points
+    %    
     
     properties (Access=protected)
-        prngId;
-        numPersonsRange;
-        persons;
-        found;
-        dthr;   % distance threshold
-        sthr; % speed threshold
-        pjf;
-        personSize;
-        terrain;
-        pInClass;
+        prngId;         % pseudorandom number genereator id
+        numPersonsRange;% min and max value for the number of persons in the area
+        persons;        % array of Person objects
+        found;          % person found flags
+        dthr;           % distance threshold to define a person as found
+        sthr;           % speed threshold to define a person as found
+        pjf;            % person just found flags
+        personSize;     % size the person on the ground
+        terrain;        % handle to the terrain object
+        pInClass;       % probability of the persons belonging to each of the terrain classes  
     end
     
     methods (Sealed,Access=public)
@@ -36,7 +44,15 @@ classdef BoxWithPersonsArea<Area
             %                                         (with of the concentration along the principal axes is drawn
             %                                          randomly with uniform probability from the specified range)
             %               objparams.state - handle to the simulator state
-            %
+            %               objparams.numpersonsrange - number of person selected at random between these limits
+            %               objparams.personsize - size of the edge of the square patch representing a person [m]
+            %               objparams.personfounddistancethreshold  - distance within which a person is deemed as found [m]
+            %               objparams.personfoundspeedthreshold - speed lower than which the uav has to travel when close to a person to deem it found [m/s]
+            %               objparams.terrain.type - terrain Class
+            %               objparams.terrain.graphics - terrain graphics Class     
+            %               objparams.terrain.classpercentages - array with the perentage of terrain that should be covered by that class         
+            %               objparams.personinclassprob - array with the probability of a person to belong to a specific terrain class 
+             
             obj=obj@Area(objparams);
             
             obj.prngId = obj.simState.numRStreams+1;
@@ -81,6 +97,11 @@ classdef BoxWithPersonsArea<Area
         end
         
         function obj = reset(obj)
+            % resets object 
+            %
+            % note: this is generally called by qrsim
+            %
+            
             % redraw terrain model;
             obj.terrain.reset();
             % redraw set of persons positions
@@ -93,12 +114,14 @@ classdef BoxWithPersonsArea<Area
         end
         
         function size = getPersonSize(obj)
+            % returns size of the person patch             
             size = obj.personSize;
         end
         
         function pjf = getPersonsJustFound(obj,~)
-            % figures out if the UAV is currently sitting over a person
-            % in which case it will be deemed as found
+            % returns an array of size equal to the number of persons containing 
+            % a 1 if the person was found (i.e. the UAV is currently sitting over the person)
+            % in the current timestep
             
             pjf = obj.pjf;
             obj.pjf = zeros(length(obj.simState.platforms),size(obj.persons,2));
@@ -114,18 +137,21 @@ classdef BoxWithPersonsArea<Area
         end
         
         function pers = getPersons(obj)
-            % returns persons
+            % returns the array of persons objects
             pers = obj.persons;
         end
         
         function tclass = getTerrainClass(obj,pts)
-            % returns persons
+            % returns the terrain class at the specified gound points
             tclass = obj.terrain.getClass(pts);
         end
     end
     
     methods (Access=protected)
         function obj=init(obj)
+            % initialises the object by generating a new ground map and a
+            % new set of persons positions
+            
             % generate the number and positions of the persons
             numPersons =  (obj.numPersonsRange(1)-1)+randi(obj.simState.rStreams{obj.prngId},obj.numPersonsRange(2)-obj.numPersonsRange(1)+1);
             
@@ -136,8 +162,7 @@ classdef BoxWithPersonsArea<Area
             
             % for each of the person work out their class an then do rej
             % sampling to generate center
-            pacc = triu(toeplitz(ones(size(obj.pInClass)))) * obj.pInClass';
-            
+            pacc = triu(toeplitz(ones(size(obj.pInClass)))) * obj.pInClass';            
             
             obj.persons={};
             for i=1:numPersons

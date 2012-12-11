@@ -4,7 +4,7 @@ classdef PelicanWithCamera<Pelican
     % The parameters are derived from the system identification of one of
     % the UCL quadrotors
     %
-    % Pelican Properties:
+    % PelicanWithCamera Properties:
     % X   - state = [px;py;pz;phi;theta;psi;u;v;w;p;q;r;thrust]
     %       px,py,pz         [m]     position (NED coordinates)
     %       phi,theta,psi    [rad]   attitude in Euler angles right-hand ZYX convention
@@ -32,8 +32,8 @@ classdef PelicanWithCamera<Pelican
     %       ya  [-4.4,4.4]     [rad/s] commanded yaw velocity
     %       bat [9..12]        [Volts] battery voltage
     %
-    % Pelican Methods:
-    %    Pelican(objparams) - constructs object
+    % PelicanWithCamera Methods:
+    %    PelicanWithCamera(objparams) - constructs object
     %    reset()            - resets all the platform subcomponents
     %    setX(X)            - reinitialise the current state and noise
     %    isValid()          - true if the state is valid
@@ -87,7 +87,7 @@ classdef PelicanWithCamera<Pelican
         end   
         
         function o = getCameraOutput(obj)
-            % return the last result from the camera, mind that this is
+            % returns the last result from the camera, mind that this is
             % updated at the camera frame rate
             %
             % the output is an object of type CemeraObservation, i.e.
@@ -110,7 +110,7 @@ classdef PelicanWithCamera<Pelican
     
     methods (Access=protected)
         function obj = updateAdditional(obj,~)
-            % updates the component that are not standard
+            % updates the camera sensor output
             %
             % Note:
             %  this method is called automatically by update() of the
@@ -124,16 +124,12 @@ classdef PelicanWithCamera<Pelican
         end  
         
         function obj=updateAdditionalGraphics(obj,X)
-           % used by subclasses to update additional graphics stuff 
+           % updates camera graphics
            obj.camera.updateGraphics(X);
         end
         
         function obj = resetAdditional(obj)
-            % resets additional platform subcomponents
-            %
-            % Example:
-            %   obj.reset();
-            %
+            % resets camera
             obj.camera.reset();
         end        
     end

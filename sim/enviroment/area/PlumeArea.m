@@ -12,13 +12,13 @@ classdef PlumeArea<Area
     %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
     %
     properties (Access=protected)  
-        cepsilon;
-        locations;
-        referenceSamples;
-        numRefLocations;
-        numSamplesPerLocation;
-        sources;
-        numSources;
+        cepsilon;               % threshould concentration value that defines the support
+        locations;              % reference locations
+        referenceSamples;       % reference samples  
+        numRefLocations;        % number of reference locations   
+        numSamplesPerLocation;  % number of samples to be predicted per location
+        sources;                % array of plume sources
+        numSources;             % number of sources
     end
     
     methods (Sealed,Access=public)
@@ -30,8 +30,9 @@ classdef PlumeArea<Area
             %   obj=PlumeArea(objparams)
             %               objparams.limits - x,y,z limits of the area 
             %               objparams.originutmcoords - structure containing the origin in utm coord
-            %               objparams.graphics.type - class type for the graphics object 
+            %               objparams.graphics.type - class type for the graphics object
             %                                         (only needed if the 3D display is active)
+            %               objparams.graphics.backgroundimage - background image
             %               objparams.state - handle to the simulator state
             %               objparams.numreflocations - number of reference locations in space used for reward computation
            
@@ -48,7 +49,7 @@ classdef PlumeArea<Area
         end
         
         function spl = getSamplesPerLocation(obj)
-            % return the number of samples to be returned for each of the
+            % returns the number of samples to be returned for each of the
             % locations
             spl = obj.numSamplesPerLocation;
         end
@@ -73,6 +74,6 @@ classdef PlumeArea<Area
     
     methods (Abstract,Access=protected)
         obj=init(obj)
-        % perform initialization 
+        % performs initialization 
     end
 end

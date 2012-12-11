@@ -9,12 +9,12 @@ classdef Gyroscope<Sensor
     %   setState(X)                      - sets the current angular velocity and resets
     %
     
-    properties (Access=protected)        
+    properties (Access=protected)
         measurementAngularVelocity = zeros(3,1); % measurement at last valid timestep
     end
     
     methods (Sealed,Access=public)
-        function obj = Gyroscope(objparams)       
+        function obj = Gyroscope(objparams)
             % constructs the object
             %
             % Example:
@@ -25,10 +25,10 @@ classdef Gyroscope<Sensor
             %
             obj = obj@Sensor(objparams);
         end
-    end    
+    end
     
     methods (Access=public)
-         function measurementAngularVelocity = getMeasurement(obj,~)
+        function measurementAngularVelocity = getMeasurement(obj,~)
             % returns a noisy angular velocity measurement
             %
             % Example:
@@ -37,13 +37,21 @@ classdef Gyroscope<Sensor
             %        ma - 3 by 1 noiseless angular velocity in body frame [p;q;r] rad/s
             %
             measurementAngularVelocity = obj.measurementAngularVelocity;
-         end
-                 
+        end
+        
         function obj=reset(obj)
-            obj.bootstrapped = 1;       
+            % reset
+            obj.bootstrapped = 1;
         end
         
         function obj = setState(obj,X)
+            % re-initialise the state to a new value
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - platform state
+            %
             obj.measurementAngularVelocity = X(10:12);
             obj.bootstrapped = 0;
         end

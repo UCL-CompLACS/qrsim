@@ -79,7 +79,7 @@ c.aerodynamicturbulence.direction = []; % mean wind direction, (rad clockwise fr
 c.aerodynamicturbulence.W6 = 2;  % velocity at 6m from ground in m/s
             
 % Graphics
-c.graphics.type = 'PelicanGraphicsBlack';
+c.graphics.type = 'PelicanGraphics';
 c.graphics.trajectory = 1; % plot trajectory
 c.graphics.AL = 0.4;       % arm length m
 c.graphics.AT = 0.01;      % arm width m
@@ -88,4 +88,5 @@ c.graphics.BW = 0.12;      % body width m
 c.graphics.BT = 0.08;      % body thickness m
 c.graphics.R = 0.08;       % rotor radius m 
 c.graphics.DFT = 0.02;     % distance from truss m
+c.graphics.color = 'k';    % make it black
 c.graphics.trjLength = 100000;

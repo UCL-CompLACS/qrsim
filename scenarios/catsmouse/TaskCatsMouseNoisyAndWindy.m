@@ -47,7 +47,7 @@ classdef TaskCatsMouseNoisyAndWindy<Task
             obj = obj@Task(state);
         end
         
-        function taskparams=init(obj) %#ok<MANU>
+        function taskparams=init(obj)
             % loads and returns the parameters for the various simulation objects
             %
             % Example:

@@ -1,5 +1,6 @@
 classdef CameraGraphics<handle
-    % Class that displays the camera frustum goven the current
+    % Class that displays the camera frustum, the camera frame
+    % and the camera observations given the current
     % position and orientation of the UAV
     %
     % CameraGraphics Methods:
@@ -8,15 +9,22 @@ classdef CameraGraphics<handle
     %
     
     properties (Access = protected)
-        simState;
-        gHandle;
-        renderFrame = 0;
-        renderObservations = 0;
+        simState;           % simulator state handle
+        gHandle;            % graphics handle
+        renderFrame;        % render frame flag
+        renderObservations; % render obs flag
     end
     
     methods (Sealed)
         function obj=CameraGraphics(objparams)
             % constructs the object
+            %
+            % Example:
+            %   obj =  CameraGraphics(params);
+            %          params.renderframe - on if the camera frame is to be renedered
+            %          params.renderobservations - on if the camera frame if the observations have to be renedered
+            %          
+            
             obj.simState = objparams.state;
             
             if(isfield(objparams,'renderframe'))
@@ -37,6 +45,8 @@ classdef CameraGraphics<handle
                  obj.gHandle.frameObs = surf(zeros(4),zeros(4), -0.05*ones(4),zeros(4));
                  set(obj.gHandle.frameObs,'EdgeColor','none');
                  caxis([-10 10]);
+            else
+                obj.renderObservations = 0;
             end
             
             if(obj.renderFrame)
@@ -49,6 +59,8 @@ classdef CameraGraphics<handle
                 % of the frame, x positive in the right
                 % and y positive downwards
                 set(gca,'YDir','reverse')
+            else
+                obj.renderFrame = 0;
             end
         end
     end
@@ -64,6 +76,8 @@ classdef CameraGraphics<handle
     
     methods
         function obj = update(obj,X,R,f,c,llkd,cg,gridDims)
+            % updates the object
+            
             % translation
             t = X(1:3);
             

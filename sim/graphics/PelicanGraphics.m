@@ -25,14 +25,14 @@ classdef PelicanGraphics<QuadrotorGraphics
         gHandle         % graphic handle
         plotTrj         % 1 to enable trajectory plotting
         X               % state
-        alphaValue;
+        alphaValue;     % transparency value
         superimposedRenderingInterval % if defined the quadrotor pose is rendered anew every
-        % interval steps and superimposed to the past poses
-        renderCnt = 0;
+                                      % interval steps and superimposed to the past poses
+        renderCnt = 0;  % ref counter for this graphics object      
+        lw;             % trajectory line widthd
+        trjLength;      % displayed trajectory length  
         
-        lw;
-        
-        trjLength;
+        color;          % color
     end
     
     methods (Sealed)
@@ -50,6 +50,10 @@ classdef PelicanGraphics<QuadrotorGraphics
             %          params.DFT - distance from truss m
             %          params.on - 1 if graphics is active
             %          params.trajectory - 1 if plotting of trajectory is active
+            %          params.trjLw - trajectory line width
+            %          params.trjLength - trajectory length
+            %          params.alphaValue - transparency value
+            %          params.color - color character
             
             obj=obj@QuadrotorGraphics(objparams);
             
@@ -90,6 +94,12 @@ classdef PelicanGraphics<QuadrotorGraphics
                 obj.alphaValue = objparams.alphaValue;
             else
                 obj.alphaValue = 1;
+            end
+            
+            if (isfield(objparams,'color'))
+                obj.color = objparams.color;
+            else
+                obj.color = 'b';
             end
             
             % arms
@@ -163,7 +173,7 @@ classdef PelicanGraphics<QuadrotorGraphics
                         if (i==1)
                             obj.gHandle.r(i)= patch(r(:,1),r(:,2),r(:,3),'r');
                         else
-                            obj.gHandle.r(i) = patch(r(:,1),r(:,2),r(:,3),'b');
+                            obj.gHandle.r(i) = patch(r(:,1),r(:,2),r(:,3),obj.color);
                         end
                         set(obj.gHandle.r(i) ,'FaceAlpha',obj.alphaValue,'EdgeAlpha',0);
                     end
@@ -191,18 +201,19 @@ classdef PelicanGraphics<QuadrotorGraphics
         end
         
         function obj = reset(obj)
+            % clears visualizations
             obj.gHandle.trjData.x = [];
             obj.gHandle.trjData.y = [];
             obj.gHandle.trjData.z = [];
         end
         
         function obj = setTrjLw(obj,lw)
+            % sets trajectory line width
             obj.lw = lw;
         end
     end
     
-    methods (Sealed,Access=private)
-        
+    methods (Sealed,Access=private)        
         function obj=createGraphicsHandlers(obj)
             % creates the necessary graphics handlers and stores them
             %
@@ -229,7 +240,7 @@ classdef PelicanGraphics<QuadrotorGraphics
                 if (i==1)
                     obj.gHandle.r(i)= patch(r(:,1),r(:,2),r(:,3),'r');
                 else
-                    obj.gHandle.r(i) = patch(r(:,1),r(:,2),r(:,3),'b');
+                    obj.gHandle.r(i) = patch(r(:,1),r(:,2),r(:,3),obj.color);
                 end
                 set(obj.gHandle.r(i) ,'FaceAlpha',obj.alphaValue,'EdgeAlpha',0);
             end

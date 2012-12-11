@@ -21,7 +21,7 @@ classdef GyroscopeG<Gyroscope
         prngIds;                        % ids of the prng stream used by this object
     end
     
-    methods (Sealed,Access=public)        
+    methods (Sealed,Access=public)
         function obj = GyroscopeG(objparams)
             % constructs the object
             %
@@ -32,7 +32,7 @@ classdef GyroscopeG<Gyroscope
             %                objparams.on - 1 if the object is active
             %                objparams.SIGMA - noise standard deviation
             %
-
+            
             obj=obj@Gyroscope(objparams);
             
             obj.prngIds = [1,2,3]+obj.simState.numRStreams;
@@ -55,15 +55,23 @@ classdef GyroscopeG<Gyroscope
         end
         
         function obj = reset(obj)
+            % reset
             obj.n = obj.SIGMA.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
             obj.measurementAngularVelocity = obj.measurementAngularVelocity + obj.n;
             
             obj.bootstrapped = obj.bootstrapped +1;
         end
         
         function obj = setState(obj,X)
+            % re-initialise the state to a new value
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - platform state
+            %
             obj.measurementAngularVelocity = X(10:12);
             obj.bootstrapped = 0;
         end
@@ -74,10 +82,10 @@ classdef GyroscopeG<Gyroscope
             % updates the gyroscope noise state
             % Note: this method is called by step() if the time is a multiple
             % of this object dt, therefore it should not be called directly.
-
+            
             obj.n = obj.SIGMA.*[randn(obj.simState.rStreams{obj.prngIds(1)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
-                                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
+                randn(obj.simState.rStreams{obj.prngIds(2)},1,1);
+                randn(obj.simState.rStreams{obj.prngIds(3)},1,1)];
             obj.measurementAngularVelocity = obj.n + X(10:12);
         end
     end

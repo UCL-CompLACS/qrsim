@@ -108,9 +108,6 @@ classdef GPSReceiverG < GPSReceiver
             obj.estimatedPosVelNED(1:3,1) = obj.solveFromObservations(obj.estimatedPosVelNED(1:3,1));           
             obj.estimatedPosVelNED(4:5,1) = (obj.estimatedPosVelNED(1:2,1) - obj.pastEstimatedPosNED(1:2,1))./obj.dt;
             
-            %estimatedPosVelNED = obj.estimatedPosVelNED
-            %pastEstimatedPosVelNED = obj.pastEstimatedPosVelNED
-            
             obj.bootstrapped = obj.bootstrapped +1;
         end
         
@@ -145,6 +142,7 @@ classdef GPSReceiverG < GPSReceiver
     methods (Sealed, Access=protected)
         
         function estimatedPosNED = solveFromObservations(obj,posNED)
+            % compute position solution given the pseudorange observations
             
             truePosECEF = nedToEcef(posNED, obj.originUTMcoords);
             

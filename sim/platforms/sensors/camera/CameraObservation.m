@@ -1,5 +1,5 @@
 classdef CameraObservation
-    %CAMERAOBSERVATION simple class to gather all the data returned by thecamera
+    % simple class to gather all the data returned by thecamera
     %
     % patches on the ground visible by the camera and the associated log likelihood
     % differences (reconducible to likelihood ratios) computed by the classifier.
@@ -19,11 +19,11 @@ classdef CameraObservation
     
     methods
         function obj = CameraObservation()
+            % constructor
             obj.llkd = [];
             obj.wg = [];
             obj.gridDims = [0,0];
         end
-    end
-    
+    end   
 end
 

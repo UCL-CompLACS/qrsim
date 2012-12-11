@@ -2,6 +2,7 @@ classdef GPwrapper< handle
     % handy class to wrap parameters of a GP
     % note that we make hard assumptions about the correlations
     % mostly depending ond ground distance to reduce computation
+    
     properties (Constant)
         MAXIN = 500; % no matter what we never ever allow more than
         % this number of inputs in computing predictions
@@ -31,8 +32,10 @@ classdef GPwrapper< handle
         id;
     end
     
-    methods
+    methods (Access=public)
         function obj = GPwrapper(mf,hmean,cf,hcov,lf,hlik,dCut,name)
+            % initialize the GP models give mean covariance and likelihood
+            % functions and parametars
             obj.mf=mf;
             obj.hyp.mean=hmean;
             obj.cf=cf;
@@ -45,6 +48,7 @@ classdef GPwrapper< handle
         end
         
         function obj = reset(obj)
+            % reset all teh data structures
             obj.x = [];
             obj.y = [];
             obj.xstar = [];
@@ -57,7 +61,7 @@ classdef GPwrapper< handle
         end
         
         function ystar = sample(obj,xstar,xcstar,rndsample)
-            % generate samples
+            % generate samples from the observation model
             obj.xstar = xstar;
             
             assert(isempty(obj.L)||isempty(obj.id)||isempty(obj.sW)||isempty(obj.alpha)||isempty(obj.xstar)||isempty(obj.ystar),...
@@ -72,7 +76,7 @@ classdef GPwrapper< handle
                 m = feval(obj.mf{:},obj.hyp.mean, xstar);
                 s2 = k + sn2*eye(size(xstar,1));
             else
-                obj.computeInvCovFactors(xcstar);                
+                obj.computeInvCovFactors(xcstar);
                 kss = feval(obj.cf{:}, obj.hyp.cov, xstar);   % self-variance
                 Ks  = feval(obj.cf{:}, obj.hyp.cov, obj.x(obj.id,:), xstar);  % cross-covariances
                 ms = feval(obj.mf{:}, obj.hyp.mean, xstar);
@@ -86,27 +90,10 @@ classdef GPwrapper< handle
             ystar = obj.ystar;
         end
         
-        function obj = computeInvCovFactors(obj,xcstar)
-                % fetch input that are close to the centersample
-                obj.id = knnradiussearch(xcstar,obj.x(:,1:size(xcstar,2)),obj.dCut,[]);
-                % if still too many only the lucky ones remain
-                nidxclose = find(obj.id==1);
-                nclose = size(nidxclose,1);
-                %fprintf([' close points ',num2str(nclose)]);
-                if(nclose>obj.MAXIN)
-                    obj.id(nidxclose(randperm(nclose,nclose-obj.MAXIN)))=false;
-                end
-                n = sum(obj.id);
-                %fprintf([' used ',num2str(n)]);
-                K = feval(obj.cf{:},obj.hyp.cov,obj.x(obj.id,:));
-                m = feval(obj.mf{:},obj.hyp.mean,obj.x(obj.id,:));
-                sn2 = exp(2*obj.hyp.lik);
-                obj.L = chol(K/sn2+eye(n));
-                obj.alpha = solve_chol(obj.L,obj.y(obj.id)-m)/sn2;
-                obj.sW = ones(n,1)/sqrt(sn2);  % sqrt of noise precision vector
-        end            
-        
         function [lik,m,s2] = computeLogLikelihood(obj,xquery,xcstar,ystar)
+            % log likelihood of the passed measurement according to the
+            % positive and negative GP models
+            
             assert(size(xquery,1)==1,'logLikelihood of one sample at the time only!');
             sn2 = exp(2*obj.hyp.lik);
             
@@ -116,7 +103,7 @@ classdef GPwrapper< handle
                 s2 = k + sn2;
             else
                 if(isempty(obj.L)||isempty(obj.sW)||isempty(obj.id)||isempty(obj.alpha))
-                    obj.computeInvCovFactors(xcstar);  
+                    obj.computeInvCovFactors(xcstar);
                 end
                 kss = feval(obj.cf{:}, obj.hyp.cov, xquery);   % self-variance
                 Ks  = feval(obj.cf{:}, obj.hyp.cov, obj.x(obj.id,:), xquery);  % cross-covariances
@@ -129,7 +116,9 @@ classdef GPwrapper< handle
         end
         
         function obj = updatePosterior(obj)
-            %before = size(obj.x,1);
+            % update the model posterior to take into account the
+            % observation returned
+            
             if(~isempty(obj.xstar))
                 if(obj.isFirst)
                     obj.isFirst = 0;
@@ -153,6 +142,28 @@ classdef GPwrapper< handle
             end
             %after = size(obj.x,1);
             %fprintf(['update GP ',obj.name,' x=',num2str(after),' just added ',num2str(after-before),'\n']);
+        end
+    end
+    
+    methods (Access = private)
+        function obj = computeInvCovFactors(obj,xcstar)
+            % fetch input that are close to the centersample
+            obj.id = knnradiussearch(xcstar,obj.x(:,1:size(xcstar,2)),obj.dCut,[]);
+            % if still too many only the lucky ones remain
+            nidxclose = find(obj.id==1);
+            nclose = size(nidxclose,1);
+            %fprintf([' close points ',num2str(nclose)]);
+            if(nclose>obj.MAXIN)
+                obj.id(nidxclose(randperm(nclose,nclose-obj.MAXIN)))=false;
+            end
+            n = sum(obj.id);
+            %fprintf([' used ',num2str(n)]);
+            K = feval(obj.cf{:},obj.hyp.cov,obj.x(obj.id,:));
+            m = feval(obj.mf{:},obj.hyp.mean,obj.x(obj.id,:));
+            sn2 = exp(2*obj.hyp.lik);
+            obj.L = chol(K/sn2+eye(n));
+            obj.alpha = solve_chol(obj.L,obj.y(obj.id)-m)/sn2;
+            obj.sW = ones(n,1)/sqrt(sn2);  % sqrt of noise precision vector
         end
     end
 end

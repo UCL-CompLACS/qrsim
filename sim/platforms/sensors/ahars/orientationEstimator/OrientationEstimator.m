@@ -10,7 +10,7 @@ classdef OrientationEstimator<Sensor
     %
     
     properties (Access=protected)
-       estimatedOrientation = zeros(3,1);% measurement at last valid timestep    
+        estimatedOrientation = zeros(3,1);% measurement at last valid timestep
     end
     
     methods (Sealed)
@@ -41,12 +41,20 @@ classdef OrientationEstimator<Sensor
         end
         
         function obj=reset(obj)
-            obj.bootstrapped = obj.bootstrapped +1;    
-        end 
+            % reset
+            obj.bootstrapped = obj.bootstrapped +1;
+        end
         
         function obj = setState(obj,X)
+            % re-initialise the state to a new value
+            %
+            % Example:
+            %
+            %   obj.setState(X)
+            %       X - platform state
+            %
             obj.estimatedOrientation = X(4:6);
-            obj.bootstrapped = 0;   
+            obj.bootstrapped = 0;
         end
     end
     
