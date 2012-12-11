@@ -285,8 +285,8 @@ classdef CameraWithClassifier < Sensor
                         % due to offf things can still be in frame without
                         % being on a border cell, we nudge those guys back in...
                         idx(idx==0)=1;
-                        idx(idx(1)==nf(1))=nf(1);
-                        idx(idx(2)==nf(2))=nf(2);
+                        idx(idx(1)>nf(1))=nf(1);
+                        idx(idx(2)>nf(2))=nf(2);
                         
                         lidx = (idx(1)-1)*nf(2)+idx(2);
                         
@@ -294,7 +294,7 @@ classdef CameraWithClassifier < Sensor
                         % overwrite it only if the current is closer to the
                         % center
                         curpid = inview(lidx);
- 
+
                         if((curpid==0) || (curpid~=0 && curpid~=k && ...
                            (norm(cf(:,lidx)-pcf(:,k))<norm(cf(:,lidx)-pcf(:,curpid)))))
                             inview(lidx) = k;
