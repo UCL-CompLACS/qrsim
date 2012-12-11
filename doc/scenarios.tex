@@ -1,103 +1,51 @@
-\documentclass{article}
 
-\usepackage{times}
-%\usepackage[round]{natbib}
+\documentclass[a4paper,11pt]{report}
 
-\usepackage[round]{natbib}
-\usepackage{bm}
-\usepackage{graphicx}
-\usepackage{latexsym}
-\usepackage{amsmath,amsfonts,amssymb,mathrsfs,color}
-%\usepackage{algorithm,algorithmic}
-\usepackage{latexsym}
-\usepackage{subfigure}
-\usepackage{pifont}
-\usepackage{amsthm}
+\usepackage{amsmath,}
+\usepackage{amssymb}
+\usepackage[utf8x]{inputenc}
+\usepackage{fullpage}
 \usepackage[hyphens]{url}
-%\usepackage{hyperref} this messes up the line breaks of url
+%\usepackage{hyperref} %this messes up the line breaks of url
 \usepackage{xspace}
+\usepackage{graphicx}
 \usepackage{longtable}
 
 
+%%commands
+\newcommand{\sname}{QRSim\xspace}
+\newcommand{\snamettt}{\texttt{QRSim}\xspace}
 
-%%environments
-
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{claim}[theorem]{Claim}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{conjecture}[theorem]{Conjecture}
-
-\newenvironment{definition}[1][Definition]{\begin{trivlist}\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
-\newenvironment{example}[1][Example]{\begin{trivlist}
-\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
-\newenvironment{remark}[1][Remark]{\begin{trivlist}
-\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
-
-\newcommand\mytexttt[1]{\texttt{\hyphenchar\font=45\relax #1}}
-%bibs
-%\newcommand{\SzepesvariAlgorithms}{SzepesvariAlgorithms}
-\newcommand{\SongEmbeddings}{DBLP:conf/icml/SongHSF09}
-%\newcommand{\HolmesFast}{isbell:density:2007}
-\newcommand{\MichelliVectorValued}{DBLP:journals/neco/MicchelliP05}
-\newcommand{\GrunewalderEmbeddingsRegression}{GrunewalderEmbeddingsRegression}
-
+\newcommand{\webrepo}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-lastStable.zip}\xspace}
 \newcommand{\webman}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/manual.pdf}\xspace}
 
-%%commands
-\newcommand{\cH}{{\mathcal H}}
-\newcommand{\cV}{{\mathcal V}}
-\newcommand{\cX}{{\mathcal X}}
-\newcommand{\cS}{{\mathcal S}}
-\newcommand{\cF}{{\mathcal F}}
-\newcommand{\cY}{{\mathcal Y}}
-\newcommand{\cD}{{\mathcal D}}
-\newcommand{\bK}{\bm K}
-\newcommand{\bI}{\bm I}
-\newcommand{\bW}{\bm W}
-\newcommand{\E}{\mathbb{E}}
-\renewcommand{\P}{\mathbb{P}}
-\newcommand{\Expect}{\E}
-\newcommand{\R}{\mathbb{R}}
-\newcommand{\lang}{\langle}
-\newcommand{\rang}{\rangle}
+\newcommand\mytexttt[1]{\texttt{\hyphenchar\font=45\relax #1}}
 \newcommand{\nn}{\nonumber}
 \newcommand{\Prob}{{\rm Prob}}
-\newcommand{\wtilde}{\widetilde}
-\newcommand{\hP}{{\widehat P}}
-\newcommand{\hB}{{\widehat B}}
-\newcommand{\hQ}{{\widehat Q}}
-\newcommand{\hV}{{\widehat V}}
-\newcommand{\hmu}{{\widehat \mu}}
-\newcommand{\hcU}{{\widehat \cU}}
-\newcommand{\tP}{{\widetilde P}}
-\newcommand{\hp}{\widehat p}
-\newcommand{\hf}{\widehat f}
-\newcommand{\Id}{{\rm Id \,}}
-\newcommand{\hatmu}{\hat \mu}
-\newcommand{\Err}{{\mathcal{E}}}
-\newcommand{\what}{\widehat}
-\newcommand{\hatErr}{\what{\Err}}
-\newcommand{\loss}{{\rm loss}}
 
-\newcommand{\argmin}{\operatornamewithlimits{argmin}}
-\newcommand{\argmax}{\operatornamewithlimits{argmax}}
 
-%% AG2: why are we using cite* everywhere? This uses a massive amount of space. I've removed some of them, but I would recommend never using this.
+% Title Page
+\title{{CompLACS} Helicopters Scenarios}
+%\author{Renzo De Nardi,\\University College London\\\texttt{rdenardi@cs.ucl.ac.uk}}
 
 \begin{document}
-
-
-\title{CompLACS Helicopters Scenarios}
-
-
-\date{}
-\author{}
-
 \maketitle
 
-\section{Scenario 1: Cats and Mouse game}
+\begin{abstract}
+This document describes the three types of application scenarios developed at UCL to devise and test algorithms for our flock autonomous helicopters, one of the three application platforms of the {CompLACS} project.
+
+This report is divided into three parts one for each of the three main scenarios.
+Each part gives a formal description of the scenario in terms of its setup, its objective, and its variations. Additionally for each of the scenario we provide some example code aimed at aiding the development of learning algorithms.
+
+Technical details specific to the scenarios implementation are reported in the appendix. 
+
+All tasks are simulated using the \sname simulator therefore a companion to this document is the \sname manual (\webman) which describes in detail the simulator and its API.
+
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Scenario 1: Cats and Mouse game}
 $N$ helicopters (cats) have to be controlled in order to catch (i.e. get close to) another helicopter (mouse) at the end of the allotted time.
 
 \subsection{MDP}
@@ -178,19 +126,9 @@ while the actions $a^i$ are denoted as controls $u$:
 $$u=[v_x,v_y]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
-\subsection{Example Approach/Decomposition} \label{CatMouseDecompositions}
-
-\subsubsection{Kernel learning -- Modelling transition dynamics using RKHS embeddings -- planning} \label{EmbeddingsDecomp}
-
-The key composition will include a module to model the transition dynamics of the MDP using RKHS embeddings, followed by using this model to perform policy learning using dynamic programming methods. This composition is studied in \cite{GrunewalderEmbeddingsMDPs}. Further extensions of this work relevant to the application to this scenario include exploiting the multi-agent structure (e.g. factorizing the dynamics and learning the dynamics for each agent separately), as well as learning the mouse dynamics and cat dynamics separately.
-
-The modelling component using RKHS embeddings assumes a given kernel on the state space. We will additionally study a representation learning component which learns a kernel on the state space suitable for the given MDP, as in \cite{LeverFastSSLKernels,LeverKernelsForControl}, which is then used by the modelling component to model the transition dynamics. We will also investigate exploiting the connection between dynamics learning and regression \cite{GrunewalderEmbeddingsRegression} to learn the feature representation directly using methods of feature selection for regression including multi-task regression for the multi-task case.
-
-We will also replace the dynamic programming module with a direct policy search method -- policy gradients -- and study the interaction between modelling transition dynamics and the policy search component as is done for dynamic programming approach in \cite{GrunewalderEmbeddingsMDPs}.
-
 
 \newpage
-\section{Scenario 2: Search and Rescue}
+\chapter{Scenario 2: Search and Rescue}
 Several targets (people) are lost/injured on the ground in a landscape and need to be located and rescued. A helicopter agent is equipped with a camera/classification module for predicting the position of targets in its field of vision, but the quality of predictions depend upon the geometry between helicopter and ground (e.g. the distance). Rather than raw images the camera module provides higher-level data in the form of likelihood ratios of the current image conditioned on the presence or absence of a target.
 
 \subsection{MDP}
@@ -200,13 +138,18 @@ The underlying system is modelled as a discrete time MDP on a continuous state s
 \paragraph{States:} the state $s_t=(x_t,b_t)$ at time $t$ comprises the helicopter data $x_t$ which includes the agents position, velocity and orientation, and $b^i_{t}$, for $i\in\{1,...,N\}$ the position of $N$ targets. All are continuous variables. We assume that the ground is flat and that the targets are located on the ground.
 
 \paragraph{Actions:}
-The action $a_t$ at time $t$ is expressed in terms of a velocity vector in global coordinates (refer to section \ref{CatMouseSim} of the first scenario for details on the way actions are specified).
+the action $a_t$ at time $t$ is expressed in terms of a velocity vector in global coordinates (refer to section \ref{CatMouseSim} of the first scenario for details on the way actions are specified).
 
 \paragraph{Rewards:} a reward of $r_t=1$ is received when a helicopter hovers sufficiently close to any target $i\in\{1,...,N\}$ in which case it is rescued: the helicopter must be approximately stationary, $||[u,v,w]_t^\intercal|| \le \epsilon$, and the distance\footnote{$d_{3D}(x_t,b^i_t) = \sqrt{(b^i_t\cdot[p_x,p_y,p_z]_t^\intercal)}$.}
 \begin{align}
-d_{3D}(x_t,b^i_t)<\delta, \nn
+r_t =  \left\{
+\begin{array}{c l}
+1 & if ~ \exists ~ i~:~ d_{3D}\left( x_t,b^i_t \right) < \delta ~ \wedge ~\and ||[u,v,w]_t^\intercal|| < \epsilon \\
+-1/N & otherwise
+\end{array}
+\right.
 \end{align}
-for some user-specified $(\epsilon,\delta)$. 
+for some user-specified $(\epsilon,\delta)$ and . 
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if any the helicopter goes outside of the flying area or if any collision happens during the task. Under any other circumstance $r_t=0$
 
 \paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \texttt{QRSim} manual \webman for detail about the helicopter transition dynamics.} are defined by $P(x'|x,a)$ which denotes the conditional density of state $x'$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$. These dynamics are independent of the targets $b^i_t$.
@@ -271,13 +214,8 @@ while the actions $a^i$ are denoted as controls $u$:
 $$u=[v_x,v_y]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
-\subsection{Example Approach/Decomposition}
-
-The decomposition of Section~\ref{EmbeddingsDecomp} will be applied here, but will be generalized to the POMDP setting due to imperfect state information and observation data.
-
-
 \newpage
-\section{Scenario 3: Plume modelling}
+\chapter{Scenario 3: Plume modelling}
 Several smoke plumes evolve over time and a helicopter agent is equipped with a sensor that measures the concentration of smoke. The plume follows a known model but with unknown parameter values. The objective is to provide a smoke concentration estimate $\hat{c}_T$ at some prespecified time $T$\footnote{For simplicity we refer to concentration of smoke, in a real environment this would be a property of the plume that can be realistically measured e.g. CO concentration.}.
 
 \subsection{Markov process}
@@ -353,35 +291,11 @@ while the actions $a^i$ are denoted as controls $u$:
 $$u=[v_x,v_y]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
-
-\subsection{Example Approach/Decomposition}
-
-\subsubsection{Plume estimation -- planning}
-
-One approach will be to use a module which uses the observations $\{o_t\}_{t=1,...}$ to infer the plume parameters and provides rewards to the encourage the helicopter to collect useful data (the reward might be a measure of the improvement of its estimate, such as information gain). This defines a (PO)MDP for the helicopter and the embeddings -- planning approach of Section~\ref{CatMouseDecompositions} will be applied to solve the MDP. Additional data provided by the modelling module might be a current concentration estimate $\hat c_t$ of $c_t$ (or an estimate of the model parameters), suggestions for coordinates to visit (via e.g. active learning). This data will form part of the agent's state space but  the agent would not know the semantics of this data and must learn how to ustilse the data autonomously.
-
-
-\iffalse
-\section*{Acknowledgments}
-The authors want to thank for the support of the EPSRC \#EP/H017402/1 (CARDyAL) and the European Union \#FP7-ICT-270327 (CompLACS).
-\fi
-
-\begin{small}
-\bibliographystyle{abbrvnat}
-%\bibliographystyle{plainnat}
-%\bibliographystyle{plain}
-%\bibliographystyle{alpha}
-%\bibliographystyle{abbrv}
-%\bibliographystyle{icml2010}
-\bibliography{scenariosbib}
-
-\end{small}
-
 \newpage
 
 \appendix
 
-\section{Variable Definitions}\label{tab:naming}
+\chapter{Variable Definitions}\label{tab:naming}
 
 Helicopter state variables common to all the tasks:
 \begin{table}[h]  
@@ -411,7 +325,7 @@ Helicopter state variables common to all the tasks:
 
 We remind the reader that NED stands for Noth-East-Down as explained in more detail in the \texttt{QRSim} manual.
 
-\section{Concentration Models}
+\chapter{Concentration Models}
 
 To interpret the following models, is useful to introduce some nomenclature:
 \begin{longtable}{l l l}
@@ -439,9 +353,9 @@ x' &=& x \cos(\alpha_w) \\
 y' &=& y \sin(\alpha_w).
 \end{eqnarray}
 
-\subsection{Single Source Gaussian Concentration Model}
+\section{Single Source Gaussian Concentration Model}
 \begin{equation}\label{eqn:singlesourcegaussian}
-c(x,y,z) = \frac{1}{(2\pi)^{3/2}|\boldsymbol\Sigma|^{1/2}}
+c(x,y,z) = %\frac{1}{(2\pi)^{3/2}|\boldsymbol\Sigma|^{1/2}}
 \exp\left(-\frac{1}{2}
 \left[\begin{array}{c}
 x-X_s\\
@@ -456,7 +370,7 @@ z-H_s
 \right)
 \end{equation}
 
-\subsection{Single Source Gaussian Dispersion Model}
+\section{Single Source Gaussian Dispersion Model}
 
 A standard static plume dispersion (for more details see \cite{stockie2011}):
 \begin{align}\label{eqn:singlesourcegaussiandispersion}
@@ -465,14 +379,14 @@ c(x',y',z) = &\frac{Q}{2\pi u a (x'-X'_s)^b}  \exp \left(-\frac{(y'-Y'_s)^2}{2 a
 \end{align}
 
 
-\subsection{Multiple Sources Gaussian Dispersion Model}
+\section{Multiple Sources Gaussian Dispersion Model}
 
 In the case of multiple sources the total concentration can be computed by superposition:
 \begin{align}\label{eqn:multiplesourcesgaussiandispersion}
 c(x',y',z) = \sum_{s=1}^S c(x',y',z;X'_s,Y'_s,H_s,Q_s).
 \end{align}
 
-\subsection{Single Source Gaussian Puff Dispersion Model}
+\section{Single Source Gaussian Puff Dispersion Model}
 
 A standard time varying plume dispersion (for more details see \cite{stockie2011}):
 \begin{align}\label{eqn:singlesourcesgaussianpuffdispersion}
@@ -481,7 +395,7 @@ c(x',y',z,t) = & \sum_{i=1}^I \left\{ \frac{Q^i_s}{8(\pi a (x'-X'_s)^b)^{3/2}} \
 & \left. \left[\exp\left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp\left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]\right\}.
 \end{align}
 
-\subsection{Multiple Sources Gaussian Puff Dispersion Model}
+\section{Multiple Sources Gaussian Puff Dispersion Model}
 
 Even in the case a time varying dispersion model, for multiple sources the total concentration can be computed by superposition:
 \begin{align}\label{eqn:multiplesourcesgaussianpuffdispersion}
