@@ -4,7 +4,7 @@ function e = testPlume()
 clear all
 close all
 
-make_plots = 1;
+make_plots = 0;
 
 addpath('plume');
 % include simulator
