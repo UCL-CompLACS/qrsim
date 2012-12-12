@@ -73,7 +73,6 @@ classdef TaskNoiselessGPSNoWindFixedSeed<Task
         end
 
         function reset(obj) 
-            fprintf('TaskNoiselessGPSNoWindFixSeed reset\n');
             % initial state
             obj.simState.platforms{1}.setX([1;2;3;0;0;pi;0;0;0;0;0;0]);
         end
