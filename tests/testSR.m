@@ -6,8 +6,8 @@ close all
 
 % include simulator
 addpath('sr');
-addpath(['..',filesep,'..',filesep,'sim']);
-addpath(['..',filesep,'..',filesep,'controllers']);
+addpath(['..',filesep,'sim']);
+addpath(['..',filesep,'controllers']);
 
 % create simulator object
 qrsim = QRSim();
