@@ -13,7 +13,7 @@ classdef GaussianDispersionPlumeArea<PlumeArea
     %    getSamplesPerLocation()        - returns the number of samples to be returned for each of the locations
     %
     
-    properties (Access=private)
+    properties (Access=protected)
         Qs;                   % source rate
         QRange;               % min max source rate
         a;                    % diffusion parameter
