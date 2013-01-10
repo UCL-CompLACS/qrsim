@@ -1,0 +1,4 @@
+qrsim
+=====
+
+Multiplatform quadrotor simulator
