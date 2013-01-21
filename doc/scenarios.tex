@@ -10,7 +10,7 @@
 \usepackage{xspace}
 \usepackage{graphicx}
 \usepackage{longtable}
-
+\usepackage{subcaption}
 
 %%commands
 \newcommand{\sname}{QRSim\xspace}
@@ -32,28 +32,56 @@
 \begin{document}
 \maketitle
 
+
+
 \begin{abstract}
-This document describes the three types of application scenarios developed at UCL to devise and test algorithms for our flock autonomous helicopters, one of the three application platforms of the {CompLACS} project.
+This document describes the three types of scenarios devised at UCL to develop and test learning and control algorithm with application to a flock of autonomous quadrotor helicopters, one of the three real world platforms of the {CompLACS} project.
+The three application scenarios are explicitly chosen to expose different types of challenges that occur in the domain of multi-platform aerial robotics so to provide a variety of research opportunities.
 
-This report is divided into three parts one for each of the three main scenarios.
-Each part gives a formal description of the scenario in terms of its setup, its objective, and its variations. Additionally for each of the scenario we provide some example code to aid the development of learning algorithms. Technical details specific to the scenarios implementation are reported in the appendix. 
+This report is divided into three parts one for each of the three scenarios; each part gives a formal description of the scenario in terms of its setup, its objective, and its variations. 
 
-All tasks are simulated using the \sname simulator therefore a companion to this document is the \sname manual (\webman) which describes in detail the simulator and its API.
+In order to aid the development and testing of learning algorithms, we provide a simulation environment based on the \sname quadrotor simulator for each the scenarios along with handy code examples.
+Technical details specific to the scenarios implementation are reported in the appendix. 
+
+Since the scenarios simulations are built on top of our \sname, we refer to the \sname manual (\webman) for details about the simulator and its API.
 
 \end{abstract}
 
 \tableofcontents
 
 \chapter{Scenario 1: Cats and Mouse game}
-$N$ helicopters (cats) have to be controlled in order to catch (i.e. get close to) another helicopter (mouse) at the end of the allotted time.
+
+The first of the scenarios is designed to focus primarily on the challenges encountered in the coordinated control of multiple UAVs; the associated problems of sensing and state estimation are somewhat simplified by the choice of task, environment and platform sensors. 
+
+\section{Description}
+The task to be accomplished in this scenario is in the form of a team game in which $N$ helicopters (cats) have to surround and effectively trap (i.e. get close to) another helicopter (mouse) at the end of the allotted time. 
+
+For simplicity the task is assumed to take place in an area devoided of obstacles so that helicopters can fly freely. The platforms are equipped with noisy sensors so only observation of the vehicle state are available.  
+It is assumed that each helicopter has also timely access to observations of the location and velocity of all the other platforms. 
+Depending on the circumstances in the flight area there might be present wind and other aerodynamic disturbances that affect the flight behaviour of the platforms.
+
+Snapshots of the initial ($t=0$) and terminal($t=T$) configurations from a typical successful run are visible in figures \ref{fig:catmousestart} and \ref{fig:catmousestop} respectively. 
+
+In the next section we give a more formal description of the problem.
+
+\begin{figure}[h]
+\centering
+\subcaptionbox{$t=0$\label{fig:catmousestart}}{\includegraphics[width=0.49\textwidth]{catmousestart.eps}}
+\subcaptionbox{$t=T$\label{fig:catmousestop}}{\includegraphics[width=0.49\textwidth]{catmousestop.eps}}
+\caption{Typical successful run: start(a) and end(b) configurations. \label{fig:catmouse}}
+\end{figure}
 
 \section{MDP}
 
-The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
+The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}. 
 
-\paragraph{States:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises the position ($[p_x,p_y,p_z]^\intercal$), velocity and orientation of the cats (superscripts $1,...,N$) and of the mouse (superscript $m$). All are continuous variables (see section \ref{CatMouseSim}), the environment is 3 dimensional although the helicopters are assumed to fly at a fixed altitude.
+\paragraph{States:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises of the state vectors of all the cats (superscripts $1,...,N$) and of the mouse (superscript $m$) helicopters. 
+Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. All of these are continuous variables (see section \ref{CatMouseSim} for more details).
 
-\paragraph{Initial State:} At the beginning of the task the mouse is placed at the center of the flight space\footnote{Without loss of generality since the control problem depends on the relative positions of mouse and cats as long as the flying area is sufficiently large.} and the cats are positioned randomly around the mouse\footnote{
+The environment is itself three dimensional although we will see (section \ref{catmouseactions}) that the helicopters are assumed to fly at a fixed altitude.
+
+\paragraph{Initial State:} At the beginning of the task the mouse is placed at the center of the flight space\footnote{Without loss of generality since the control problem depends on the relative positions of mouse and cats as long as the flying area is sufficiently large.} and the cats are positioned randomly around the mouse.
+
 The initial position of cats are generated as:
 $$
 \left\{
@@ -64,46 +92,57 @@ p^i_z = - h_{fix} & \\
 \end{array}
 \right.
 $$
-where $\alpha_i \in \mathcal{U}(0,2\pi)$ and $d_i \in \mathcal{U}(D_m,D_M)$. The minimum and maximum distance from the mouse ($D_m,D_M$) and the altitude $h_{fix}$ are user-configurable.
-An additional parameter $D_{c2c}$ allows to define a minimum distance between two cats, which prevent the occurrence of an initial state in which two cats are too close.
-}.
-Initially all the helicopters are stationary (i.e. their velocities are zero).
+where $\alpha_i \in \mathcal{U}(0,2\pi)$, $d_i \in \mathcal{U}(D_m,D_M)$ and $\mathcal{U}(a,b)$ indicates a uniform distribution over the interval $[a,b]$. The minimum and maximum distance from the mouse $D_m,D_M$ and the altitude $h_{fix}$ are user-configurable.
+An additional parameter $D_{c2c}$ allows to define a minimum distance between any two cats; this prevent the occurrence of an initial state in which two cats are too close.
 
-\paragraph{Actions:} 
-The action $a_t = (a^1_t,...,a^{N}_t)$ at time $t$ comprises the action for each of the cats helicopters. 
-To limit the space of control inputs we do not directly control the four inputs of each quadrotor (i.e. angles and throttle), instead each UAV is equipped with a PID controller\footnote{In addition to reducing the number of control inputs this makes the task closer to what is possible to implement and test using real quadrotors.} that accepts 2D linear velocity commands while maintaining a constant altitude and heading. The linear velocity commands are expressed in global coordinates (see section \ref{CatMouseSim} for details).
+At $t=0$ all the helicopters are stationary (i.e. their velocities are zero).
+
+\paragraph{Actions:}\label{catmouseactions} 
+A real quadrotor of the type considered in our task generally presents four continuous control inputs (i.e. pitch, roll, yaw angles and throttle) which needs to be updated at a rate of $50Hz$, constituting a rather large control space.
+
+To limit the space of control inputs, in our setup each UAV is equipped with a close loop PID controller that accepts 2D linear velocity commands $a^i_t=[v^i_x,v^i_y,v^i_z]^\intercal$ (in global coordinates) and combines them with the estimated platform velocity to produce the necessary attitude and throttle commands for the platform. The PID accepts commanded velocity at a rate of $1Hz$ and provides the platform controls at $50Hz$.
+To additionally reduce the control space the PID takes also care of maintaining a constant altitude and heading\footnote{The use of a PID controller in addition to reducing the number of control inputs makes the task closer to what is possible to implement and test using real quadrotors.}. 
+
+The action space $a_t = (a^1_t,...,a^{N}_t)$ at time $t$ comprises of the 2D linear velocity commands for each of the cats helicopters. 
 
 \paragraph{Dynamics:} 
-Markovian transition dynamics are defined by a distribution $P(s'|s,a)$ which denotes the conditional density\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} of state $s'$ at time $t+1$ given state-action $(s_t,a_t)=(s,a)$ at
-time $t$. As the task starts the mouse helicopter tries to escape the cats by moving at a constant\footnote{While the control law that governs the quadrotor attempts to maintain a fix maximum speed, in practice the true speed will not be constant due to sensor noise wind disturbance and dynamic effects.} (max) speed and following a predefined control law that prioritize escaping from the closest cats.\footnote{In specific the 2D velocity action for the mouse at time $t$ is computed as:
-$$
+Markovian transition dynamics are defined by a distribution $P(s_{t+1}|s_t,a_t)$ which denotes the conditional density of state $s$ at time $t+1$ given state-action $(s_t,a_t)=(s,a)$ at time~$t$.
+
+In the case of the cats helicopters the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are part of the \sname simulator\footnote{We refer to the \sname manual \webman for details.}. 
+
+For the mouse helicopter the transition dynamics is 
+not only defined by the platform dynamics but also by the way the mouse moves in response to the cats. 
+ As the task starts the mouse helicopter tries to escape the cats by moving at a constant (max) speed\footnote{While the control law that governs the quadrotor attempts to maintain a fix maximum speed, in practice the true speed will not be constant due to sensor noise wind disturbance and dynamic effects.} and choosing a direction that prioritize escaping from the closer cats.
+In specific the 2D velocity action for the mouse at time $t$ is computed as:
+\begin{equation}\label{eqn:mousectrl}
 \begin{array}{ll}
 a^m_t = V_{M} \frac{\mathsf{v}_t}{\| \mathsf{v}_t \|} &
 \text{where } \;\;\mathsf{v}_t = \sum_{i=1}^N \frac{\left[\begin{array}{c} p^i_x \\ p^i_y \end{array}\right]_t - \left[\begin{array}{c} p^m_x \\ p^m_y \end{array}\right]_t}{\left\| \left[\begin{array}{c} p^i_x \\ p^i_y \end{array}\right]_t - \left[\begin{array}{c} p^m_x \\ p^m_y \end{array}\right]_t \right\|^2}
 \end{array}
-$$
-and $V_{M}$ is the (user-configurable) maximum speed that the mouse can achieve.  
-}
+\end{equation}
+and $V_{M}$ is the (user-configurable) maximum speed that the mouse can achieve. 
+
+Different control strategies could be considered for the mouse; in practise the one considered in equation \ref{eqn:mousectrl} is both simple and has shown to be sufficient to provide for a challenging task.
+
 
 \paragraph{Rewards:}
-The task final reward is computed as the sum of the squared (2D) distances\footnote{$d_{2D}(x^i_T,x^m_T) = [p^i_x,p^i_y]\cdot[p^m_x,p^m_y]^\intercal$.} of the cats to the mouse at the end of the allotted time ($T$):
-$$r_T = - \sum^N_1 d_{2D}(x^i_T,x^m_T)^2.$$
+The cats are successful if the are able to trap the mouse at the end of the task; a meaningful final reward can be defined as the sum of the squared (2D) distances\footnote{$d_{2D}(x^i_T,x^m_T) = \Vert[p^i_x,p^i_y]_T^\intercal - [p^m_x,p^m_y]_T^\intercal\Vert$.} between the cats and the mouse at time $T$:
+$$r_T = - \sum^N_{i=1} d_{2D}(x^i_T,x^m_T)^2.$$
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if any of the helicopters (including the mouse) goes outside of the flying area or if any collision happens during the task.
 
 \section{Task Variations} \label{CatMouseVariations}
- Since the difficulty of the control problem depends on the level of sensor noise and wind disturbance, we provide three versions of the task with increasing level of difficulty:
+The difficulty of the considered control problem depends on the level of sensor noise and wind disturbance; so we define three versions of the task with increasing level of realism (and consequently difficulty):
 \begin{itemize}
  \item \textit{\textbf{1A} noiseless:} the dynamics of the quadrotors is deterministic and the state returned is the true platform state;
- \item \textit{\textbf{1B} noisy:} the dynamics of the quadrotors is stochastic and the state returned is a noisy estimate of the platform state (i.e. with additional white noise);
+ \item \textit{\textbf{1B} noisy:} the dynamics of the quadrotors is stochastic and the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise);
  \item \textit{\textbf{1C} noisy and windy:} the dynamics of the quadrotors is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise).
 \end{itemize}
 
-If there is sufficient interest additional variations could be added, these includes (but are not limited to):
-\begin{itemize} 
-\item \textit{obstacles:} e.g. cylinders in the flying area which are impassable and result in crashes. The obstacles would be represented by providing the coordinates of their center and radius, for example.
-\item \textit{multitask:} a multitask setting which involves repeated attempts at tasks drawn from some distribution.
-\end{itemize}
-
+%If there is sufficient interest additional variations could be added, these includes (but are not limited to):
+%\begin{itemize} 
+%\item \textit{obstacles:} e.g. cylinders in the flying area which are impassable and result in crashes. The obstacles would be represented by providing the coordinates of their center and radius, for example.
+%\item \textit{multitask:} a multitask setting which involves repeated attempts at tasks drawn from some distribution.
+%\end{itemize}
 
 \section{Simulation Code}\label{CatMouseSim}
 All the ingredients of the scenario described above are implemented as a task class for the quadrotor simulator \sname\footnote{We refer to the \sname manual for details on the simulator API \webman.}; the three variations of the scenario are named:
@@ -137,7 +176,7 @@ The underlying system is modelled as a discrete time MDP on a continuous state s
 
 \paragraph{States:} the state $s_t=(x_t,b_t)$ at time $t$ comprises the helicopter data $x_t$ which includes the agents position, velocity and orientation, and $b^i_{t}$, for $i\in\{1,...,N\}$ the position of $N$ targets. All are continuous variables. We assume that the ground is flat and that the targets are located on the ground.
 
-\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} are defined by $P(x'|x,a)$ which denotes the conditional density of state $x'$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$. These dynamics are independent of the targets $b^i_t$.
+\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} are defined by $P(x_{t+1}|x_t,a_t)$ which denotes the conditional density of state $x$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$. These dynamics are independent of the targets $b^i_t$.
 
 Targets $b^i_t$ are stationary unless a helicopter hovers (i.e. its speed is low) sufficiently close to it, in which case the target is removed from the environment.
 More formally:
@@ -236,7 +275,7 @@ The action $a_t$ at time $t$ is expressed in terms of a velocity vector in globa
 a_t=[v_x,v_y,v_z]_t^\intercal.
 \end{align}
 
-\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} and the smoke concentration are defined by $P(s'|s,a)$ which denotes the conditional density of state $s'$ at $t+1$ given $(s_t,a_t) = (s,a)$ at time $t$. The smoke evolves according to a plume model (see section \ref{PlumeVariations} for details) and its evolution is assumed to be independent of the helicopter actions and state  $P(c'|c,x,a)=P(c'|c)$.
+\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} and the smoke concentration are defined by $P(s_{t+1}|s_t,a_t)$ which denotes the conditional density of state $s$ at $t+1$ given $(s_t,a_t) = (s,a)$ at time $t$. The smoke evolves according to a plume model (see section \ref{PlumeVariations} for details) and its evolution is assumed to be independent of the helicopter actions and state  $P(c_{t+1}|c_t,x_t,a_t)=P(c_{t+1}|c_t)$.
 
 \paragraph{Observations:} The helicopter state $x_t$ is observed directly although depending on the specific task variation (see Section~\ref{PlumeVariations}). 
 The smoke concentration $c_t$ is not known, but noisy observations $o_t$ are provided by a concentration sensor at each time step returning the concentration at the position in which the helicopter is located.
