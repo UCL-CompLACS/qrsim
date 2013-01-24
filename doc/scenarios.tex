@@ -11,6 +11,7 @@
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{subcaption}
+\usepackage{listings}
 
 %%commands
 \newcommand{\sname}{QRSim\xspace}
@@ -145,25 +146,84 @@ The difficulty of the considered control problem depends on the level of sensor 
 %\end{itemize}
 
 \section{Simulation Code}\label{CatMouseSim}
-All the ingredients of the scenario described above are implemented as a task class for the quadrotor simulator \sname\footnote{We refer to the \sname manual for details on the simulator API \webman.}; the three variations of the scenario are named:
+The cat and mouse scenario can be promptly defined on top of the \sname simulator by means of dedicated task classes\footnote{We refer to the \webman for details on task classes.}. In specific we make available one task class for each of the three scenario variations introduced in section \ref{CatMouseVariations}:
 \begin{itemize}
 \item\textit{1A}: \mytexttt{TaskCatsMouseNoiseless.m},
 \item\textit{1B}: \mytexttt{TaskCatsMouseNoisy.m},
 \item\textit{1C}: \mytexttt{TaskCatsMouseNoisyAndWindy.m}. 
 \end{itemize}
 
-We also provide the example file \texttt{main\_catsmouse.m} which shows how to initialize and run a task, how to retrieve the platform state
-and issue actions.
+Commenting the code in details is beyond the scope of this report but it is useful to briefly report which task methods are responsible for handling the various task specific definitions:
+\begin{itemize}
+\item\mytexttt{init()}: defines all the platforms and sensor parameters;
+\item\mytexttt{reset()}: defines the task starting condition;
+\item\mytexttt{step(U)}: defines the mouse evasion strategy;
+\item\mytexttt{reward()}: defines the task reward.
+\end{itemize}
 
-The task, the configurations and the example main files are in the directory \mytexttt{scenarios/catsmouse} within the \sname simulator. 
+Listing \ref{lst:mcm} (file \texttt{main\_catsmouse.m}) shows the set of steps that are necessary to run a scenario task.
 
-\textbf{Note:}
-Within the simulator the helicopter state $x^i$ is denoted as $eX$:
-$$eX = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
-while the actions $a^i$ are denoted as controls $u$:
-$$u=[v_x,v_y]^\intercal$$
+After the desired task is initialized (line 4), a basic for loop is executed for the number of timesteps specified by the task. Within the loop the 2D velocity control is computed for each helicopter and passed to the corresponding PID (line 37). 
+In our listing we show a simple (and suboptimal) scheme in which the velocity direction of each cat directly towards the future mouse position mouse (line 20-23) but that also keeps away from neighbouring cats (line 26-34). 
+The helicopter control input produced by the PID controllers are then used to step the simulator (line 41).
+Finally after the execution of the task is concluded, the final reward for the task can be retrieved (line 46).
+
+We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \texttt{eX}:
+$$\texttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
+while the actions $a^i$ are denoted as controls \texttt{u}:
+$$\texttt{u}=[v_x,v_y]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
+\begin{lstlisting}[float=ht!bp,caption=main\_catsmouse.m,language=Matlab,frame=lines,label=lst:mcm,numbers=left,basicstyle=\small]
+qrsim = QRSim();
+
+% load task parameters and do housekeeping
+state = qrsim.init('TaskCatsMouseNoisyAndWindy');
+
+U = zeros(2,state.task.Nc);
+
+% run the scenario and at every timestep generate a control
+% input for each of the uavs
+for i=1:state.task.durationInSteps,
+    
+    % get the mouse position (note id state.task.Nc+1)
+    mousePos = state.platforms{state.task.Nc+1}.getEX(1:2);
+    
+    % quick and easy way of computing velocity controls for each cat 
+    for j=1:state.task.Nc,
+	collisionDistance = state.platforms{j}.getCollisionDistance();
+		
+        % vector to the mouse
+        u = mousePos - state.platforms{j}.getEX(1:2);
+        
+        % add a weighted velocity (i.e. "predict" where the mouse will be)
+        u = u  + (norm(u)/2)*state.platforms{state.task.Nc+1}.getEX(18:19);
+        
+        % keep away from other cats if closer than 2*collisionDistance        
+        for k = 1:state.task.Nc,
+            if(state.platforms{k}.isValid())                  
+                d = state.platforms{j}.getEX(1:2) 
+                    - state.platforms{k}.getEX(1:2);
+                if((k~=j)&&(norm(d)<2*collisionDistance))
+                    u = u + (1/(norm(d)-collisionDistance()))*(d/norm(d));
+                end
+            end
+        end
+        
+        % scale by the max allowed velocity
+        U(:,j) = state.task.velPIDs{j}.maxv*(u/norm(u));
+    end
+    
+    % step simulator
+    qrsim.step(U);
+end
+
+% get final reward
+fprintf('final reward: %f\n',qrsim.reward());
+
+\end{lstlisting}
+
+The task, the configurations and the example main files are in the directory \mytexttt{scenarios/catsmouse} within the \sname simulator. 
 
 \newpage
 \chapter{Scenario 2: Search and Rescue}
