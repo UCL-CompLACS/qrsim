@@ -177,6 +177,11 @@ classdef TaskSearchRescueSingleNoiseless<Task
             % no reward update since the reward is not episodic
             obj.currentReward = 0;
         end
+                        
+        function p = getNumberOfPersons(obj)
+            % returns the number of persons in the search area
+            p = obj.simState.environment.area.getNumberOfPersons();
+        end
         
         function r=reward(obj)
             % returns the reward at the current timestep

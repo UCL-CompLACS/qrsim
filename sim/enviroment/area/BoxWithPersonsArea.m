@@ -141,6 +141,11 @@ classdef BoxWithPersonsArea<Area
             pers = obj.persons;
         end
         
+        function pers = getNumberOfPersons(obj)
+            % returns the number of persons in the area
+            pers = length(obj.persons);
+        end
+        
         function tclass = getTerrainClass(obj,pts)
             % returns the terrain class at the specified gound points
             tclass = obj.terrain.getClass(pts);

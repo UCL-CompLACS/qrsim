@@ -37,6 +37,11 @@ tstart = tic;
 % allocate temporary array for control inputs
 u = zeros(2,state.task.numUAVs);
 
+
+% number of persons to locate        
+np = state.task.getNumberOfPersons();
+
+
 % run the scenario and at every timestep generate a control
 % input for each of the uavs
 % note: the duration of the task might need changing depending

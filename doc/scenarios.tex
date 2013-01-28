@@ -227,9 +227,14 @@ The task, the configurations and the example main files are in the directory \my
 
 \newpage
 \chapter{Scenario 2: Search and Rescue}
-This scenario is designed to expose the complex interplay between sensing and acting typical in autonomous robotics task.
+The second scenario is designed explicitly to expose the complex interplay between sensing and acting typical in autonomous robotics task. To solve the task the agent/s has to perform inference about the state of the environment given some observations and take actions based on its belief. 
 
-Several targets (people) are lost/injured on the ground in a landscape and need to be located and rescued. A helicopter agent is equipped with a camera/classification module for predicting the position of targets in its field of vision, but the quality of predictions depends upon the ground type and the geometry between helicopter and ground (e.g. the distance). Rather than raw images the camera module provides higher-level data in the form of log likelihood differences for the current observation conditioned on the presence or absence of a target.
+\section{Description}
+The task to be accomplished in this scenario is in the form of a wilderness search and rescue mission; several targets (people) are lost/injured on the ground in a landscape and need to be located and rescued. 
+
+
+In addition to its navigation sensors each helicopter agent taking part in the search 
+is equipped with a camera/classification module that allows it to detect the presence of targets in its field of vision. The quality of predictions depends upon the ground type and the geometry between helicopter and ground (e.g. the distance). Rather than raw images the camera module provides higher-level data in the form of log likelihood differences for the current observation conditioned on the presence or absence of a target.
 
 \section{MDP}
 The underlying system is modelled as a discrete time MDP on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
