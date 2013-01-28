@@ -67,8 +67,8 @@ In the next section we give a more formal description of the problem.
 
 \begin{figure}[h]
 \centering
-\subcaptionbox{$t=0$\label{fig:catmousestart}}{\includegraphics[width=0.49\textwidth]{catmousestart.eps}}
-\subcaptionbox{$t=T$\label{fig:catmousestop}}{\includegraphics[width=0.49\textwidth]{catmousestop.eps}}
+\subcaptionbox{$t=0$\label{fig:catmousestart}}{\includegraphics[width=0.49\textwidth]{catmousestart.jpg}}
+\subcaptionbox{$t=T$\label{fig:catmousestop}}{\includegraphics[width=0.49\textwidth]{catmousestop.jpg}}
 \caption{Typical successful run: start(a) and end(b) configurations. \label{fig:catmouse}}
 \end{figure}
 
@@ -232,12 +232,20 @@ The second scenario is designed explicitly to expose the complex interplay betwe
 \section{Description}
 The task to be accomplished in this scenario is in the form of a wilderness search and rescue mission; several targets (people) are lost/injured on the ground in a landscape and need to be located and rescued. 
 
-
 In addition to its navigation sensors each helicopter agent taking part in the search 
-is equipped with a camera/classification module that allows it to detect the presence of targets in its field of vision. The quality of predictions depends upon the ground type and the geometry between helicopter and ground (e.g. the distance). Rather than raw images the camera module provides higher-level data in the form of log likelihood differences for the current observation conditioned on the presence or absence of a target.
+is equipped with a camera/classification module that allows it to detect the presence of targets in its field of view. Rather than raw images the camera module provides higher-level data in the form of log likelihood differences for the current observation conditioned on the presence or absence of a target. The quality of detection depends upon the ground type and the geometry between helicopter and ground (e.g. the distance). 
+
+The search era is limited but its extent is so that a trivial lawn mower pattern of search will not allow to cover all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. For simplicity the persons are assumed to not move during the task. 
+
+A snapshot from a typical run is shown in figure \ref{fig:searchrescue}
+\begin{figure}[h]
+\centering
+\includegraphics[width=16cm]{searchrescue.jpg}
+\caption{Search and rescue run with three helicopters; note the different terrain types (denoted by different colors) and the persons (red dots). The insert shows the camera observation from UAV 1 that happens to be over a person. \label{fig:searchrescue}}
+\end{figure}
 
 \section{MDP}
-The underlying system is modelled as a discrete time MDP on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
+The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}.
 
 \paragraph{States:} the state $s_t=(x_t,b_t)$ at time $t$ comprises the helicopter data $x_t$ which includes the agents position, velocity and orientation, and $b^i_{t}$, for $i\in\{1,...,N\}$ the position of $N$ targets. All are continuous variables. We assume that the ground is flat and that the targets are located on the ground.
 
