@@ -38,3 +38,11 @@
 /3rdparty/gpml/util/lbfgsb.mexa64
 /3rdparty/gpml/util/solve_chol.mexa64
 /tcp-linux/matlab/QRSimTCPServer.m
+/3rdparty/sloc/sloc.m
+/3rdparty/sloc/license.txt
+/3rdparty/slocDir/slocDir.m
+/3rdparty/slocDir/license.txt
+/doc/scenarios.aux
+/doc/scenarios.log
+/doc/scenarios.synctex.gz
+/doc/scenarios.toc

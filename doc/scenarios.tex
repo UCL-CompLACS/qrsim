@@ -237,7 +237,7 @@ is equipped with a camera/classification module that allows it to detect the pre
 
 The search era is limited but its extent is so that a trivial lawn mower pattern of search will not allow to cover all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. For simplicity the persons are assumed to not move during the task. 
 
-A snapshot from a typical run is shown in figure \ref{fig:searchrescue}
+A snapshot from a typical run is shown in figure \ref{fig:searchrescue} along with an example of the observation returned by the camera/classifier model.
 \begin{figure}[h]
 \centering
 \includegraphics[width=16cm]{searchrescue.jpg}
@@ -247,7 +247,17 @@ A snapshot from a typical run is shown in figure \ref{fig:searchrescue}
 \section{MDP}
 The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}.
 
-\paragraph{States:} the state $s_t=(x_t,b_t)$ at time $t$ comprises the helicopter data $x_t$ which includes the agents position, velocity and orientation, and $b^i_{t}$, for $i\in\{1,...,N\}$ the position of $N$ targets. All are continuous variables. We assume that the ground is flat and that the targets are located on the ground.
+\paragraph{States:} the state $s_t=(x^1_t,...,x^{N}_t,b^i_t,...,b^P_t)$ at time $t$ comprises the helicopters state vectors $x^i_t$ and the position of  the targets 
+
+
+which includes the agents position, velocity and orientation, and $b^i_{t}$, for $i\in\{1,...,P\}$ the position of $P$ targets. All are continuous variables. We assume that the ground is flat and that the targets are located on the ground.
+
+
+{States:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises of the state vectors of all the cats (superscripts $1,...,N$) and of the mouse (superscript $m$) helicopters. 
+Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. All of these are continuous variables (see section \ref{CatMouseSim} for more details).
+
+The environment is itself three dimensional although we will see (section \ref{catmouseactions}) that the helicopters are assumed to fly at a fixed altitude.
+
 
 \paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} are defined by $P(x_{t+1}|x_t,a_t)$ which denotes the conditional density of state $x$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$. These dynamics are independent of the targets $b^i_t$.
 
@@ -335,7 +345,19 @@ with the variables defined in appendix \ref{tab:naming}.
 
 \newpage
 \chapter{Scenario 3: Plume modelling}
+
+
+\section{Description}
 Several smoke plumes evolve over time and a helicopter agent is equipped with a sensor that measures the concentration of smoke. The plume follows a known model but with unknown parameter values. The objective is to provide a smoke concentration estimate $\hat{c}_T$ at some pre-specified time $T$\footnote{For simplicity we refer to concentration of smoke, in a real environment this would be a property of the plume that can be realistically measured e.g. CO concentration.}.
+
+
+\begin{figure}[h]
+\centering
+\subcaptionbox{Single source Gaussian concentration.\label{fig:singlegaussplume}}{\includegraphics[width=0.49\textwidth]{singlegaussplume.jpg}}
+\subcaptionbox{Multiple sources Gaussian dispersion.\label{fig:multigaussplume}}{\includegraphics[width=0.49\textwidth]{multigaussplume.jpg}}
+\subcaptionbox{Single source Gaussian puff dispersion.\label{fig:singlegausspuffplume}}{\includegraphics[width=0.49\textwidth]{singlegausspuffplume.jpg}}
+\caption{Plume models.\label{fig:plume}}
+\end{figure}
 
 \section{MDP}
 The underlying system is modelled as a discrete time Markov process on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
@@ -416,7 +438,7 @@ with the variables defined in section \ref{tab:naming}.
 
 \appendix
 
-\chapter{Variable Definitions}\label{tab:naming}
+\chapter{Nomenclature}\label{tab:naming}
 
 Helicopter state variables common to all the tasks:
 \begin{table}[h]  
@@ -446,9 +468,11 @@ Helicopter state variables common to all the tasks:
 
 We remind the reader that NED stands for Noth-East-Down as explained in more detail in the \sname manual.
 
+\newpage
+
 \chapter{Concentration Models}
 
-To interpret the following models, is useful to introduce some nomenclature:
+To interpret the following concentration models, is useful to introduce some nomenclature:
 \begin{longtable}{l l l}
 $x,y,z$ & coordinates w.r.t. the global NED frame of reference & $m$\\
 $x',y',z'$ & coordinates w.r.t. the wind frame of reference & $m$\\
