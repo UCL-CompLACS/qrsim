@@ -57,7 +57,8 @@ The first of the scenarios is designed to focus primarily on the challenges enco
 \section{Description}
 The task to be accomplished in this scenario is in the form of a team game in which $N$ helicopters (cats) have to surround and effectively trap (i.e. get close to) another helicopter (mouse) at the end of the allotted time. 
 
-For simplicity the task is assumed to take place in an area devoided of obstacles so that helicopters can fly freely. The platforms are equipped with noisy sensors so only observation of the vehicle state are available.  
+For simplicity the task is assumed to take place in an area devoided of obstacles so that helicopters can fly freely. Getting in contact with the ground or another UAV will however produce a collision.
+The platforms are equipped with noisy sensors so only observation of the vehicle state are available.  
 It is assumed that each helicopter has also timely access to observations of the location and velocity of all the other platforms. 
 Depending on the circumstances in the flight area there might be present wind and other aerodynamic disturbances that affect the flight behaviour of the platforms.
 
@@ -76,7 +77,7 @@ In the next section we give a more formal description of the problem.
 
 The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}. 
 
-\paragraph{States:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises of the state vectors of all the cats (superscripts $1,...,N$) and of the mouse (superscript $m$) helicopters. 
+\paragraph{State:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises of the state vectors of all the cats (superscripts $1,...,N$) and of the mouse (superscript $m$) helicopters. 
 Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. All of these are continuous variables (see section \ref{CatMouseSim} for more details).
 
 The environment is itself three dimensional although we will see (section \ref{catmouseactions}) that the helicopters are assumed to fly at a fixed altitude.
@@ -125,8 +126,11 @@ and $V_{M}$ is the (user-configurable) maximum speed that the mouse can achieve.
 
 Different control strategies could be considered for the mouse; in practise the one considered in equation \ref{eqn:mousectrl} is both simple and has shown to be sufficient to provide for a challenging task.
 
+\paragraph{Observations}
+The helicopter state $x^i_t$ is observed directly although depending on the specific task variation (see Section~\ref{CatMouseVariations}) the state variables might be affected by stochastic noise.
+For more details about the noise models used by \sname we refer the reader to the simulator manual (\webman). 
 
-\paragraph{Rewards:}
+\paragraph{Reward:}
 The cats are successful if the are able to trap the mouse at the end of the task; a meaningful final reward can be defined as the sum of the squared (2D) distances\footnote{$d_{2D}(x^i_T,x^m_T) = \Vert[p^i_x,p^i_y]_T^\intercal - [p^m_x,p^m_y]_T^\intercal\Vert$.} between the cats and the mouse at time $T$:
 $$r_T = - \sum^N_{i=1} d_{2D}(x^i_T,x^m_T)^2.$$
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if any of the helicopters (including the mouse) goes outside of the flying area or if any collision happens during the task.
@@ -237,6 +241,8 @@ is equipped with a camera/classification module that allows it to detect the pre
 
 The search era is limited but its extent is so that a trivial lawn mower pattern of search will not allow to cover all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. For simplicity the persons are assumed to not move during the task. 
 
+For simplicity we assume that the flight area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
+
 A snapshot from a typical run is shown in figure \ref{fig:searchrescue} along with an example of the observation returned by the camera/classifier model.
 \begin{figure}[h]
 \centering
@@ -247,71 +253,83 @@ A snapshot from a typical run is shown in figure \ref{fig:searchrescue} along wi
 \section{MDP}
 The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}.
 
-\paragraph{States:} the state $s_t=(x^1_t,...,x^{N}_t,b^i_t,...,b^P_t)$ at time $t$ comprises the helicopters state vectors $x^i_t$ and the position of  the targets 
+\paragraph{States:} The state $s_t=(x^1_t,...,x^{N}_t,b^1_t,...,b^P_t)$ at time $t$ comprises the helicopters state vectors $x^i_t$ and the location of the $P$ targets $b^j_t$.
 
+Each platform state contains the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. 
+The environment is itself three dimensional and the helicopter can freely move in three dimensions.
 
-which includes the agents position, velocity and orientation, and $b^i_{t}$, for $i\in\{1,...,P\}$ the position of $P$ targets. All are continuous variables. We assume that the ground is flat and that the targets are located on the ground.
+The person's location is expressed in terms of its coordinate w.r.t. the global reference frame  $b^j=[p_x,p_y,0]^\intercal$; the persons' $z$ coordinate is zero since we assume that the ground is flat and that the targets are located on the ground.
 
-
-{States:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises of the state vectors of all the cats (superscripts $1,...,N$) and of the mouse (superscript $m$) helicopters. 
-Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. All of these are continuous variables (see section \ref{CatMouseSim} for more details).
-
-The environment is itself three dimensional although we will see (section \ref{catmouseactions}) that the helicopters are assumed to fly at a fixed altitude.
-
-
-\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} are defined by $P(x_{t+1}|x_t,a_t)$ which denotes the conditional density of state $x$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$. These dynamics are independent of the targets $b^i_t$.
-
-Targets $b^i_t$ are stationary unless a helicopter hovers (i.e. its speed is low) sufficiently close to it, in which case the target is removed from the environment.
-More formally:
-\begin{align}
-if ~ \exists ~ i~:~ d_{3D}\left( x_t,b^i_t \right) < \delta ~ \wedge ~\and \parallel [u,v,w]_t^\intercal \parallel < \epsilon \quad \Rightarrow \quad N=N-1\qquad i\in\{1,...,N\}
-\end{align}
-where $d_{3D}$ is the standard Euclidean distance\footnote{Defined as $$d_{3D}(x_t,b^i_t) = \parallel b^i_t -[p_x,p_y,p_z]_t^\intercal \parallel.$$} and $(\epsilon,\delta)$ are user specified thresholds\footnote{The default values for the distance threshold and the speed threshold are $\delta=5m$ and $\epsilon=0.1m/s$}.
+\paragraph{Initial State:} At the beginning of the task a new terrain map is generated based on the number of terrain classes and split between class types specified by the user\footnote{The user specifies what percentage of the total area should belong to each class.}. 
+The extent of the flight area is scaled accordingly to the number of platforms and time horizon in order to ensure that the task is non trivial.
+Subsequently a number of persons is randomly placed in the search area. The user can control where persons are placed by specifying the probability of a target to be located on a specific terrain class\footnote{Each persons location is generated independently.}. 
+Finally the helicopters are located randomly (with uniform probability) around the flying area at the nominal flight height\footnote{The initial altitude can be configured by the user but is set to a $25m$ default value.}.
 
 \paragraph{Actions:}
-the action $a_t$ at time $t$ is expressed in terms of a 3D velocity vector in global NED coordinates:
+At each time step the agent specifies an action $a_t$ for each of the UAV taking part in the task; the action is expressed in terms of a 3D velocity vector in global NED coordinates:
 \begin{align}
 a_t=[v_x,v_y,v_z]_t^\intercal.
 \end{align}
-Is worth remembering that the actions are nothing more than set points to a PID controller that attempts to drive that UAV at the requested velocity.
-Due to delays and disturbances mismatches between the commanded and the actual velocity of the UAV have to be expected.
 
-\paragraph{Rewards:} 
-According to the way a target is rescued the reward $r_t$ at time $t$ is defined to be $1$ when a helicopter hovers sufficiently close to a target and a small negative value otherwise.
+Is worth remembering that the actions are nothing more than set points to a PID controller that attempts to drive that UAV at the requested velocity.
+Due to delays and disturbances mismatches between the commanded and the actual velocity of the UAV have to be expected. 
+
+\paragraph{Dynamics:}\label{rescued} For the UAVs the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are specified by the \sname simulator. Such transition dynamics are Markovian and defined by $P(x_{t+1}|x_t,a_t)$ which denotes the conditional density of state $x$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$.
+The dynamics of the UAVs are independent of the targets $b^j_t$.
+
+Targets $b^j$ are stationary unless a helicopter hovers (i.e. its speed is low) sufficiently close to it, in which case the target is considered rescued and removed from the environment.
+More formally:
+\begin{align}
+\begin{array}{l l}
+if ~ \exists ~ i,j~:~ d_{3D}\left( x^i_t,b^j_t \right) < \delta ~ \wedge ~\and \parallel [u^i,v^i,w^i]_t^\intercal \parallel < \epsilon & \\
+ \Rightarrow \quad P=P-1 & i\in\{1,...,N\},j\in\{1,...,P\} 
+\end{array}
+\end{align}
+where $d_{3D}$ is the standard Euclidean distance\footnote{Defined as $$d_{3D}(x_t,b^j_t) = \parallel b^j_t -[p_x,p_y,p_z]_t^\intercal \parallel.$$} and $(\epsilon,\delta)$ are user specified thresholds\footnote{The default values for the distance threshold and the speed threshold are $\delta=5m$ and $\epsilon=0.1m/s$}.
+
+\paragraph{Observations}
+
+The helicopter state $x_t$ is observed directly although depending on the specific task variation (see Section~\ref{SearchRescueVariations}) the state variables might be affected by stochastic noise.
+
+The position of the targets $b^j_t$ is not known, but observations $o_t$ are provided by the camera at each time step.
+
+Following standard object detection techniques we assume that the incoming image is split into $M$ windows $\{w^k_t\}^M_{k=1}$  (of size informed by the current altitude and an assumed fixed size for the person) which are then analysed for targets. 
+Given the current UAV pose $x_t$ and the fixed camera parameters the set of windows projects on the ground to a set of $M$ patches $\{g^k_t\}^M_{k=1}$ on the ground with centres $\{c^k_t\}^M_{k=1}$. 
+More precisely we this assumes that a map is available and that the mapping
+\begin{align}
+\{g^k_t\}^M_{k=1} \mapsto \{w^k_t\}^M_{k=1}\nn
+\end{align}
+is known, but does not have to be considered explicitly by the agent. 
+
+We assume that some form of person detection algorithm is run on each of the image windows ${w^k_t}$. As a result it is possible to evaluate the probability that such image patch was originated by a person (at the corresponding ground location $g^k_t$) versus the probability that ${w^k_t}$ was originated by clear ground at location $g^k_t$; what is commonly called the likelihood ratio.
+
+To generate likelihood ratios we use a model learned from the scores obtained by running an off the shelf person classifier on aerial images dataset collected with the quadrotor UAV in use at UCL. We refer to appendix \ref{personclassifier} for more details about such model.
+
+The observation $o_t$ is simply the collection of the log likelihood ratios obtained for each of the image windows ${w^k_t}$ (and therefore also for the corresponding ground patches $g^k_t$):
+\begin{align}
+o_t = \left\{\log
+\left(
+\frac{\pr(\mbox{image at time } t~|~\mbox{target in } g^k_t \mbox{, agent at }x_t)}
+{\pr(\mbox{image at time }t~|~\mbox{no target in } g^k_t \mbox{, agent at }x_t)}
+\right)
+\right\}^M_{k=1}. \nn
+\end{align}
+
+An example of the observation returned by our simulated scenario is visible in the insert of figure \ref{fig:searchrescue}. A higher value of the ratio (red color) is noticeable for the ground patches that are at the person location; also note how the patches are conveniently expressed in ground coordinates.
+
+\paragraph{Reward:} 
+The reward $r_t$ for the task is designed to prize the UAVs for quickly rescuing targets. In this spirit $r_t$ at time $t$ is defined to be $1$ when a helicopter hovers sufficiently close to a target and a small negative value otherwise.
 More formally:
 \begin{align}
 r_t =  \left\{
 \begin{array}{c l}
-1 & if ~ \exists ~ i~:~ d_{3D}\left( x_t,b^i_t \right) < \delta ~ \wedge ~\and \parallel [u,v,w]_t^\intercal \parallel < \epsilon \qquad i\in\{1,...,N\}\\
+1 & if ~ \exists ~ i,j~:~ d_{3D}\left( x^i_t,b^j_t \right) < \delta ~ \wedge ~\and \parallel [u,v,w]_t^\intercal \parallel < \epsilon \qquad i\in\{1,...,N\},j\in\{1,...,P\}\\
 -1/T & otherwise
 \end{array}
 \right.
 \end{align}
-for a task duration $T$ and the same $\epsilon,\delta$ that define a person as rescued. 
+where $T$ is the task duration $T$ and $\epsilon,\delta$ are the distance and velocity thresholds that that define a person as rescued (see section \ref{rescued}). 
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if the helicopter goes outside of the flying area or if any collision happens during the task. 
-
-\section{Observations}
-
-The helicopter state $x_t$ is observed directly although depending on the specific task variation (see Section~\ref{SearchRescueVariations}) the state variables might be affected by stochastic noise.
-
-The position of the targets $b^i_t$ is not known, but observations $o_t$ are provided by the camera at each time step.
-
-Following standard object detection techniques we assume that the incoming image is split into $M$ windows $\{w^j_t\}^M_{j=1}$  (of size informed by the current altitude and an assumed fixed size for the person) which are then analysed for targets. 
-Given the current UAV pose $x_t$ and the fixed camera parameters the set of windows re-projects to a set of $M$ patches $\{g^j_t\}^M_{j=1}$ on the ground\footnote{Here we assume that everything needed to provide the link between the ground coordinates and the camera's frame is engineered by hand and does not have to be learned autonomously. In other words it is assumed that a map is available and known and the mapping
-\begin{align}
-\{g^j_t\}^M_{j=1} \mapsto \{w^j_t\}^M_{j=1}\nn
-\end{align}
-is known, but does not have to be considered explicitly by the agent.} with centres $\{c^j_t\}^M_{j=1}$.
-The observation $o_t$ is simply the collection of the log likelihood ratios for each of the ground patches $g^j_t$:
-\begin{align}
-o_t = \left\{\log
-\left(
-\frac{\pr(\mbox{image at time } t~|~\mbox{target in } g^j_t \mbox{, agent at }x_t)}
-{\pr(\mbox{image at time }t~|~\mbox{no target in } g^j_t \mbox{, agent at }x_t)}
-\right)
-\right\}^M_{j=1}. \nn
-\end{align}
-
 
 \section{Task Variations} \label{SearchRescueVariations}
 The difficulty of solving the task depends on the number of platforms that are employed as well as on the level of sensor noise and wind disturbance; we provide four versions of the task with increasing level of difficulty:
@@ -467,6 +485,10 @@ Helicopter state variables common to all the tasks:
 \end{table}
 
 We remind the reader that NED stands for Noth-East-Down as explained in more detail in the \sname manual.
+
+\newpage
+
+\chapter{Person Classifier Model} \label{personclassifier}
 
 \newpage
 
