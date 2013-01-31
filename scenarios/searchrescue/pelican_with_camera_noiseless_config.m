@@ -36,7 +36,7 @@ c.stateLimits =[params.environment.area.limits(1:2);params.environment.area.limi
     -3,3;-3,3;-3,3];                          % rotational velocity limits
     
 c.collisionDistance = 2;                      % two platforms colser than this distance are deemed in collision 
-c.dynNoise = [0.2;0.2;0.2;0.2;0.2;0.2];
+c.dynNoise = [0;0;0;0;0;0];
 
 % GPS Receiver
 c.sensors.gpsreceiver.on = 0;                 % if off the gps returns the noiseless position
