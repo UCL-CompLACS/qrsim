@@ -33,7 +33,7 @@
 \begin{document}
 \maketitle
 
-
+\chapter{Quadrotors Scenarios}
 
 \begin{abstract}
 This document describes the three types of scenarios devised at UCL to develop and test learning and control algorithm with application to a flock of autonomous quadrotor helicopters, one of the three real world platforms of the {CompLACS} project.
@@ -50,16 +50,18 @@ Since the scenarios simulations are built on top of our \sname, we refer to its 
 
 \tableofcontents
 
-\chapter{Scenario 1: Cats and Mouse game}
+\newpage 
+
+\section{Scenario 1: Cats and Mouse game}
 
 The first of the scenarios is designed to focus primarily on the challenges encountered in the coordinated control of multiple UAVs; the associated problems of sensing and state estimation are somewhat simplified by the choice of task, environment and platform sensors. 
 
-\section{Description}
+\subsection{Description}
 The task to be accomplished in this scenario is in the form of a team game in which $N$ helicopters (cats) have to surround and effectively trap (i.e. get close to) another helicopter (mouse) at the end of the allotted time. 
 
 For simplicity the task is assumed to take place in an area devoided of obstacles so that helicopters can fly freely. Getting in contact with the ground or another UAV will however produce a collision.
 The platforms are equipped with noisy sensors so only observation of the vehicle state are available.  
-Depending on the circumstances in the flight area there might be present wind and other aerodynamic disturbances that affect the flight behaviour of the platforms.
+Depending on the circumstances in the flying area there might be present wind and other aerodynamic disturbances that affect the flight behaviour of the platforms.
 
 Snapshots of the initial ($t=0$) and terminal($t=T$) configurations from a typical successful run are visible in figures \ref{fig:catmousestart} and \ref{fig:catmousestop} respectively. 
 
@@ -72,7 +74,7 @@ In the next section we give a more formal description of the problem.
 \caption{Typical successful run: start(a) and end(b) configurations. \label{fig:catmouse}}
 \end{figure}
 
-\section{MDP}
+\subsection{MDP}
 
 The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}. 
 
@@ -134,7 +136,7 @@ The cats are successful if the are able to trap the mouse at the end of the task
 $$r_T = - \sum^N_{i=1} d_{2D}(x^i_T,x^m_T)^2.$$
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if any of the helicopters (including the mouse) goes outside of the flying area or if any collision happens during the task.
 
-\section{Task Variations} \label{CatMouseVariations}
+\subsection{Task Variations} \label{CatMouseVariations}
 The difficulty of the considered control problem depends on the level of sensor noise and wind disturbance; so we define three versions of the task with increasing level of realism (and consequently difficulty):
 \begin{itemize}
  \item \textit{\textbf{1A} noiseless:} the dynamics of the quadrotors is deterministic and the state returned is the true platform state;
@@ -142,13 +144,7 @@ The difficulty of the considered control problem depends on the level of sensor 
  \item \textit{\textbf{1C} noisy and windy:} the dynamics of the quadrotors is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise).
 \end{itemize}
 
-%If there is sufficient interest additional variations could be added, these includes (but are not limited to):
-%\begin{itemize} 
-%\item \textit{obstacles:} e.g. cylinders in the flying area which are impassable and result in crashes. The obstacles would be represented by providing the coordinates of their center and radius, for example.
-%\item \textit{multitask:} a multitask setting which involves repeated attempts at tasks drawn from some distribution.
-%\end{itemize}
-
-\section{Simulation Code}\label{CatMouseSim}
+\subsection{Simulation Code}\label{CatMouseSim}
 The cat and mouse scenario can be promptly defined on top of the \sname simulator by means of dedicated task classes\footnote{We refer to the \webman for details on task classes.}. In specific we make available one task class for each of the three scenario variations introduced in section \ref{CatMouseVariations}:
 \begin{itemize}
 \item\textit{1A}: \mytexttt{TaskCatsMouseNoiseless.m},
@@ -165,18 +161,6 @@ Commenting the code in details is beyond the scope of this report but it is usef
 \end{itemize}
 
 Listing \ref{lst:mcm} (file \texttt{main\_catsmouse.m}) shows the set of steps that are necessary to run a scenario task.
-
-After the desired task is initialized (line 4), a basic for loop is executed for the number of timesteps specified by the task. Within the loop the 2D velocity control is computed for each helicopter and passed to the corresponding PID (line 37). 
-In our listing we show a simple (and suboptimal) scheme in which the velocity direction of each cat directly towards the future mouse position mouse (line 20-23) but that also keeps away from neighbouring cats (line 26-34). 
-The helicopter control input produced by the PID controllers are then used to step the simulator (line 41).
-Finally after the execution of the task is concluded, the final reward for the task can be retrieved (line 46).
-
-We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \texttt{eX}:
-$$\texttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
-while the actions $a^i$ are denoted as controls \texttt{u}:
-$$\texttt{u}=[v_x,v_y]^\intercal$$
-with the variables defined in section \ref{tab:naming}.
-
 \begin{lstlisting}[float=ht!bp,caption=main\_catsmouse.m,language=Matlab,frame=lines,label=lst:mcm,numbers=left,basicstyle=\small]
 qrsim = QRSim();
 
@@ -226,13 +210,24 @@ fprintf('final reward: %f\n',qrsim.reward());
 
 \end{lstlisting}
 
+After the desired task is initialized (line 4), a basic for loop is executed for the number of timesteps specified by the task. Within the loop the 2D velocity control is computed for each helicopter and passed to the corresponding PID (line 37). 
+In our listing we show a simple (and suboptimal) scheme in which the velocity direction of each cat directly towards the future mouse position mouse (line 20-23) but that also keeps away from neighbouring cats (line 26-34). 
+The helicopter control input produced by the PID controllers are then used to step the simulator (line 41).
+Finally after the execution of the task is concluded, the final reward for the task can be retrieved (line 46).
+
+We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \texttt{eX}:
+$$\texttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
+while the actions $a^i$ are denoted as controls \texttt{u}:
+$$\texttt{u}=[v_x,v_y]^\intercal$$
+with the variables defined in section \ref{tab:naming}.
+
 The task, the configurations and the example main files are in the directory \mytexttt{scenarios/catsmouse} within the \sname simulator. 
 
 \newpage
-\chapter{Scenario 2: Search and Rescue}
+\section{Scenario 2: Search and Rescue}
 The second scenario is designed explicitly to expose the complex interplay between sensing and acting typical in autonomous robotics task. To solve the task the agent/s has to perform inference about the state of the environment given some observations and take actions based on its belief. 
 
-\section{Description}
+\subsection{Description}
 The task to be accomplished in this scenario is in the form of a wilderness search and rescue mission; several targets (people) are lost/injured on the ground in a landscape and need to be located and rescued. 
 
 In addition to its navigation sensors each helicopter agent taking part in the search 
@@ -240,7 +235,7 @@ is equipped with a camera/classification module that allows it to detect the pre
 
 The search era is limited but its extent is so that a trivial lawn mower pattern of search will not allow to cover all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. For simplicity the persons are assumed to not move during the task. 
 
-Additionally we assume that the flight area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
+Additionally we assume that the flying area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
 
 A snapshot from a typical run is shown in figure \ref{fig:searchrescue} along with an example of the observation returned by the camera/classifier model.
 \begin{figure}[ht]
@@ -249,7 +244,7 @@ A snapshot from a typical run is shown in figure \ref{fig:searchrescue} along wi
 \caption{Search and rescue run with three helicopters; note the different terrain types (denoted by different colors) and the persons (red dots). The insert shows the camera observation from UAV 1 that happens to be over a person. \label{fig:searchrescue}}
 \end{figure}
 
-\section{MDP}
+\subsection{MDP}
 The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}.
 
 \paragraph{States:} The state $s_t=(x^1_t,...,x^{N}_t,b^1_t,...,b^P_t)$ at time $t$ comprises the helicopters state vectors $x^i_t$ and the location of the $P$ targets $b^j_t$.
@@ -260,7 +255,7 @@ The environment is itself three dimensional and the helicopter can freely move i
 The person's location is expressed in terms of its coordinate w.r.t. the global reference frame  $b^j=[p_x,p_y,0]^\intercal$; the persons' $z$ coordinate is zero since we assume that the ground is flat and that the targets are located on the ground.
 
 \paragraph{Initial State:} At the beginning of the task a new terrain map is generated based on the number of terrain classes and split between class types specified by the user\footnote{The user specifies what percentage of the total area should belong to each class.}. 
-The extent of the flight area is scaled accordingly to the number of platforms and time horizon in order to ensure that the task is non trivial.
+The extent of the flying area is scaled accordingly to the number of platforms and time horizon in order to ensure that the task is non trivial.
 Subsequently a number of persons is randomly placed in the search area. The user can control where persons are placed by specifying the probability of a target to be located on a specific terrain class\footnote{Each persons location is generated independently.}. 
 Finally the helicopters are located randomly (with uniform probability) around the flying area at the nominal flight height\footnote{The initial altitude can be configured by the user but is set to a $25m$ default value.}.
 
@@ -302,7 +297,7 @@ is known, but does not have to be considered explicitly by the agent.
 
 We assume that some form of person detection algorithm is run on each of the image windows ${w^k_t}$. As a result it is possible to evaluate the probability that such image patch was originated by a person (at the corresponding ground location $g^k_t$) versus the probability that ${w^k_t}$ was originated by clear ground at location $g^k_t$; what is commonly called the likelihood ratio.
 
-To generate likelihood ratios we use a model learned from the scores obtained by running an off the shelf person classifier on aerial images dataset collected with the quadrotor UAV in use at UCL. We refer to appendix \ref{personclassifier} for more details about such model.
+To generate likelihood ratios we use a model learned from the scores obtained by running an off the shelf person classifier on aerial images dataset collected with the quadrotor UAV in use at UCL. We refer to section \ref{personclassifier} for more details about such model.
 
 The observation $o_t$ is simply the collection of the log likelihood ratios obtained for each of the image windows ${w^k_t}$ (and therefore also for the corresponding ground patches $g^k_t$):
 \begin{align}
@@ -330,7 +325,7 @@ r_t =  \left\{
 where $T$ is the task duration $T$ and $\epsilon,\delta$ are respectively the distance and velocity thresholds that that define a person as rescued (see section \ref{rescued}). 
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if the helicopter goes outside of the flying area or if any collision happens during the task. 
 
-\section{Task Variations} \label{SearchRescueVariations}
+\subsection{Task Variations} \label{SearchRescueVariations}
 The difficulty of solving the task depends on the number of platforms that are employed as well as on the level of sensor noise and wind disturbance; we provide four versions of the task with increasing level of difficulty:
 \begin{itemize}
  \item \textit{\textbf{2A} single helicopter noiseless:} only one helicopter is used for the search, its dynamic is deterministic and the state returned is the true platform state;
@@ -339,7 +334,7 @@ The difficulty of solving the task depends on the number of platforms that are e
  \item \textit{\textbf{2D} multiple helicopters noisy and windy:} several helicopters are used for the search, their dynamics is stochastic and affected by wind disturbances (following a wind model), the state returned is a noisy estimate of the platform state (i.e. with additional correlated noise).
 \end{itemize}
 
-\section{Simulation Code} \label{SearchRescueSim}
+\subsection{Simulation Code} \label{SearchRescueSim}
 
 A simulated version of each of the variations of this scenario are made available in the form of a task class that can be readily used within the \sname helicopter simulator. 
 More specifically the four task variations presented in section \ref{SearchRescueVariations} are named:
@@ -360,13 +355,6 @@ Commenting the code in details is beyond the scope of this report but it is usef
 \end{itemize}
 
 We also provide the example file \texttt{main\_searchrescue.m} (listing \ref{lst:msr}) which briefly shows how to initialize and run any of the search and rescue tasks.
-The layout of the code is very similar to what we have seen for the cats and mouse scenarios; after a preliminary initialization (lines $2-9$), a for loop takes care of stepping the simulation (line $38$) for the predefined number of time steps.
-For simplicity in this example, the UAVs move in the space at a fix velocity changing their direction randomly every $10$ time steps (lines $19-35$).
-For each UAV the camera measurement can be retrieved after stepping the simulator with a new action (line $47$). In a more interesting policy than the random one we are showing in this example an agent would make use of this new observation (and of the previous) to decide its next action.
-Lastly line $51$ shows how to retrieve the reward at the current time step. 
-
-In some situations it might be useful to know the total number of targets present in the environment, line $12$ shows how is possible to do that using the \texttt{getNumberOfPersons()} method.
-
 \begin{lstlisting}[float=ht!bp,caption=main\_searchrescue.m,language=Matlab,frame=lines,label=lst:msr,numbers=left,basicstyle=\small]
 % create simulator object
 qrsim = QRSim();
@@ -421,23 +409,28 @@ for i=1:state.task.durationInSteps,
     r = qrsim.reward();
 end
 \end{lstlisting}
+The layout of the code is very similar to what we have seen for the cats and mouse scenarios; after a preliminary initialization (lines $2-9$), a for loop takes care of stepping the simulation (line $38$) for the predefined number of time steps.
+For simplicity in this example, the UAVs move in the space at a fix velocity changing their direction randomly every $10$ time steps (lines $19-35$).
+For each UAV the camera measurement can be retrieved after stepping the simulator with a new action (line $47$). In a more interesting policy than the random one we are showing in this example an agent would make use of this new observation (and of the previous) to decide its next action.
+Lastly line $51$ shows how to retrieve the reward at the current time step. 
 
+In some situations it might be useful to know the total number of targets present in the environment, line $12$ shows how is possible to do that using the \texttt{getNumberOfPersons()} method.
  
 We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \texttt{eX}:
 $$\texttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
 while the actions $a^i$ are denoted as controls \texttt{u}:
 $$\texttt{u}=[v_x,v_y,v_z]^\intercal$$
-with the variables defined in appendix \ref{tab:naming}.
+with the variables defined in section \ref{tab:naming}.
 
 The task, the configurations and the example main files are in the directory \mytexttt{scenarios/searchrescue} within the \sname simulator.
 
 \newpage
-\chapter{Scenario 3: Plume Modelling}
-In the third and last scenario we design tasks in which sensing and estimation of the target environment play a crucial role. In specific the actions of the agent are aimed at generating reliable predictions about the flight area.  
+\section{Scenario 3: Plume Modelling}
+In the third and last scenario we design tasks in which sensing and estimation of the target environment play a crucial role. In specific the actions of the agent are aimed at generating reliable predictions about the flying area.  
 
-\section{Description}
+\subsection{Description}
 
-In this scenario we envisage the situation in which a plume is dispersed in the flight area and we are interested in using one or more UAVs to estimate the plume concentration\footnote{Hereby we simply refer to concentration, in a real environment this would be a property of the plume that can be realistically measured e.g. CO concentration.}.
+In this scenario we envisage the situation in which a plume is dispersed in the flying area and we are interested in using one or more UAVs to estimate the plume concentration\footnote{Hereby we simply refer to concentration, in a real environment this would be a property of the plume that can be realistically measured e.g. CO concentration.}.
 
 Depending on the task settings (see section \ref{PlumeVariations}) one or more sources might be present in the environment and the plume distribution might evolve over time. Any wind affects both the the UAV flight behaviour and the plume distribution.
 UAVs are equipped with noisy navigation sensors that allow to observe their location, attitude and velocities and also with a sensor that produces noisy observation of the plume concentration. 
@@ -447,16 +440,16 @@ For this scenario we selected three main classes of concentration models; they w
 \begin{itemize}
 \item \textit{Gaussian}: when no wind is present in the flying area and the source emits plume with a constant rate, the plume disperses around the source and its concentration can be described by a three dimensional Gaussian (equation \ref{eqn:singlesourcegaussian}). Since the source emits at constant rate the resulting dispersion pattern is static, however to make the model not completely trivial we assume that the dispersion is not necessarily isotropic; Figure\ref{fig:singlegaussplume} depicts an example of type of concentration pattern produced by this model.
 \item \textit{Gaussian Dispersion}: when wind is present in the flying area, and the source emits plume with a constant rate, the plume is blown downwind and disperses as it gets farther from the source. The concentration takes a cone like shape which expands as the distance from the source increases (equation \ref{eqn:singlesourcegaussiandispersion}). In the case in which the mean wind velocity and direction do not change with time\footnote{This will be the case in our settings.}, the resulting concentration is also time invariant. An example of the resulting dispersion is visible in Figure\ref{fig:multigaussplume}.
-\item \textit{Gaussian Puff Dispersion} when wind is present in the flying area but the source emits plume for short time intervals (i.e short puffs), each puff travels downwind expanding as it gets farther from the source. at every time instant the resulting concentration is the superimposition off the many puffs (equation \ref{eqn:singlesourcesgaussianpuffdispersion}); the concentration is therefore time variant.  Figure \ref{fig:singlegausspuffplume} show an example of such dispersion model.
+\item \textit{Gaussian Puff Dispersion} when wind is present in the flying area but the source emits plume for short time intervals (i.e short puffs), each puff travels downwind expanding as it gets farther from the source. At every time instant the resulting concentration is the superposition of the many puffs (equation \ref{eqn:singlesourcesgaussianpuffdispersion}); the concentration is therefore time variant.  Figure \ref{fig:singlegausspuffplume} shows an example of such dispersion model.
 \end{itemize}
-For each type of dispersion model the case in which more than one source is present in the environment can be considered simply by superimposing the effects of several individual sources; superimposition gives origin to substantially more complex distributions.
+For each type of dispersion model the case in which more than one source is present in the environment can be considered simply by superimposing the effects of several individual sources; superposition gives origin to substantially more complex distributions.
 
-As in the previous tasks we assume that the flight area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
+As in the previous tasks we assume that the flying area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
 
 \textit{Note:}
 Since the dispersion models are known, one possible way to solve the tasks is to estimate the model parameters (or a distributions over them). While this is an appropriate solution we emphasize that the agent is not required to solve the task in this way and so model agnostic way of producing concentration estimations are equally appropriate. 
 
-\begin{figure}[ht]
+\begin{figure}[t]
 \centering
 \subcaptionbox{Single source Gaussian concentration.\label{fig:singlegaussplume}}{\includegraphics[width=0.49\textwidth]{singlegaussplume.jpg}}
 \subcaptionbox{Multiple sources Gaussian dispersion.\label{fig:multigaussplume}}{\includegraphics[width=0.49\textwidth]{multigaussplume.jpg}}
@@ -464,36 +457,54 @@ Since the dispersion models are known, one possible way to solve the tasks is to
 \caption{Plume models; darker markers indicate lower concentration values.\label{fig:plume}}
 \end{figure}
 
-\section{MDP}
-The underlying system is modelled as a discrete time Markov process on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.}. 
+\subsection{MDP}
+The underlying system is modelled as a discrete time Markov process on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.} and the task has a duration $T$.
 
-\paragraph{States:} the state $s_t=(x_t,c_t)$ at time $t$ comprises the helicopter data $x_t$ which includes the agents position, velocity and orientation, which are continuous variables, and $c_t$ the plume concentration over the whole flight volume, also continuous.
+\paragraph{States:} the state $s_t=(x^1_t,..,x^N_t,c_t)$ at time $t$ comprises the helicopter/s state $x^i_t$ and the plume concentration $c_t$.
+Each platform state contains the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. The environment is itself three dimensional and the helicopter can freely move in three dimensions. The plume concentration is defined at every 3D location over the whole flight volume.
+
+\paragraph{Initial State:} At the beginning of the task a new set of source locations within the flying area is defined with their associated emission rate so that given the current wind, the complete plume distribution can be defined. The user can control the number, height and emission rate of sources through task parameters.
+At $t=0$ the helicopters are located randomly (with uniform probability) in the fly area at the nominal flight height\footnote{The initial altitude can be configured by the user but is set to a $25m$ default value.}.
 
 \paragraph{Actions:}
-The action $a_t$ at time $t$ is expressed in terms of a velocity vector in global NED coordinates:
+At each time step the agent specifies an action $a_t$ for each of the UAV taking part in the task; the action is expressed in terms of a 3D velocity vector in global NED coordinates:
 \begin{align}
 a_t=[v_x,v_y,v_z]_t^\intercal.
 \end{align}
 
-\paragraph{Dynamics:} Markovian transition dynamics for the helicopter\footnote{We refer to the \sname manual \webman for detail about the helicopter transition dynamics.} and the plume concentration are defined by $P(s_{t+1}|s_t,a_t)$ which denotes the conditional density of state $s$ at $t+1$ given $(s_t,a_t) = (s,a)$ at time $t$. The plume evolves according to a plume model (see section \ref{PlumeVariations} for details) and its evolution is assumed to be independent of the helicopter actions and state  $P(c_{t+1}|c_t,x_t,a_t)=P(c_{t+1}|c_t)$.
+Is worth remembering that the actions are nothing more than set points to a PID controller that attempts to drive that UAV at the requested velocity.
+Due to delays and disturbances mismatches between the commanded and the actual velocity of the UAV have to be expected. 
 
-\paragraph{Observations:} The helicopter state $x_t$ is observed directly although depending on the specific task variation (see Section~\ref{PlumeVariations}). 
-The plume concentration $c_t$ is not known, but noisy observations $o_t$ are provided by a concentration sensor at each time step returning the concentration at the position in which the helicopter is located.
+
+\paragraph{Dynamics:} For the UAVs the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are specified by the \sname simulator. Such transition dynamics are Markovian and defined by $P(x_{t+1}|x_t,a_t)$ which denotes the conditional density of state $x$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$. 
+
+In the case of non puff-like dispersion models the plume distribution is stationary and therefore does not evolve during the task. For plume distributions defined by the Gaussian puff dispersion model puffs are emitted at random intervals drawn from an exponential distribution. Each puff travels downwind at the mean wind speed and simultaneously expands as specified by equations \ref{eqn:singlesourcesgaussianpuffdispersion}-\ref{eqn:multiplesourcesgaussianpuffdispersion}.
+
+For simplicity any effect that a UAV might have on the plume concentration is neglected and the evolution in time of the plume is assumed to be independent of the helicopter actions and state  $P(c_{t+1}|c_t,x_t,a_t)=P(c_{t+1}|c_t)$.
+
+
+\paragraph{Observations:} The helicopter state $x_t$ is observed directly although depending on the specific task variation (see Section~\ref{PlumeVariations}) the state variables might be affected by stochastic noise.
+
+The plume concentration $c_t$ is not known; at each time step a noisy observations $o_t$ at the position in which the helicopter is located is returned by a concentration sensor. At present the sensor reading are corrupted by additive Gaussian noise. 
 
 \paragraph{Reward:} 
-For the tasks 3A, 3B, 3C and 3D (see section \ref{PlumeVariations}) in which the concentration is static, the agent must provide a set of concentration estimates $\{\hat c^j_T\}^M_{j=1}$ at a series of $M$ spatial locations specified by the task. 
-Given the $\{\hat c^j_T\}^M_{j=1}$ the performance is simply computed as (minus) the square error between the true concentrations and the estimates provided by the agent:
+The task objective is to provide a concentration estimate $\hat{c}_T$ at some pre-specified time $T$ (i.e. at the end of the task).
+ 
+For the tasks in which the concentration is stationary (i.e. tasks 3A, 3B, 3C and 3D), the agent must provide a set of concentration estimates $\{\hat c^j_T\}^M_{j=1}$ at a series of $M$ spatial locations specified at the beginning of the task. 
+Given the $\{\hat c^j_T\}^M_{j=1}$ the task reward is simply computed as (minus) the square error between the true concentrations and the estimates provided by the agent:
 $$
 r_T = - \sum^M_{j=1} | c^j_T - \hat{c}^j_T |^2 .
 $$
 
-For tasks 3E, 3F and 3G in which the concentration evolves in time, each $\hat c^j_T$ can be though of as a random variable with an associated probability distribution $\pr(\hat c^j_T)$.
-The performance is computed as the KL divergence from the true concentration distribution\footnote{In practice in order to enable the computation of the reward the agent will be asked to repeatedly return (i.e. draw samples from its distribution) the value of $\hat c_t$ at the locations specified by the task.} $\pr(c_T)$ and the provided estimate $\pr(\hat c_T)$:
+For tasks in which the concentration evolves over time (i.e. tasks 3E, 3F and 3G), the concentration at each location $\hat c^j_T$ can be though of as a random variable with an associated probability distribution $\pr(\hat c^j_T)$.
+The better the agent is at approximating such distribution, the higher should be its reward.
+A simple way to compute the reward is in the form of (minus) the KL divergence between true concentration distribution $\pr(c^1_T,..,c^M_T)$ and the estimate provided by the agent\footnote{In practice in order to enable the empirical computation of the reward the agent will be asked to return several samples of the concentration at each of the $M$ locations specified by the task.} $\pr(\hat c^1_T,..,\hat c^M_T)$:
 $$
-r_T = KL(\pr(c^1_T,..,c^M_T) \|{\pr}(\hat c^1_T,..,\hat c^M_T)).
+r_T = - KL(\pr(c^1_T,..,c^M_T) \|\pr(\hat c^1_T,..,\hat c^M_T)).
 $$
 
-\section{Task Variations}  \label{PlumeVariations}
+
+\subsection{Task Variations}  \label{PlumeVariations}
 The complexity of the estimation problem changes substantially depending on the type of dispersion model followed by the plume, and on the number of helicopters used to tackle the task hence we provide several version of the task:
 \begin{itemize}
 \item \textit{\textbf{3A} single source static Gaussian concentration:} only one helicopter is used for the sampling, its dynamic is deterministic, the navigation sensors return the true platform state, the plume concentration is static and has the form or a three dimensional Gaussian centred at the source (see equation \ref{eqn:singlesourcegaussian}).
@@ -513,9 +524,9 @@ The complexity of the estimation problem changes substantially depending on the 
 \end{itemize}
  
 
-\section{Simulation Code} \label{PlumeSim}
+\subsection{Simulation Code} \label{PlumeSim}
 
-All the ingredients of the scenario described above are implemented\footnote{We are currently in the process of finalizing the implementation.} as a task class for the quadrotor simulator \sname\footnote{We refer to the \sname manual for details on the simulator API \webman.}; the seven variations of the scenario are named:
+All the ingredients of the scenario described above are implemented as a task class for the quadrotor simulator \sname\footnote{We refer to the \sname manual for details on the simulator API \webman.}; the seven variations of the scenario are named:
 \begin{itemize}
 \item\textit{3A}: \mytexttt{TaskPlumeSingleSourceGaussian.m}, 
 \item\textit{3B}: \mytexttt{TaskPlumeSingleSourceGaussianDispersion.m},
@@ -595,9 +606,8 @@ with the variables defined in section \ref{tab:naming}.
 
 \newpage
 
-\appendix
 
-\chapter{Nomenclature}\label{tab:naming}
+\section{Nomenclature}\label{tab:naming}
 
 Helicopter state variables common to all the tasks:
 \begin{table}[ht]  
@@ -625,17 +635,18 @@ Helicopter state variables common to all the tasks:
 \end{tabular}
 \end{table}
 
-We remind the reader that NED stands for Noth-East-Down as explained in more detail in the \sname manual.
+We remind the reader that NED stands for a Noth-East-Down reference frame (explained in more detail in the \sname manual).
 
 \newpage
 
-\chapter{Person Classifier Model} \label{personclassifier}
+\section{Person Classifier Model} \label{personclassifier}
 
+In this section we give more details about the person classifier model employed in the search and rescue scenario.
 \newpage
 
-\chapter{Concentration Models}
+\section{Concentration Models}
 
-To interpret the following concentration models, is useful to introduce some nomenclature:
+This section gives more details about the dispersion models used for the plume modelling scenario; before starting it is useful to introduce some nomenclature:
 \begin{longtable}{l l l}
 $x,y,z$ & coordinates w.r.t. the global NED frame of reference & $m$\\
 $x',y',z'$ & coordinates w.r.t. the wind frame of reference & $m$\\
@@ -661,7 +672,7 @@ x' &=& x \cos(\alpha_w) \\
 y' &=& y \sin(\alpha_w).
 \end{eqnarray}
 
-\section{Single Source Gaussian Concentration Model}
+\subsection{Single Source Gaussian Concentration Model}
 \begin{equation}\label{eqn:singlesourcegaussian}
 c(x,y,z) = %\frac{1}{(2\pi)^{3/2}|\boldsymbol\Sigma|^{1/2}}
 \exp\left(-\frac{1}{2}
@@ -678,7 +689,7 @@ z-H_s
 \right)
 \end{equation}
 
-\section{Single Source Gaussian Dispersion Model}
+\subsection{Single Source Gaussian Dispersion Model}
 
 A standard static plume dispersion (for more details see \cite{stockie2011}):
 \begin{align}\label{eqn:singlesourcegaussiandispersion}
@@ -687,14 +698,16 @@ c(x',y',z) = &\frac{Q}{2\pi u a (x'-X'_s)^b}  \exp \left(-\frac{(y'-Y'_s)^2}{2 a
 \end{align}
 
 
-\section{Multiple Sources Gaussian Dispersion Model}
+\subsection{Multiple Sources Gaussian Dispersion Model}
 
 In the case of multiple sources the total concentration can be computed by superposition:
 \begin{align}\label{eqn:multiplesourcesgaussiandispersion}
 c(x',y',z) = \sum_{s=1}^S c(x',y',z;X'_s,Y'_s,H_s,Q_s).
 \end{align}
 
-\section{Single Source Gaussian Puff Dispersion Model}
+\subsection{Single Source Gaussian Puff Dispersion Model}
+
+FIXME: t random variable
 
 A standard time varying plume dispersion (for more details see \cite{stockie2011}):
 \begin{align}\label{eqn:singlesourcesgaussianpuffdispersion}
@@ -703,7 +716,7 @@ c(x',y',z,t) = & \sum_{i=1}^I \left\{ \frac{Q^i_s}{8(\pi a (x'-X'_s)^b)^{3/2}} \
 & \left. \left[\exp\left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp\left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]\right\}.
 \end{align}
 
-\section{Multiple Sources Gaussian Puff Dispersion Model}
+\subsection{Multiple Sources Gaussian Puff Dispersion Model}
 
 Even in the case a time varying dispersion model, for multiple sources the total concentration can be computed by superposition:
 \begin{align}\label{eqn:multiplesourcesgaussianpuffdispersion}
