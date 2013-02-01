@@ -336,7 +336,7 @@ The difficulty of solving the task depends on the number of platforms that are e
 
 \subsection{Simulation Code} \label{SearchRescueSim}
 
-A simulated version of each of the variations of this scenario are made available in the form of a task class that can be readily used within the \sname helicopter simulator. 
+A simulated version of each of the variations of this scenario is made available in the form of a task class that can be readily used within the \sname helicopter simulator. 
 More specifically the four task variations presented in section \ref{SearchRescueVariations} are named:
 \begin{itemize}
 \item\textit{2A}: \mytexttt{TaskSearchRescueSingleNoiseless.m}, 
@@ -526,7 +526,9 @@ The complexity of the estimation problem changes substantially depending on the 
 
 \subsection{Simulation Code} \label{PlumeSim}
 
-All the ingredients of the scenario described above are implemented as a task class for the quadrotor simulator \sname\footnote{We refer to the \sname manual for details on the simulator API \webman.}; the seven variations of the scenario are named:
+As for the previous scenarios, we provide an implementation of a simulated version of each of the scenario variations 
+in the form of a task class that can be readily used within the \sname helicopter simulator.
+The seven variations of the scenario are named:
 \begin{itemize}
 \item\textit{3A}: \mytexttt{TaskPlumeSingleSourceGaussian.m}, 
 \item\textit{3B}: \mytexttt{TaskPlumeSingleSourceGaussianDispersion.m},
@@ -537,8 +539,21 @@ All the ingredients of the scenario described above are implemented as a task cl
 \item\textit{3G}: \mytexttt{TaskPlumeMultiHeliMultiSourcePuffDispersion.m}. 
 \end{itemize}
 
-We also provide the example file \texttt{main\_plume.m} which shows how to initialize and run a task, how to retrieve the platform state, retrieve the observations, retrieve the location at which to provide estimates, issue actions and return concentration estimates.
+Commenting the code in details is beyond the scope of this report but it is useful to briefly outline which task methods are responsible for handling the various task specific components:
+\begin{itemize}
+\item\mytexttt{init()}: defines all the platforms, sensor and plume parameters;
+\item\mytexttt{reset()}: defines the task starting condition for UAVs and plume;
+\item\mytexttt{step(U)}: uses the PID controllers to transform velocity commands into angle command to the helicopters;
+\item\mytexttt{reward()}: returns the final reward;
+\item\mytexttt{getLocations()}: returns the list of 3D locations for which the agent is expected to return predictions;
+\item\mytexttt{getSamplesPerLocation()}: returns the number of predictions the agent needs to return for each location, this will be larger than one only if the concentration is time variant (i.e. for puff models);
+\item\mytexttt{setSamples(samples)}: allows the agent to return the predictions at each of the 3D locations so that the task can compute a reward.
+\end{itemize}
 
+We provide the example file \texttt{main\_plume.m} (listing\ref{lst:mpl}) which shows how to initialize and run one of such tasks.
+After the usual initializations (lines 1-12) we show how to retrieve the list of 3D locations for which the agents 
+has to return predictions (line 16). For each simulation step we generate a velocity command for each of the UAVs (lines 24-34); in this example we follow a random search strategy that consist in flying to a new direction every ten time steps. After stepping the simulator (line 39) the concentration measurement for the location at which the helicopters are flying can be retrieved (line 43).
+Finally after the task time is elapsed, we are required to provide the simulator with the concentration estimates (line 51); in this case for simplicity we set those to randomly generated values (line 48). At line 54 we can obtain the reward associated with the provided estimates.
 \begin{lstlisting}[float=ht!bp,caption=main\_plume.m,language=Matlab,frame=lines,label=lst:mpl,numbers=left,basicstyle=\small]
 % create simulator object and load task parameters
 qrsim = QRSim();
@@ -595,13 +610,12 @@ state.task.setSamples(samples);
 % get final reward (note: this works only after the samples have been set!).
 r = qrsim.reward();
 \end{lstlisting}
-
 The task, the configurations and the example main files are in the directory \mytexttt{scenarios/plume} within the \sname simulator. 
 
-We remind the reader that within the simulator the helicopter state $x^i$ is denoted as $eX$:
-$$eX = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
-while the actions $a^i$ are denoted as controls $u$:
-$$u=[v_x,v_y,v_z]^\intercal$$
+We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \mytexttt{eX}:
+$$\mytexttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
+while the actions $a^i$ are denoted as controls \mytexttt{u}:
+$$\mytexttt{u}=[v_x,v_y,v_z]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
 \newpage
@@ -636,8 +650,6 @@ Helicopter state variables common to all the tasks:
 \end{table}
 
 We remind the reader that NED stands for a Noth-East-Down reference frame (explained in more detail in the \sname manual).
-
-\newpage
 
 \section{Person Classifier Model} \label{personclassifier}
 
