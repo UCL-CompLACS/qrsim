@@ -442,13 +442,16 @@ In this scenario we envisage the situation in which a plume is dispersed in the 
 Depending on the task settings (see section \ref{PlumeVariations}) one or more sources might be present in the environment and the plume distribution might evolve over time. Any wind affects both the the UAV flight behaviour and the plume distribution.
 UAVs are equipped with noisy navigation sensors that allow to observe their location, attitude and velocities and also with a sensor that produces noisy observation of the plume concentration. 
 
-The plume follows a known model but with unknown parameter values. The task objective is to provide a concentration estimate $\hat{c}_T$ at some pre-specified time $T$. The plume 
-
-
+The plume concentration follows a known model but with unknown parameter values; the task objective is to provide a concentration estimate $\hat{c}_T$ at some pre-specified time $T$. 
+For this scenario we selected three main classes of concentration models; they were chosen for being widely adopted (\cite{stockie2011}) while remaining relatively simple:
+\begin{itemize}
+\item \textit{Gaussian}: when no wind is present in the flying area and the source emits plume with a constant rate, the plume disperses around the source and its concentration can be described by a three dimensional Gaussian (equation \ref{eqn:singlesourcegaussian}). Since the source emits at constant rate the resulting dispersion pattern is static, however to make the model not completely trivial we assume that the dispersion is not necessarily isotropic; Figure\ref{fig:singlegaussplume} depicts an example of type of concentration pattern produced by this model.
+\item \textit{Gaussian Dispersion}: when wind is present in the flying area, and the source emits plume with a constant rate, the plume is blown downwind and disperses as it gets farther from the source. The concentration takes a cone like shape which expands as the distance from the source increases (equation \ref{eqn:singlesourcegaussiandispersion}). In the case in which the mean wind velocity and direction do not change with time\footnote{This will be the case in our settings.}, the resulting concentration is also time invariant. An example of the resulting dispersion is visible in Figure\ref{fig:multigaussplume}.
+\item \textit{Gaussian Puff Dispersion} when wind is present in the flying area but the source emits plume for short time intervals (i.e short puffs), each puff travels downwind expanding as it gets farther from the source. at every time instant the resulting concentration is the superimposition off the many puffs (equation \ref{eqn:singlesourcesgaussianpuffdispersion}); the concentration is therefore time variant.  Figure \ref{fig:singlegausspuffplume} show an example of such dispersion model.
+\end{itemize}
+For each type of dispersion model the case in which more than one source is present in the environment can be considered simply by superimposing the effects of several individual sources; superimposition gives origin to substantially more complex distributions.
 
 As in the previous tasks we assume that the flight area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
-
-Snapshots from sample runs with different plume dispersion models are shown in figure \ref{fig:plume}.
 
 \textit{Note:}
 Since the dispersion models are known, one possible way to solve the tasks is to estimate the model parameters (or a distributions over them). While this is an appropriate solution we emphasize that the agent is not required to solve the task in this way and so model agnostic way of producing concentration estimations are equally appropriate. 
@@ -457,7 +460,7 @@ Since the dispersion models are known, one possible way to solve the tasks is to
 \centering
 \subcaptionbox{Single source Gaussian concentration.\label{fig:singlegaussplume}}{\includegraphics[width=0.49\textwidth]{singlegaussplume.jpg}}
 \subcaptionbox{Multiple sources Gaussian dispersion.\label{fig:multigaussplume}}{\includegraphics[width=0.49\textwidth]{multigaussplume.jpg}}
-\subcaptionbox{Single source Gaussian puff dispersion.\label{fig:singlegausspuffplume}}{\includegraphics[width=0.49\textwidth]{singlegausspuffplume.jpg}}
+\subcaptionbox{Single source Gaussian puff dispersion.\label{fig:singlegausspuffplume}}[.4\linewidth]{\includegraphics[width=0.49\textwidth]{singlegausspuffplume.jpg}}
 \caption{Plume models; darker markers indicate lower concentration values.\label{fig:plume}}
 \end{figure}
 
