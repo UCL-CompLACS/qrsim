@@ -177,11 +177,16 @@ classdef GaussianDispersionPlumeArea<PlumeArea
             lph = 0.5*(limits(:,2)+limits(:,1));
             lm = (limits(:,2)-limits(:,1));
             
-            n = obj.numRefLocations;
-            while (n > 0)
+            nout = ceil(0.2*obj.numRefLocations);
+            ll = repmat(lph,1,nout)+repmat(lm,1,nout)...
+                    .*(rand(obj.simState.rStreams{obj.iPrngId},3,nout)-0.5);
+            obj.locations(:,(1:nout)) = ll;
+            
+            nin = obj.numRefLocations - nout;
+            while (nin > 0)
                 % generate n points within the area limits
-                ll = repmat(lph,1,n)+repmat(lm,1,n)...
-                    .*(rand(obj.simState.rStreams{obj.iPrngId},3,n)-0.5);
+                ll = repmat(lph,1,nin)+repmat(lm,1,nin)...
+                    .*(rand(obj.simState.rStreams{obj.iPrngId},3,nin)-0.5);
                 
                 % compute concentration at such points
                 c = obj.getSamples(ll);
@@ -189,11 +194,11 @@ classdef GaussianDispersionPlumeArea<PlumeArea
                 % keep the points whithin the support (i.e. c(x,y,z)>epsilon)
                 csup = (c>obj.cepsilon);
                 ncsup = sum(csup);
-                idf = obj.numRefLocations - n;
+                idf = obj.numRefLocations - nin;
                 obj.locations(:,idf+(1:ncsup)) = ll(:,csup);
                 
                 % update number of samples needed
-                n = n - ncsup;
+                nin = nin - ncsup;
             end
         end
     end
