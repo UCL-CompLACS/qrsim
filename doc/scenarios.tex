@@ -103,7 +103,7 @@ At $t=0$ all the helicopters are stationary (i.e. their velocities are zero).
 \paragraph{Actions:}\label{catmouseactions} 
 A real quadrotor of the type considered in our task generally presents four continuous control inputs (i.e. pitch, roll, yaw angles and throttle) which needs to be updated at a rate of $50Hz$, constituting a rather large control space.
 
-To limit the space of control inputs, in our setup each UAV is equipped with a close loop PID controller that accepts 2D linear velocity commands $a^i_t=[v^i_x,v^i_y,v^i_z]^\intercal$ (in global coordinates) and combines them with the estimated platform velocity to produce the necessary attitude and throttle commands for the platform. The PID accepts commanded velocity at a rate of $1Hz$ and provides the platform controls at $50Hz$.
+To limit the space of control inputs, in our setup each UAV is equipped with a close loop PID controller that accepts 2D linear velocity commands $a^i_t=[v^i_x,v^i_y]^\intercal$ (in global coordinates) and combines them with the estimated platform velocity to produce the necessary attitude and throttle commands for the platform. The PID accepts commanded velocity at a rate of $1Hz$ and provides the platform controls at $50Hz$.
 To additionally reduce the control space the PID takes also care of maintaining a constant altitude and heading\footnote{The use of a PID controller in addition to reducing the number of control inputs makes the task closer to what is possible to implement and test using real quadrotors.}. 
 
 The action space $a_t = (a^1_t,...,a^{N}_t)$ at time $t$ comprises of the 2D linear velocity commands for each of the cats helicopters. 
@@ -215,9 +215,9 @@ In our listing we show a simple (and suboptimal) scheme in which the velocity di
 The helicopter control input produced by the PID controllers are then used to step the simulator (line 41).
 Finally after the execution of the task is concluded, the final reward for the task can be retrieved (line 46).
 
-We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \texttt{eX}:
+We remind the reader that within the simulator the helicopter state $x^i_t$ is denoted as \texttt{eX}:
 $$\texttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
-while the actions $a^i$ are denoted as controls \texttt{u}:
+while the actions $a^i_t$ are denoted as controls \texttt{u}:
 $$\texttt{u}=[v_x,v_y]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
@@ -287,11 +287,11 @@ The helicopter state $x_t$ is observed directly although depending on the specif
 
 The position of the targets $b^j_t$ is not known, but observations $o_t$ are provided by the camera at each time step.
 
-Following standard object detection techniques we assume that the incoming image is split into $M$ windows $\{w^k_t\}^M_{k=1}$  (of size informed by the current altitude and an assumed fixed size for the person) which are then analysed for targets. 
-Given the current UAV pose $x_t$ and the fixed camera parameters the set of windows projects on the ground to a set of $M$ patches $\{g^k_t\}^M_{k=1}$ on the ground with centres $\{c^k_t\}^M_{k=1}$. 
+Following standard object detection techniques we assume that the incoming image (at time $t$) is split into $M_t$ windows $\{w^k_t\}^{M_t}_{k=1}$  (of size informed by the current altitude and an assumed fixed size for the person) which are then analysed for targets. 
+Given the current UAV pose $x_t$ and the fixed camera parameters the set of windows projects on the ground to a set of $M$ patches $\{g^k_t\}^{M_t}_{k=1}$ on the ground with centres $\{c^k_t\}^{M_t}_{k=1}$. 
 More precisely we this assumes that a map is available and that the mapping
 \begin{align}
-\{g^k_t\}^M_{k=1} \mapsto \{w^k_t\}^M_{k=1}\nn
+\{g^k_t\}^{M_t}_{k=1} \mapsto \{w^k_t\}^{M_t}_{k=1}\nn
 \end{align}
 is known, but does not have to be considered explicitly by the agent. 
 
@@ -303,10 +303,10 @@ The observation $o_t$ is simply the collection of the log likelihood ratios obta
 \begin{align}
 o_t = \left\{\log
 \left(
-\frac{\pr(\mbox{image at time } t~|~\mbox{target in } g^k_t \mbox{, agent at }x_t)}
-{\pr(\mbox{image at time }t~|~\mbox{no target in } g^k_t \mbox{, agent at }x_t)}
+\frac{\pr(\mbox{image at time } t~|~\mbox{target in } g^k_t \mbox{, UAV at }x_t)}
+{\pr(\mbox{image at time }t~|~\mbox{no target in } g^k_t \mbox{, UAV at }x_t)}
 \right)
-\right\}^M_{k=1}. \nn
+\right\}^{M_t}_{k=1}. \nn
 \end{align}
 
 An example of the observation returned by our simulated scenario is visible in the insert of figure \ref{fig:searchrescue}. A higher value of the ratio (red color) is noticeable for the ground patches that are at the person location; also note how the patches are conveniently expressed in ground coordinates.
@@ -416,9 +416,9 @@ Lastly line $51$ shows how to retrieve the reward at the current time step.
 
 In some situations it might be useful to know the total number of targets present in the environment, line $12$ shows how is possible to do that using the \texttt{getNumberOfPersons()} method.
  
-We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \texttt{eX}:
+We remind the reader that within the simulator the helicopter state $x^i_t$ is denoted as \texttt{eX}:
 $$\texttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
-while the actions $a^i$ are denoted as controls \texttt{u}:
+while the actions $a^i_t$ are denoted as controls \texttt{u}:
 $$\texttt{u}=[v_x,v_y,v_z]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
@@ -451,10 +451,10 @@ Since the dispersion models are known, one possible way to solve the tasks is to
 
 \begin{figure}[t]
 \centering
-\subcaptionbox{Single source Gaussian concentration.\label{fig:singlegaussplume}}{\includegraphics[width=0.49\textwidth]{singlegaussplume.jpg}}
-\subcaptionbox{Multiple sources Gaussian dispersion.\label{fig:multigaussplume}}{\includegraphics[width=0.49\textwidth]{multigaussplume.jpg}}
-\subcaptionbox{Single source Gaussian puff dispersion.\label{fig:singlegausspuffplume}}[.4\linewidth]{\includegraphics[width=0.49\textwidth]{singlegausspuffplume.jpg}}
-\caption{Plume models; darker markers indicate lower concentration values.\label{fig:plume}}
+\subcaptionbox{Single source Gaussian concentration.\label{fig:singlegaussplume}}{\includegraphics[width=0.48\textwidth]{singlegaussplume.jpg}}
+\subcaptionbox{Multiple sources Gaussian dispersion.\label{fig:multigaussplume}}{\includegraphics[width=0.48\textwidth]{multigaussplume.jpg}}
+\subcaptionbox{Single source Gaussian puff dispersion.\label{fig:singlegausspuffplume}}{\includegraphics[width=0.48\textwidth]{singlegausspuffplume.jpg}}
+\caption{Plume models; darker markers indicate lower concentration.\label{fig:plume}}
 \end{figure}
 
 \subsection{MDP}
@@ -558,8 +558,6 @@ Finally after the task time is elapsed, we are required to provide the simulator
 % create simulator object and load task parameters
 qrsim = QRSim();
 state = qrsim.init('TaskPlumeSingleSourceGaussianDispersion');
-
-% create a 3 x helicopters matrix of NED velocity inputs
 U = zeros(3,state.task.numUAVs);
 
 % allocate up a matrix to store all the concentration measurements
@@ -607,14 +605,14 @@ samples = randn(samplesPerLocation,size(positions,2));
 % pass the sample to the task so that a reward can be computed
 state.task.setSamples(samples);
 
-% get final reward (note: this works only after the samples have been set!).
+% get final reward (note: this works only after setSamples() ).
 r = qrsim.reward();
 \end{lstlisting}
 The task, the configurations and the example main files are in the directory \mytexttt{scenarios/plume} within the \sname simulator. 
 
-We remind the reader that within the simulator the helicopter state $x^i$ is denoted as \mytexttt{eX}:
+We remind the reader that within the simulator the helicopter state $x^i_t$ is denoted as \mytexttt{eX}:
 $$\mytexttt{eX} = [\tilde{p}_x,\tilde{p}_y,\tilde{p}_z,\tilde{\phi},\tilde{\theta},\tilde{\psi},0,0,0,\tilde{p},\tilde{q},\tilde{r},0,\tilde{a}_x,\tilde{a}_y,\tilde{a}_z,h,\dot{p}_x,\dot{p}_y,\dot{h}]^\intercal$$
-while the actions $a^i$ are denoted as controls \mytexttt{u}:
+while the actions $a^i_t$ are denoted as controls \mytexttt{u}:
 $$\mytexttt{u}=[v_x,v_y,v_z]^\intercal$$
 with the variables defined in section \ref{tab:naming}.
 
@@ -623,37 +621,57 @@ with the variables defined in section \ref{tab:naming}.
 
 \section{Nomenclature}\label{tab:naming}
 
-Helicopter state variables common to all the tasks:
+For completeness we report a list of the various symbols that appear in the descriptions of the UAV scenarios :
 \begin{table}[ht]  
 \begin{tabular}{l l l}
-     $p_x$ & true x position (NED coordinates)            & $m$\\
-     $p_y$ & true y position (NED coordinates)            & $m$\\
-     $\tilde{p}_x$ & x position estimate from GPS (NED coordinates)            & $m$\\
-     $\tilde{p}_y$ & y position estimate from GPS (NED coordinates)            & $m$\\
-     $\tilde{p}_z$ & z position estimate from GPS (NED coordinates)            & $m$\\
-     $\tilde{\phi}$ & roll attitude in Euler angles right-hand ZYX convention & $rad$\\
-     $\tilde{\theta}$ & pitch attitude in Euler angles right-hand ZYX convention& $rad$\\
-     $\tilde{\psi}$ & yaw attitude in Euler angles right-hand ZYX convention  & $rad$\\
-     $\tilde{p}$  & rotational velocity around x body axis from gyro                 & $rad/s$\\ 
-     $\tilde{q}$  & rotational velocity around y body axis from gyro                 & $rad/s$\\ 
-     $\tilde{r}$  & rotational velocity around z body axis from gyro                & $rad/s$\\
-     $\tilde{a}_x$ & linear acceleration in x body axis from accelerometer            & $m/s^2$\\
-     $\tilde{a}_y$ & linear acceleration in y body axis from accelerometer             & $m/s^2$\\
-     $\tilde{a}_z$ & linear acceleration in z body axis from accelerometer             & $m/s^2$\\
-     $h$& altitude\footnotemark  from altimeter NED & $m$\\
-     $\dot{p}_x$ & x velocity from GPS (NED coordinates)            & $m/s$\\
-     $\dot{p}_y$ & y velocity from GPS (NED coordinates)            & $m/s$\\
-     $\dot{h}$    & altitude rate from altimeter NED                   & $m/s$\\
-     $v_x$ & desired x velocity control (NED coordinates)            & $m/s$\\ 
-     $v_y$ & desired y velocity control (NED coordinates)            & $m/s$\\
+	 $t$ & time & $s$\\
+	 $T$ & task duration & $s$\\
+	 $s_t$ & task state at time $t$ & \\
+	 $x^i_t$ & state vector of UAV $i$ at time $t$ & \\
+	 $a^i_t$ & action input to UAV $i$ at time $t$ & \\	
+	 $N$ & number of UAVs taking part in the task &\\
+	 $b^j$ & target/person $j$ state at time $t$ & \\
+	 $P$ & number of person/targets in the search area &\\	 
+     $w^k_t$ & window $k$ in input image at time $t$ & \\	
+	 $g^k_t$ & ground patch $k$ at time $t$ & \\	
+	 $M_t$ & number of windows in image frame at time $t$ \\ 
+	 $o_t$ & observation at time $t$ & \\	
+	 $c_t$ & plume concentration at time $t$ & \\
+	 $M$ & number of locations for which the agent should provide estimates & \\ 
+	 $\hat{c}_t$ & estimated plume concentration at time $t$ & \\
+	 $r_t$ & reward at time $t$ & \\
+     $p_x$ & UAV true x position (NED coordinates)            & $m$\\
+     $p_y$ & UAV true y position (NED coordinates)            & $m$\\
+     $\tilde{p}_x$ & UAV x position estimate from GPS (NED coordinates)            & $m$\\
+     $\tilde{p}_y$ & UAV y position estimate from GPS (NED coordinates)            & $m$\\
+     $\tilde{p}_z$ & UAV z position estimate from GPS (NED coordinates)            & $m$\\
+     $\tilde{\phi}$ & UAV roll attitude in Euler angles right-hand ZYX convention & $rad$\\
+     $\tilde{\theta}$ & UAV pitch attitude in Euler angles right-hand ZYX convention& $rad$\\
+     $\tilde{\psi}$ & UAV yaw attitude in Euler angles right-hand ZYX convention  & $rad$\\
+     $\tilde{p}$  & UAV rotational velocity about x body axis from gyro                 & $rad/s$\\ 
+     $\tilde{q}$  & UAV rotational velocity about y body axis from gyro                 & $rad/s$\\ 
+     $\tilde{r}$  & UAV rotational velocity about z body axis from gyro                & $rad/s$\\
+     $\tilde{a}_x$ & UAV linear acceleration in x body axis from accelerometer            & $m/s^2$\\
+     $\tilde{a}_y$ & UAV linear acceleration in y body axis from accelerometer             & $m/s^2$\\
+     $\tilde{a}_z$ & UAV linear acceleration in z body axis from accelerometer             & $m/s^2$\\
+     $h$& UAV altitude from altimeter NED & $m$\\
+     $\dot{p}_x$ & UAV x velocity from GPS (NED coordinates)            & $m/s$\\
+     $\dot{p}_y$ & UAV y velocity from GPS (NED coordinates)            & $m/s$\\
+     $\dot{h}$    & UAV altitude rate from altimeter NED                   & $m/s$\\
+     $v_x$ & UAV desired x velocity control (NED coordinates)            & $m/s$\\ 
+     $v_y$ & UAV desired y velocity control (NED coordinates)            & $m/s$\\ 
+     $v_z$ & UAV desired z velocity control (NED coordinates)            & $m/s$\\
 \end{tabular}
 \end{table}
 
-We remind the reader that NED stands for a Noth-East-Down reference frame (explained in more detail in the \sname manual).
+We remind the reader that NED stands for a North-East-Down reference frame (explained in more detail in the \sname manual \webman).
 
 \section{Person Classifier Model} \label{personclassifier}
 
 In this section we give more details about the person classifier model employed in the search and rescue scenario.
+
+
+
 \newpage
 
 \section{Concentration Models}
@@ -735,6 +753,16 @@ Even in the case a time varying dispersion model, for multiple sources the total
 c(x',y',z,t) = \sum_{s=1}^S c(x',y',z,t;X'_s,Y'_s,H_s,Q^{1..I_s}_s).
 \end{align}
 
+
+\begin{thebibliography}{1}
+
+\bibitem{stockie2011} John M. Stockie {\em The Mathematics of
+Atmospheric Dispersion Modeling}, {SIAM} Review, vol 53, no. 2, pages 349-372, May 2011.
+
+\bibitem{impj} N. Dalal, B. Triggs. {\em Histograms of Oriented Gradients for Human Detection}, {IEEE} Conference on Computer Vision \& Pattern Recognition (CVPR), vol. II, pages 886-893, June 2005.
+
+\end{thebibliography}
+  
 \end{document}
 
 
