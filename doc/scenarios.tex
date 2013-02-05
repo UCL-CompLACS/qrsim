@@ -10,7 +10,7 @@
 \usepackage{xspace}
 \usepackage{graphicx}
 \usepackage{longtable}
-\usepackage{subcaption}
+\usepackage{subfigure}
 \usepackage{listings}
 
 %%commands
@@ -63,14 +63,18 @@ For simplicity the task is assumed to take place in an area devoided of obstacle
 The platforms are equipped with noisy sensors so only observation of the vehicle state are available.  
 Depending on the circumstances in the flying area there might be present wind and other aerodynamic disturbances that affect the flight behaviour of the platforms.
 
-Snapshots of the initial ($t=0$) and terminal($t=T$) configurations from a typical successful run are visible in figures \ref{fig:catmousestart} and \ref{fig:catmousestop} respectively. 
+Snapshots of the initial ($t=0$) and terminal ($t=T$) configurations from a typical successful run are visible in figures \ref{fig:catmousestart} and \ref{fig:catmousestop} respectively. 
 
 In the next section we give a more formal description of the problem.
 
 \begin{figure}[ht]
 \centering
-\subcaptionbox{$t=0$\label{fig:catmousestart}}{\includegraphics[width=0.49\textwidth]{catmousestart.jpg}}
-\subcaptionbox{$t=T$\label{fig:catmousestop}}{\includegraphics[width=0.49\textwidth]{catmousestop.jpg}}
+\subfigure[$t=0$]{
+\includegraphics[width=0.48\textwidth]{catmousestart.jpg} 
+\label{fig:catmousestart}}
+\subfigure[$t=T$]{
+\includegraphics[width=0.48\textwidth]{catmousestop.jpg}
+\label{fig:catmousestop}}
 \caption{Typical successful run: start(a) and end(b) configurations. \label{fig:catmouse}}
 \end{figure}
 
@@ -451,9 +455,15 @@ Since the dispersion models are known, one possible way to solve the tasks is to
 
 \begin{figure}[t]
 \centering
-\subcaptionbox{Single source Gaussian concentration.\label{fig:singlegaussplume}}{\includegraphics[width=0.48\textwidth]{singlegaussplume.jpg}}
-\subcaptionbox{Multiple sources Gaussian dispersion.\label{fig:multigaussplume}}{\includegraphics[width=0.48\textwidth]{multigaussplume.jpg}}
-\subcaptionbox{Single source Gaussian puff dispersion.\label{fig:singlegausspuffplume}}{\includegraphics[width=0.48\textwidth]{singlegausspuffplume.jpg}}
+\subfigure[Single source Gaussian concentration.]{
+\includegraphics[width=0.48\textwidth]{singlegaussplume.jpg}
+\label{fig:singlegaussplume}}
+\subfigure[Multiple sources Gaussian dispersion.]{
+\includegraphics[width=0.48\textwidth]{multigaussplume.jpg}
+\label{fig:multigaussplume}}
+\subfigure[Single source Gaussian puff dispersion.]{
+\includegraphics[width=0.48\textwidth]{singlegausspuffplume.jpg}
+\label{fig:singlegausspuffplume}}
 \caption{Plume models; darker markers indicate lower concentration.\label{fig:plume}}
 \end{figure}
 
@@ -670,6 +680,16 @@ We remind the reader that NED stands for a North-East-Down reference frame (expl
 
 In this section we give more details about the person classifier model employed in the search and rescue scenario.
 
+\begin{figure}[ht]
+\centering
+\subfigure[Camera image]{
+\includegraphics[width=0.48\textwidth]{classimg.jpg} \vspace{15mm}
+\label{fig:aerialimg}}
+\subfigure[HOG classifier scores]{
+\includegraphics[width=0.48\textwidth]{classscores.jpg}
+\label{fig:classscores}}
+\caption{Person detection from aerial images.\label{fig:persdetect}}
+\end{figure}
 
 
 \newpage
