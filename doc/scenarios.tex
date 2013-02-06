@@ -680,15 +680,16 @@ We remind the reader that NED stands for a North-East-Down reference frame (expl
 
 In the search and rescue scenario we assume the UAV platform to be equipped with a camera capable of observing the landscape in which the targets are located. Additionally we assume that each camera frame is analysed by a classifier algorithm in order to scout for persons. 
 
-Despite the latest advancement in the domain of computer vision (\cite{handa2012}), simulating from first principles camera images for general outdoor scenes like the one we consider in our scenario, is still infeasible. Similarly is all but trivial to construct an accurate first principle model of an image classifier. 
+Despite the latest advancement in the domain of computer vision (\cite{handa2012}), relying on first principles to simulate camera images for generic outdoor scenes like the one we consider in our scenario, is still very challenging and computationally expensive. Constructing an accurate first principle model of the accuracy of an image classifier is also similarly difficult.
 
-For those reason we preferred to rely on experimental data 
-Real world imaging and classification systems are highly complex and affected by a variety of  
- 
-In this section we give more details about the camera/classifier model employed in the search and rescue scenario.
+For these reasons we choose to rely on experimental data to build a probabilistic model of the joint camera and classifier system. In the first step of our approach we apply an off-the-shelf image classification algorithm to real world imagery collected with our quadrotor helicopters; in the second phase we devise an analytical model that relates the scores returned by the classification algorithm to the task variables that have a primary effect on the classification performance.   
 
-Due to the multitude of processes that are in play in generating the  
+Our image dataset consists of several thousands images collected during multiple outdoor flights. Images were taken at different flight altitudes (up to $~50m$) and over a variety of terrains (different types of grass, bushes, rocks). While the helicopter was flying one or more persons were lying on the ground on a variety of poses so to be visible in at least some of the images. An example of the type of images in our dataset is visible in figure \ref{fig:aerialimg}. 
 
+To perform person detection we used the histogram of gradients classifier (HOG) described in \cite{dalal2005}. 
+We have chosen such classifier since it is effective, well know in the image detection community and more importantly because the type of gradient descriptors it uses are found at the core of many of the latest more sophisticated image classifiers. 
+Ultimately in our settings we are interested in modelling a real world classifier more than modelling the latest or best classifier. 
+We trained the classifier on a labelled subset of our data using a descriptor size of 100 by 100. We then proceeded by running the classifier on the reminder of our dataset; as it is commonly done in the object detection literature, images were analysed for target at different locations (windows) and at different scales. The highest scores among scales were then aggregated for each image, figure \ref{fig:classscores} shows the classification result for the image in figure \ref{fig:aerialimg}.
 \begin{figure}[ht]
 \centering
 \subfigure[Camera image]{
@@ -699,6 +700,13 @@ Due to the multitude of processes that are in play in generating the
 \label{fig:classscores}}
 \caption{Person detection from aerial images.\label{fig:persdetect}}
 \end{figure}
+
+The classifier model needs to be queried multiple times for each of the simulated observation, so it is important to limit its computational complexity; at this aim at present we only focus on modelling the dependency between altitude and the score returned by the classifier.
+Altitude directly effects the size that a person in the field of view has on the camera image, therefore is the primary variable that effects the classifier ability to perform detections.
+
+  
+
+
 
 
 \begin{figure}[ht]
@@ -728,7 +736,7 @@ $Q_s$ & emission rate of source $s$ & $Kg/s$\\
 $H_s$ & equivalent height of source $s$ & $m$\\
 $u$ & constant magnitude of the wind speed & $m/s$\\
 $S$ & number of sources & \\
-$a$ & diffusion parameter & $m^{2-b}$\\
+$a$ & diffusion parameter & \\
 $b$ & diffusion parameter & \\
 $\alpha_w$ & wind direction (clockwise from north) & $rads$\\
 $I_s$ & total number of puff for source $s$ & \\
@@ -807,7 +815,7 @@ c(x',y',z,t) = \sum_{s=1}^S c(x',y',z,t;X'_s,Y'_s,H_s,Q^{1..I_s}_s).
 \bibitem{stockie2011} John M. Stockie {\em The Mathematics of
 Atmospheric Dispersion Modeling}, {SIAM} Review, vol 53, no. 2, pages 349-372, May 2011.
 
-\bibitem{impj} N. Dalal, B. Triggs. {\em Histograms of Oriented Gradients for Human Detection}, Proceedings of the {IEEE} Conference on Computer Vision \& Pattern Recognition (CVPR), vol. II, pages 886-893, June 2005.
+\bibitem{dalal2005} N. Dalal, B. Triggs. {\em Histograms of Oriented Gradients for Human Detection}, Proceedings of the {IEEE} Conference on Computer Vision \& Pattern Recognition (CVPR), vol. II, pages 886-893, June 2005.
 
 \bibitem{handa2012} Ankur Handa, Richard A. Newcombe, Adrien Angeli, Andrew J. Davison. {\em Real-Time Camera Tracking: When is High Frame-Rate Best?}, Proceedings of the European Conference on Computer Vision (ECCV), 2012.
 
