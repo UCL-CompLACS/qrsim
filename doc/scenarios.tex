@@ -701,13 +701,13 @@ We trained the classifier on a labelled subset of our data using a descriptor si
 \caption{Person detection from aerial images.\label{fig:persdetect}}
 \end{figure}
 
-The classifier model needs to be queried multiple times for each of the simulated observation, so it is important to limit its computational complexity; at this aim at present we only focus on modelling the dependency between altitude and the score returned by the classifier.
-Altitude directly effects the size that a person in the field of view has on the camera image, therefore is the primary variable that effects the classifier ability to perform detections.
+The classifier model needs to be queried multiple times for each of the simulated image observation, so limiting its computational complexity is crucial to a successful integration into our simulations.
+The UAV flying altitude has a direct effect on the size that a person in the field of view has on the camera image, therefore is the primary variable that effects the classifier ability to perform detections.
+For the reasons just exposed at present we focus on modelling the dependency between the flying altitude and the score returned by the classifier.
 
-  
-
-
-
+If we plot the scores obtained by applying the HOG classifier to our dataset against altitude and we distinguish between positive examples (i.e. the person was in the window considered by the classifier) and negative examples (i.e. the was no person in the window), we obtain the graph of figure \ref{fig:datascores} (note that the score are roughly normalized between $0$ and $1$).
+At low altitudes ($<5m$) positive and negative example generate similar scores; at such altitudes only a part of the person is typically visible in the frame and this is not sufficient to elicit a strong classifier response since the HOG template we use is based on a whole body view of a person. As the altitude increases, positive examples are characterized by higher higher scores than negative ones as one would expect. At altitudes above $40m$ again the size of the person comes into play and simply the resolution is not sufficient to distinguish the person reliably from the background.
+Is interesting to note also how the variation in scores decreases with altitude for the positive examples while it is almost independent from altitude for the negative examples. The latter can at least in part be explained by the multi-scale nature of the image features commonly present in a natural environment.   
 
 \begin{figure}[ht]
 \centering
@@ -720,6 +720,34 @@ Altitude directly effects the size that a person in the field of view has on the
 \label{fig:scoresmodel}}
 \caption{Scores as function of height.\label{fig:dataandmodels}}
 \end{figure}
+
+The relationship between scores and altitude  can be easily camptured and simple analytic models can be devised for both the mean and the standard deviation of positive ($+$) and negative~($-$) scores:
+\begin{eqnarray}
+m^{+}_s &=& 
+\left\{ 
+\begin{array}{l l}
+C^{+}_{m 0} + C^{+}_{m 1} \cos (\pi (1 + C^{+}_{m 2} h))  & \quad h<h_c \\
+C^{+}_{m 3} +  C^{+}_{m 4} (h - h_c) + C^{+}_{m 5} & \quad h \geq h_c
+\end{array}
+\right.
+\\
+\sigma^{+}_s &=& C^{+}_{\sigma 0} + C^{+}_{\sigma 1} h+ C^{+}_{\sigma 2} h^2
+\\ \nonumber
+\\ 
+m^{-}_s &=&
+\left\{ 
+\begin{array}{l l}
+C^{-}_{m 0} + C^{-}_{m 1} h & \quad h<h_c \\
+C^{-}_{m} & \quad h \geq h_c
+\end{array}
+\right.
+\\
+\sigma^{-}_s &=& C^{-}_{\sigma 0} + C^{-}_{\sigma 1} h+ C^{-}_{\sigma 2} h^2
+\end{eqnarray}
+where $h$ is the UAV altitude and $C^{+}_{m 0},...,C^{+}_{m 5},C^{+}_{\sigma 0},...,C^{+}_{\sigma 2},C^{-}_{m 0},C^{-}_{m 1},C^{-}_{\sigma 0},...,C^{-}_{\sigma 2}$ are obtained by data fitting.
+
+
+
 
 
 \newpage
