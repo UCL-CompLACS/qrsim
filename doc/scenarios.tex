@@ -429,7 +429,7 @@ with the variables defined in section \ref{tab:naming}.
 The task, the configurations and the example main files are in the directory \mytexttt{scenarios/searchrescue} within the \sname simulator.
 
 \newpage
-\section{Scenario 3: Plume Modelling}
+\section{Scenario 3: Plume Modelling}\label{plumemodelling}
 In the third and last scenario we design tasks in which sensing and estimation of the target environment play a crucial role. In specific the actions of the agent are aimed at generating reliable predictions about the flying area.  
 
 \subsection{Description}
@@ -774,13 +774,16 @@ $\boldsymbol\Sigma$ & Gaussian concentration covariance matrix \\
 \label{tab:naming2}
 \end{longtable}
 
-We also introduce a change of reference frame, namely from global frame to wind frame (a frame of reference with origin in the global frame and aligned with the wind direction), since some of the models are expressed in this coordinates:
+Several of the following models are more easily formulated in a frame of reference with origin in the global frame and aligned with the wind direction (wind frame). We denote such coordinate with $'$ and the transformation between global and wind frame is simply:
 \begin{eqnarray}
 x' &=& x \cos(\alpha_w) \\
 y' &=& y \sin(\alpha_w).
 \end{eqnarray}
 
-\subsection{Single Source Gaussian Concentration Model}
+\subsection{Gaussian Concentration Model} \label{3dgauss}
+
+As a starting point for the plume modelling scenario discussed in section \ref{plumemodelling} it is very useful to define a concentration model that has a small number of parameter and that is straightforward to estimate. 
+To this aim we chose a simple and familiar three dimensional Gaussian model for the concentration $c$ at a generic location $x,y,z$:
 \begin{equation}\label{eqn:singlesourcegaussian}
 c(x,y,z) = %\frac{1}{(2\pi)^{3/2}|\boldsymbol\Sigma|^{1/2}}
 \exp\left(-\frac{1}{2}
@@ -796,30 +799,38 @@ z-H_s
 \end{array} \right]
 \right)
 \end{equation}
+where $\boldsymbol\Sigma$ is the usual covariance matrix which define the ellipsoid dimensions and principal axes and $X_s,Y_s,H_s$ is the source location.
 
-\subsection{Single Source Gaussian Dispersion Model}
+In practical terms such concentration pattern would be produced by a source emitting at a constant rate in an environment were wind is not present; in such situation wind advection can be neglected and only the diffusive contribution from turbulent eddy motion in the atmosphere is considered. When specifying a covariance matrix which has eigenvectors of different magnitude we implicitly define that the diffusivity in the 3D space is non isotropic.
 
+\subsection{Gaussian Dispersion Models}
 
+In a more realistic situation than the one described in section \ref{3dgauss} wind should be considered since it generally has a strong influence on the plume dispersion.  
+Under the assumptions of constant wind (with magnitude $u$), a source with constant emission rate $Q$, a sufficiently long time scale of interest, isotropic diffusion, negligible ground penetration and negligible variations in topography; a closed form solution for the plume concentration can be obtained (\cite{stockie2011}).
+The resulting concentration has the shape of a cone starting at the plume source and expanding downwind. Profile concentrations are symmetric about the plume centerline and have the shape of a Gaussian(see figure \ref{fig:winddisp}).
 \begin{figure}[ht]
 \includegraphics[width=0.8\textwidth]{plumedistr.jpg}
-\caption{Gaussian plume dispersion driven by wind.\label{fig:winddisp}}
+\caption{Gaussian plume dispersion driven by wind (from\cite{stockie2011}).\label{fig:winddisp}}
 \end{figure}
 
-A standard static plume dispersion (for more details see \cite{stockie2011}):
+Analytically such a concentration is more easily written in the wind frame of reference (note the use of $x'$ and $y'$) as:
 \begin{align}\label{eqn:singlesourcegaussiandispersion}
 c(x',y',z) = &\frac{Q}{2\pi u a (x'-X'_s)^b}  \exp \left(-\frac{(y'-Y'_s)^2}{2 a (x'-X'_s)^b}\right) \nonumber \\
   & \left[ \exp \left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp \left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right].
 \end{align}
+where $a$ and $b$ are diffusion coefficients that regulate how the center line concentration evolves as the distance from the source increases.
 
+\subsubsection{Multiple Sources Gaussian Dispersion Model}
 
-\subsection{Multiple Sources Gaussian Dispersion Model}
-
-In the case of multiple sources the total concentration can be computed by superposition:
+In the case of multiple ($S$) sources the total concentration can be computed by superposition of the effects of each of the single source:
 \begin{align}\label{eqn:multiplesourcesgaussiandispersion}
 c(x',y',z) = \sum_{s=1}^S c(x',y',z;X'_s,Y'_s,H_s,Q_s).
 \end{align}
+Where we assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
 
-\subsection{Single Source Gaussian Puff Dispersion Model}
+\subsubsection{Single Source Gaussian Puff Dispersion Model}
+
+
 
 FIXME: t random variable
 
@@ -830,7 +841,7 @@ c(x',y',z,t) = & \sum_{i=1}^I \left\{ \frac{Q^i_s}{8(\pi a (x'-X'_s)^b)^{3/2}} \
 & \left. \left[\exp\left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp\left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]\right\}.
 \end{align}
 
-\subsection{Multiple Sources Gaussian Puff Dispersion Model}
+\subsubsection{Multiple Sources Gaussian Puff Dispersion Model}
 
 Even in the case a time varying dispersion model, for multiple sources the total concentration can be computed by superposition:
 \begin{align}\label{eqn:multiplesourcesgaussianpuffdispersion}
