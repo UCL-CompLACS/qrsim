@@ -33,7 +33,7 @@
 \begin{document}
 \maketitle
 
-\chapter{Quadrotors Scenarios}
+
 
 \begin{abstract}
 This document describes the three types of scenarios devised at UCL to develop and test learning and control algorithm with application to a flock of autonomous quadrotor helicopters, one of the three real world platforms of the {CompLACS} project.
@@ -50,7 +50,7 @@ Since the scenarios simulations are built on top of our \sname, we refer to its 
 
 \tableofcontents
 
-\newpage 
+\chapter{Quadrotors Scenarios}
 
 \section{Scenario 1: Cats and Mouse game}
 
@@ -99,7 +99,7 @@ p^i_z = - h_{fix} & \\
 \end{array}
 \right.
 $$
-where $\alpha_i \in \mathcal{U}(0,2\pi)$, $d_i \in \mathcal{U}(D_m,D_M)$ and $\mathcal{U}(a,b)$ indicates a uniform distribution over the interval $[a,b]$. The minimum and maximum distance from the mouse $D_m,D_M$ and the altitude $h_{fix}$ are user-configurable.
+where $\alpha_i \sim \mathcal{U}(0,2\pi)$, $d_i \sim \mathcal{U}(D_m,D_M)$ and $\mathcal{U}(a,b)$ indicates a uniform distribution over the interval $[a,b]$. The minimum and maximum distance from the mouse $D_m,D_M$ and the altitude $h_{fix}$ are user-configurable.
 An additional parameter $D_{c2c}$ allows to define a minimum distance between any two cats; this prevent the occurrence of an initial state in which two cats are too close.
 
 At $t=0$ all the helicopters are stationary (i.e. their velocities are zero).
@@ -747,9 +747,6 @@ C^{-}_{m} & \quad h \geq h_c
 where $h$ is the UAV altitude and $C^{+}_{m 0},...,C^{+}_{m 5},C^{+}_{\sigma 0},...,C^{+}_{\sigma 2},C^{-}_{m 0},C^{-}_{m 1},C^{-}_{\sigma 0},...,C^{-}_{\sigma 2}$ are obtained by data fitting.
 
 
-
-
-
 \newpage
 
 \section{Concentration Models}
@@ -806,9 +803,19 @@ In practical terms such concentration pattern would be produced by a source emit
 \subsection{Gaussian Dispersion Models}
 
 In a more realistic situation than the one described in section \ref{3dgauss} wind should be considered since it generally has a strong influence on the plume dispersion.  
-Under the assumptions of constant wind (with magnitude $u$), a source with constant emission rate $Q$, a sufficiently long time scale of interest, isotropic diffusion, negligible ground penetration and negligible variations in topography; a closed form solution for the plume concentration can be obtained (\cite{stockie2011}).
-The resulting concentration has the shape of a cone starting at the plume source and expanding downwind. Profile concentrations are symmetric about the plume centerline and have the shape of a Gaussian(see figure \ref{fig:winddisp}).
-\begin{figure}[ht]
+Under the following assumptions:
+\begin{itemize}
+\item constant wind (with magnitude $u$);
+\item source with constant emission rate $Q$;
+\item sufficiently long time scale of interest;
+\item isotropic diffusion;
+\item negligible ground penetration; 
+\item negligible variations in topography;
+\end{itemize}
+the advection-diffusion flux equation has a closed form solution and the plume concentration can be easily computed (see \cite{stockie2011}).
+The resulting concentration has a cone-like shape starting at the plume source and expanding downwind. Profile concentrations are symmetric about the plume centerline and have the shape of a Gaussian(see figure \ref{fig:winddisp}).
+\begin{figure}[t]
+\centering
 \includegraphics[width=0.8\textwidth]{plumedistr.jpg}
 \caption{Gaussian plume dispersion driven by wind (from\cite{stockie2011}).\label{fig:winddisp}}
 \end{figure}
@@ -816,37 +823,47 @@ The resulting concentration has the shape of a cone starting at the plume source
 Analytically such a concentration is more easily written in the wind frame of reference (note the use of $x'$ and $y'$) as:
 \begin{align}\label{eqn:singlesourcegaussiandispersion}
 c(x',y',z) = &\frac{Q}{2\pi u a (x'-X'_s)^b}  \exp \left(-\frac{(y'-Y'_s)^2}{2 a (x'-X'_s)^b}\right) \nonumber \\
-  & \left[ \exp \left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp \left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right].
+  & \left[ \exp \left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp \left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]. 
 \end{align}
 where $a$ and $b$ are diffusion coefficients that regulate how the center line concentration evolves as the distance from the source increases.
 
 \subsubsection{Multiple Sources Gaussian Dispersion Model}
 
-In the case of multiple ($S$) sources the total concentration can be computed by superposition of the effects of each of the single source:
+In the case of a $S$ number of sources the total concentration can be computed by superposition of the effects of each of the single source:
 \begin{align}\label{eqn:multiplesourcesgaussiandispersion}
 c(x',y',z) = \sum_{s=1}^S c(x',y',z;X'_s,Y'_s,H_s,Q_s).
 \end{align}
-Where we assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
+where $c(x',y',z;X'_s,Y'_s,H_s,Q_s)$ is nothing more equation \ref{eqn:singlesourcegaussiandispersion} in which $X'_s,Y'_s,H_s$ is the location of source $s$ and $Q_s$ is its emission rate.
+Again we assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
 
 \subsubsection{Single Source Gaussian Puff Dispersion Model}
 
-
-
-FIXME: t random variable
-
-A standard time varying plume dispersion (for more details see \cite{stockie2011}):
+The Gaussian dispersion model we just presented looks at the plume distribution over long time scales and assumes a constant emission rate from the source. It is fairly common however the case in which the source emits plume intermittently, the blob-like plume puffs are blown by the wind creating a time varying plume concentration.
+A simple way of modelling this puff like dispersion is to assume that each puff $i$ generated by source $s$ has an emission time $T^i_s$ following which it moves downwind at the wind speed $u$. At a location $x',y',z$ and time $t$ the full model is simply the superposition of all the puffs generated so far:
 \begin{align}\label{eqn:singlesourcesgaussianpuffdispersion}
 c(x',y',z,t) = & \sum_{i=1}^I \left\{ \frac{Q^i_s}{8(\pi a (x'-X'_s)^b)^{3/2}} \right. \nonumber \\
 & \exp\left(-\frac{(x'-X'_s-u(t-T^i_s))^2+(y'-Y'_s)^2}{2 a (x'-X'_s)^b}\right) \nonumber \\
-& \left. \left[\exp\left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp\left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]\right\}.
+& \left. \left[\exp\left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp\left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]\right\}
+\end{align}
+where $a$ and $b$ are the dispersion coefficients that we already encountered in equation \ref{eqn:singlesourcegaussiandispersion} and $Q^i_s$ is the amount of plume emitted with puff $i$ by source $s$, we sample these from a uniform distribution:
+\begin{align}\label{eqn:qi}
+Q^i_s \sim U(q_m,q_M).
+\end{align}
+
+
+To fully define the model, the emission times needs to be specified. In our settings we sample the interemission time $\tau^i$ from a exponential distribution with rate $\lambda$:
+\begin{align}\label{eqn:ti}
+T^i_s = T^{(i-1)}_s + \tau^i   \qquad \qquad \tau^i \sim Exp (\lambda), \quad T^0_s = 0.
 \end{align}
 
 \subsubsection{Multiple Sources Gaussian Puff Dispersion Model}
 
-Even in the case a time varying dispersion model, for multiple sources the total concentration can be computed by superposition:
+Even in the case of a time varying dispersion model, multiple sources can be considered. The total concentration can be computed by superposition:
 \begin{align}\label{eqn:multiplesourcesgaussianpuffdispersion}
-c(x',y',z,t) = \sum_{s=1}^S c(x',y',z,t;X'_s,Y'_s,H_s,Q^{1..I_s}_s).
+c(x',y',z,t) = \sum_{s=1}^S c(x',y',z,t;X'_s,Y'_s,H_s).
 \end{align}
+where $c(x',y',z,t;X'_s,Y'_s,H_s)$ is equation \ref{eqn:singlesourcesgaussianpuffdispersion} in which $X'_s,Y'_s,H_s$ is the location of source $s$ and $Q^i_s$ and $T^i_s$ are respectively sampled from an exponential and uniform distribution (i.e. equations \ref{eqn:qi}-\ref{eqn:ti}).
+We implicitly assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
 
 
 \begin{thebibliography}{1}
