@@ -133,7 +133,7 @@ a_t = (a^1_t,...,a^{N}_t).
 \end{align}
 
 \paragraph{Dynamics:} 
-The task has a Markovian transition dynamics defined by a distribution $P(s_{t+1}|s_t,a_t)$ which denotes the conditional density of state $s$ at time $t+1$ given state-action $(s_t,a_t)=(s,a)$ at time~$t$.
+The task has a Markovian transition dynamics defined by $P(s_{t+1}|s_t,a_t)$ which denotes the conditional density of state $s$ at time $t+1$ given state-action $(s_t,a_t)=(s,a)$ at time~$t$.
 
 In the case of the cats helicopters the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are part of the \sname simulator\footnote{We refer to the \sname manual for details.}. 
 
@@ -256,9 +256,9 @@ The second scenario is designed explicitly to expose the complex interplay betwe
 The task to be accomplished in this scenario is in the form of a wilderness search and rescue mission; several targets (people) are lost/injured on the ground in a landscape and need to be located and rescued. 
 
 In addition to its navigation sensors each helicopter agent taking part in the search 
-is equipped with a camera/classification module that allows it to detect the presence of targets in its field of view. Rather than raw images the camera module provides higher-level data in the form of log likelihood differences for the current observation conditioned on the presence or absence of a target. The quality of detection depends upon the ground type and the geometry between helicopter and ground (e.g. the distance).  
+is equipped with a camera/classification module that allows it to detect the presence of targets in its field of view. Rather than raw images the camera module provides higher-level data in the form of log likelihood ratios for the current observation conditioned on the presence or absence of a target. The quality of detection depends upon the ground type and the geometry between helicopter and ground (e.g. the distance).  
 
-The search era is limited but its extent is so that a trivial lawn mower pattern of search will not allow covering all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. For simplicity the persons are assumed to not move during the task. 
+The search area is limited but its extent is so that a trivial lawn mower pattern of search will not allow covering all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. The persons are assumed to not move during the task. 
 
 Additionally we assume that the flying area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
 
@@ -274,27 +274,32 @@ The system underlying the task is modelled as a discrete time, finite horizon MD
 
 \paragraph{States:} The state $s_t=(x^1_t,...,x^{N}_t,b^1_t,...,b^P_t)$ at time $t$ comprises the helicopters state vectors $x^i_t$ and the location of the $P$ targets $b^j_t$.
 
-Each platform state contains the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. 
+Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform:
+\begin{align}
+x = [p_x,p_y,p_z,\phi,\theta,\psi,u,v,w,p,q,r]\intercal .
+\end{align} 
 The environment is itself three dimensional and the helicopter can freely move in three dimensions.
 
-The person's location is expressed in terms of its coordinate w.r.t. the global reference frame  $b^j=[p_x,p_y,0]^\intercal$; the persons' $z$ coordinate is zero since we assume that the ground is flat and that the targets are located on the ground.
+The person's location is expressed in terms of its coordinate w.r.t. the global reference frame  $b^j=[p^j_x,p^j_y,0]^\intercal$; the person's $z$ coordinate is zero since we assume that the ground is flat and that the targets are located on the ground.
 
-\paragraph{Initial State:} At the beginning of the task a new terrain map is generated based on the number of terrain classes and split between class types specified by the user\footnote{The user specifies what percentage of the total area should belong to each class.}. 
+\paragraph{Initial State:} At the beginning of the task a new terrain map is generated based on the number of terrain classes and split between class types specified by the user\footnote{The user specifies what percentage of the total area belongs to each class.}. 
 The extent of the flying area is scaled accordingly to the number of platforms and time horizon in order to ensure that the task is nontrivial.
+
 Subsequently a number of persons is randomly placed in the search area. The user can control where persons are placed by specifying the probability of a target to be located on a specific terrain class\footnote{Each person's location is generated independently.}. 
+
 Finally the helicopters are located randomly (with uniform probability) around the flying area at the nominal flight height\footnote{The initial altitude can be configured by the user but is set to a $25m$ default value.}.
 
 \paragraph{Actions:}
-At each time step the agent specifies an action $a_t$ for each of the UAV taking part in the task; the action is expressed in terms of a 3D velocity vector in global NED coordinates:
+At each time step the agent specifies an action $a^i_t$ for each of the UAVs taking part in the task; the action is expressed in terms of a 3D velocity vector in global NED coordinates:
 \begin{align}
-a_t=[v_x,v_y,v_z]_t^\intercal.
+a^i_t=[v^i_x,v^i_y,v^i_z]_t^\intercal \qquad\qquad i\in[1..N].
 \end{align}
 
-It is worth remembering that the actions are nothing more than set points to a PID controller that attempts to fly the UAV at the requested velocity.
+Similarly to what explained for in section \ref{catmouseactions} the actions are nothing more than set points to a PID controller that attempts to fly the UAV at the requested velocity.
 Due to delays and disturbances mismatches between the commanded and the actual velocity of the UAV have to be expected. 
 
 \paragraph{Dynamics:}\label{rescued} For the UAVs the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are specified by the \sname simulator. Such transition dynamics are Markovian and defined by $P(x_{t+1}|x_t,a_t)$ which denotes the conditional density of state $x$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$.
-The dynamics of the UAVs are independent of the targets $b^j_t$.
+The dynamics of the UAVs is independent of the targets $b^j_t$.
 
 Targets $b^j$ are stationary unless a helicopter hovers (i.e. its speed is low) sufficiently close to it, in which case the target is considered rescued and removed from the environment.
 More formally:
@@ -304,7 +309,7 @@ if ~ \exists ~ i,j~:~ d_{3D}\left( x^i_t,b^j_t \right) < \delta ~ \wedge ~\and \
  \Rightarrow \quad P=P-1 & i\in\{1,...,N\},j\in\{1,...,P\} 
 \end{array}
 \end{align}
-where $d_{3D}$ is the standard Euclidean distance\footnote{Defined as $$d_{3D}(x_t,b^j_t) = \parallel b^j_t -[p_x,p_y,p_z]_t^\intercal \parallel.$$} and $(\epsilon,\delta)$ are user specified thresholds\footnote{The default values for the distance threshold and the speed threshold are $\delta=5m$ and $\epsilon=0.1m/s$}.
+where $d_{3D}$ is the standard Euclidean distance in three dimensions\footnote{Defined as $$d_{3D}(x_t,b^j_t) = \parallel b^j_t -[p_x,p_y,p_z]_t^\intercal \parallel.$$} and $(\epsilon,\delta)$ are user specified thresholds\footnote{The default values for the distance threshold and the speed threshold are $\delta=5m$ and $\epsilon=0.1m/s$}.
 
 \paragraph{Observations}
 
@@ -313,14 +318,14 @@ The helicopter state $x_t$ is observed directly although depending on the specif
 The position of the targets $b^j_t$ is not known, but observations $o_t$ are provided by the camera at each time step.
 
 Following standard object detection techniques we assume that the incoming image (at time $t$) is split into $M_t$ windows $\{w^k_t\}^{M_t}_{k=1}$  (of size informed by the current altitude and an assumed fixed size for the person) which are then analysed for targets. 
-Given the current UAV pose $x_t$ and the fixed camera parameters the set of windows projects on the ground to a set of $M$ patches $\{g^k_t\}^{M_t}_{k=1}$ on the ground with centres $\{c^k_t\}^{M_t}_{k=1}$. 
-More precisely we this assumes that a map is available and that the mapping
+Given the current UAV pose $x_t$ and the fixed camera parameters the set of windows projects on the ground to a set of $M$ patches $\{g^k_t\}^{M_t}_{k=1}$. 
+More precisely this assumes that a map is available and that the mapping
 \begin{align}
 \{g^k_t\}^{M_t}_{k=1} \mapsto \{w^k_t\}^{M_t}_{k=1}\nn
 \end{align}
 is known, but does not have to be considered explicitly by the agent. 
 
-We assume that some form of person detection algorithm is run on each of the image windows ${w^k_t}$. As a result it is possible to evaluate the probability that such image patch was originated by a person (at the corresponding ground location $g^k_t$) versus the probability that ${w^k_t}$ was originated by clear ground at location $g^k_t$; what is commonly called the likelihood ratio.
+We assume that some form of person detection algorithm is run on each of the image windows ${w^k_t}$. As a result it is possible to evaluate the probability that such image patch was originated by a person (at the corresponding ground location $g^k_t$) versus the probability that ${w^k_t}$ was originated by clear ground at location $g^k_t$; what is commonly called a likelihood ratio.
 
 To generate likelihood ratios we use a model learned from the scores obtained by running an off the shelf person classifier on aerial images dataset collected with the quadrotor UAV in use at UCL. We refer to section \ref{personclassifier} for more details about such model.
 
@@ -347,7 +352,7 @@ r_t =  \left\{
 \end{array}
 \right.
 \end{align}
-where $T$ is the task duration $T$ and $\epsilon,\delta$ are respectively the distance and velocity thresholds that that define a person as rescued (see section \ref{rescued}). 
+where $T$ is the task duration $T$ and $\epsilon,\delta$ are respectively the distance and velocity thresholds that define a person as rescued (see section \ref{rescued}). 
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if the helicopter goes outside of the flying area or if any collision happens during the task. 
 
 \subsection{Task Variations} \label{SearchRescueVariations}
@@ -492,18 +497,24 @@ Since the dispersion models are known, one possible way to solve the tasks is to
 The system underlying the task is modelled as a discrete time Markov process on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.} and the task has a duration $T$.
 
 \paragraph{States:} the state $s_t=(x^1_t,..,x^N_t,c_t)$ at time $t$ comprises the helicopter/s state $x^i_t$ and the plume concentration $c_t$.
-Each platform state contains the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. The environment is itself three dimensional and the helicopter can freely move in three dimensions. The plume concentration is defined at every 3D location over the whole flight volume.
+Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform:
+\begin{align}
+x = [p_x,p_y,p_z,\phi,\theta,\psi,u,v,w,p,q,r]\intercal .
+\end{align} 
+The environment is itself three dimensional and the helicopter can freely move in three dimensions. 
 
-\paragraph{Initial State:} At the beginning of the task a new set of source locations within the flying area is defined with their associated emission rate so that given the current wind, the complete plume distribution can be defined. The user can control the number, height and emission rate of sources through task parameters.
-At $t=0$ the helicopters are located randomly (with uniform probability) in the fly area at the nominal flight height\footnote{The initial altitude can be configured by the user but is set to a $25m$ default value.}.
+The plume concentration is defined at every 3D location over the whole flight volume.
+
+\paragraph{Initial State:} At the beginning of the task a new set of source locations within the flying area is created with their associated emission rates so that given the current wind, the complete plume distribution can be computed. The user can control the number, height and emission rate of sources through task parameters.
+
+At $t=0$ the helicopters are located randomly (with uniform probability) in the fly area at the starting flight height\footnote{The initial altitude can be configured by the user but is set to a $25m$ default value.}.
 
 \paragraph{Actions:}
-At each time step the agent specifies an action $a_t$ for each of the UAV taking part in the task; the action is expressed in terms of a 3D velocity vector in global NED coordinates:
+At each time step the agent specifies an action $a^i_t$ for each of the UAV taking part in the task; the action is expressed in terms of a 3D velocity vector in global NED coordinates:
 \begin{align}
-a_t=[v_x,v_y,v_z]_t^\intercal.
+a^i_t=[v^i_x,v^i_y,v^i_z]_t^\intercal \qquad\qquad i\in[1..N].
 \end{align}
-
-It is worth remembering that the actions are nothing more than set points to a PID controller that attempts to fly the UAV at the requested velocity.
+The actions are nothing more than set points to a PID controller that attempts to fly the UAV at the requested velocity.
 Due to delays and disturbances mismatches between the commanded and the actual velocity of the UAV have to be expected. 
 
 
@@ -577,13 +588,16 @@ Commenting the code in details is beyond the scope of this report but it is usef
 \item\mytexttt{step(U)}: uses the PID controllers to transform velocity commands into angle command to the helicopters;
 \item\mytexttt{reward()}: returns the final reward;
 \item\mytexttt{getLocations()}: returns the list of 3D locations for which the agent is expected to return predictions;
-\item\mytexttt{getSamplesPerLocation()}: returns the number of predictions the agent needs to return for each location, this will be larger than one only if the concentration is time variant (i.e. for puff models);
+\item\mytexttt{getSamplesPerLocation()}: returns the number samples the agent needs to return for each location, this will be larger than 1 only if the concentration is time variant (i.e. for puff models);
 \item\mytexttt{setSamples(samples)}: allows the agent to return the predictions at each of the 3D locations so that the task can compute a reward.
 \end{itemize}
 
 We provide the example file \texttt{main\_plume.m} (listing\ref{lst:mpl}) which shows how to initialize and run one of such tasks.
-After the usual initializations (lines 1-12) we show how to retrieve the list of 3D locations for which the agents 
-has to return predictions (line 16). For each simulation step we generate a velocity command for each of the UAVs (lines 24-34); in this example we follow a random search strategy that consist in flying to a new direction every ten time steps. After stepping the simulator (line 39) the concentration measurement for the location at which the helicopters are flying can be retrieved (line 43).
+
+After the usual initializations (lines 1-12) show how to retrieve the list of 3D locations at which the agents has to return predictions (line 16). 
+
+In the main loop (lines 24-34) for each simulation step we generate a velocity command for each of the UAVs; in this example we follow a random search strategy that consist in flying to a new direction every ten time steps. After stepping the simulator (line 39) the concentration measurement for the location at which the helicopters are flying can be retrieved (line 43).
+
 Finally after the task time is elapsed, we are required to provide the simulator with the concentration estimates (line 51); in this case for simplicity we set those to randomly generated values (line 48). At line 54 we can obtain the reward associated with the provided estimates.
 \begin{lstlisting}[float=ht!bp,caption=main\_plume.m,language=Matlab,frame=lines,label=lst:mpl,numbers=left,basicstyle=\small]
 % create simulator object and load task parameters
@@ -639,6 +653,7 @@ state.task.setSamples(samples);
 % get final reward (note: this works only after setSamples() ).
 r = qrsim.reward();
 \end{lstlisting}
+
 The task, the configurations and the example main files are in the directory \mytexttt{scenarios/plume} within the \sname simulator. 
 
 We remind the reader that within the simulator the helicopter state $x^i_t$ is denoted as \mytexttt{eX}:
@@ -695,22 +710,22 @@ For completeness we report a list of the various symbols that appear in the desc
 \end{tabular}
 \end{table}
 
-We remind the reader that NED stands for a North-East-Down reference frame (explained in more detail in the \sname manual \webman).
+We remind the reader that NED stands for a North-East-Down reference frame (explained in more detail in the \sname manual).
 
 \section{Person Classifier Model} \label{personclassifier}
 
 In the search and rescue scenario we assume the UAV platform to be equipped with a camera capable of observing the landscape in which the targets are located. Additionally we assume that each camera frame is analysed by a classifier algorithm in order to scout for persons. 
 
-Despite the latest advancement in the domain of computer vision (\cite{handa2012}), relying on first principles to simulate camera images for generic outdoor scenes like the one we consider in our scenario, is still very challenging and computationally expensive. Constructing an accurate first principle model of the accuracy of an image classifier is also similarly difficult.
+Despite the latest advancement in the domain of computer vision (\cite{handa2012}), relying on first principles to simulate camera images for generic outdoor scenes, is still very challenging and computationally expensive. Constructing an accurate first principle model of the accuracy of an image classifier is also similarly difficult.
 
-For these reasons we choose to rely on experimental data to build a probabilistic model of the joint camera and classifier system. In the first step of our approach we apply an off-the-shelf image classification algorithm to real world imagery collected with our quadrotor helicopters; in the second phase we devise an analytical model that relates the scores returned by the classification algorithm to the task variables that have a primary effect on the classification performance.   
+For these reasons we choose to rely on experimental data to build a probabilistic model of the joint camera and classifier system. In the first phase of devising the model we apply an off-the-shelf image classification algorithm to real world imagery collected with our quadrotor helicopters; in the second phase we devise an analytical model that relates the scores returned by the classification algorithm to the task variables that have a primary effect on the classification performance.   
 
-Our image dataset consists of several thousand images collected during multiple outdoor flights. Images were taken at different flight altitudes (up to $~50m$) and over a variety of terrains (different types of grass, bushes, rocks). While the helicopter was flying one or more persons were lying on the ground on a variety of poses so to be visible in at least some of the images. An example of the type of images in our dataset is visible in figure \ref{fig:aerialimg}. 
+Our image dataset consists of several thousand images collected during multiple outdoor flights. Images were taken at different flight altitudes (up to $\sim50m$) and over a variety of terrains (different types of grass, bushes, rocks). While the helicopter was flying one or more persons were lying on the ground on a variety of poses so to be visible in at least some of the images. An example of the type of images in our dataset is visible in figure \ref{fig:aerialimg}. 
 
 To perform person detection we used the histogram of gradients classifier (HOG) described in \cite{dalal2005}. 
-We have chosen such classifier since it is effective, well know in the image detection community and more importantly because the type of gradient descriptors it uses are found at the core of many of the latest more sophisticated image classifiers. 
-Ultimately in our settings we are interested in modelling a real world classifier more than modelling the latest or best classifier. 
-We trained the classifier on a labelled subset of our data using a descriptor size of 100 by 100. We then proceeded by running the classifier on the reminder of our dataset; as it is commonly done in the object detection literature, images were analysed for target at different locations (windows) and at different scales. The highest scores among scales were then aggregated for each image, figure \ref{fig:classscores} shows the classification result for the image in figure \ref{fig:aerialimg}.
+We have chosen such classifier since it is effective, well know in the image detection community and more importantly because the type of gradient descriptors it uses are found at the core of many of the latest more sophisticated image classifiers. Ultimately in our simulation we are interested in modelling a real world classifier more than modelling the latest or best classifier. 
+
+We trained the classifier on a labelled subset of our data using a descriptor size of 100 by 100 pixels. We then proceeded by running the classifier on the reminder of our dataset. As it is commonly done in the object detection literature, images were analysed for target at different locations (windows) and at different scales. The highest scores among scales were then aggregated for each image; figure \ref{fig:classscores} shows the classification result for the image in figure \ref{fig:aerialimg}.
 \begin{figure}[ht]
 \centering
 \subfigure[Camera image]{
@@ -724,10 +739,12 @@ We trained the classifier on a labelled subset of our data using a descriptor si
 
 The classifier model needs to be queried multiple times for each of the simulated image observation, so limiting its computational complexity is crucial to a successful integration into our simulations.
 The UAV flying altitude has a direct effect on the size that a person in the field of view has on the camera image, therefore is the primary variable that affects the classifier ability to perform detections.
-For the reasons just exposed at present we focus on modelling the dependency between the flying altitude and the score returned by the classifier.
+For these two reasons at present we focus on modelling the dependency between the flying altitude and the score returned by the classifier.
 
-If we plot the scores obtained by applying the HOG classifier to our dataset against altitude and we distinguish between positive examples (i.e. the person was in the window considered by the classifier) and negative examples (i.e. the was no person in the window), we obtain the graph of figure \ref{fig:datascores} (note that the score are roughly normalized between $0$ and $1$).
+If we plot the scores obtained by applying the HOG classifier to our dataset against altitude and we distinguish between positive (i.e. the person was in the window considered by the classifier) and negative examples (i.e. the was no person in the window), we obtain the graph of figure \ref{fig:datascores}.
+
 At low altitudes ($<5m$) positive and negative example generate similar scores; at such altitudes only a part of the person is typically visible in the frame and this is not sufficient to elicit a strong classifier response since the HOG template we use is based on a whole body view of a person. As the altitude increases, positive examples are characterized by higher scores than negative ones as one would expect. At altitudes above $40m$ again the size of the person comes into play and simply the resolution is not sufficient to distinguish the person reliably from the background.
+
 Is interesting to note also how the variation in scores decreases with altitude for the positive examples while it is almost independent from altitude for the negative examples. The latter can at least in part be explained by the multi-scale nature of the image features commonly present in a natural environment.   
 
 \begin{figure}[ht]
@@ -742,7 +759,7 @@ Is interesting to note also how the variation in scores decreases with altitude 
 \caption{Scores as function of height.\label{fig:dataandmodels}}
 \end{figure}
 
-The relationship between scores and altitude  can be easily camptured and simple analytic models can be devised for both the mean and the standard deviation of positive ($+$) and negative~($-$) scores:
+The relationship between scores and altitude  can be easily captured and simple analytic models can be devised for both the mean and the standard deviation of positive ($+$) and negative~($-$) scores:
 \begin{eqnarray}
 m^{+}_s &=& 
 \left\{ 
@@ -824,6 +841,7 @@ In practical terms such concentration pattern would be produced by a source emit
 \subsection{Gaussian Dispersion Models}
 
 In a more realistic situation than the one described in section \ref{3dgauss} wind should be considered since it generally has a strong influence on the plume dispersion.  
+
 Under the following assumptions:
 \begin{itemize}
 \item constant wind (with magnitude $u$);
@@ -833,9 +851,9 @@ Under the following assumptions:
 \item negligible ground penetration; 
 \item negligible variations in topography;
 \end{itemize}
-the advection-diffusion flux equation has a closed form solution and the plume concentration can be easily computed (see \cite{stockie2011}).
-The resulting concentration has a cone-like shape starting at the plume source and expanding downwind. Profile concentrations are symmetric about the plume centerline and have the shape of a Gaussian(see figure \ref{fig:winddisp}).
-\begin{figure}[t]
+the advection-diffusion flux equation that distinguish how the plume disperse in the environment has a closed form solution and the plume concentration can be easily computed (see \cite{stockie2011}).
+The resulting concentration has a cone-like shape starting at the plume source and expanding downwind. Profile concentrations are symmetric about the plume centerline and have the shape of a Gaussian (see figure \ref{fig:winddisp}).
+\begin{figure}[b!]
 \centering
 \includegraphics[width=0.8\textwidth]{plumedistr.jpg}
 \caption{Gaussian plume dispersion driven by wind (from\cite{stockie2011}).\label{fig:winddisp}}
@@ -855,24 +873,26 @@ In the case of a $S$ number of sources the total concentration can be computed b
 c(x',y',z) = \sum_{s=1}^S c(x',y',z;X'_s,Y'_s,H_s,Q_s).
 \end{align}
 where $c(x',y',z;X'_s,Y'_s,H_s,Q_s)$ is nothing more equation \ref{eqn:singlesourcegaussiandispersion} in which $X'_s,Y'_s,H_s$ is the location of source $s$ and $Q_s$ is its emission rate.
-Again we assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
+We assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
 
 \subsubsection{Single Source Gaussian Puff Dispersion Model}
 
-The Gaussian dispersion model we just presented looks at the plume distribution over long time scales and assumes a constant emission rate from the source. It is fairly common however the case in which the source emits plume intermittently, the blob-like plume puffs are blown by the wind creating a time varying plume concentration.
-A simple way of modelling this puff like dispersion is to assume that each puff $i$ generated by source $s$ has an emission time $T^i_s$ following which it moves downwind at the wind speed $u$. At a location $x',y',z$ and time $t$ the full model is simply the superposition of all the puffs generated so far:
+The Gaussian dispersion model we just presented looks at the plume distribution over long time scales and assumes a constant emission rate from the source. 
+
+It is fairly common however the case in which the source emits plume intermittently, the blob-like plume puffs are blown by the wind creating a time varying plume concentration.
+A simple way of modelling this puff like dispersion is to assume that each puff $i$ generated by source $s$ has an emission time $T^i_s$ following which it moves downwind at the wind speed $u$. At a location $x',y',z$ and time $t$ the full concentration model is simply the superposition of all the puffs generated so far:
 \begin{align}\label{eqn:singlesourcesgaussianpuffdispersion}
 c(x',y',z,t) = & \sum_{i=1}^I \left\{ \frac{Q^i_s}{8(\pi a (x'-X'_s)^b)^{3/2}} \right. \nonumber \\
 & \exp\left(-\frac{(x'-X'_s-u(t-T^i_s))^2+(y'-Y'_s)^2}{2 a (x'-X'_s)^b}\right) \nonumber \\
 & \left. \left[\exp\left(-\frac{(z-H_s)^2}{2 a (x'-X'_s)^b}\right) + \exp\left(-\frac{(z+H_s)^2}{2 a (x'-X'_s)^b}\right)\right]\right\}
 \end{align}
-where $a$ and $b$ are the dispersion coefficients that we already encountered in equation \ref{eqn:singlesourcegaussiandispersion} and $Q^i_s$ is the amount of plume emitted with puff $i$ by source $s$, we sample these from a uniform distribution:
+where $a$ and $b$ are the dispersion coefficients that we already encountered in equation \ref{eqn:singlesourcegaussiandispersion} and $Q^i_s$ is the amount of plume emitted with puff $i$ by source $s$. We sample $Q^i_s$ from a uniform distribution:
 \begin{align}\label{eqn:qi}
 Q^i_s \sim \mathcal{U}(q_m,q_M).
 \end{align}
 
 
-To fully define the model, the emission times needs to be specified. In our settings we sample the interemission time $\tau^i$ from a exponential distribution with rate $\lambda$:
+To fully define the model, the emission times need to be specified; in our settings we sample the inter-emission time $\tau^i$ from a exponential distribution with rate $\lambda$:
 \begin{align}\label{eqn:ti}
 T^i_s = T^{(i-1)}_s + \tau^i   \qquad \qquad \tau^i \sim Exp (\lambda), \quad T^0_s = 0.
 \end{align}
@@ -884,7 +904,7 @@ Even in the case of a time varying dispersion model, multiple sources can be con
 c(x',y',z,t) = \sum_{s=1}^S c(x',y',z,t;X'_s,Y'_s,H_s).
 \end{align}
 where $c(x',y',z,t;X'_s,Y'_s,H_s)$ is equation \ref{eqn:singlesourcesgaussianpuffdispersion} in which $X'_s,Y'_s,H_s$ is the location of source $s$ and $Q^i_s$ and $T^i_s$ are respectively sampled from an exponential and uniform distribution (i.e. equations \ref{eqn:qi}-\ref{eqn:ti}).
-We implicitly assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
+Again we implicitly assume that the wind acting on each source is the same and therefore the wind frame of reference is unique.
 
 
 \begin{thebibliography}{1}
