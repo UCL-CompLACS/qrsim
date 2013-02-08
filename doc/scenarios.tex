@@ -37,14 +37,13 @@
 
 \begin{abstract}
 This document describes the three types of scenarios devised at UCL to develop and test learning and control algorithm with application to a flock of autonomous quadrotor helicopters, one of the three real world platforms of the {CompLACS} project.
-The three application scenarios are explicitly chosen to expose different types of challenges that occur in the domain of multi-platform aerial robotics so to provide a variety of research opportunities.
+The three application scenarios are explicitly chosen to expose different types of challenges that occur in the domain of multi-platform aerial robotics so to provide a variety of opportunities for investigation.
 
 This report is divided into three parts one for each of the three scenarios; each part gives a formal description of the scenario in terms of its setup, its objective, and its variations. 
 
 In order to aid the development and testing of learning algorithms, we provide a simulation environment based on the \sname quadrotor simulator for each the scenarios along with handy code examples.
-Technical details specific to the scenarios implementation are reported in the appendix. 
 
-Since the scenarios simulations are built on top of our \sname, we refer to its manual (\webman) for details about the simulator and its API.
+Since the scenarios simulations are built on top of \sname, we refer to its manual (\webman) for details about the simulator and its API.
 
 \end{abstract}
 
@@ -52,7 +51,7 @@ Since the scenarios simulations are built on top of our \sname, we refer to its 
 
 \chapter{Quadrotors Scenarios}
 
-\section{Scenario 1: Cats and Mouse game}
+\section{Scenario 1: Cats and Mouse Game}
 
 The first of the scenarios is designed to focus primarily on the challenges encountered in the coordinated control of multiple UAVs; the associated problems of sensing and state estimation are somewhat simplified by the choice of task, environment and platform sensors. 
 
@@ -61,7 +60,7 @@ The task to be accomplished in this scenario is in the form of a team game in wh
 
 For simplicity the task is assumed to take place in an area devoided of obstacles so that helicopters can fly freely. Getting in contact with the ground or another UAV will however produce a collision.
 The platforms are equipped with noisy sensors so only observation of the vehicle state are available.  
-Depending on the circumstances in the flying area there might be present wind and other aerodynamic disturbances that affect the flight behaviour of the platforms.
+Depending on the circumstances wind and other aerodynamic disturbances that affect the flight behaviour might be present in the flying area.
 
 Snapshots of the initial ($t=0$) and terminal ($t=T$) configurations from a typical successful run are visible in figures \ref{fig:catmousestart} and \ref{fig:catmousestop} respectively. 
 
@@ -80,24 +79,42 @@ In the next section we give a more formal description of the problem.
 
 \subsection{MDP}
 
-The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}. 
+The system underlying the task is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}. 
 
-\paragraph{State:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises of the state vectors of all the cats (superscripts $1,...,N$) and of the mouse (superscript $m$) helicopters. 
-Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. All of these are continuous variables (see section \ref{CatMouseSim} for more details).
+\paragraph{State:} The state $s_t = (x^1_t,...,x^{N}_t,x^m_t)$ at time $t$ comprises of the state vectors of all the cats ($x^1,...,x^{N}$) and of the mouse ($x^m$) helicopters. 
+Each platform state contains in turn the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform:
+\begin{align}
+x = [p_x,p_y,p_z,\phi,\theta,\psi,u,v,w,p,q,r]\intercal .
+\end{align}
+ All of these are continuous variables (see section \ref{CatMouseSim} for more details).
 
 The environment is itself three dimensional although we will see (section \ref{catmouseactions}) that the helicopters are assumed to fly at a fixed altitude.
 
-\paragraph{Initial State:} At the beginning of the task the mouse is placed at the center of the flight space\footnote{Without loss of generality since the control problem depends on the relative positions of mouse and cats as long as the flying area is sufficiently large.} and the cats are positioned randomly around the mouse.
+\paragraph{Initial State:} At the beginning of the task the mouse is placed at the origin of the flight space\footnote{Without loss of generality since the control problem depends on the relative positions of mouse and cats as long as the flying area is sufficiently large.} and the cats are positioned randomly around the mouse.
 
-The initial position of cats are generated as:
+The initial positions of cats are generated as:
 $$
-\left\{
-\begin{array}{l l}
-p^i_x =  d_i \cos(\alpha_i) & \\
-p^i_y =  d_i \sin(\alpha_i) & i \in 1..N\\
-p^i_z = - h_{fix} & \\
+\left[
+\begin{array}{l}
+p^i_x \\
+p^i_y \\
+p^i_z \\
 \end{array}
-\right.
+\right]_0
+= \left[
+ \begin{array}{l}
+ p^m_x \\
+ p^m_y \\
+ 0 
+ \end{array}
+ \right] + 
+ \left[
+ \begin{array}{l}
+d_i \cos(\alpha_i) \\
+d_i \sin(\alpha_i) \\
+- h_{fix} \\
+\end{array}
+\right] \qquad i \in 1..N
 $$
 where $\alpha_i \sim \mathcal{U}(0,2\pi)$, $d_i \sim \mathcal{U}(D_m,D_M)$ and $\mathcal{U}(a,b)$ indicates a uniform distribution over the interval $[a,b]$. The minimum and maximum distance from the mouse $D_m,D_M$ and the altitude $h_{fix}$ are user-configurable.
 An additional parameter $D_{c2c}$ allows to define a minimum distance between any two cats; this prevent the occurrence of an initial state in which two cats are too close.
@@ -105,20 +122,24 @@ An additional parameter $D_{c2c}$ allows to define a minimum distance between an
 At $t=0$ all the helicopters are stationary (i.e. their velocities are zero).
 
 \paragraph{Actions:}\label{catmouseactions} 
-A real quadrotor of the type considered in our task generally presents four continuous control inputs (i.e. pitch, roll, yaw angles and throttle) which needs to be updated at a rate of $50Hz$, constituting a rather large control space.
+A real quadrotor of the type considered in our task generally presents four continuous control inputs (i.e. pitch, roll, yaw angles and throttle) which needs to be updated at a rate of $50Hz$. Even with a moderately long time horizon the control space becomes rather large.
 
 To limit the space of control inputs, in our setup each UAV is equipped with a close loop PID controller that accepts 2D linear velocity commands $a^i_t=[v^i_x,v^i_y]^\intercal$ (in global coordinates) and combines them with the estimated platform velocity to produce the necessary attitude and throttle commands for the platform. The PID accepts commanded velocity at a rate of $1Hz$ and provides the platform controls at $50Hz$.
 To additionally reduce the control space the PID takes also care of maintaining a constant altitude and heading\footnote{The use of a PID controller in addition to reducing the number of control inputs makes the task closer to what is possible to implement and test using real quadrotors.}. 
 
-The action space $a_t = (a^1_t,...,a^{N}_t)$ at time $t$ comprises of the 2D linear velocity commands for each of the cats helicopters. 
+The reduced action space $a_t$ at time $t$ comprises of the 2D linear velocity commands for each of the cats helicopters:
+\begin{align}
+a_t = (a^1_t,...,a^{N}_t).
+\end{align}
 
 \paragraph{Dynamics:} 
-Markovian transition dynamics are defined by a distribution $P(s_{t+1}|s_t,a_t)$ which denotes the conditional density of state $s$ at time $t+1$ given state-action $(s_t,a_t)=(s,a)$ at time~$t$.
+The task has a Markovian transition dynamics defined by a distribution $P(s_{t+1}|s_t,a_t)$ which denotes the conditional density of state $s$ at time $t+1$ given state-action $(s_t,a_t)=(s,a)$ at time~$t$.
 
-In the case of the cats helicopters the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are part of the \sname simulator\footnote{We refer to the \sname manual \webman for details.}. 
+In the case of the cats helicopters the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are part of the \sname simulator\footnote{We refer to the \sname manual for details.}. 
 
 For the mouse helicopter the transition dynamics is 
-not only defined by the platform dynamics but also by the way the mouse moves in response to the cats. 
+not only based on the platform dynamics but also by the way the mouse moves in response to the cats.
+
  As the task starts the mouse helicopter tries to escape the cats by moving at a constant (max) speed\footnote{While the control law that governs the quadrotor attempts to maintain a fix maximum speed, in practice the true speed will not be constant due to sensor noise wind disturbance and dynamic effects.} and choosing a direction that prioritize escaping from the closer cats.
 In specific the 2D velocity action for the mouse at time $t$ is computed as:
 \begin{equation}\label{eqn:mousectrl}
@@ -129,14 +150,14 @@ a^m_t = V_{M} \frac{\mathsf{v}_t}{\| \mathsf{v}_t \|} &
 \end{equation}
 and $V_{M}$ is the (user-configurable) maximum speed that the mouse can achieve. 
 
-Different control strategies could be considered for the mouse; in practise the one considered in equation \ref{eqn:mousectrl} is both simple and has shown to be sufficient to provide for a challenging task.
+Different control strategies could be considered for the mouse; in practice the one considered in equation \ref{eqn:mousectrl} is both simple and has shown to be sufficient to provide for a challenging task.
 
 \paragraph{Observations}
 The helicopter state $x^i_t$ is observed directly although depending on the specific task variation (see Section~\ref{CatMouseVariations}) the state variables might be affected by stochastic noise.
-For more details about the noise models used by \sname we refer the reader to the simulator manual (\webman). 
+For more details about the noise models used by \sname we refer the reader to the simulator manual. 
 
 \paragraph{Reward:}
-The cats are successful if the are able to trap the mouse at the end of the task; a meaningful final reward can be defined as the sum of the squared (2D) distances\footnote{$d_{2D}(x^i_T,x^m_T) = \Vert[p^i_x,p^i_y]_T^\intercal - [p^m_x,p^m_y]_T^\intercal\Vert$.} between the cats and the mouse at time $T$:
+The cats are successful if they are able to trap the mouse at the end of the task; a meaningful final reward can be defined as the sum of the squared (2D) distances\footnote{$d_{2D}(x^i_T,x^m_T) = \Vert[p^i_x,p^i_y]_T^\intercal - [p^m_x,p^m_y]_T^\intercal\Vert$.} between the cats and the mouse at time $T$:
 $$r_T = - \sum^N_{i=1} d_{2D}(x^i_T,x^m_T)^2.$$
 A large negative reward\footnote{The default value of the negative reward is $-1000$ but it can be configured by the user.} is returned if any of the helicopters (including the mouse) goes outside of the flying area or if any collision happens during the task.
 
@@ -149,7 +170,7 @@ The difficulty of the considered control problem depends on the level of sensor 
 \end{itemize}
 
 \subsection{Simulation Code}\label{CatMouseSim}
-The cat and mouse scenario can be promptly defined on top of the \sname simulator by means of dedicated task classes\footnote{We refer to the \webman for details on task classes.}. In specific we make available one task class for each of the three scenario variations introduced in section \ref{CatMouseVariations}:
+The cat and mouse scenario can be promptly defined on top of the \sname simulator by means of dedicated task classes\footnote{Refer to the \sname manual for details on task classes.}. In specific we make available one task class for each of the three scenario variations introduced in section \ref{CatMouseVariations}:
 \begin{itemize}
 \item\textit{1A}: \mytexttt{TaskCatsMouseNoiseless.m},
 \item\textit{1B}: \mytexttt{TaskCatsMouseNoisy.m},
@@ -173,7 +194,7 @@ state = qrsim.init('TaskCatsMouseNoisyAndWindy');
 
 U = zeros(2,state.task.Nc);
 
-% run the scenario and at every timestep generate a control
+% run the scenario and at every time step generate a control
 % input for each of the uavs
 for i=1:state.task.durationInSteps,
     
@@ -214,9 +235,9 @@ fprintf('final reward: %f\n',qrsim.reward());
 
 \end{lstlisting}
 
-After the desired task is initialized (line 4), a basic for loop is executed for the number of timesteps specified by the task. Within the loop the 2D velocity control is computed for each helicopter and passed to the corresponding PID (line 37). 
+After the desired task is initialized (line 4), a basic for loop is executed for the number of time steps specified by the task. Within the loop the 2D velocity control is computed for each helicopter and passed to the corresponding PID (line 37). 
 In our listing we show a simple (and suboptimal) scheme in which the velocity direction of each cat directly towards the future mouse position mouse (line 20-23) but that also keeps away from neighbouring cats (line 26-34). 
-The helicopter control input produced by the PID controllers are then used to step the simulator (line 41).
+The helicopter control inputs produced by the PID controllers are then used to step the simulator (line 41).
 Finally after the execution of the task is concluded, the final reward for the task can be retrieved (line 46).
 
 We remind the reader that within the simulator the helicopter state $x^i_t$ is denoted as \texttt{eX}:
@@ -237,7 +258,7 @@ The task to be accomplished in this scenario is in the form of a wilderness sear
 In addition to its navigation sensors each helicopter agent taking part in the search 
 is equipped with a camera/classification module that allows it to detect the presence of targets in its field of view. Rather than raw images the camera module provides higher-level data in the form of log likelihood differences for the current observation conditioned on the presence or absence of a target. The quality of detection depends upon the ground type and the geometry between helicopter and ground (e.g. the distance).  
 
-The search era is limited but its extent is so that a trivial lawn mower pattern of search will not allow to cover all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. For simplicity the persons are assumed to not move during the task. 
+The search era is limited but its extent is so that a trivial lawn mower pattern of search will not allow covering all the area in the allotted time. The landscape has different types of terrain; persons are more likely to be present on some class of terrain than others. For simplicity the persons are assumed to not move during the task. 
 
 Additionally we assume that the flying area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
 
@@ -249,7 +270,7 @@ A snapshot from a typical run is shown in figure \ref{fig:searchrescue} along wi
 \end{figure}
 
 \subsection{MDP}
-The underlying system is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}.
+The system underlying the task is modelled as a discrete time, finite horizon MDP on a continuous state space. The system runs from $t=0$ to $t=T$ with a time step equivalent to $1s$ of simulated time\footnote{The update rate is user-configurable with default value of 1Hz.}.
 
 \paragraph{States:} The state $s_t=(x^1_t,...,x^{N}_t,b^1_t,...,b^P_t)$ at time $t$ comprises the helicopters state vectors $x^i_t$ and the location of the $P$ targets $b^j_t$.
 
@@ -259,8 +280,8 @@ The environment is itself three dimensional and the helicopter can freely move i
 The person's location is expressed in terms of its coordinate w.r.t. the global reference frame  $b^j=[p_x,p_y,0]^\intercal$; the persons' $z$ coordinate is zero since we assume that the ground is flat and that the targets are located on the ground.
 
 \paragraph{Initial State:} At the beginning of the task a new terrain map is generated based on the number of terrain classes and split between class types specified by the user\footnote{The user specifies what percentage of the total area should belong to each class.}. 
-The extent of the flying area is scaled accordingly to the number of platforms and time horizon in order to ensure that the task is non trivial.
-Subsequently a number of persons is randomly placed in the search area. The user can control where persons are placed by specifying the probability of a target to be located on a specific terrain class\footnote{Each persons location is generated independently.}. 
+The extent of the flying area is scaled accordingly to the number of platforms and time horizon in order to ensure that the task is nontrivial.
+Subsequently a number of persons is randomly placed in the search area. The user can control where persons are placed by specifying the probability of a target to be located on a specific terrain class\footnote{Each person's location is generated independently.}. 
 Finally the helicopters are located randomly (with uniform probability) around the flying area at the nominal flight height\footnote{The initial altitude can be configured by the user but is set to a $25m$ default value.}.
 
 \paragraph{Actions:}
@@ -269,7 +290,7 @@ At each time step the agent specifies an action $a_t$ for each of the UAV taking
 a_t=[v_x,v_y,v_z]_t^\intercal.
 \end{align}
 
-Is worth remembering that the actions are nothing more than set points to a PID controller that attempts to drive that UAV at the requested velocity.
+It is worth remembering that the actions are nothing more than set points to a PID controller that attempts to fly the UAV at the requested velocity.
 Due to delays and disturbances mismatches between the commanded and the actual velocity of the UAV have to be expected. 
 
 \paragraph{Dynamics:}\label{rescued} For the UAVs the transition dynamics is defined by the combination of PID velocity controllers, platforms dynamics, sensor and wind dynamics (since these in turn effect the quadrotor) all of which are specified by the \sname simulator. Such transition dynamics are Markovian and defined by $P(x_{t+1}|x_t,a_t)$ which denotes the conditional density of state $x$ at $t+1$ given $(x_t,a_t) = (x,a)$ at time $t$.
@@ -313,7 +334,7 @@ o_t = \left\{\log
 \right\}^{M_t}_{k=1}. \nn
 \end{align}
 
-An example of the observation returned by our simulated scenario is visible in the insert of figure \ref{fig:searchrescue}. A higher value of the ratio (red color) is noticeable for the ground patches that are at the person location; also note how the patches are conveniently expressed in ground coordinates.
+An example of the observation returned by our simulated scenario is visible in the insert of figure \ref{fig:searchrescue}. A higher value of the ratio (red colour) is noticeable for the ground patches that are at the person location; also note how the patches are conveniently expressed in ground coordinates.
 
 \paragraph{Reward:} 
 The reward $r_t$ for the task is designed to prize the UAVs for quickly rescuing targets. In this spirit $r_t$ at time $t$ is defined to be $1$ when a helicopter hovers sufficiently close to a target and a small negative value otherwise.
@@ -354,7 +375,7 @@ Commenting the code in details is beyond the scope of this report but it is usef
 \item\mytexttt{init()}: defines all the platforms, sensor and environment parameters;
 \item\mytexttt{reset()}: defines the task starting condition for UAVs and persons;
 \item\mytexttt{step(U)}: uses the PID controllers to transform velocity commands into angle command to the helicopters, checks if a target was located and removes it;
-\item\mytexttt{reward()}: returns the reward at the current timestep;
+\item\mytexttt{reward()}: returns the reward at the current time step;
 \item\mytexttt{getNumberOfPersons()}: returns the number of persons present at the beginning of the task.
 \end{itemize}
 
@@ -373,7 +394,7 @@ U = zeros(3,state.task.numUAVs);
 % number of persons to locate in this task        
 np = state.task.getNumberOfPersons();
 
-% run the scenario and at every timestep generate a control
+% run the scenario and at every time step generate a control
 % input for each of the uavs
 for i=1:state.task.durationInSteps,    
     % random search policy in which the helicopter(s) moves around
@@ -402,7 +423,7 @@ for i=1:state.task.durationInSteps,
     % get camera measurements:
     % the output is an object of type CemeraObservation, i.e.
     % a simple structure containing the fields:
-    % llkd      log-likelihood difference for each gound patch
+    % llkd      log-likelihood difference for each ground patch
     % wg        list of corner points for the ground patches
     % gridDims  dimensions of the grid of measurements    %
     for j=1:state.task.numUAVs,
@@ -436,22 +457,22 @@ In the third and last scenario we design tasks in which sensing and estimation o
 
 In this scenario we envisage the situation in which a plume is dispersed in the flying area and we are interested in using one or more UAVs to estimate the plume concentration\footnote{Hereby we simply refer to concentration, in a real environment this would be a property of the plume that can be realistically measured e.g. CO concentration.}.
 
-Depending on the task settings (see section \ref{PlumeVariations}) one or more sources might be present in the environment and the plume distribution might evolve over time. Any wind affects both the the UAV flight behaviour and the plume distribution.
-UAVs are equipped with noisy navigation sensors that allow to observe their location, attitude and velocities and also with a sensor that produces noisy observation of the plume concentration. 
+Depending on the task settings (see section \ref{PlumeVariations}) one or more sources might be present in the environment and the plume distribution might evolve over time. Any wind affects both the UAV flight behaviour and the plume distribution.
+UAVs are equipped with noisy navigation sensors that allow observing their location, attitude and velocities and also with a sensor that produces noisy observation of the plume concentration. 
 
 The plume concentration follows a known model but with unknown parameter values; the task objective is to provide a concentration estimate $\hat{c}_T$ at some pre-specified time $T$. 
 For this scenario we selected three main classes of concentration models; they were chosen for being widely adopted (\cite{stockie2011}) while remaining relatively simple:
 \begin{itemize}
 \item \textit{Gaussian}: when no wind is present in the flying area and the source emits plume with a constant rate, the plume disperses around the source and its concentration can be described by a three dimensional Gaussian (equation \ref{eqn:singlesourcegaussian}). Since the source emits at constant rate the resulting dispersion pattern is static, however to make the model not completely trivial we assume that the dispersion is not necessarily isotropic; Figure\ref{fig:singlegaussplume} depicts an example of type of concentration pattern produced by this model.
 \item \textit{Gaussian Dispersion}: when wind is present in the flying area, and the source emits plume with a constant rate, the plume is blown downwind and disperses as it gets farther from the source. The concentration takes a cone like shape which expands as the distance from the source increases (equation \ref{eqn:singlesourcegaussiandispersion}). In the case in which the mean wind velocity and direction do not change with time\footnote{This will be the case in our settings.}, the resulting concentration is also time invariant. An example of the resulting dispersion is visible in Figure\ref{fig:multigaussplume}.
-\item \textit{Gaussian Puff Dispersion} when wind is present in the flying area but the source emits plume for short time intervals (i.e short puffs), each puff travels downwind expanding as it gets farther from the source. At every time instant the resulting concentration is the superposition of the many puffs (equation \ref{eqn:singlesourcesgaussianpuffdispersion}); the concentration is therefore time variant.  Figure \ref{fig:singlegausspuffplume} shows an example of such dispersion model.
+\item \textit{Gaussian Puff Dispersion} when wind is present in the flying area but the source emits plume for short time intervals (i.e. short puffs), each puff travels downwind expanding as it gets farther from the source. At every time instant the resulting concentration is the superposition of the many puffs (equation \ref{eqn:singlesourcesgaussianpuffdispersion}); the concentration is therefore time variant.  Figure \ref{fig:singlegausspuffplume} shows an example of such dispersion model.
 \end{itemize}
 For each type of dispersion model the case in which more than one source is present in the environment can be considered simply by superimposing the effects of several individual sources; superposition gives origin to substantially more complex distributions.
 
 As in the previous tasks we assume that the flying area is free of obstacles so that the UAVs can move freely in the 3D space. Getting in contact with the ground or another UAV will however produce a collision.
 
 \textit{Note:}
-Since the dispersion models are known, one possible way to solve the tasks is to estimate the model parameters (or a distributions over them). While this is an appropriate solution we emphasize that the agent is not required to solve the task in this way and so model agnostic way of producing concentration estimations are equally appropriate. 
+Since the dispersion models are known, one possible way to solve the tasks is to estimate the model parameters (or a distribution over them). While this is an appropriate solution we emphasize that the agent is not required to solve the task in this way and so model agnostic way of producing concentration estimations are equally appropriate. 
 
 \begin{figure}[t]
 \centering
@@ -468,7 +489,7 @@ Since the dispersion models are known, one possible way to solve the tasks is to
 \end{figure}
 
 \subsection{MDP}
-The underlying system is modelled as a discrete time Markov process on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.} and the task has a duration $T$.
+The system underlying the task is modelled as a discrete time Markov process on a continuous state space. The system is updated at a frequency of 1Hz\footnote{The update rate is user-configurable with default value of 1Hz.} and the task has a duration $T$.
 
 \paragraph{States:} the state $s_t=(x^1_t,..,x^N_t,c_t)$ at time $t$ comprises the helicopter/s state $x^i_t$ and the plume concentration $c_t$.
 Each platform state contains the position ($[p_x,p_y,p_z]^\intercal$), velocity ($[u,v,w]^\intercal$), orientation ($[\phi,\theta,\psi]^\intercal$) and rotational velocity ($[p,q,r]^\intercal$) of the platform. The environment is itself three dimensional and the helicopter can freely move in three dimensions. The plume concentration is defined at every 3D location over the whole flight volume.
@@ -482,7 +503,7 @@ At each time step the agent specifies an action $a_t$ for each of the UAV taking
 a_t=[v_x,v_y,v_z]_t^\intercal.
 \end{align}
 
-Is worth remembering that the actions are nothing more than set points to a PID controller that attempts to drive that UAV at the requested velocity.
+It is worth remembering that the actions are nothing more than set points to a PID controller that attempts to fly the UAV at the requested velocity.
 Due to delays and disturbances mismatches between the commanded and the actual velocity of the UAV have to be expected. 
 
 
@@ -506,7 +527,7 @@ $$
 r_T = - \sum^M_{j=1} | c^j_T - \hat{c}^j_T |^2 .
 $$
 
-For tasks in which the concentration evolves over time (i.e. tasks 3E, 3F and 3G), the concentration at each location $\hat c^j_T$ can be though of as a random variable with an associated probability distribution $\pr(\hat c^j_T)$.
+For tasks in which the concentration evolves over time (i.e. tasks 3E, 3F and 3G), the concentration at each location $\hat c^j_T$ can be thought of as a random variable with an associated probability distribution $\pr(\hat c^j_T)$.
 The better the agent is at approximating such distribution, the higher should be its reward.
 A simple way to compute the reward is in the form of (minus) the KL divergence between true concentration distribution $\pr(c^1_T,..,c^M_T)$ and the estimate provided by the agent\footnote{In practice in order to enable the empirical computation of the reward the agent will be asked to return several samples of the concentration at each of the $M$ locations specified by the task.} $\pr(\hat c^1_T,..,\hat c^M_T)$:
 $$
@@ -580,7 +601,7 @@ positions = state.task.getLocations();
 % will be > 1 only if the concentration is time variant i.e. a puff model
 samplesPerLocation = state.task.getSamplesPerLocation();
 
-% run the scenario and at every timestep generate a control for each uav
+% run the scenario and at every time step generate a control for each uav
 for i=1:state.task.durationInSteps,    
     % random exploration policy in which the helicopter(s) moves around
     % at a fixed velocity changing direction every once in a while 
@@ -684,7 +705,7 @@ Despite the latest advancement in the domain of computer vision (\cite{handa2012
 
 For these reasons we choose to rely on experimental data to build a probabilistic model of the joint camera and classifier system. In the first step of our approach we apply an off-the-shelf image classification algorithm to real world imagery collected with our quadrotor helicopters; in the second phase we devise an analytical model that relates the scores returned by the classification algorithm to the task variables that have a primary effect on the classification performance.   
 
-Our image dataset consists of several thousands images collected during multiple outdoor flights. Images were taken at different flight altitudes (up to $~50m$) and over a variety of terrains (different types of grass, bushes, rocks). While the helicopter was flying one or more persons were lying on the ground on a variety of poses so to be visible in at least some of the images. An example of the type of images in our dataset is visible in figure \ref{fig:aerialimg}. 
+Our image dataset consists of several thousand images collected during multiple outdoor flights. Images were taken at different flight altitudes (up to $~50m$) and over a variety of terrains (different types of grass, bushes, rocks). While the helicopter was flying one or more persons were lying on the ground on a variety of poses so to be visible in at least some of the images. An example of the type of images in our dataset is visible in figure \ref{fig:aerialimg}. 
 
 To perform person detection we used the histogram of gradients classifier (HOG) described in \cite{dalal2005}. 
 We have chosen such classifier since it is effective, well know in the image detection community and more importantly because the type of gradient descriptors it uses are found at the core of many of the latest more sophisticated image classifiers. 
@@ -702,11 +723,11 @@ We trained the classifier on a labelled subset of our data using a descriptor si
 \end{figure}
 
 The classifier model needs to be queried multiple times for each of the simulated image observation, so limiting its computational complexity is crucial to a successful integration into our simulations.
-The UAV flying altitude has a direct effect on the size that a person in the field of view has on the camera image, therefore is the primary variable that effects the classifier ability to perform detections.
+The UAV flying altitude has a direct effect on the size that a person in the field of view has on the camera image, therefore is the primary variable that affects the classifier ability to perform detections.
 For the reasons just exposed at present we focus on modelling the dependency between the flying altitude and the score returned by the classifier.
 
 If we plot the scores obtained by applying the HOG classifier to our dataset against altitude and we distinguish between positive examples (i.e. the person was in the window considered by the classifier) and negative examples (i.e. the was no person in the window), we obtain the graph of figure \ref{fig:datascores} (note that the score are roughly normalized between $0$ and $1$).
-At low altitudes ($<5m$) positive and negative example generate similar scores; at such altitudes only a part of the person is typically visible in the frame and this is not sufficient to elicit a strong classifier response since the HOG template we use is based on a whole body view of a person. As the altitude increases, positive examples are characterized by higher higher scores than negative ones as one would expect. At altitudes above $40m$ again the size of the person comes into play and simply the resolution is not sufficient to distinguish the person reliably from the background.
+At low altitudes ($<5m$) positive and negative example generate similar scores; at such altitudes only a part of the person is typically visible in the frame and this is not sufficient to elicit a strong classifier response since the HOG template we use is based on a whole body view of a person. As the altitude increases, positive examples are characterized by higher scores than negative ones as one would expect. At altitudes above $40m$ again the size of the person comes into play and simply the resolution is not sufficient to distinguish the person reliably from the background.
 Is interesting to note also how the variation in scores decreases with altitude for the positive examples while it is almost independent from altitude for the negative examples. The latter can at least in part be explained by the multi-scale nature of the image features commonly present in a natural environment.   
 
 \begin{figure}[ht]
@@ -847,7 +868,7 @@ c(x',y',z,t) = & \sum_{i=1}^I \left\{ \frac{Q^i_s}{8(\pi a (x'-X'_s)^b)^{3/2}} \
 \end{align}
 where $a$ and $b$ are the dispersion coefficients that we already encountered in equation \ref{eqn:singlesourcegaussiandispersion} and $Q^i_s$ is the amount of plume emitted with puff $i$ by source $s$, we sample these from a uniform distribution:
 \begin{align}\label{eqn:qi}
-Q^i_s \sim U(q_m,q_M).
+Q^i_s \sim \mathcal{U}(q_m,q_M).
 \end{align}
 
 
