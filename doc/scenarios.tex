@@ -739,7 +739,7 @@ We trained the classifier on a labelled subset of our data using a descriptor si
 
 The classifier model needs to be queried multiple times for each of the simulated image observation, so limiting its computational complexity is crucial to a successful integration into our simulations.
 The UAV flying altitude has a direct effect on the size that a person in the field of view has on the camera image, therefore is the primary variable that affects the classifier ability to perform detections.
-For these two reasons at present we focus on modelling the dependency between the flying altitude and the score returned by the classifier.
+For these two reasons at present we focus on modelling the dependency between the flying altitude and the score returned by the classifier. In specific we model the scores as belonging to a Gaussian distribution for which with mean and standard deviation are simple functions of height.
 
 If we plot the scores obtained by applying the HOG classifier to our dataset against altitude and we distinguish between positive (i.e. the person was in the window considered by the classifier) and negative examples (i.e. the was no person in the window), we obtain the graph of figure \ref{fig:datascores}.
 
@@ -765,7 +765,7 @@ m^{+}_s &=&
 \left\{ 
 \begin{array}{l l}
 C^{+}_{m 0} + C^{+}_{m 1} \cos (\pi (1 + C^{+}_{m 2} h))  & \quad h<h_c \\
-C^{+}_{m 3} +  C^{+}_{m 4} (h - h_c) + C^{+}_{m 5} & \quad h \geq h_c
+C^{+}_{m 3} +  C^{+}_{m 4} (h - h_c) + C^{+}_{m 5} & \quad h \geq h_c \label{eqn:meanpos}
 \end{array}
 \right.
 \\
@@ -780,10 +780,14 @@ C^{-}_{m} & \quad h \geq h_c
 \end{array}
 \right.
 \\
-\sigma^{-}_s &=& C^{-}_{\sigma 0} + C^{-}_{\sigma 1} h+ C^{-}_{\sigma 2} h^2
+\sigma^{-}_s &=& C^{-}_{\sigma 0} + C^{-}_{\sigma 1} h+ C^{-}_{\sigma 2} h^2 \label{eqn:sigmaneg}
 \end{eqnarray}
 where $h$ is the UAV altitude and $C^{+}_{m 0},...,C^{+}_{m 5},C^{+}_{\sigma 0},...,C^{+}_{\sigma 2},C^{-}_{m 0},C^{-}_{m 1},C^{-}_{\sigma 0},...,C^{-}_{\sigma 2}$ are obtained by data fitting.
 
+Within the simulator the UAV pose and the target locations are known, so it is possible to compute in which windows of the image frame the target will appear. Since the UAV height is known, to generate an observed score for a window we sample from a Gaussian distribution with mean and variance defined by equations \ref{eqn:meanpos}-\ref{eqn:sigmaneg}. We choose the parameters for positive scores if the target appears in the window, for negative scores otherwise.
+
+Given the sampled score, the likelihood ratio for each window is easily obtained since the positive and negative models are Gaussians distributions with known means and standard deviations.
+In practice for numerical reason we compute log likelihoods and therefore we return the difference between the positive and negative log likelihoods
 
 \newpage
 
