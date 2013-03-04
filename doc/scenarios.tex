@@ -27,8 +27,7 @@
 
 % Title Page
 \title{{CompLACS} Helicopters Scenarios}
-\author{\bf PRELIMINARY VERSION}
-%\author{Renzo De Nardi,\\University College London\\\texttt{rdenardi@cs.ucl.ac.uk}}
+\author{Renzo De Nardi,\\University College London\\\texttt{rdenardi@cs.ucl.ac.uk}}
 
 \begin{document}
 \maketitle
@@ -69,10 +68,10 @@ In the next section we give a more formal description of the problem.
 \begin{figure}[ht]
 \centering
 \subfigure[$t=0$]{
-\includegraphics[width=0.48\textwidth]{catmousestart.jpg} 
+\includegraphics[width=0.48\textwidth]{fig/catmousestart.jpg} 
 \label{fig:catmousestart}}
 \subfigure[$t=T$]{
-\includegraphics[width=0.48\textwidth]{catmousestop.jpg}
+\includegraphics[width=0.48\textwidth]{fig/catmousestop.jpg}
 \label{fig:catmousestop}}
 \caption{Typical successful run: start(a) and end(b) configurations. \label{fig:catmouse}}
 \end{figure}
@@ -265,7 +264,7 @@ Additionally we assume that the flying area is free of obstacles so that the UAV
 A snapshot from a typical run is shown in figure \ref{fig:searchrescue} along with an example of the observation returned by the camera/classifier model.
 \begin{figure}[ht]
 \centering
-\includegraphics[width=15cm]{searchrescue.jpg}
+\includegraphics[width=15cm]{fig/searchrescue.jpg}
 \caption{Search and rescue run with three helicopters; note the different terrain types (denoted by different colors) and the persons (red dots). The insert shows the camera observation from UAV 1 that happens to be over a person. \label{fig:searchrescue}}
 \end{figure}
 
@@ -482,13 +481,13 @@ Since the dispersion models are known, one possible way to solve the tasks is to
 \begin{figure}[t]
 \centering
 \subfigure[Single source Gaussian concentration.]{
-\includegraphics[width=0.48\textwidth]{singlegaussplume.jpg}
+\includegraphics[width=0.48\textwidth]{fig/singlegaussplume.jpg}
 \label{fig:singlegaussplume}}
 \subfigure[Multiple sources Gaussian dispersion.]{
-\includegraphics[width=0.48\textwidth]{multigaussplume.jpg}
+\includegraphics[width=0.48\textwidth]{fig/multigaussplume.jpg}
 \label{fig:multigaussplume}}
 \subfigure[Single source Gaussian puff dispersion.]{
-\includegraphics[width=0.48\textwidth]{singlegausspuffplume.jpg}
+\includegraphics[width=0.48\textwidth]{fig/singlegausspuffplume.jpg}
 \label{fig:singlegausspuffplume}}
 \caption{Plume models; darker markers indicate lower concentration.\label{fig:plume}}
 \end{figure}
@@ -729,10 +728,10 @@ We trained the classifier on a labelled subset of our data using a descriptor si
 \begin{figure}[ht]
 \centering
 \subfigure[Camera image]{
-\includegraphics[width=0.48\textwidth]{classimg.jpg} 
+\includegraphics[width=0.48\textwidth]{fig/classimg.jpg} 
 \label{fig:aerialimg}}
 \subfigure[HOG classifier scores]{
-\includegraphics[width=0.48\textwidth]{classscores.jpg}
+\includegraphics[width=0.48\textwidth]{fig/classscores.jpg}
 \label{fig:classscores}}
 \caption{Person detection from aerial images.\label{fig:persdetect}}
 \end{figure}
@@ -750,11 +749,11 @@ Is interesting to note also how the variation in scores decreases with altitude 
 \begin{figure}[ht]
 \centering
 \subfigure[Classifier scores as function of height, bars indicate $1\sigma$.]{
-\includegraphics[width=0.46\textwidth]{scoresbarplot.jpg}
+\includegraphics[width=0.46\textwidth]{fig/scoresbarplot.jpg}
 \label{fig:datascores}}
 \quad
 \subfigure[Mean and standard deviation score as function of height, experimental vs. model.]{
-\includegraphics[width=0.46\textwidth]{scoresmeansd.jpg}
+\includegraphics[width=0.46\textwidth]{fig/scoresmeansd.jpg}
 \label{fig:scoresmodel}}
 \caption{Scores as function of height.\label{fig:dataandmodels}}
 \end{figure}
@@ -859,7 +858,7 @@ the advection-diffusion flux equation that distinguish how the plume disperse in
 The resulting concentration has a cone-like shape starting at the plume source and expanding downwind. Profile concentrations are symmetric about the plume centerline and have the shape of a Gaussian (see figure \ref{fig:winddisp}).
 \begin{figure}[b!]
 \centering
-\includegraphics[width=0.8\textwidth]{plumedistr.jpg}
+\includegraphics[width=0.8\textwidth]{fig/plumedistr.jpg}
 \caption{Gaussian plume dispersion driven by wind (from\cite{stockie2011}).\label{fig:winddisp}}
 \end{figure}
 

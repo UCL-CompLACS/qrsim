@@ -33,7 +33,7 @@
   >> main}
 \end{itemize}
 \begin{figure}[!b]
-\includegraphics[width=13cm]{main.eps}
+\includegraphics[width=13cm]{fig/main.jpg}
  \caption{Typical figure at the end of the run.\label{fig:main}}
 \end{figure}
 If the simulator is working correctly a Matlab figure (see figure \ref{fig:main}) should appear and you should see a helicopter moving about. In this task the helicopter is attempting to maintain the position it had at the start of the run, due to air turbulence and estimation error the UAV tends to drift and therefore corrective actions are needed from time to time. 
@@ -54,7 +54,7 @@ Create a new directory in a location of your choice\footnote{Using QRSim within 
 \end{itemize}
 Since we will be modifying these files in the following exercises it makes sense to rename them to something more meaningful; let's rename \texttt{TaskKeepSpot.m} to \texttt{TaskTutorial.m} and \texttt{pelican\_config.m} to \texttt{pelican\_config\_tutorial.m}.
 
-Of course now we need to update the files that reference such scripts, this will give us the chance to see what references what, within one of our projects.
+Of course now we need to update the files that reference such scripts, this will give us the chance to see what references what within a projects.
 We start by editing \texttt{main.m} in the following way:
 \begin{itemize}
  \item line 8: update \texttt{addpath(['..',filesep,'sim:..',filesep,'controllers']);} to point to the directories \texttt{sim} and \texttt{controllers} in your machine. Note that this is the only command needed to make use of QRSim in your project (this is akin to the need of including a toolbox in the Matlab path).
@@ -69,6 +69,7 @@ Finally if we look at the bottom of the method \texttt{init()} defined in \textt
 
 At this point, we have a new project completely independent from the original one we started from. You can now test that the modifications we just applied did not break the project; simply run \texttt{main} from within your project directory and you should see the same output you got for Exercise 0. 
 
+More complex examples of projects are available in the directory \texttt{scenarios} and are worth a look once you are familiar with the simulator.
 
 \section*{Exercise 2:\\Familiarize with \texttt{QRSim} and platforms objects}
 
@@ -85,7 +86,7 @@ This script implements what is possibly the simplest way of running a simulation
 From the description just given one can understand that calling \texttt{step()} only makes sense after the simulation is created and initialized to a valid state. 
 In our \texttt{main.m} script the simulator is stepped within a for loop since we want to run the task for \texttt{N} steps but it is rather obvious that this does not always need to be the case. Once the simulation object is initialized the step method can be called in whatever fashion is more convenient to the user.
 
-The control input \texttt{U} passed to the step function are computed using a PID controller, while we will look more in detail at this type of controller in Exercise 5 now we want to highlight how the controller uses the current platform estimated state retrieved using the function \texttt{state.platforms{1}.getEX()}.
+The control input \texttt{U} passed to the step function are computed using a PID controller. We will look more in detail at this type of controller in Exercise 5 for now we want only to highlight that the controller uses the current platform estimated state retrieved using the function \texttt{state.platforms{1}.getEX()}.
 This is not the only method exposed by the class \texttt{Pelican} to access the platform state we also have:
 \begin{itemize}
  \item \texttt{getX()} returns the true state (noiseless) state;
