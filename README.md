@@ -4,30 +4,39 @@ QRSim
 Examples of quadrotor helicopters models described in the literature (e.g. [ [1] ](#one), [ [2] ](#two),[ [3] ](#three)) tend to focus on reproducing only the dynamic aspects the aerial platform and their
 primary use is in the domain of closed loop flight control. 
 
-When the aim is simulating more general higher level tasks that involve multiple platforms which sense and react in their environment, the usefulness of such models is limited.
-This document describes the multi-vehicle simulator software QRSim developed to
-devise and test algorithm that allow a set of UAVs to communicate and cooperate to
-achieve common goals. In addition to realistically simulate the dynamic of the aerial platform (learned from flight tests), the software simulates the sensors suite that typically equips a UAV (i.e. GPS, IMU, camera) and the endogenous and exogenous sources of inaccuracies that characterize them. Environmental effects that act directly (e.g. wind) or indirectly (e.g. the plume dispersion) the task are also part of the simulation.
+When the aim is to simulate more general higher level tasks that involve multiple platforms which sense and react in their environment, the usefulness of such models is limited.
 
-To offer a well structured and challenging set of control and machine learning problems
-the simulator includes the implementation of a number of non trivial task scenarios.
+The QRSim multi-vehicle software simulator is developed to devise and test algorithm that allow a set of UAVs to communicate and cooperate to achieve common goals. In addition to realistically simulate the dynamic of the aerial platform (learned from flight tests), the software simulates the sensors suite that typically equips a UAV (i.e. GPS, IMU, camera) and the endogenous and exogenous sources of inaccuracies that characterize both platforms and sensors. Environmental effects that act directly (e.g. wind) or indirectly (e.g. the plume dispersion) the task are also part of the simulation.
+
+To offer a well structured and challenging set of control and machine learning problems the simulator also includes the implementation of a number of well defined non trivial task scenarios. Namely these are a pursue evasion game, a plume mapping application in presence of wind, and a search and rescue mission that uses the simulated on-board camera.
 
 ## Videos
-[![ScreenShot1](https://github.com/UCL-CompLACS/qrsim/doc/Youtube_Video1.png)](http://youtu.be/5ka4tP0z2RQ)
-[![ScreenShot2](https://github.com/UCL-CompLACS/qrsim/doc/Youtube_Video2.png)](http://youtu.be/SjOaX4Z0iLk)
+
+The following two videos give a glimpse of some of the QRSim capabilities:  
+
+[![ScreenShot1](https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video1.png)](http://youtu.be/5ka4tP0z2RQ)
+
+[![ScreenShot2](https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video2.png)](http://youtu.be/SjOaX4Z0iLk)
 
 ## Documentation
-* Installation and use manual <a href="https://github.com/UCL-CompLACS/qrsim/doc/manual.pdf">[pdf]<a/>
-* Scenarios manual <a href="https://github.com/UCL-CompLACS/qrsim/doc/scenarios.pdf">[pdf]<a/>
-* Learning exercise sheet <a href="https://github.com/UCL-CompLACS/qrsim/doc/exercises.pdf">[pdf]<a/> 
+The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
 
+* Installation and use manual <a href="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/manual.pdf">[pdf]<a/>
+* Scenarios manual <a href="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/scenarios.pdf">[pdf]<a/>
+* Step by step tutorial <a href="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/exercises.pdf">[pdf]<a/> 
 
-## Citation
-If you <a href="https://github.com/UCL-CompLACS/qrsim/doc/qrsimcite.bib">[bib]<a/>
+The documentation of the QRSim API is provided through the standard Matlab documentation system (i.e. using the Matlab command `doc`)  
+
+## Citing
+If you use this software in an academic context, please cite the following publication:
+
+Renzo De Nardi, <a href="http://www0.cs.ucl.ac.uk/staff/R.DeNardi/DeNardi2013rn.pdf">_The QRSim Quadrotors Simulator_<a/> Research Note RN/13/08, Department of Computer Science University College London, March 2013. <a href="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/qrsimcite.bib">[bibtex]<a/>
 
 ## License
+With the exception of the libraries in the `3rdparty` folder which are covered by their respective licenses, the QRSim software can be redistributed in accordance with the <a href="https://github.com/UCL-CompLACS/qrsim/blob/master/LICENSE">Modified BSD License<a/>.
 
 ## Support
+Due to lack of time we are currently unable to provide direct support for the software, however we will do our best to address any problem reported via the GitHub issue system.  
 
 ### References
 1.<a id="one"></a>  S. Bouabdallah. _Design and control of quadrotors with application to autonomous flying._ PhD thesis, EPFL, 2007
