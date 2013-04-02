@@ -1,7 +1,7 @@
 QRSim
 =====
 
-Examples of quadrotor helicopters models described in the literature (e.g. [ [1] ](#one), [ [2] ](#two),[ [3] ](#three)) tend to focus on reproducing only the dynamic aspects the aerial platform and their
+Examples of quadrotor helicopters models described in the literature (e.g. [1],[2],[3]) tend to focus on reproducing only the dynamic aspects the aerial platform and their
 primary use is in the domain of closed loop flight control. 
 
 When the aim is to simulate more general higher level tasks that involve multiple platforms which sense and react in their environment, the usefulness of such models is limited.
@@ -15,18 +15,18 @@ To offer a well structured and challenging set of control and machine learning p
 The following two videos give a glimpse of some of the QRSim capabilities:  
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=5ka4tP0z2RQ
-" target="_blank"><img src="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video1.png" 
+" target="_blank"><img src="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video1.png" 
 alt="QRSim capabilities: sensor noise and wind effects" width="640" height="480" border="10" /></a>
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=SjOaX4Z0iLk
-" target="_blank"><img src="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video2.png" 
+" target="_blank"><img src="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video2.png" 
 alt="QRSim capabilities: large number of UAVs" width="640" height="480" border="10" /></a>
 
 ## Documentation
 The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
 
 * Installation and use manual [pdf](doc/manual.pdf)
-* Scenarios manual [pdf](doc/scenarios.pdf")
+* Scenarios manual [pdf](doc/scenarios.pdf)
 * Step by step tutorial [pdf](doc/tutorial.pdf) 
 
 The documentation of the QRSim API can be accessed through the standard Matlab documentation system (i.e. using the Matlab command `doc`) 
