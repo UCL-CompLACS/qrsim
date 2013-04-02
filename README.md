@@ -18,22 +18,22 @@ The following two videos give a glimpse of some of the QRSim capabilities:
 [![QRSim capabilities: sensor noise and wind effects](http://img.youtube.com/vi/5ka4tP0z2RQ/0.jpg)](http://www.youtube.com/watch?v=5ka4tP0z2RQ)
 
 ### Simulating a large number of UAVS:
-[![QRSim capabilities: large number of UAVs](http://img.youtube.com/vi/SjOaX4Z0iLk/0.jpg)](http://www.youtube.com/watch?v=SjOaX4Z0iLk)
+[![QRSim capabilities: large number of UAVs](https://github.com/UCL-CompLACS/qrsim/raw/master/doc/YoutubeVideo1.jpg)](http://www.youtube.com/watch?v=SjOaX4Z0iLk)
 
 
 ## Documentation
 The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
 
-* User manual [pdf](doc/manual.pdf)
-* Scenarios manual  [ <a href="https://github.com/UCL-CompLACS/qrsim/raw/master/doc/manual.pdf">pdf</a> ]
-* Step by step tutorial <a href="https://github.com/UCL-CompLACS/qrsim/raw/master/doc/manual.pdf">[pdf]</a>
+* User manual [<a href="https://github.com/UCL-CompLACS/qrsim/raw/master/doc/manual.pdf">pdf</a>]
+* Scenarios manual  [<a href="https://github.com/UCL-CompLACS/qrsim/raw/master/doc/scenarios.pdf">pdf</a>]
+* Step by step tutorial [<a href="https://github.com/UCL-CompLACS/qrsim/raw/master/doc/tutorial.pdf">pdf</a>]
 
 The documentation of the QRSim API can be accessed through the standard Matlab documentation system (i.e. using the Matlab command `doc`) 
 
 ## Citing
 If you use this software in an academic context, please cite the following publication:
 
-* Renzo De Nardi, <a href="http://www0.cs.ucl.ac.uk/staff/R.DeNardi/DeNardi2013rn.pdf">_The QRSim Quadrotors Simulator_<a/> Research Note RN/13/08, Department of Computer Science University College London, March 2013. [ [bibtex] ](doc/qrsimcite.bib)
+* Renzo De Nardi, <a href="http://www0.cs.ucl.ac.uk/staff/R.DeNardi/DeNardi2013rn.pdf">_The QRSim Quadrotors Simulator_<a/> Research Note RN/13/08, Department of Computer Science University College London, March 2013. [[bibtex](doc/qrsimcite.bib)]
 
 ## License
 With the exception of the libraries in the [`3rdparty`](3rdparty) folder which are covered by their respective licenses, the QRSim software can be redistributed in accordance with the [Modified BSD License] (LICENSE).
