@@ -14,17 +14,12 @@ To offer a well structured and challenging set of control and machine learning p
 
 The following two videos give a glimpse of some of the QRSim capabilities:  
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=5ka4tP0z2RQ
-" target="_blank"><img src="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/YoutubeVideo1.jpg" 
-alt="QRSim capabilities: sensor noise and wind effects" width="640" height="480" border="10" /></a>
+### Effects of noise and wind:
+[![QRSim capabilities: sensor noise and wind effects](http://img.youtube.com/vi/5ka4tP0z2RQ/0.jpg)](http://www.youtube.com/watch?v=5ka4tP0z2RQ)
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=SjOaX4Z0iLk
-" target="_blank"><img src="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/YoutubeVideo2.png" 
-alt="QRSim capabilities: large number of UAVs" width="640" height="480" border="10" /></a>
+### Simulating a large number of UAVS:
+[![QRSim capabilities: large number of UAVs](http://img.youtube.com/vi/SjOaX4Z0iLk/0.jpg)](http://www.youtube.com/watch?v=SjOaX4Z0iLk)
 
-[![IMAGE ALT TEXT HERE](https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/YoutubeVideo1.jpg)](http://www.youtube.com/watch?v=5ka4tP0z2RQ)
-
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/5ka4tP0z2RQ/0.jpg)](http://www.youtube.com/watch?v=SjOaX4Z0iLk)
 
 ## Documentation
 The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
