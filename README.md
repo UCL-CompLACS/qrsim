@@ -16,16 +16,16 @@ The following two videos give a glimpse of some of the QRSim capabilities:
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=5ka4tP0z2RQ
 " target="_blank"><img src="http://img.youtube.com/vi/5ka4tP0z2RQ/0.jpg" 
-alt="QRSim capabilities: noise and platform models" width="240" height="180" border="10" /></a>
+alt="QRSim capabilities: sensor noise and wind effects" width="640" height="480" border="10" /></a>
 
-<![![ScreenShot1](https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video1.png)](http://youtu.be/5ka4tP0z2RQ) >
-
-[![ScreenShot2](https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video2.png)](http://youtu.be/SjOaX4Z0iLk)
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=SjOaX4Z0iLk
+" target="_blank"><img src="http://img.youtube.com/vi/SjOaX4Z0iLk/0.jpg" 
+alt="QRSim capabilities: large number of UAVs" width="640" height="480" border="10" /></a>
 
 ## Documentation
 The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
 
-* Installation and use manual <a href="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/manual.pdf">[pdf]<a/>
+* Installation and use manual [pdf](doc/manual.pdf)
 * Scenarios manual <a href="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/scenarios.pdf">[pdf]<a/>
 * Step by step tutorial <a href="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/tutorial.pdf">[pdf]<a/> 
 
