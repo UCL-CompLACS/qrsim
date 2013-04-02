@@ -13,7 +13,7 @@
 
 \newcommand{\sname}{QRSim\xspace}
 \newcommand{\snamettt}{\texttt{QRSim}\xspace}
-\newcommand{\webrepo}{\url{http://complacs.cs.ucl.ac.uk/complacs/simulator/qrsim-lastStable.zip}\xspace}
+\newcommand{\webrepo}{\url{https://github.com/UCL-CompLACS/qrsim/archive/master.zip}\xspace}
 
 \begin{document}
 \maketitle
@@ -171,11 +171,11 @@ The simulator is entirely written in Matlab and does not depend on any additiona
 
 To retrieve the software one can simply clone the git\footnote{The git version control software is available for Linux (usually from the package manager), OSX (http://code.google.com/p/git-osx-installer/) and Windows (http://code.google.com/p/msysgit/)} source code repository\footnote{Please note that currently the git repository is read only.} into a directory of choice:
 \begin{verbatim}
-$ git clone http://complacs.cs.ucl.ac.uk/git/qrsim.git
+$ git clone https://github.com/UCL-CompLACS/qrsim.git
 $ cd qrsim
-$ git checkout -b lastStable
+$ git checkout master
 \end{verbatim}
-Alternatively, the \texttt{lastStable} tag of the software repository is also available as a zip archive from \webrepo. In this case the archive needs to be downloaded and unpacked into a directory of choice.
+Alternatively, the \texttt{master} branch of the software repository is also available as a zip archive from \webrepo. In this case the archive needs to be downloaded and unpacked into a directory of choice.
 
 Once we have the software in a local directory (let's assume it to be \texttt{\textasciitilde/qrsim}), in order to use it is necessary to add the absolute path to the \texttt{sim} directory to the current Matlab search path. 
 This can be done using the menu \textsf{File \textgreater ~Set Path} from the Matlab toolbar. Alternatively this can be done from the Matlab console: after navigating to the local simulator directory (\texttt{\textasciitilde/qrsim} in our example) one can issue the command\footnote{Note that this command depends on the location from which it is executed.} 

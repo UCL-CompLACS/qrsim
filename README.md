@@ -41,7 +41,7 @@ With the exception of the libraries in the [`3rdparty`](3rdparty) folder which a
 Due to lack of time we are currently unable to provide direct support for the software, however we will do our best to address any problem reported via the GitHub <a href="https://github.com/UCL-CompLACS/qrsim/issues"> issue system<a/>.  
 
 ## Acknowledgments
-The author wants to thank Guy Lever, Nicolas Hees, Simon Julier, John Showe-Taylor, David Silver, Stephen Hailes and Luke Teacy for the fruitful discussing about the application scenarios and the classifier model. This work was carried out with the support of the European Research Council \#FP7-ICT-270327 (<a href="www.complacs.org">CompLACS</a>).
+The author wants to thank Guy Lever, Nicolas Hees, Simon Julier, John Showe-Taylor, David Silver, Stephen Hailes and Luke Teacy for the fruitful discussing about the application scenarios and the classifier model. This work was carried out with the support of the European Research Council \#FP7-ICT-270327 (<a href="http://www.complacs.org">CompLACS</a>).
 
 
 ### References
