@@ -14,11 +14,11 @@ To offer a well structured and challenging set of control and machine learning p
 
 The following two videos give a glimpse of some of the QRSim capabilities:  
 
-### Effects of noise and wind:
-[![QRSim capabilities: sensor noise and wind effects](http://img.youtube.com/vi/5ka4tP0z2RQ/0.jpg)](http://www.youtube.com/watch?v=5ka4tP0z2RQ)
+[![QRSim capabilities: sensor noise and wind effects](https://github.com/UCL-CompLACS/qrsim/raw/master/doc/YoutubeVideo1.jpg)](http://www.youtube.com/watch?v=5ka4tP0z2RQ)
 
-### Simulating a large number of UAVS:
-[![QRSim capabilities: large number of UAVs](https://github.com/UCL-CompLACS/qrsim/raw/master/doc/YoutubeVideo1.jpg)](http://www.youtube.com/watch?v=SjOaX4Z0iLk)
+<br>
+
+[![QRSim capabilities: large number of UAVs](https://github.com/UCL-CompLACS/qrsim/raw/master/doc/YoutubeVideo2.jpg)](http://www.youtube.com/watch?v=SjOaX4Z0iLk)
 
 
 ## Documentation
