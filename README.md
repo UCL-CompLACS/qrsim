@@ -14,7 +14,7 @@ the simulator includes the implementation of a number of non trivial task scenar
 
 ## Videos
 [![ScreenShot1](https://github.com/UCL-CompLACS/qrsim/doc/Youtube_Video1.png)](http://youtu.be/5ka4tP0z2RQ)
-[![ScreenShot2](https://github.com/UCL-CompLACS/qrsim/doc/Youtube_Video1.png)](http://youtu.be/SjOaX4Z0iLk)
+[![ScreenShot2](https://github.com/UCL-CompLACS/qrsim/doc/Youtube_Video2.png)](http://youtu.be/SjOaX4Z0iLk)
 
 ## Documentation
 * Installation and use manual <a href="https://github.com/UCL-CompLACS/qrsim/doc/manual.pdf">[pdf]<a/>
