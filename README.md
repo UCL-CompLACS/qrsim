@@ -1,4 +1,7 @@
-qrsim
+QRSim
 =====
 
-Multiplatform quadrotor simulator
+Multiplatform quadrotors simulator
+
+
+
