@@ -24,8 +24,8 @@ The following two videos give a glimpse of some of the QRSim capabilities:
 ## Documentation
 The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
 
-* Installation and use manual [pdf](doc/manual.pdf)
-* Scenarios manual [pdf](doc/scenarios.pdf)
+* User manual [pdf](doc/manual.pdf)
+* Scenarios manual [pdf](wiki/scenarios.pdf)
 * Step by step tutorial [pdf](doc/tutorial.pdf) 
 
 The documentation of the QRSim API can be accessed through the standard Matlab documentation system (i.e. using the Matlab command `doc`) 
