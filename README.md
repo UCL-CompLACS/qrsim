@@ -15,29 +15,29 @@ To offer a well structured and challenging set of control and machine learning p
 The following two videos give a glimpse of some of the QRSim capabilities:  
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=5ka4tP0z2RQ
-" target="_blank"><img src="http://img.youtube.com/vi/5ka4tP0z2RQ/0.jpg" 
+" target="_blank"><img src="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video1.png" 
 alt="QRSim capabilities: sensor noise and wind effects" width="640" height="480" border="10" /></a>
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=SjOaX4Z0iLk
-" target="_blank"><img src="http://img.youtube.com/vi/SjOaX4Z0iLk/0.jpg" 
+" target="_blank"><img src="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/Youtube_Video2.png" 
 alt="QRSim capabilities: large number of UAVs" width="640" height="480" border="10" /></a>
 
 ## Documentation
 The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
 
 * Installation and use manual [pdf](doc/manual.pdf)
-* Scenarios manual <a href="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/scenarios.pdf">[pdf]<a/>
-* Step by step tutorial <a href="https://raw.github.com/UCL-CompLACS/qrsim/blob/master/doc/tutorial.pdf">[pdf]<a/> 
+* Scenarios manual [pdf](doc/scenarios.pdf")
+* Step by step tutorial [pdf](doc/tutorial.pdf) 
 
-The documentation of the QRSim API is provided through the standard Matlab documentation system (i.e. using the Matlab command `doc`) 
+The documentation of the QRSim API can be accessed through the standard Matlab documentation system (i.e. using the Matlab command `doc`) 
 
 ## Citing
 If you use this software in an academic context, please cite the following publication:
 
-* Renzo De Nardi, <a href="http://www0.cs.ucl.ac.uk/staff/R.DeNardi/DeNardi2013rn.pdf">_The QRSim Quadrotors Simulator_<a/> Research Note RN/13/08, Department of Computer Science University College London, March 2013. <a href="https://github.com/UCL-CompLACS/qrsim/blob/master/doc/qrsimcite.bib">[bibtex]<a/>
+* Renzo De Nardi, <a href="http://www0.cs.ucl.ac.uk/staff/R.DeNardi/DeNardi2013rn.pdf">_The QRSim Quadrotors Simulator_<a/> Research Note RN/13/08, Department of Computer Science University College London, March 2013. [ [bibtex] ](doc/qrsimcite.bib)
 
 ## License
-With the exception of the libraries in the `3rdparty` folder which are covered by their respective licenses, the QRSim software can be redistributed in accordance with the <a href="https://github.com/UCL-CompLACS/qrsim/blob/master/LICENSE">Modified BSD License<a/>.
+With the exception of the libraries in the [`3rdparty`](3rdparty) folder which are covered by their respective licenses, the QRSim software can be redistributed in accordance with the [Modified BSD License] (LICENSE).
 
 ## Support
 Due to lack of time we are currently unable to provide direct support for the software, however we will do our best to address any problem reported via the GitHub <a href="https://github.com/UCL-CompLACS/qrsim/issues"> issue system<a/>.  
