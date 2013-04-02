@@ -16,7 +16,6 @@ The following two videos give a glimpse of some of the QRSim capabilities:
 
 [![QRSim capabilities: sensor noise and wind effects](https://github.com/UCL-CompLACS/qrsim/raw/master/doc/YoutubeVideo1.jpg)](http://www.youtube.com/watch?v=5ka4tP0z2RQ)
 
-<br>
 
 [![QRSim capabilities: large number of UAVs](https://github.com/UCL-CompLACS/qrsim/raw/master/doc/YoutubeVideo2.jpg)](http://www.youtube.com/watch?v=SjOaX4Z0iLk)
 
