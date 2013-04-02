@@ -12,13 +12,9 @@ achieve common goals. In addition to realistically simulate the dynamic of the a
 To offer a well structured and challenging set of control and machine learning problems
 the simulator includes the implementation of a number of non trivial task scenarios.
 
-<object width="425" height="350">
-  <param name="movie" value="http://www.youtube.com/v/AyPzM5WK8ys" />
-  <param name="wmode" value="transparent" />
-  <embed src="http://www.youtube.com/v/AyPzM5WK8ys"
-         type="application/x-shockwave-flash"
-         wmode="transparent" width="425" height="350" />
-</object>
+## Videos
+[![ScreenShot1](https://github.com/UCL-CompLACS/qrsim/doc/Youtube_Video1.png)](http://youtu.be/5ka4tP0z2RQ)
+[![ScreenShot2](https://github.com/UCL-CompLACS/qrsim/doc/Youtube_Video1.png)](http://youtu.be/SjOaX4Z0iLk)
 
 ## Documentation
 * Installation and use manual <a href="https://github.com/UCL-CompLACS/qrsim/doc/manual.pdf">[pdf]<a/>
@@ -30,6 +26,8 @@ the simulator includes the implementation of a number of non trivial task scenar
 If you <a href="https://github.com/UCL-CompLACS/qrsim/doc/qrsimcite.bib">[bib]<a/>
 
 ## License
+
+## Support
 
 ### References
 1.<a id="one"></a>  S. Bouabdallah. _Design and control of quadrotors with application to autonomous flying._ PhD thesis, EPFL, 2007
