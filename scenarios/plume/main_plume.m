@@ -21,9 +21,9 @@ addpath(['..',filesep,'..',filesep,'controllers']);
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-%state = qrsim.init('TaskPlumeSingleSourceGaussian');
+state = qrsim.init('TaskPlumeSingleSourceGaussian');
 %state = qrsim.init('TaskPlumeSingleSourceGaussianDispersion');
-state = qrsim.init('TaskPlumeMultiSourceGaussianDispersion');
+%state = qrsim.init('TaskPlumeMultiSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeMultiHeliMultiSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeSingleSourceGaussianPuffDispersion');
 %state = qrsim.init('TaskPlumeMultiSourceGaussianPuffDispersion');
