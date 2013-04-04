@@ -25,9 +25,9 @@ addpath(['..',filesep,'..',filesep,'controllers']);
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-%state = qrsim.init('TaskCatsMouseNoiseless');
+state = qrsim.init('TaskCatsMouseNoiseless');
 %state = qrsim.init('TaskCatsMouseNoisy');
-state = qrsim.init('TaskCatsMouseNoisyAndWindy');
+%state = qrsim.init('TaskCatsMouseNoisyAndWindy');
 
 % reminder:
 % platforms with id 1..state.task.Nc are cats
