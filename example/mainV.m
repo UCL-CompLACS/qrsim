@@ -29,7 +29,7 @@ for i=1:N,
     tloop=tic;
     % one should alway make sure that the uav is valid
     % i.e. no collision or out of area event happened
-    if(state.platforms{i}.isValid())
+    if(state.platforms{1}.isValid())
         % compute controls
         U = pid.computeU(state.platforms{1}.getEX(),vt(1:3,i),0);
         state.task.setTargetVelocity(vt(:,i));
