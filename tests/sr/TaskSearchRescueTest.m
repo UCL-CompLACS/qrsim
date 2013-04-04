@@ -82,8 +82,11 @@ classdef TaskSearchRescueTest<Task
             taskparams.environment.area.personsize = 0.5;
             taskparams.environment.area.graphics.type = 'SearchAreaGraphics';
             taskparams.environment.area.terrain.type = 'PourTerrain';
-            taskparams.environment.area.terrain.p = [0.2,0.05];  % 20% clutter, 5% occlusion
-            
+            taskparams.environment.area.terrain.classpercentages = [0.2,0.05];  % 20% clutter, 5% occlusion => 75% no clutter & no occlusions 
+            taskparams.environment.area.personinclassprob = [0.0,0.0];  % prob 0 of person being in terrain of class clutter
+                                                                        % prob 0 of person being in terrain of class occlusion
+                                                                        % prob 1 of person being in terrain of class no clutter & no occlusions
+
             % GPS
             % The space segment of the gps system
             taskparams.environment.gpsspacesegment.on = 1; %% NO GPS NOISE!!!
