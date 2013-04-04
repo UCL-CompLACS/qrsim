@@ -122,13 +122,13 @@ classdef GaussianPlumeArea<PlumeArea
             
             nout = ceil(0.2*obj.numRefLocations);
             ll = repmat(lph,1,nout)+repmat(lm,1,nout)...
-                    .*(rand(obj.simState.rStreams{obj.iPrngId},3,nout)-0.5);
+                    .*(rand(obj.simState.rStreams{obj.prngId},3,nout)-0.5);
             obj.locations(:,(1:nout)) = ll;
             
             nin = obj.numRefLocations - nout;
             while (nin > 0)
                 % generate n points within the area limits
-                ll = repmat(lph,1,n)+repmat(lm,1,nin)...
+                ll = repmat(lph,1,nin)+repmat(lm,1,nin)...
                     .*(rand(obj.simState.rStreams{obj.prngId},3,nin)-0.5);
                 
                 % compute concentration at such points
