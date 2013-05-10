@@ -71,6 +71,8 @@ target_link_libraries(exampleclient
 )
 
 if(JAVA_FOUND)
+
+    set(CMAKE_JAVA_COMPILE_FLAGS -source 1.6)
 	find_jar(PROTO_JAVA 
 		 NAMES
 		 protobuf
