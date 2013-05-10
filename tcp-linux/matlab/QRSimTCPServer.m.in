@@ -30,20 +30,26 @@ while (~exit)
     try        
         
         % wait forever for client to connect server socket
-        waiting = 1;
+        waiting = 30;
         while(waiting)
-            fprintf(['Waiting for client to connect to this ' ...
+            fprintf(['Waiting ',num2str(waiting),' seconds for client to connect to this ' ...
             'host on port : %d\n'], port);
             try
                 s.waitForClient();
                 waiting = 0;
+                fprintf('Client connected\n');        
+                disconnect = 0;
             catch e
+                waiting = waiting - 1;
+                if (waiting == 0)
+                    s.close();
+                    exit = 1;
+                    disconnect = 1;
+                    fprintf('Waiting time elapsed, server will now quit.\n');    
+                end
             end
         end
         
-        fprintf('Client connected\n');
-        
-        disconnect = 0;
         
         % the TCP messages are simply msg_length followed by the message
         % all encoded using protocol buffers
