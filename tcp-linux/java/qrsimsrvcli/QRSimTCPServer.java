@@ -32,7 +32,7 @@ public void close() throws Exception
 public void waitForClient() throws Exception
   {
     // waiting for connection from client    
-    connSocket.setSoTimeout(10000);
+    connSocket.setSoTimeout(1000);
 
     // accepting client connection
     Socket dataSocket = connSocket.accept();
