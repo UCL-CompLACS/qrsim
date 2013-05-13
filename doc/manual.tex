@@ -470,7 +470,7 @@ $ make
 \end{verbatim}
 all should compile cleanly.
 
-CMake is smart enough to figure out if you do not have Java installed in your machine in which case only the C++ client library will be compiled.
+CMake is smart enough to figure out if you do not have Java\footnote{While our code compiles even with the latest version of Java, we have seen Matlab (version <= 7.14) having trouble loading class files compiled with Java 1.7. Therefore we strongly suggest to use a 1.6 JVM on your system. The issue might not present itself on newer version of Matlab.} installed in your machine in which case only the C++ client library will be compiled.
 Note that this is a legitimate scenario since you might be interested in connecting to a remote server which takes care of running QRSim. 
 
 \subsubsection{Installation}\label{inst}
