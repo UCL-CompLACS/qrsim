@@ -19,7 +19,7 @@ FIND_PACKAGE(Threads)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 FIND_PACKAGE(ProtocolBuffers)
-FIND_PACKAGE(Java)
+FIND_PACKAGE(Java 1.6)
 INCLUDE(UseJava)
 
 # output directory for binaries and libraries
@@ -71,6 +71,10 @@ target_link_libraries(exampleclient
 )
 
 if(JAVA_FOUND)
+
+    if(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER 1.6)
+	message(WARNING "Classes compiled with Java "${Java_VERSION}" might not work with old versions of Matlab, consider installing Java 1.6")
+    endif(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER 1.6) 
 
     set(CMAKE_JAVA_COMPILE_FLAGS -source 1.6)
 	find_jar(PROTO_JAVA 
