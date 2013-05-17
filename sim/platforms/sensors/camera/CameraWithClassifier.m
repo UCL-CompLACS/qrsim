@@ -53,7 +53,7 @@ classdef CameraWithClassifier < Sensor
             assert(isfield(objparams,'c'),'camerawithclassifier:noc','the platform config must define the camera.c parameters');
             obj.c = objparams.c;
             assert(isfield(objparams,'r'),'camerawithclassifier:nor','the platform config must define the camera.r parameters');
-            obj.R =  angle2dcm(objparams.r(3),objparams.r(2),objparams.r(1),'ZYX');
+            obj.R =  angleToDcm(objparams.r(3),objparams.r(2),objparams.r(1),'ZYX');
             
             if(isempty(obj.simState.camerascnt_))
                 obj.simState.camerascnt_ = 0;
