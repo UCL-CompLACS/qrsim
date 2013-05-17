@@ -21,7 +21,6 @@ FIND_LIBRARY(CMATH_LIBRARYDIR NAMES m)
 FIND_PACKAGE(Threads)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-FIND_PACKAGE(ProtocolBuffers)
 
 # look for java only if we are also building the server part of the library
 if(NOT CLIENT_ONLY)
@@ -41,6 +40,53 @@ if(NOT CLIENT_ONLY)
 else(NOT CLIENT_ONLY)
   MESSAGE(STATUS "Only the C++ client side code will be compiled") 
 endif(NOT CLIENT_ONLY)
+
+if (NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-2.3.0.tar.gz")
+    file(DOWNLOAD "http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz" "${CMAKE_BINARY_DIR}/download/protobuf-2.3.0.tar.gz")
+endif()
+
+if (NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-2.3.0")
+execute_process(
+COMMAND tar xzf ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0.tar.gz
+WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
+)
+endif()
+
+execute_process(
+COMMAND ./configure
+WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0
+)
+
+execute_process(
+COMMAND make
+WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0
+)
+
+if(JAVA_FOUND AND NOT CLIENT_ONLY)
+execute_process(
+COMMAND mvn package
+WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0/java
+)
+endif()
+
+set(ENV{PROTOBUF_PATH} ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0)
+FIND_PACKAGE(ProtocolBuffers)
+
+#    include(ExternalProject)
+
+#    ExternalProject_Add(
+#        protobuf-2.3.0
+#        URL http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz
+#	DOWNLOAD_NAME protobuf-2.3.0.tar.gz
+#	DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/protobuf/download        
+#	SOURCE_DIR ${CMAKE_BINARY_DIR}/protobuf/src 
+#        BINARY_DIR ${CMAKE_BINARY_DIR}/protobuf/build
+#	UPDATE_COMMAND ./configure
+#	PATCH_COMMAND make
+#	BUILD_COMMAND mvn package
+#	INSTALL_COMMAND ""
+#    )
+
 
 # output directory for binaries and libraries
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
@@ -91,21 +137,6 @@ target_link_libraries(exampleclient
 )
 
 if(JAVA_FOUND AND NOT CLIENT_ONLY)
-
-    include(ExternalProject)
-
-    ExternalProject_Add(
-        protobuf-2.3.0
-        URL http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz
-	DOWNLOAD_NAME protobuf-2.3.0.tar.gz
-	DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/protobuf/download        
-	SOURCE_DIR ${CMAKE_BINARY_DIR}/protobuf/src 
-        BINARY_DIR ${CMAKE_BINARY_DIR}/protobuf/build
-	UPDATE_COMMAND ./configure
-	PATCH_COMMAND make
-	BUILD_COMMAND mvn package
-	INSTALL_COMMAND ""
-    )
 
     if(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER 1.6)
 	message(WARNING "Classes compiled with Java "${Java_VERSION}" might not work with old versions of Matlab, consider installing Java 1.6")
