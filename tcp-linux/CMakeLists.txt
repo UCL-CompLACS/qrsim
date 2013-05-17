@@ -4,12 +4,15 @@ PROJECT(QRSIMTCP)
 # minimum cmake version required
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
+set(CLIENT_ONLY OFF CACHE BOOL "Set to ON to build only the C++ client library")
+set(MATLABROOT "" CACHE PATH "Matlab installation directory i.e. output of command matlabroot")
+
 # keeps Eclipse happy about include files
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 # the current version
 set(PACKAGE_NAME 	"qrsimtcp")
-set(PACKAGE_VERSION 	"0.0.1")
+set(PACKAGE_VERSION 	"0.1.1")
 set(PACKAGE_BUGREPORT 	"r.denardi@cs.ucl.ac.uk")
 
 # check for math library
@@ -19,8 +22,25 @@ FIND_PACKAGE(Threads)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 FIND_PACKAGE(ProtocolBuffers)
-FIND_PACKAGE(Java 1.6)
-INCLUDE(UseJava)
+
+# look for java only if we are also building the server part of the library
+if(NOT CLIENT_ONLY)
+  FIND_PACKAGE(Java 1.6)
+  INCLUDE(UseJava)
+  find_program(MAVEN_EXECUTABLE NAMES mvn)
+  
+  if(${MAVEN_EXECUTABLE} STREQUAL "")
+	MESSAGE(FATAL_ERROR  "cmake is not able to find maven in your system, in Ubuntu you can install it with sudo apt-get install maven2") 
+  endif(${MAVEN_EXECUTABLE} STREQUAL "")
+
+  if(JAVA_FOUND)
+    MESSAGE(STATUS "Both the C++ client code and the java server code will be compiled") 
+  else(JAVA_FOUND)
+    MESSAGE(FATAL_ERROR  "cmake is not able to find Java in your system, compilation aborted. If you want to only compile the client C++ rerun cmake with the option -DCLIENT_ONLY=ON") 
+  endif(JAVA_FOUND)
+else(NOT CLIENT_ONLY)
+  MESSAGE(STATUS "Only the C++ client side code will be compiled") 
+endif(NOT CLIENT_ONLY)
 
 # output directory for binaries and libraries
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
@@ -70,17 +90,31 @@ target_link_libraries(exampleclient
 	${PROTOBUF_LIBRARY} 
 )
 
-if(JAVA_FOUND)
+if(JAVA_FOUND AND NOT CLIENT_ONLY)
+
+    include(ExternalProject)
+
+    ExternalProject_Add(
+        protobuf-2.3.0
+        URL http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz
+	DOWNLOAD_NAME protobuf-2.3.0.tar.gz
+	DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/protobuf/download        
+	SOURCE_DIR ${CMAKE_BINARY_DIR}/protobuf/src 
+        BINARY_DIR ${CMAKE_BINARY_DIR}/protobuf/build
+	UPDATE_COMMAND ./configure
+	PATCH_COMMAND make
+	BUILD_COMMAND mvn package
+	INSTALL_COMMAND ""
+    )
 
     if(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER 1.6)
 	message(WARNING "Classes compiled with Java "${Java_VERSION}" might not work with old versions of Matlab, consider installing Java 1.6")
     endif(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER 1.6) 
 
     set(CMAKE_JAVA_COMPILE_FLAGS -source 1.6)
-	find_jar(PROTO_JAVA 
-		 NAMES
-		 protobuf
-         protobuf-java
+	find_jar(PROTO_JAVA NAMES protobuf-java
+		PATHS
+		ENV PROTOBUF_PATH PATH_SUFFIXES java/target
 	)
 
     message(STATUS ${PROTO_JAVA})
@@ -109,9 +143,9 @@ if(JAVA_FOUND)
     else(NOT "${PROTO_JAVA}" STREQUAL "PROTO_JAVA-NOTFOUND")
         MESSAGE(WARNING "cmake is not able to find the Java protcol buffers library in your system make sure it is installed, for now only the C++ client side code will be compiled") 
     endif(NOT "${PROTO_JAVA}" STREQUAL "PROTO_JAVA-NOTFOUND")
-else(JAVA_FOUND)
+else(JAVA_FOUND AND NOT CLIENT_ONLY)
         MESSAGE(WARNING "cmake is not able to find Java in your system, only the C++ client side code will be compiled") 
-endif(JAVA_FOUND)
+endif(JAVA_FOUND AND NOT CLIENT_ONLY)
 
 # make an uninstall target 
 CONFIGURE_FILE(
