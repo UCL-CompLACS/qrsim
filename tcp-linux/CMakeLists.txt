@@ -4,97 +4,208 @@ PROJECT(QRSIMTCP)
 # minimum cmake version required
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-set(CLIENT_ONLY OFF CACHE BOOL "Set to ON to build only the C++ client library")
+set(CLIENT_ONLY OFF CACHE BOOL "set to ON to build only the C++ client library")
 set(MATLABROOT "" CACHE PATH "Matlab installation directory i.e. output of command matlabroot")
 
 # keeps Eclipse happy about include files
-SET(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # the current version
 set(PACKAGE_NAME 	"qrsimtcp")
 set(PACKAGE_VERSION 	"0.1.1")
 set(PACKAGE_BUGREPORT 	"r.denardi@cs.ucl.ac.uk")
 
-# check for math library
-FIND_PATH(CMATH_INCLUDEDIR math.h)
-FIND_LIBRARY(CMATH_LIBRARYDIR NAMES m) 
-FIND_PACKAGE(Threads)
+# output directory for binaries and libraries
+set(BIN ${CMAKE_SOURCE_DIR}/bin)
+set(LIB ${CMAKE_SOURCE_DIR}/lib)
 
+# set the output directories
+set(LIBRARY_OUTPUT_PATH ${LIB} CACHE PATH "Output directory for the libraries")
+set(EXECUTABLE_OUTPUT_PATH ${BIN} CACHE PATH "Output directory for the executables")
+
+# specify the protobuf version and MD5
+set(PBV "2.3.0")
+set(PBMD5 "65dba2c04923595b6f0a6a44d8106f0a")
+
+# get matlab version strings
+if(NOT (MATLABROOT STREQUAL "")) 
+  message(STATUS
+    "Getting matlab version, this will take 30 seconds or so..." 
+  )
+  execute_process(
+    COMMAND ./matlab -nodesktop -nojvm -r ver,quit
+    WORKING_DIRECTORY ${MATLABROOT}/bin
+    OUTPUT_VARIABLE MATLABVERSTR
+  )
+  string(REGEX REPLACE ".*MATLAB Version: ([0-9]+)\\.[0-9]+\\.[0-9]+\\.[0-9]+.*" "\\1" MATLABVERMAJOR "${MATLABVERSTR}")
+  string(REGEX REPLACE ".*MATLAB Version: [0-9]+\\.([0-9]+)\\.[0-9]+\\.[0-9]+.*" "\\1" MATLABVERMINOR "${MATLABVERSTR}")
+
+  message(STATUS "Matlab version = ${MATLABVERMAJOR}.${MATLABVERMINOR}")
+
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL i386)
+    set(MATLABARCH glnx86)
+  elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64)
+      set(MATLABARCH glnxa64)
+  else()
+      message(FATAL_ERROR  "You do not appeart to be on a Linux machine, this TCP interface is linux only")
+  endif()
+
+
+  # somehow java spits out the version on the error stream, go figure
+  execute_process(
+    COMMAND ./java -version
+    WORKING_DIRECTORY ${MATLABROOT}/sys/java/jre/${MATLABARCH}/jre/bin
+    ERROR_VARIABLE MATLABJREVERSTR
+  )
+
+  string( REGEX REPLACE ".* version \"([0-9]+)\\.[0-9]+.*" "\\1" MATLABJREVERMAJOR "${MATLABJREVERSTR}")
+  string( REGEX REPLACE ".* version \"[0-9]+\\.([0-9]+).*" "\\1" MATLABJREVERMINOR "${MATLABJREVERSTR}")
+
+  message(STATUS  "Matlab JRE version = ${MATLABJREVERMAJOR}.${MATLABJREVERMINOR}")
+
+else()
+  message(FATAL_ERROR  
+    "MATLABROOT variable not specified"
+  )
+endif()
+
+
+
+# find needed libraries
+find_path(CMATH_INCLUDEDIR math.h)
+find_library(CMATH_LIBRARYDIR NAMES m) 
+find_package(Threads)
+
+
+# make available to cmake the needed project specific modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# look for java only if we are also building the server part of the library
+# look for java only if we building the server part of the library
 if(NOT CLIENT_ONLY)
-  FIND_PACKAGE(Java 1.6)
-  INCLUDE(UseJava)
+  find_package(Java 1.6)
+  include(UseJava)
   find_program(MAVEN_EXECUTABLE NAMES mvn)
   
   if(${MAVEN_EXECUTABLE} STREQUAL "")
-	MESSAGE(FATAL_ERROR  "cmake is not able to find maven in your system, in Ubuntu you can install it with sudo apt-get install maven2") 
-  endif(${MAVEN_EXECUTABLE} STREQUAL "")
+    message(FATAL_ERROR  
+      "cmake is not able to find maven in your system, in Ubuntu you can install it with sudo apt-get install maven2"
+    ) 
+  endif()
 
   if(JAVA_FOUND)
-    MESSAGE(STATUS "Both the C++ client code and the java server code will be compiled") 
-  else(JAVA_FOUND)
-    MESSAGE(FATAL_ERROR  "cmake is not able to find Java in your system, compilation aborted. If you want to only compile the client C++ rerun cmake with the option -DCLIENT_ONLY=ON") 
-  endif(JAVA_FOUND)
-else(NOT CLIENT_ONLY)
-  MESSAGE(STATUS "Only the C++ client side code will be compiled") 
-endif(NOT CLIENT_ONLY)
-
-if (NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-2.3.0.tar.gz")
-    file(DOWNLOAD "http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz" "${CMAKE_BINARY_DIR}/download/protobuf-2.3.0.tar.gz")
+    message(STATUS 
+      "Both the C++ client code and the java server code will be compiled"
+    ) 
+  else()
+    message(FATAL_ERROR  
+      "cmake is not able to find Java, aborting. If you meant to only compile the C++ client code run cmake .. -DCLIENT_ONLY=ON"
+    ) 
+  endif()
+else()
+  message(STATUS "Only the C++ client side code will be compiled") 
 endif()
 
-if (NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-2.3.0")
-execute_process(
-COMMAND tar xzf ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0.tar.gz
-WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
-)
+
+# clean wrong versions of the protocol buffer source code
+if (EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz") 
+  execute_process(
+    COMMAND md5sum ./protobuf-${PBV}.tar.gz
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
+    OUTPUT_VARIABLE PBMD5TESTOUT
+  )
+  if(NOT (PBMD5TESTOUT STREQUAL PBMD5))
+    execute_process(
+      COMMAND rm -rf protobuf-*
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
+    )
+  endif()	
 endif()
 
-execute_process(
-COMMAND ./configure
-WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0
-)
+# download protocol buffer archive
+if ((NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz"))
+  file(DOWNLOAD 
+    "http://protobuf.googlecode.com/files/protobuf-${PBV}.tar.gz" 
+    "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz"
+    INACTIVITY_TIMEOUT 30
+    STATUS "Downloading protobuf-${PBV}.tar.gz"
+    EXPECTED_MD5 ${PBMD5}
+    SHOW_PROGRESS
+  )
+endif()
 
-execute_process(
-COMMAND make
-WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0
-)
+# if needed unpack protocol buffer archive
+if (NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}")
+  execute_process(
+    COMMAND tar xzf ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
+    RESULT_VARIABLE TARRV
+  )
+  if ( 0 GREATER TARRV )
+    message(FATAL_ERROR  
+      "protocol buffer unpacking failed!"
+    )
+  endif()
+endif()
 
+# configure
+execute_process(
+  COMMAND ./configure
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}
+  RESULT_VARIABLE CONFIGURERV
+)
+if ( 0 GREATER CONFIGURERV )
+  message(FATAL_ERROR  
+    "protocol buffer configure failed!"
+  )
+endif()
+
+# compile C, C++ library
+execute_process(
+  COMMAND make
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}
+  RESULT_VARIABLE MAKERV
+)
+if ( 0 GREATER MAKERV )
+  message(FATAL_ERROR  
+    "protocol buffer C compilation failed!"
+  )
+endif()
+
+# compile java library
 if(JAVA_FOUND AND NOT CLIENT_ONLY)
-execute_process(
-COMMAND mvn package
-WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0/java
-)
+
+  if(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER ${MATLABJREVERMAJOR}.${MATLABJREVERMINOR})
+    message(FATAL_ERROR "Matlab does not yet support Java "${Java_VERSION}", consider installing Java ${MATLABJREVERMAJOR}.${MATLABJREVERMINOR}")
+  endif() 
+
+  execute_process(
+    COMMAND mvn package
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java
+    RESULT_VARIABLE MVNRV
+  )
+  if ( 0 GREATER MVNRV )
+    message(FATAL_ERROR  
+      "protocol buffer java compilation failed!"
+    )
+  endif()
+
+  if (EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java/target/protobuf-java.jar")
+    execute_process(
+      COMMAND rm "protobuf-java.jar"
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java/target
+  )
+  endif()
+
+  execute_process(
+    COMMAND ln -s ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java/target/protobuf-java-${PBV}.jar ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java/target/protobuf-java.jar
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java/target/
+  )
 endif()
 
-set(ENV{PROTOBUF_PATH} ${CMAKE_BINARY_DIR}/download/protobuf-2.3.0)
+# give cmake a good hint about the path
+set(ENV{PROTOBUF_PATH} ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/)
+# get cmake to find the protocolbuffer library 
 FIND_PACKAGE(ProtocolBuffers)
-
-#    include(ExternalProject)
-
-#    ExternalProject_Add(
-#        protobuf-2.3.0
-#        URL http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz
-#	DOWNLOAD_NAME protobuf-2.3.0.tar.gz
-#	DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/protobuf/download        
-#	SOURCE_DIR ${CMAKE_BINARY_DIR}/protobuf/src 
-#        BINARY_DIR ${CMAKE_BINARY_DIR}/protobuf/build
-#	UPDATE_COMMAND ./configure
-#	PATCH_COMMAND make
-#	BUILD_COMMAND mvn package
-#	INSTALL_COMMAND ""
-#    )
-
-
-# output directory for binaries and libraries
-SET(BIN ${CMAKE_SOURCE_DIR}/bin)
-SET(LIB ${CMAKE_SOURCE_DIR}/lib)
-
-# set the output directories
-SET(LIBRARY_OUTPUT_PATH ${LIB} CACHE PATH "Output directory for the libraries")
-SET(EXECUTABLE_OUTPUT_PATH ${BIN} CACHE PATH "Output directory for the executables")
 
 # define header and library search paths
 include_directories (
@@ -102,6 +213,8 @@ include_directories (
         ${CMAKE_SOURCE_DIR}/proto_gen
 	${PROTOBUF_INCLUDE_DIR} 
 )
+
+
 
 # call protocol buffer pre-compiler
 FILE(GLOB PROTO_FILES proto/*.proto)
@@ -138,73 +251,76 @@ target_link_libraries(exampleclient
 
 if(JAVA_FOUND AND NOT CLIENT_ONLY)
 
-    if(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER 1.6)
-	message(WARNING "Classes compiled with Java "${Java_VERSION}" might not work with old versions of Matlab, consider installing Java 1.6")
-    endif(${Java_VERSION_MAJOR}.${Java_VERSION_MINOR} GREATER 1.6) 
+  find_jar(PROTO_JAVA NAMES protobuf-java
+    PATHS
+    $ENV{PROTOBUF_PATH}/java/target
+  )
 
-    set(CMAKE_JAVA_COMPILE_FLAGS -source 1.6)
-	find_jar(PROTO_JAVA NAMES protobuf-java
-		PATHS
-		ENV PROTOBUF_PATH PATH_SUFFIXES java/target
-	)
+  message(STATUS ${PROTO_JAVA})
+  if(NOT "${PROTO_JAVA}" STREQUAL "PROTO_JAVA-NOTFOUND")
+    set(CMAKE_JAVA_INCLUDE_PATH            
+      ${PROTO_JAVA}
+    )
 
-    message(STATUS ${PROTO_JAVA})
-    if(NOT "${PROTO_JAVA}" STREQUAL "PROTO_JAVA-NOTFOUND")
-        set(CMAKE_JAVA_INCLUDE_PATH            
-    		${PROTO_JAVA}
-        )
-
-        GET_FILENAME_COMPONENT(PROTO_JAVA_DIR ${PROTO_JAVA} PATH)
-        MESSAGE(STATUS "jar files will be installed in "${PROTO_JAVA_DIR})
+    get_filename_component(PROTO_JAVA_DIR ${PROTO_JAVA} PATH)
+    message(STATUS "jar files will be installed in "${PROTO_JAVA_DIR})
     
-        add_jar(qrsimtcpserver 
-            java/qrsimsrvcli/QrsSrvCliMsg.java
-            java/qrsimsrvcli/QRSimTCPServer.java
-        )  
+    add_jar(qrsimtcpserver 
+    	java/qrsimsrvcli/QrsSrvCliMsg.java
+        java/qrsimsrvcli/QRSimTCPServer.java
+    )  
 	
-        install_jar(qrsimtcpserver ${PROTO_JAVA_DIR}) 
+    install_jar(qrsimtcpserver ${PROTO_JAVA_DIR}) 
 
-        # add the right paths to the Matlab server code 
-        set(THE_FOLLOWING_IS_TURNED_INTO_ACTUAL_MATLAB_CODE_BY_CMAKE "% Do not edit! Part of this code is automatically generated by cmake, edit QRSimTCPServer.m.in and rerun cmake") 
-        CONFIGURE_FILE(
-            "${CMAKE_SOURCE_DIR}/matlab/QRSimTCPServer.m.in"
-            "${CMAKE_SOURCE_DIR}/matlab/QRSimTCPServer.m"
-            IMMEDIATE @ONLY
-        )
-    else(NOT "${PROTO_JAVA}" STREQUAL "PROTO_JAVA-NOTFOUND")
-        MESSAGE(WARNING "cmake is not able to find the Java protcol buffers library in your system make sure it is installed, for now only the C++ client side code will be compiled") 
-    endif(NOT "${PROTO_JAVA}" STREQUAL "PROTO_JAVA-NOTFOUND")
-else(JAVA_FOUND AND NOT CLIENT_ONLY)
-        MESSAGE(WARNING "cmake is not able to find Java in your system, only the C++ client side code will be compiled") 
-endif(JAVA_FOUND AND NOT CLIENT_ONLY)
+    # add the right paths to the Matlab server code 
+    set(THE_FOLLOWING_IS_TURNED_INTO_ACTUAL_MATLAB_CODE_BY_CMAKE "% Do not edit! Part of this code is automatically generated by cmake, edit QRSimTCPServer.m.in and rerun cmake") 
+
+    if(${MATLABVERMAJOR}.${MATLABVERMINOR} GREATER 8.0)
+      set(PROTO_JAVA_DYNAMIC_LOAD_STATEMENT "")
+    else()
+      set(PROTO_JAVA_DYNAMIC_LOAD_STATEMENT "javaaddpath('${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java/target/protobuf-java.jar');")
+    endif()
+
+    configure_file(
+      "${CMAKE_SOURCE_DIR}/matlab/QRSimTCPServer.m.in"
+      "${CMAKE_SOURCE_DIR}/matlab/QRSimTCPServer.m"
+      IMMEDIATE @ONLY
+    )
+  else()
+    message(WARNING "cmake is not able to find the Java protcol buffers library in your system make sure it is installed, for now only the C++ client side code will be compiled") 
+  endif()
+else()
+  message(WARNING "cmake is not able to find Java in your system, only the C++ client side code will be compiled") 
+endif()
 
 # make an uninstall target 
-CONFIGURE_FILE(
- 	"${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake.in"
-  	"${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake"
-  	IMMEDIATE @ONLY
+configure_file(
+  "${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake.in"
+  "${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake"
+  IMMEDIATE @ONLY
 )
 
-ADD_CUSTOM_TARGET(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake")
+add_custom_target(uninstall
+  "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake"
+)
 
 
-STRING(TOLOWER ${PROJECT_NAME}CLIENT LIBRARY_NAME)
+string(TOLOWER ${PROJECT_NAME}CLIENT LIBRARY_NAME)
   
 #######################################################
 ## Define headers files associated with the install target 
-SET(INSTALL_HEADERS 
+set(INSTALL_HEADERS 
 	src/QRSimTCPClient.h 
 	proto_gen/qrs_srv_cli_msg.pb.h
 )
 
 # install headers
-INSTALL(FILES ${INSTALL_HEADERS} 
+install(FILES ${INSTALL_HEADERS} 
   DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${LIBRARY_NAME}
 )
 
 # install library
-INSTALL(TARGETS ${LIBRARY_NAME}
+install(TARGETS ${LIBRARY_NAME}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
   LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
   ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib

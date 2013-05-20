@@ -12,7 +12,7 @@ addpath('../../controllers');
 
 % tell matlab where the class file are..
 javaaddpath('@PROTO_JAVA_DIR@/qrsimtcpserver.jar');
-javaaddpath('@PROTO_JAVA@');
+@PROTO_JAVA_DYNAMIC_LOAD_STATEMENT@
 
 s = qrsimsrvcli.QRSimTCPServer(port);
 
