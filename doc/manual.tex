@@ -470,11 +470,11 @@ To configure the compilation the server and client code cd into \texttt{qrsim/tc
 $ cmake .. -DMATLABROOT=/path_to_your_matlab_root_dir
 \end{verbatim}
 where the variable \texttt{MATLABROOT} allows to specify the path to the matlab installation present in your system\footnote{The Matlab root dir can be easily obtained from the Matlab console using the command \texttt{matlabroot}.}.
-To only compile the client side of the TCP interface cmake can be also accepts the \texttt{-DCLIENT_ONLY=ON} switch which allows in order to only build the C++ client library.
+To only compile the client side of the TCP interface, cmake can be configured with the switch \texttt{-DCLIENT\_ONLY=ON}; this can be useful if the current machine connects to a remote server which takes care of running QRSim.
 
 The client-server interface uses Google protocol buffers\footnote{https://developers.google.com/protocol-buffers/} for data serialization, to ensure compatibility cmake will download an build locally the correct version of protocol buffers; this process will take a few minutes.
 
-Finally once the cmake process is completed without errors you can compile the interface code running: 
+Finally, once the cmake process is completed without errors, you can compile the interface code running: 
 \begin{verbatim}
 $ make
 \end{verbatim}
