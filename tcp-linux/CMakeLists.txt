@@ -28,8 +28,11 @@ set(PBV "2.3.0")
 set(PBMD5 "65dba2c04923595b6f0a6a44d8106f0a")
 
 # get matlab jre version strings, and check if it has pb
-if(NOT (MATLABROOT STREQUAL "")) 
-
+if(${MATLABROOT} STREQUAL "") 
+  message(FATAL_ERROR  
+    "MATLABROOT variable not specified"
+  )
+else()
   if(CMAKE_SYSTEM_PROCESSOR STREQUAL i386)
     set(MATLABARCH glnx86)
   elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64)
@@ -55,11 +58,6 @@ if(NOT (MATLABROOT STREQUAL ""))
   else()
     set(MATLABHASPB, OFF)
   endif()
-
-else()
-  message(FATAL_ERROR  
-    "MATLABROOT variable not specified"
-  )
 endif()
 
 
@@ -103,11 +101,17 @@ if (EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz")
   execute_process(
     COMMAND md5sum ./protobuf-${PBV}.tar.gz
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
-    OUTPUT_VARIABLE PBMD5TESTOUT
+    OUTPUT_VARIABLE PBMD5TESTOUTSTR
   )
-  if(NOT (PBMD5TESTOUT STREQUAL PBMD5))
+  string( REGEX REPLACE "([0-9a-f])  .*" "\\1" PBMD5TESTOUT "${PBMD5TESTOUTSTR}")
+
+  if(NOT (${PBMD5TESTOUT} STREQUAL ${PBMD5}))  
     execute_process(
-      COMMAND rm -rf protobuf-*
+      COMMAND cmake -E remove -f protobuf-${PBV}.tar.gz
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
+    )
+    execute_process(
+      COMMAND cmake -E remove_directory protobuf-${PBV}
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
     )
   endif()	
@@ -120,9 +124,20 @@ if ((NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz"))
     "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz"
     INACTIVITY_TIMEOUT 30
     STATUS "Downloading protobuf-${PBV}.tar.gz"
-    EXPECTED_MD5 ${PBMD5}
     SHOW_PROGRESS
   )
+  execute_process(
+    COMMAND md5sum ./protobuf-${PBV}.tar.gz
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
+    OUTPUT_VARIABLE PBMD5DTESTOUTSTR
+  )
+  string( REGEX REPLACE "([0-9a-f])  .*" "\\1" PBMD5DTESTOUT "${PBMD5DTESTOUTSTR}")
+
+  if(NOT (${PBMD5DTESTOUT} STREQUAL ${PBMD5}))  
+    message( FATAL_ERROR 
+      "The downloaded archive for protobuf-${PBV}.tar.gz has an unespected md5sum, rerun cmake to redownload it" 
+    )
+  endif()  
 endif()
 
 # if needed unpack protocol buffer archive
@@ -130,62 +145,32 @@ if (NOT EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}")
   execute_process(
     COMMAND tar xzf ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}.tar.gz
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/
-    RESULT_VARIABLE TARRV
   )
-  if ( 0 GREATER TARRV )
-    message(FATAL_ERROR  
-      "protocol buffer unpacking failed!"
-    )
-  endif()
 endif()
 
 # configure
 execute_process(
   COMMAND ./configure --prefix=${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}
-  RESULT_VARIABLE CONFIGURERV
 )
-if ( 0 GREATER CONFIGURERV )
-  message(FATAL_ERROR  
-    "protocol buffer configure failed!"
-  )
-endif()
 
 # clean
 execute_process(
   COMMAND make clean
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}
-  RESULT_VARIABLE MAKECRV
 )
-if ( 0 GREATER MAKECRV )
-  message(FATAL_ERROR  
-    "protocol buffer C clean failed!"
-  )
-endif()
 
 # compile C, C++ library
 execute_process(
   COMMAND make
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}
-  RESULT_VARIABLE MAKERV
 )
-if ( 0 GREATER MAKERV )
-  message(FATAL_ERROR  
-    "protocol buffer C compilation failed!"
-  )
-endif()
 
 # install C, C++ library locally
 execute_process(
   COMMAND make install
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}
-  RESULT_VARIABLE MAKEIRV
 )
-if ( 0 GREATER MAKEIRV )
-  message(FATAL_ERROR  
-    "protocol buffer C installation failed!"
-  )
-endif()
 
 # compile java library
 if(JAVA_FOUND AND NOT CLIENT_ONLY)
@@ -193,14 +178,8 @@ if(JAVA_FOUND AND NOT CLIENT_ONLY)
   execute_process(
     COMMAND mvn package
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java
-    RESULT_VARIABLE MVNRV
   )
-  if ( 0 GREATER MVNRV )
-    message(FATAL_ERROR  
-      "protocol buffer java compilation failed!"
-    )
-  endif()
-
+  
   if (EXISTS "${CMAKE_BINARY_DIR}/download/protobuf-${PBV}/java/target/protobuf-java.jar")
     execute_process(
       COMMAND rm "protobuf-java.jar"
