@@ -36,6 +36,7 @@ public void waitForClient() throws Exception
 
     // accepting client connection
     Socket dataSocket = connSocket.accept();
+    dataSocket.setSoTimeout(1000);
 
     // setting up input and output streams
     is = CodedInputStream.newInstance(dataSocket.getInputStream());
@@ -47,9 +48,13 @@ public Message nextCommand() throws Exception
     // read sizeLength bytes from input
     Size.Builder sb = Size.newBuilder();
     int oldLimit = is.pushLimit(sizeLength);
+    int prevLimit = is.getBytesUntilLimit();
     do
     {
       sb.mergeFrom(is);
+      if(prevLimit == is.getBytesUntilLimit()){
+        return null;
+      }
     }while (is.getBytesUntilLimit() > 0);
     is.checkLastTagWas(0);
     is.popLimit(oldLimit); 
@@ -61,9 +66,13 @@ public Message nextCommand() throws Exception
     // read size.getValue() bytes from input
     Message.Builder mb = Message.newBuilder();
     oldLimit = is.pushLimit(size.getValue());
+    prevLimit = is.getBytesUntilLimit();
     do
     {
       mb.mergeFrom(is);
+      if(prevLimit == is.getBytesUntilLimit()){
+        return null;
+      }
     }while (is.getBytesUntilLimit() > 0);
     is.checkLastTagWas(0);
     is.popLimit(oldLimit); 
