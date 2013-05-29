@@ -18,6 +18,7 @@ set(PACKAGE_BUGREPORT 	"r.denardi@cs.ucl.ac.uk")
 # output directory for binaries and libraries
 set(BIN ${CMAKE_SOURCE_DIR}/bin)
 set(LIB ${CMAKE_SOURCE_DIR}/lib)
+set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 
 # set the output directories
 set(LIBRARY_OUTPUT_PATH ${LIB} CACHE PATH "Output directory for the libraries")
@@ -229,17 +230,6 @@ add_executable(testclient
 )
 
 target_link_libraries(testclient
-	qrsimtcpclient
-	${CMAKE_THREAD_LIBS_INIT}
-	${PROTOBUF_LIBRARY} 
-)
-
-# example client binary
-add_executable(exampleclient
-	src/exampleclient.cpp
-)
-
-target_link_libraries(exampleclient
 	qrsimtcpclient
 	${CMAKE_THREAD_LIBS_INIT}
 	${PROTOBUF_LIBRARY} 
