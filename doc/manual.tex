@@ -195,7 +195,7 @@ At the aim of improving performance, some of the most computationally expensive 
 
 The software was tested succesfully on the following setups :
 \begin{itemize}
- \item Ubuntu 11.10 with Matlab R2010b and gcc version 4.6.1\footnote{With gcc 4.6.1 mex compilation warns the user that gcc 4.6.1 is not a supported compiler, in our experience this warning can be safely ignored.}.
+ \item Ubuntu 13.04 with Matlab R2012a, R2012b, R2013a, and gcc version 4.6.1\footnote{With gcc 4.6.1 mex compilation warns the user that gcc 4.6.1 is not a supported compiler, in our experience this warning can be safely ignored.}.
  \item Windows XP SP3 with Matlab 2010a.
  \item Windows Server 2008 R2 with Matlab 2011a and Visual Studio 2008.
  \item OSX 10.5 with Matlab 2010a and Xcode gcc version 4.2\footnote{We removed the option \texttt{-isysroot} from the \texttt{CFLAGS} and \texttt{CXXFLAGS} in the file \texttt{mexopts.sh}. For newer versions of Xcode see \url{http://www.mathworks.co.uk/support/solutions/en/data/1-FR6LXJ/}}.
@@ -451,30 +451,36 @@ In general a user of the client library does not need to modify the server code,
 
 \subsection{Compilation and Installation}
 
-The current version of the TCP interface only supports Linux\footnote{Currently we only tested the code on Ubuntu 10.04LTS and Ubuntu 12.04LTS, but (assuming that all the dependencies are satisfied) the code should compile in any other recent Linux distribution.}, in the following we assume to be working on one of such systems.
+The current version of the TCP interface only supports Linux\footnote{Currently we only tested the code on Ubuntu 13.04, but (assuming that all the dependencies are satisfied) the code should compile in any other recent Linux distribution.}, in the following we assume to be working on one of such systems.
 
 \subsubsection{Dependencies} 
-The C++ client uses Google protocol buffers\footnote{https://developers.google.com/protocol-buffers/} for data serialization and the build process uses CMake\footnote{http://www.cmake.org/}, so both of these tools needs to be available in your Linux machine.
+The build process uses CMake\footnote{http://www.cmake.org/} and Maven\footnote{http://maven.apache.org/} (only if the server library is being built), therefore both of these tools needs to be available in your Linux machine.
 
-On Ubuntu 12.04 these can be installed as follows\footnote{On a different distro the protocol buffer library might have a different name.}:
+On Ubuntu 13.04 these can be installed as follows\footnote{On a different distro the libraries might have different names.}:
 \begin{verbatim}
 $ sudo apt-get install cmake
-$ sudo apt-get install libprotoc-dev libprotobuf7 libprotobuf-lite7 libprotobuf-java
+$ sudo apt-get install maven2
 \end{verbatim}
+
+A Java virtual machine and compiler need to be available in your system; to ensure compatibility with the JRE within Matlab we strongly suggest to use a 1.6 JVM\footnote{In more than one occasion we experienced problems when loading class files compiled with Java 1.7.}.
 
 \subsubsection{Compilation} \label{comp}
-To compile the server and client code cd into \texttt{qrsim/tcp-linux/build}\footnote{If the directory \texttt{build} does not exist, create it.} and run:
- \begin{verbatim}
-$ cmake ..
+To configure the compilation the server and client code cd into \texttt{qrsim/tcp-linux/build}\footnote{If the directory \texttt{build} does not exist, create it.} and run:
+\begin{verbatim}
+$ cmake .. -DMATLABROOT=/path_to_your_matlab_root_dir
+\end{verbatim}
+where the variable \texttt{MATLABROOT} allows to specify the path to the matlab installation present in your system\footnote{The Matlab root dir can be easily obtained from the Matlab console using the command \texttt{matlabroot}.}.
+To only compile the client side of the TCP interface, cmake can be configured with the switch \texttt{-DCLIENT\_ONLY=ON}; this can be useful if the current machine connects to a remote server which takes care of running QRSim.
+
+The client-server interface uses Google protocol buffers\footnote{https://developers.google.com/protocol-buffers/} for data serialization, to ensure compatibility cmake will download an build locally the correct version of protocol buffers; this process will take a few minutes.
+
+Finally, once the cmake process is completed without errors, you can compile the interface code running: 
+\begin{verbatim}
 $ make
 \end{verbatim}
-all should compile cleanly.
-
-CMake is smart enough to figure out if you do not have Java installed in your machine in which case only the C++ client library will be compiled.
-Note that this is a legitimate scenario since you might be interested in connecting to a remote server which takes care of running QRSim. 
 
 \subsubsection{Installation}\label{inst}
-Installing\footnote{The library is installed in \texttt{/usr/local/lib} and the header files in \texttt{/usr/local/include/qrsimtcpclient/}.} the library is nothing different from any usual Linux library compiled from source:
+Installing\footnote{The C++ library is installed in \texttt{/usr/local/lib} and the header files in \texttt{/usr/local/include/qrsimtcpclient/}.} the library is very much like any usual Linux library compiled from source:
 
 \begin{verbatim}
 $ sudo make install

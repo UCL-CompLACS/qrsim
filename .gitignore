@@ -59,3 +59,6 @@
 /doc/manual.log
 /doc/manual.aux
 /tcp-linux/cmake_uninstall.cmake
+/tcp-linux/exampleprj/bin/exampleclient
+/tcp-linux/include/qrsimtcpclient/qrs_srv_cli_msg.pb.h
+/tcp-linux/include/qrsimtcpclient/QRSimTCPClient.h
