@@ -3,3 +3,4 @@ bin/*
 lib/*
 proto_gen/*
 java/qrsimsrvcli/QrsSrvCliMsg.java
+exampleprj/build/*
