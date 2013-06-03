@@ -1,0 +1,63 @@
+PATH INTEGRAL CONTROL IN HELICOPTERS
+
+ This c++ module illustrates the Path Integral (PI) method for control of
+ multiple helicopters in QRSim simulation software provided by UCL.  The module
+ follows the TCP interface of the QRSim simulator and sends optimal control
+ commands periodically which are computed by sampling trajectories obtained
+ using a simplified model of the dynamics and an initial control sequence.
+
+INSTALLING QRSIM
+
+ To install the demo, download the QRSim:
+ 
+ $ git clone https://github.com/UCL-CompLACS/qrsim.git
+ $ cd qrsim
+ $ git checkout master
+ 
+ And follow the instructions from qrsim/doc/manual.pdf for installation.
+
+INSTALLING PATH INTEGRAL PROJECT
+
+ Unpack the .tgz file in the tcp-linux directory
+
+ $ cd tcp-linux
+ $ tar xvzf picatmouse.tgz
+
+ Add the task file to QRSim
+
+ $ cp picatmouse/Task1.m your_qrsim_dir/sim/tasks/
+ 
+ Add the config file to QRSim
+
+ $ cp picatmouse/pelican_config_easy.m your_qrsim_dir/sim/platforms/
+ 
+ Compile and link the example:
+
+ $ cd your_qrsim_dir/tcp-linux/picatmouse
+ $ mkdir build 
+ $ cd build
+ $ cmake .. -DQRSIMTCPLINUX_DIR=your_qrsim_dir/tcp-linux/ 
+ $ make
+
+ After this, you should have a pi_qrsim binary in picatmouse/bin
+
+RUNNING PATH INTEGRAL PROJECT
+
+ Start the QRSimServer in a matlab session:
+ 
+ $ cd qrsim/tcp-linux/matlab
+ $ matlab -nodesktop -r 'QRSimTCPServer(10000);'
+ 
+ Run the path integral executable
+ 
+ $ cd qrsim/tcp-linux/picatmouse/bin
+ $ ./pi_qrsim ../pi_qrsim.xml
+
+REQUIREMENTS
+
+ To be able to compile you need to have, in addition to the required
+ configuration for QRsim, the gsl library for random number generation.
+ You can install it, for example:
+ 
+ $ sudo apt-get install libgsl0-dev
+ 

@@ -24,58 +24,14 @@ double PIController::stdv = 0;
 // Model methods
 //
 
-void PIController::Model::step(	const vec& A ) {
-	for(int i=0; i<units; i++) {
-
-		state[4*i+0] += state[4*i+2]*dt;	//  X position
-		state[4*i+1] += state[4*i+3]*dt;	//  Y position
-
-		state[4*i+2] += A[2*i+0]*dt;		//  X velocity
-		state[4*i+3] += A[2*i+1]*dt;		//  Y velocity
-
-	}
-}
-
 double PIController::Model::immediateControlCost( const vec& A ) const
 {
 	// Immediate control cost of the control action A.
 	double v=0;
 	for(unsigned int i=0; i<A.size(); i++) {
-		// v += R[i]*A[i]*A[i];
-		v += R*A[i]*A[i];
+		v += A[i]*A[i];
 	}
-	return v*.5;
-}
-
-double PIController::Model::immediateStateReward( const vec &X ) const
-{
-	// Immediate state reward of the state X.
-	// Returns the negative of the cost c in this case.
-	double c=0;
-
-	// cost per unit
-	for(int i=0; i<units; i++)
-	{
-		double speed = sqrt(X[4*i+2]*X[4*i+2] + X[4*i+3]*X[4*i+3]);
-		// penalty for low or high speeds
-		c += exp(speed-3); 		// determines max allowed speed
-		c += exp(-speed+1);		// determines min allowed speed
-
-		// penalty for going to far away
-		double d;
-		d = sqrt(X[4*i+0]*X[4*i+0] + X[4*i+1]*X[4*i+1]);
-		c+= exp(d-4);				// max allowed distance ~= 4
-
-		// penalty for collision
-		for(int j=i+1; j<units; j++)
-		{	d=0;
-			d+=(X[4*i+0]-X[4*j+0])*(X[4*i+0]-X[4*j+0]);
-			d+=(X[4*i+1]-X[4*j+1])*(X[4*i+1]-X[4*j+1]);
-			if (0.00001 > d) d=0.00001;
-			c+=1/d;
-		}
-	}
-	return -c;
+	return v*.5*R;
 }
 
 //
@@ -87,15 +43,15 @@ double PIController::Sampler::runningStateReward(
 		const vvec& control
 ) {
 	// Returns state based reward of a rollout.
-	model.setState(X0);
+	model->setState(X0);
 	double v=0;
 	for (int s=0; s<H; s++) {
 		for (int i=0; i<dtperstep; i++){
-			v += model.immediateStateReward(model.getState())*dt;
-			model.step( control[s] );
+			v += model->immediateStateReward()*dt;
+			model->step( control[s] );
 		}
 	}
-	v += model.endStateReward(model.getState());
+	v += model->endStateReward();
 	return v;
 }
 
@@ -104,27 +60,27 @@ double PIController::Sampler::runningControlCost( const vvec& control ) const
 	// Returns the cost of a control sequence.
 	double c=0;
 	for (int s=0; s<H; s++)
-		c += model.immediateControlCost(control[s]);
+		c += model->immediateControlCost(control[s]);
 	return c*dS;
 }
-
 
 //
 // PIController methods
 //
 
 PIController::PIController(
-	const int& dimUAVx,
-	const int& dimUAVu,
+	const int& dimX,
+	const int& dimU,
 	const int& seed,
 	const int& N
 ) :
-		dimX(dimUAVx*units),
-		dimU(dimUAVu*units),
+		dimX(dimX),
+		dimU(dimU),
 		N(N),
 		u_exp(H,vec(dimU,0)),
 		sampl()
 {
+ cout << "in constructor" << endl;
 	gsl_rng_default_seed = seed;
 	r = gsl_rng_alloc (gsl_rng_default);
 	time_t timer;
@@ -133,16 +89,30 @@ PIController::PIController(
 	sprintf(name,"experiment%d.m",(int)timer);
 	outfile = name;
 	plotSetup();
+
+    // set model
+    setModel();
+ cout << "out constructor" << endl;
 }
+
+const vec PIController::Sampler::predictState(const vec& X, const vec& A)
+{
+	// Predicts the new state after a control step with A starting in X.
+	model->setState(X);
+	for (int i=0; i<dtperstep; i++)	model->step(A);
+	return model->getState();
+}
+
 
 PIController::~PIController() {
 	// TODO Auto-generated destructor stub
+    unsetModel();
 }
 
 vvec PIController::computeControl(const vvec &X_qrsim) {
 	// Input is qrsim state. 
 	// Output is qrsim action.
-	
+
 	vec state = convertState(X_qrsim);
 	vec action(dimU,0);
 
@@ -184,7 +154,7 @@ vvec PIController::computeControl(const vvec &X_qrsim) {
 			u_exp = u_roll;
 		}
 
-		// correct value of rollout for to get correct importance sampling.
+		// Girsanov-correction:
 		v_roll[n] += sampl.runningControlCost(noise);
 
 		// save max for rescaling weights
@@ -213,12 +183,12 @@ vvec PIController::computeControl(const vvec &X_qrsim) {
 	cout << " end " << endl;
 	printTime();
 	plotCurrent(state,action);
-	return convertControl(action, X_qrsim);
+	return convertControl(state, action);
 }
 
 // Real world state (X_qrsim) to simplified state (X).
 vec PIController::convertState(const vvec& X_qrsim) const {
-	vec X(units*4);
+	vec X(dimX);
 	for (int i=0; i<units; i++) {
 		X[i*4+0] = X_qrsim[i][0];		// x position
 		X[i*4+1] = X_qrsim[i][1];		// y position
@@ -228,15 +198,26 @@ vec PIController::convertState(const vvec& X_qrsim) const {
 	return X;
 }
 
-// Simplified action A to real world action A_qrsim.
+// Simplified action A and state X to real world action A_qrsim.
 // Second input is a Real world state. 
-vvec PIController::convertControl(const vec &A, const vvec &X_qrsim) const {
+vvec PIController::convertControl(const vec& X, const vec& A) {
+	cout << X;
+	cout << A <<endl;
+	vec newX = sampl.predictState(X, A);
+//	vec newX(X);
 	vvec A_qrsim(units);
 	for (int i=0; i<units; i++) {
-		A_qrsim[i].push_back(X_qrsim[i][6] + dS*A[2*i+0]);	//  X velocity
-		A_qrsim[i].push_back(X_qrsim[i][7] + dS*A[2*i+1]);	//  Y velocity
-		A_qrsim[i].push_back(0.);              				//  Z velocity
+//		if (i==3) {
+			A_qrsim[i].push_back(newX[i*4+2]);	//  X velocity
+			A_qrsim[i].push_back(newX[i*4+3]);	//  Y velocity
+//		}
+/*		else {
+			A_qrsim[i].push_back(0.);	//  X velocity
+			A_qrsim[i].push_back(0.);	//  Y velocity
+		}
+*/		A_qrsim[i].push_back(0.);           //  Z velocity
 	}
+	
 	return A_qrsim;
 }
 
