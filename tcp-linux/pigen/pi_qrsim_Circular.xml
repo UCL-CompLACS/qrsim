@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ip>127.0.0.1</ip>
+<port>10000</port>
+<taskfile>Task0</taskfile>
+<dt>.25</dt>
+<uncontrolled_units>0</uncontrolled_units>
+<R>1</R>
+<dtperstep>2</dtperstep>
+<H>5</H>
+<nu>.01</nu>
+<T>30</T>
+<seed>0</seed>
+<N>10000</N>  
+<dimUAVx>4</dimUAVx>
+<dimUAVu>2</dimUAVu>
+ 	
