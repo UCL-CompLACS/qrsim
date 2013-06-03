@@ -24,6 +24,13 @@ exit = 0;
 realTime = 0;
 numUAVs = 0;
 
+% output video file
+writerObj = VideoWriter('newfile.avi');
+writerObj.FrameRate = 1/0.02;
+writerObj.Quality = 100
+open(writerObj);
+
+
 % server loop
 while (~exit)
     
@@ -83,7 +90,8 @@ while (~exit)
                         end                                    
 
                         % create controllers
-                        velpid = VelocityPID(state.DT);
+                        %velpid = VelocityPID(state.DT);
+                        velpid = VelocityHeightPID(state.DT);
                         wppid = WaypointPID(state.DT);                    
                     
                         % return state
@@ -186,13 +194,16 @@ while (~exit)
                                 tloop = tic;
                                 for j=1: numUAVs,
                                     % compute control commands using a pid
-                                    U(:,j) = velpid.computeU(state.platforms{j}.getEX(),cmd(j,1:3)',0);
+                                    %U(:,j) = velpid.computeU(state.platforms{j}.getEX(),cmd(j,1:3)',0);
+                                    U(:,j) = velpid.computeU(state.platforms{j}.getEX(),cmd(j,1:2)',-5,0);
                                 end
                                 qrsim.step(U);
                                 if(realTime)
                                     wait = max(0,state.DT-toc(tloop)); 
                                     pause(wait);
                                 end
+                                pause(.01);
+                                writeVideo(writerObj,getframe(gcf));
                             end
                         catch e
                             % return error
@@ -248,6 +259,7 @@ while (~exit)
 end
 
 % housekeeping
+close(writerObj);
 close all;
 clear all;
 
