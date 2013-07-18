@@ -147,7 +147,7 @@ classdef GaussianPlumeArea<PlumeArea
         
         function obj = computeReferenceSamples(obj)
             % compute samples from the underlying model
-            obj.referenceSamples = ((((2*pi)^3)*obj.detSigma)^0.5)*obj.getSamples(obj.locations);
+            obj.referenceSamples = obj.Q0*obj.getSamples(obj.locations);
         end
     end
 end
