@@ -119,6 +119,10 @@ classdef TaskPlumeMultiSourceGaussianDispersion<Task
             for i=1:obj.numUAVs,
                 taskparams.platforms(i).configfile = 'pelican_config_plume_noisy_windy'; 
             end            
+
+            % get hold of a prng stream
+            obj.prngId = obj.simState.numRStreams+1;
+            obj.simState.numRStreams = obj.simState.numRStreams + 1;
         end
         
         function reset(obj)
