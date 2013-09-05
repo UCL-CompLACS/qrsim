@@ -113,6 +113,8 @@ while (~exit)
                     try
                         %reset
                         qrsim.reset();
+                        velpid.reset();
+                        wppid.reset();
                         % return ack
                         s.sendAck(0);
                     catch e
