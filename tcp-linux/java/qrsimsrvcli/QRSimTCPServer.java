@@ -72,6 +72,7 @@ public Message nextCommand() throws Exception
     Message msg = mb.build();
     //System.out.println("got message of type "+ msg.getType());
 
+    is.resetSizeCounter();
     return msg;
   }
 
