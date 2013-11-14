@@ -41,7 +41,7 @@ The simulation may also be controlled from outside Matlab. Currently, this is on
 To test the TCP interface, run the following:
 
 1. In matlab: <b>QRSimTCPServer(10000)</b>
-2. In linux: /some/path/to/qrsim/tcp-linux/bin/testClient 127.0.0.1 10000
+2. In linux: <b>/some/path/to/qrsim/tcp-linux/bin/testClient 127.0.0.1 10000</b>
 
 
 ## Documentation
