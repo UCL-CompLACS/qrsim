@@ -21,8 +21,8 @@ addpath(['..',filesep,'..',filesep,'controllers']);
 qrsim = QRSim();
 
 % load task parameters and do housekeeping
-state = qrsim.init('TaskPlumeSingleSourceGaussian');
-%state = qrsim.init('TaskPlumeSingleSourceGaussianDispersion');
+%state = qrsim.init('TaskPlumeSingleSourceGaussian');
+state = qrsim.init('TaskPlumeSingleSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeMultiSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeMultiHeliMultiSourceGaussianDispersion');
 %state = qrsim.init('TaskPlumeSingleSourceGaussianPuffDispersion');
@@ -32,7 +32,7 @@ state = qrsim.init('TaskPlumeSingleSourceGaussian');
 
 % create a 3 x helicopters matrix of control inputs
 % column i will contain the 3D NED velocity [vx;vy;vz] in m/s for helicopter i
-U = zeros(3,state.task.numUAVs);
+U = cell(state.task.numUAVs);
 tstart = tic;
 
 % allocate up a matrix to store all the concentration measuremenst
@@ -71,12 +71,12 @@ for i=1:state.task.durationInSteps,
                 u(:,j) = rand(2,1)-[0.5;0.5];
             
                 % scale by the max allowed velocity
-                U(:,j) = [0.5*state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));0];
+                U{j} = [0.5*state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));0];
                                 
                 % if the uav is going astray we point it back to the center
                 p = state.platforms{j}.getEX(1:2);
                 if(norm(p)>100)
-                    U(:,j) = [-0.8*state.task.velPIDs{j}.maxv*p/norm(p);0];
+                    U{j} = [-0.8*state.task.velPIDs{j}.maxv*p/norm(p);0];
                 end    
             end
         end
@@ -91,8 +91,8 @@ for i=1:state.task.durationInSteps,
     end
     
     if(state.display3dOn)
-        % wait so to run in real time
-        % this can be commented out obviously
+        % render, then wait so to run in real time
+        drawnow;
         wait = max(0,state.task.dt-toc(tloop));
         pause(wait);
     end

@@ -40,11 +40,13 @@ for i=1:N,
         end
         
         % compute controls
-        U = pid.computeU(ex,wps(:,wpidx),0);
+        U{1} = pid.computeU(ex,wps(:,wpidx),0);
         % step simulator
         qrsim.step(U);        
     end
-    % wait so to run in real time
+    
+    % force render, then wait so to run in real time
+    drawnow;
     wait = max(0,state.task.dt-toc(tloop));
     pause(wait);
     

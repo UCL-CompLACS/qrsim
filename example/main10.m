@@ -27,19 +27,21 @@ for i=1:10
 end
 tstart = tic;
 
-U = zeros(5,10);
+U = cell(10);
 for i=1:N,
     tloop=tic;
     for j=1:10
         % compute controls
-        U(:,j) = pids{j}.computeU(state.platforms{j}.getEX(),wp(:,j),0);
+        U{j} = pids{j}.computeU(state.platforms{j}.getEX(),wp(:,j),0);
     end
     % step simulator
     qrsim.step(U);
     
-    % wait so to run in real time
+    % force render, then wait so to run in real time
+    drawnow;
     wait = max(0,state.task.dt-toc(tloop));
     pause(wait);
+    
 end
     
 % get reward

@@ -35,7 +35,7 @@ state = qrsim.init('TaskCatsMouseNoiseless');
 
 % create a 2 x cats matrix of control inputs
 % column i will contain the 2D NED velocity [vx;vy] in m/s for cat i
-U = zeros(2,state.task.Nc);
+U = cell(state.task.Nc);
 tstart = tic;
 
 % run the scenario and at every timestep generate a control
@@ -72,15 +72,15 @@ for i=1:state.task.durationInSteps,
         end
         
         % scale by the max allowed velocity
-        U(:,j) = state.task.velPIDs{j}.maxv*(u/norm(u));
+        U{j} = state.task.velPIDs{j}.maxv*(u/norm(u));
     end
     
     % step simulator
     qrsim.step(U);
     
     if(state.display3dOn)
-        % wait so to run in real time
-        % this can be commented out obviously
+        % force render, then try to run in realtime
+        drawnow;
         wait = max(0,state.task.dt-toc(tloop));
         pause(wait);
     end

@@ -31,7 +31,7 @@ state = qrsim.init('TaskSearchRescueSingleNoiseless');
 
 % create a 3 x helicopters matrix of control inputs
 % column i will contain the 3D NED velocity [vx;vy;vz] in m/s for helicopter i
-U = zeros(3,state.task.numUAVs);
+U = cell(state.task.numUAVs);
 tstart = tic;
 
 % allocate temporary array for control inputs
@@ -59,12 +59,12 @@ for i=1:state.task.durationInSteps,
                 % random velocity direction
                 u(:,j) = rand(2,1)-[0.5;0.5];
                 % fixed velocity 0.5 times max allowed velocity
-                U(:,j) = [0.5*state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));0];
+                U{j} = [0.5*state.task.velPIDs{j}.maxv*(u(:,j)/norm(u(:,j)));0];
                 
                 % if the uav is going astray we point it back to the center
                 p = state.platforms{j}.getEX(1:2);
                 if(norm(p)>100)
-                    U(:,j) = [-0.8*state.task.velPIDs{j}.maxv*p/norm(p);0];
+                    U{j} = [-0.8*state.task.velPIDs{j}.maxv*p/norm(p);0];
                 end
             end
         end
@@ -96,7 +96,8 @@ for i=1:state.task.durationInSteps,
     r = qrsim.reward();
     
     if(state.display3dOn)
-        % wait so to run in real time if the rendering is on
+        % render, then wait so to run in real time if the rendering is on
+        drawnow;
         wait = max(0,state.task.dt-toc(tloop));
         pause(wait);
     end

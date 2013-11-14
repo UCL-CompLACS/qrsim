@@ -43,7 +43,7 @@ classdef Task<handle
         function UU = step(~,~)
             % called by qrsim during a step in order to do any upates
             % that the task might need
-            UU = [];
+            UU = {};
         end
         
         function obj = Task(state)

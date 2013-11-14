@@ -194,7 +194,7 @@ classdef QRSim<handle
                     'the number of colum of the control input matrix has to be equal to the number of platforms');
                 
                 for i=1:length(obj.simState.platforms)
-                    obj.simState.platforms{i}.step(UU(:,i));
+                    obj.simState.platforms{i}.step(UU{i});
                 end
             end
             

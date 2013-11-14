@@ -66,6 +66,7 @@ pid_real = VelocityHeightPID(state_real.DT);
 pid_sim = VelocityHeightPID(state_sim.DT);
 
 for i=1:N,
+    tloop=tic;
     % one should alway make sure that the uav is valid 
     % i.e. no collision or out of area event happened
     if(~state_sim.platforms{1}.isValid()) 
@@ -75,7 +76,6 @@ for i=1:N,
     % get the "real world" platform state
     p1_state_real = state_real.platforms{1}.getEXasX();
     
-                
     % dumb exaustive search over possible actions
     max_reward = -Inf; best_action_idx = -1;    
     for j=1:size(dwp,1)
@@ -93,7 +93,7 @@ for i=1:N,
         % run the action for M timestep and compute the reward/cost
         for k=1:M
             % compute controls            
-            U = pid_sim.computeU(state_sim.platforms{1}.getEX(),action(1:2)',action(3),action(4));
+            U{1} = pid_sim.computeU(state_sim.platforms{1}.getEX(),action(1:2)',action(3),action(4));
             
             % step simulator
             qrsim_sim.step(U);            
@@ -120,13 +120,16 @@ for i=1:N,
     % world"
     for k=1:M/2
         % compute controls
-        U = pid_real.computeU(state_real.platforms{1}.getEX(),best_action(1:2)',best_action(3),best_action(4));
+        U{1} = pid_real.computeU(state_real.platforms{1}.getEX(),best_action(1:2)',best_action(3),best_action(4));
         % step simulator
         qrsim_real.step(U);
     end
     
-    % wait a little to allow time for rendering
-    pause(0.05);
+    % force render, then wait so to run in real time
+    drawnow;
+    wait = max(0,state.task.dt-toc(tloop));
+    pause(wait);
+
 end
 
 fprintf('Done!\n');

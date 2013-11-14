@@ -114,7 +114,7 @@ classdef TaskKeepVel<Task
             % cost
             
             for i=1:size(U,2)
-                u = (U(1:4,i)-obj.U_NEUTRAL);
+                u = (U{i}(1:4)-obj.U_NEUTRAL);
                 e = (dcm(obj.simState.platforms{i}.getX())'*obj.simState.platforms{i}.getX(7:9))-obj.v;
                 control_cost = (obj.R*u)'*(obj.R*u);
                 state_cost = (obj.Q*e)'*(obj.Q*e);

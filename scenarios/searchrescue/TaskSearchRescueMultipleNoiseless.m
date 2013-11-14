@@ -163,12 +163,12 @@ classdef TaskSearchRescueMultipleNoiseless<Task
             %
             % note: this is generally called automatically by qrsim 
             % 
-            UU=zeros(5,length(obj.simState.platforms));
+            UU=cell(length(obj.simState.platforms));
             for i=1:length(obj.simState.platforms),
                 if(obj.simState.platforms{i}.isValid())
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),obj.headings(i));
+                    UU{i} = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U{i},obj.headings(i));
                 else
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0;0],obj.headings(i));
+                    UU{i} = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0;0],obj.headings(i));
                 end
             end
         end

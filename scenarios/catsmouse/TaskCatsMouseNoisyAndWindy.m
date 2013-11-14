@@ -163,7 +163,7 @@ classdef TaskCatsMouseNoisyAndWindy<Task
         
         function UU = step(obj,U)
             % compute the UAVs controls from the velocity inputs
-            UU = zeros(5,obj.Nc+1);
+            UU = cell(obj.Nc+1);
             
             mousePos = obj.simState.platforms{obj.Nc+1}.getEX(1:2);
             Umouse = [0;0];
@@ -180,13 +180,13 @@ classdef TaskCatsMouseNoisyAndWindy<Task
             % take the obtained direction and rescale it by the max mouse velocity
             Umouse = obj.mouseVfactor*obj.velPIDs{obj.Nc+1}.maxv*(Umouse./norm(Umouse));
             
-            UU(:,obj.Nc+1) = obj.velPIDs{obj.Nc+1}.computeU(obj.simState.platforms{obj.Nc+1}.getEX(),Umouse,-obj.hfix,0);
+            UU{obj.Nc+1} = obj.velPIDs{obj.Nc+1}.computeU(obj.simState.platforms{obj.Nc+1}.getEX(),Umouse,-obj.hfix,0);
             
             for i=1:obj.Nc,
                 if(obj.simState.platforms{i}.isValid())
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U(:,i),-obj.hfix,0);
+                    UU{i} = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),U{i},-obj.hfix,0);
                 else
-                    UU(:,i) = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],-obj.hfix,0);
+                    UU{i} = obj.velPIDs{i}.computeU(obj.simState.platforms{i}.getEX(),[0;0],-obj.hfix,0);
                 end
             end
         end

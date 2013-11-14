@@ -125,7 +125,7 @@ classdef TaskGotoWP<Task
             % cost
             
             for i=1:size(U,2)
-                u = (U(1:4,i)-obj.U_NEUTRAL);
+                u = (U{i}(1:4)-obj.U_NEUTRAL);
                 obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.simState.DT;
             end
         end

@@ -31,14 +31,16 @@ for i=1:N,
     % i.e. no collision or out of area event happened
     if(state.platforms{1}.isValid())
         % compute controls
-        U = pid.computeU(state.platforms{1}.getEX(),vt(1:3,i),0);
+        U{1} = pid.computeU(state.platforms{1}.getEX(),vt(1:3,i),0);
         state.task.setTargetVelocity(vt(:,i));
         % step simulator
         qrsim.step(U);
         
         X(:,i) = [state.platforms{1}.getEX(18:19);-state.platforms{1}.getEX(20)];
     end
-    % wait so to run in real time
+    
+    % render, then wait so to run in real time
+    drawnow;
     wait = max(0,state.task.dt-toc(tloop));
     pause(wait);
 end
