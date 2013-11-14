@@ -29,6 +29,8 @@ The following two videos give a glimpse of some of the QRSim capabilities:
 
 Matlab should open a figure window showing a single quadrotor attempting to hold a waypoint.
 
+If you wish to use the tcp interface: '''sudo apt-get install libprotobuf-java'''
+
 
 ## Documentation
 The best way to have an understanding of how the QRSim software is structured and of what platforms, sensors and scenarios models are implemented is to read the following documentation:
