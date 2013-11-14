@@ -31,15 +31,17 @@ To run a simple simulation of a single quadrotor holding a waypoint, follow thes
 
 The simulation may also be controlled from outside Matlab. Currently, this is only supported in an Ubuntu Linux environment, and requires a little more work to set up. 
 
-1. Install the required libraries: <b>sudo apt-get install cmake libprotoc-dev libprotobuf7 libprotobuf-lite7 libprotobuf-java</b>
-2. Change to the 'tcp-linux' directory: <b>cd /some/path/to/qrsim/tcp-linux</b> 
-3. Prepare the build environment: <b>cmake</b> 
-4. Build the code: <b>make</b>
-5. Install the buid products: <b>sudo make install</b>
--- Installing: /usr/share/java/qrsimtcpserver.jar
--- Installing: /usr/local/include/qrsimtcpclient/QRSimTCPClient.h
--- Installing: /usr/local/include/qrsimtcpclient/qrs_srv_cli_msg.pb.h
--- Installing: /usr/local/lib/libqrsimtcpclient.so
+1. Configure Oracle Java 1.6 as Ubuntu default, because Matlab currently does not support other versions.
+2. Install the required libraries: <b>sudo apt-get install cmake libprotoc-dev libprotobuf7 libprotobuf-lite7 libprotobuf-java</b>
+3. Change to the 'tcp-linux' directory: <b>cd /some/path/to/qrsim/tcp-linux</b> 
+4. Prepare the build environment: <b>cmake</b> 
+5. Build the code: <b>make</b>
+6. Install the buid products: <b>sudo make install</b>
+
+To test the TCP interface, run the following:
+
+1. In matlab: <b>QRSimTCPServer(10000)</b>
+2. In linux: /some/path/to/qrsim/tcp-linux/bin/testClient 127.0.0.1 10000
 
 
 ## Documentation
