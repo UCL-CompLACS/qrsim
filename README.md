@@ -21,15 +21,25 @@ The following two videos give a glimpse of some of the QRSim capabilities:
 
 ## Quick usage guide
 
+To run a simple simulation of a single quadrotor holding a waypoint, follow these instructions:
+
 1. Clone the Git repository: <b>git clone https://github.com/UCL-CompLACS/qrsim.git</b>
 2. Open Matlab and switch to code: <b>cd /some/path/to/qrsim</b> 
 3. Add the 'sim' directory to the Matlab search path: <b>addpath sim</b>
 4. Change to the 'example' directory: <b>cd example</b>
 5. Run an example: <b>main</b>
 
-Matlab should open a figure window showing a single quadrotor attempting to hold a waypoint.
+The simulation may also be controlled from outside Matlab. Currently, this is only supported in an Ubuntu Linux environment, and requires a little more work to set up. 
 
-If you wish to use the tcp interface: <b>sudo apt-get install libprotobuf-java</b>
+1. Install the required libraries: <b>sudo apt-get install cmake libprotoc-dev libprotobuf7 libprotobuf-lite7 libprotobuf-java</b>
+2. Change to the 'tcp-linux' directory: <b>cd /some/path/to/qrsim/tcp-linux</b> 
+3. Prepare the build environment: <b>cmake</b> 
+4. Build the code: <b>make</b>
+5. Install the buid products: <b>sudo make install</b>
+-- Installing: /usr/share/java/qrsimtcpserver.jar
+-- Installing: /usr/local/include/qrsimtcpclient/QRSimTCPClient.h
+-- Installing: /usr/local/include/qrsimtcpclient/qrs_srv_cli_msg.pb.h
+-- Installing: /usr/local/lib/libqrsimtcpclient.so
 
 
 ## Documentation
@@ -53,7 +63,7 @@ With the exception of the libraries in the [`3rdparty`](3rdparty) folder which a
 Due to lack of time we are currently unable to provide direct support for the software, however we will do our best to address any problem reported via the GitHub <a href="https://github.com/UCL-CompLACS/qrsim/issues"> issue system<a/>.  
 
 ## Acknowledgments
-The author wants to thank Guy Lever, Nicolas Hees, Simon Julier, John Showe-Taylor, David Silver, Stephen Hailes and Luke Teacy for the fruitful discussing about the application scenarios and the classifier model. This work was carried out with the support of the European Research Council \#FP7-ICT-270327 (<a href="http://www.complacs.org">CompLACS</a>).
+The author wants to thank Guy Lever, Nicolas Hees, Simon Julier, John Shawe-Taylor, David Silver, Stephen Hailes and Luke Teacy for the fruitful discussing about the application scenarios and the classifier model. This work was carried out with the support of the European Research Council \#FP7-ICT-270327 (<a href="http://www.complacs.org">CompLACS</a>).
 
 
 ### References
