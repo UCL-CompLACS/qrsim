@@ -24,12 +24,12 @@ The following two videos give a glimpse of some of the QRSim capabilities:
 1. Clone the Git repository: <b>git clone https://github.com/UCL-CompLACS/qrsim.git</b>
 2. Open Matlab and switch to code: <b>cd /some/path/to/qrsim</b> 
 3. Add the 'sim' directory to the Matlab search path: <b>addpath sim</b>
-4. Change to the 'examples' directory: <b>cd example</b>
+4. Change to the 'example' directory: <b>cd example</b>
 5. Run an example: <b>main</b>
 
 Matlab should open a figure window showing a single quadrotor attempting to hold a waypoint.
 
-If you wish to use the tcp interface: '''sudo apt-get install libprotobuf-java'''
+If you wish to use the tcp interface: <b>sudo apt-get install libprotobuf-java</b>
 
 
 ## Documentation
