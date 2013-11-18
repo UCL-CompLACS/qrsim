@@ -113,9 +113,9 @@ classdef TaskKeepSpotWithReward<Task
             % updates reward
             % in this simple example we only have a quadratic control
             % cost
-            
+
             for i=1:size(U,2)
-                u = (U(1:4,i)-obj.U_NEUTRAL);
+                u = (U{i}(1:4,i)-obj.U_NEUTRAL);
                 obj.currentReward = obj.currentReward - ((obj.R*u)'*(obj.R*u))*obj.simState.DT;
             end
         end
