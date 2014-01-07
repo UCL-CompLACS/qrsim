@@ -203,6 +203,7 @@ classdef QRSim<handle
             
             % force figure refresh
             if(obj.par.display3d.on == 1)
+                drawnow;
                 refresh(obj.simState.display3d.figure);
             end
             
