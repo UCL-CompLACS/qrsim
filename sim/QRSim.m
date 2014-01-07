@@ -97,7 +97,7 @@ classdef QRSim<handle
             % we return a handle to the state this should avoid copies
             state = obj.simState;
         end
-        
+                  
         function obj=reset(obj)
             % resets the simulator to the state specified in the task, any random parameter is reinitialised
             %
@@ -117,18 +117,18 @@ classdef QRSim<handle
                 obj.simState.environment.(envObjs{i}).reset();
             end
             
-            % reset task
-            % note that this will also reset all the platforms states to their initial value
+            % reset task and all the platforms states to initial value
             obj.simState.task.reset();
-            
-            % reset all platforms
-            %for i=1:length(obj.simState.platforms)
-            %    obj.simState.platforms{i}.reset();
-            %end
             
             % reset reward
             obj.simState.task.resetReward();
             
+            % If results are to be written to a video, open handle
+            if isfield(obj.par.display3d,'video')
+                open(obj.par.display3d.video);
+            end
+            
+            % we are now ready
             obj.bootstrapped = 1;
         end
         
@@ -202,9 +202,22 @@ classdef QRSim<handle
             obj.simState.task.updateReward(U);
             
             % force figure refresh
-            if(obj.par.display3d.on == 1)
+            if (obj.par.display3d.on == 1)
+                
+                % Draw objects in the queue
                 drawnow;
+                
+                % Flush the image buffer
                 refresh(obj.simState.display3d.figure);
+                
+                % If we have defined a video object
+                if isfield(obj.par.display3d,'video')
+                    
+                    % Write a video frame to the object
+                    writeVideo(obj.par.display3d.video,...
+                        getframe(obj.simState.display3d.figure));
+                end
+                    
             end
             
         end
@@ -216,6 +229,14 @@ classdef QRSim<handle
     end
     
     methods (Access=public)
+        
+        % Flush any outstanding events after simulation, such as video
+        function flush(obj)
+            if isfield(obj.par.display3d,'video')
+                close(obj.par.display3d.video);
+            end
+        end
+
         function delete(obj)
             % destructor, cleans the path
             % this is called automatically by Matlab when using clear on a QRSim object.

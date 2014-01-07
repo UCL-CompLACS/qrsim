@@ -15,7 +15,7 @@ classdef TaskHoldingPattern < Task
     properties (Constant)
         landingPosition = [0;0;0];   % Position of landing zone
         durationInSteps = 1000;      % Number of time ticks
-        numPlatforms    = 6;         % Number of platforms
+        numPlatforms    = 3;         % Number of platforms
         maxSpeed        = 3;         % Maximum holding speed
         minSpeed        = 2;         % Minimum holding speed
         maxDistance     = 60         % Maximum distance
@@ -50,6 +50,11 @@ classdef TaskHoldingPattern < Task
             taskparams.display3d.width = 1000;
             taskparams.display3d.height = 600;
             
+            % Video (optional)
+            taskparams.display3d.video = VideoWriter('holdingpattern.avi');
+            taskparams.display3d.video.FrameRate = 1/taskparams.dt;
+            taskparams.display3d.video.Quality = 100;
+
             % Location
             [E N zone h] = llaToUtm([51.71190;-0.21052;0]);
             taskparams.environment.area.originutmcoords.E = E;

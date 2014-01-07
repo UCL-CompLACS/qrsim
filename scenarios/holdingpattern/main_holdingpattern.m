@@ -29,7 +29,13 @@ for i = 1:state.task.durationInSteps,
         
         % Check that there was no collision
         if ~state.platforms{j}.isValid()
+            
+            % Flush all simulator events
+            qrsim.flush();
+            
+            % Return  errpr
             error('Collision detected');
+            
         end
             
         % Unit vector in the direction of the landing position
@@ -67,4 +73,9 @@ for i = 1:state.task.durationInSteps,
     if state.display3dOn
         pause(max(0,state.task.dt-toc(tloop))); 
     end
+    
 end
+
+% Flush all simulator events
+qrsim.flush();
+
