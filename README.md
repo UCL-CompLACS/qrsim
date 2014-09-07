@@ -34,6 +34,8 @@ If you use this software in an academic context, please cite the following publi
 
 * Renzo De Nardi, <a href="http://www0.cs.ucl.ac.uk/staff/R.DeNardi/DeNardi2013rn.pdf">_The QRSim Quadrotors Simulator_<a/> Research Note RN/13/08, Department of Computer Science University College London, March 2013. [[bibtex](doc/qrsimcite.bib)]
 
+Please note that Renzo De Nardi no longer works at UCL. All research questions should therefore be directed to Andrew Symington (a.symington@cs.ucl.ac.uk).
+
 ## License
 With the exception of the libraries in the [`3rdparty`](3rdparty) folder which are covered by their respective licenses, the QRSim software can be redistributed in accordance with the [Modified BSD License] (LICENSE).
 
